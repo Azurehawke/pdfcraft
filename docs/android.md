@@ -28,6 +28,10 @@ Later builds install over the earlier one as long as they are signed with the sa
   finger drag on the page scrolls it, as the Hand tool would, and a palm resting on the screen
   is ignored, whether it lands before the pen or while you write. Fingers still work on
   buttons, menus and tabs, and two-finger pinch zooms while the pen is up.
+- **Pens:** the Draw tool's pen button (next to its colour) chooses a pen: Pen, Fountain pen,
+  Calligraphy pen, Brush, Pencil or Highlighter. Their width follows how hard you press with the
+  S Pen (and, for the calligraphy pen and highlighter, the direction of the stroke). Drawings
+  stay standard PDF ink comments: other viewers that show comments show them as drawn.
 - **Tabs:** each tab always shows its close button (there is no hover on a touch screen); a dot
   on it marks unsaved changes.
 - **Clipboard:** text copy and paste work inside PdfCraft; Create ▸ Clipboard and copying
