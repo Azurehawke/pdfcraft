@@ -173,6 +173,45 @@ fn form_with_text(doc: &Document, res: &Dict, name: &[u8], depth: usize, budget:
     text.then(|| Form { obj, data, resources: own, matrix: nums(doc, s.dict.get(b"Matrix")), bbox: nums(doc, s.dict.get(b"BBox")) })
 }
 
+/// Whether `data` (drawn with `res`) paints anything but text: a filled or stroked path, a
+/// shading, an image, or a form that does. Fill and stroke operators with no path to paint
+/// (exported field appearances carry them) paint nothing. Past the depth or visit budget it is
+/// taken to paint, which keeps the clip.
+fn paints(doc: &Document, data: &[u8], res: &Dict, depth: usize, budget: &mut usize) -> bool {
+    if depth >= MAX_FORM_DEPTH || *budget == 0 {
+        return true;
+    }
+    *budget -= 1;
+    let mut path = false;
+    for o in parse(data).ops {
+        match o.op.as_slice() {
+            b"m" | b"l" | b"c" | b"v" | b"y" | b"h" | b"re" => path = true,
+            b"n" => path = false,
+            b"f" | b"F" | b"f*" | b"B" | b"B*" | b"b" | b"b*" | b"S" | b"s" => {
+                if path {
+                    return true;
+                }
+            }
+            b"sh" | b"BI" => return true,
+            b"Do" => {
+                let Some(name) = o.operands.first().and_then(Object::as_name) else { continue };
+                let xobjects = resolved_dict(doc, res.get(b"XObject"));
+                let Some(x) = xobjects.get(name) else { continue };
+                let Object::Stream(s) = &*doc.resolve(x) else { return true };
+                if s.dict.name(b"Subtype") != Some(b"Form") {
+                    return true;
+                }
+                let inner = s.dict.get(b"Resources").map(|r| doc.resolve(r)).and_then(|r| r.as_dict().cloned()).unwrap_or_else(|| res.clone());
+                if paints(doc, &s.decoded().unwrap_or_default(), &inner, depth + 1, budget) {
+                    return true;
+                }
+            }
+            _ => {}
+        }
+    }
+    false
+}
+
 /// One level of content: its resources, and the prefix its names get in the page (`None`: the
 /// page's own content, whose names stay).
 struct Scope {
@@ -298,7 +337,12 @@ impl Unpack<'_> {
         if let Some(m) = form.matrix.filter(|m| *m != [1.0, 0.0, 0.0, 1.0, 0.0, 0.0]) {
             out.push(op(b"cm", m.iter().map(|x| Object::Real(*x)).collect()));
         }
-        if let Some([x0, y0, x1, y1]) = form.bbox {
+        // The form's bounding box clips what it draws. A form that draws nothing but text (a
+        // flattened field's value, a label) is drawn in without it: the box is the field's, as
+        // tall as one line, and text edited longer would rewrap below it and be cut off.
+        let mut budget = MAX_FORM_VISITS;
+        let paints_more_than_text = paints(self.doc, &form.data, &scope.res, self.path.len(), &mut budget);
+        if let Some([x0, y0, x1, y1]) = form.bbox.filter(|_| paints_more_than_text) {
             let (x, y) = (x0.min(x1), y0.min(y1));
             out.push(op(b"re", [x, y, (x1 - x0).abs(), (y1 - y0).abs()].iter().map(|v| Object::Real(*v)).collect()));
             out.push(op(b"W", Vec::new()));

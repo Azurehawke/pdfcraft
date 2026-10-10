@@ -1719,6 +1719,8 @@ fn text_in_forms_becomes_editable_page_text_in_the_same_place() {
     t.sort();
     assert_eq!(t, vec!["Page".to_string(), "Weekly planner".to_string(), "monday check in".to_string()]);
     assert!(!has_text_in_forms(&doc, 0));
+    // The forms draw only text, so their boxes don't clip it: text edited longer stays whole.
+    assert!(!streams(&doc, 0).concat().contains(" re"), "{:?}", streams(&doc, 0));
     // A second time finds nothing to do.
     let mut doc = doc;
     assert_eq!(unpack_text_forms(&mut doc, 0).unwrap(), 0);
