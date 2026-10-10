@@ -1,0 +1,30 @@
+[package]
+name = "pdfcraft-android"
+description = "PdfCraft on Android tablets (NativeActivity; build with packaging/android/build-apk.sh)"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish = false
+
+[lib]
+# Loaded by Android's NativeActivity as libpdfcraft_android.so.
+crate-type = ["cdylib"]
+
+# Not the workspace lints: `unsafe_code = "forbid"` can't be relaxed per item, and Android needs
+# two unsafe-attributed items here (the exported `android_main`, and `set_var` before any thread
+# starts). Everything else in the crate stays safe.
+[lints.rust]
+unsafe_code = "deny"
+
+[lints.clippy]
+dbg_macro = "warn"
+todo = "warn"
+
+[target.'cfg(target_os = "android")'.dependencies]
+pdfcraft-ui-egui = { workspace = true }
+eframe = { workspace = true, features = ["default_fonts", "wgpu", "persistence", "android-native-activity"] }
+egui = { workspace = true }
+# The AndroidApp handle (resolves to vendor/winit, like eframe's own).
+winit = { version = "0.30", default-features = false, features = ["android-native-activity"] }
+log = { workspace = true }
+android_logger = "0.15"

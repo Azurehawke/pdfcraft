@@ -81,6 +81,10 @@ mod palette;
 mod panels;
 #[cfg(not(target_arch = "wasm32"))]
 mod pickers;
+/// rfd, or on Android the builder `android_picker` reads.
+mod dialog;
+#[cfg(target_os = "android")]
+mod android_picker;
 pub mod prepare;
 mod print_ui;
 mod signature_drag;
@@ -1072,7 +1076,7 @@ impl PdfCraftApp {
             }
             (Ok(bytes), false) => {
                 #[cfg(not(target_arch = "wasm32"))]
-                self.ask_one(pickers::Ask::Save(rfd::AsyncFileDialog::new().set_file_name(&att.name)), None, move |app, path| {
+                self.ask_one(pickers::Ask::Save(crate::dialog::AsyncFileDialog::new().set_file_name(&att.name)), None, move |app, path| {
                     match crate::editing::write_atomically(&path.to_string_lossy(), &bytes) {
                         Ok(()) => app.notify_fmt("Saved {name}", &[("name", &path.display().to_string())]),
                         Err(e) => app.notify_fmt("Couldn't save: {e}", &[("e", &e.to_string())]),
@@ -1147,7 +1151,7 @@ impl PdfCraftApp {
         #[cfg(not(target_arch = "wasm32"))]
         self.pick(
             pickers::PickFor::Open,
-            rfd::AsyncFileDialog::new().add_filter("PDF", &["pdf"]).add_filter(tl!("Images and text (converted to PDF)"), &create_ui::CONVERTIBLE),
+            crate::dialog::AsyncFileDialog::new().add_filter("PDF", &["pdf"]).add_filter(tl!("Images and text (converted to PDF)"), &create_ui::CONVERTIBLE),
             false,
         );
         // Browsers pick files asynchronously; the bytes arrive through `inbox`.
@@ -1156,7 +1160,7 @@ impl PdfCraftApp {
             let inbox = self.inbox.clone();
             let ctx = self.ctx.clone();
             wasm_bindgen_futures::spawn_local(async move {
-                if let Some(h) = rfd::AsyncFileDialog::new()
+                if let Some(h) = crate::dialog::AsyncFileDialog::new()
                     .add_filter("PDF", &["pdf"])
                     .add_filter(tl!("Images and text"), &create_ui::CONVERTIBLE)
                     .pick_file()
@@ -2028,6 +2032,8 @@ impl eframe::App for PdfCraftApp {
                 },
             );
             dialogs::show(self, &ctx);
+            #[cfg(target_os = "android")]
+            pickers::show_browser(self, &ctx);
             // Notices too: a refused field value or a failed save must be seen in full screen.
             self.show_progress(&ctx);
             widgets::toast(self, &ctx);
@@ -2054,6 +2060,8 @@ impl eframe::App for PdfCraftApp {
         self.process_pending_edits();
         palette::show(self, &ctx);
         dialogs::show(self, &ctx);
+        #[cfg(target_os = "android")]
+        pickers::show_browser(self, &ctx);
         self.show_progress(&ctx);
         widgets::toast(self, &ctx);
         self.finish_render_frame(&ctx);
