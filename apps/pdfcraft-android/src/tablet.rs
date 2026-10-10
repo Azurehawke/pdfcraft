@@ -71,6 +71,10 @@ impl eframe::App for TabletApp {
             raw.safe_area_insets = Some(egui::SafeAreaInsets(insets));
         }
         self.touches.route(&mut raw.events);
+        if self.touches.pending() {
+            // A lift held back for the next frame (`TouchRouter::next`).
+            ctx.request_repaint();
+        }
         self.app.raw_input_hook(ctx, raw);
     }
 
@@ -138,9 +142,36 @@ struct TouchRouter {
     owner: Option<u64>,
     /// Modifier keys as last reported (pointer events carry them).
     modifiers: Modifiers,
+    /// Pointer events for the next frame, and for the one after. A quick tap often arrives in one
+    /// frame (down, up), and egui finds what is under the pointer once per frame, after the
+    /// frame's events: with the lift and the pointer's leaving in the same frame as the press,
+    /// nothing was under it and the tap clicked nothing. So a lift waits for the next frame when
+    /// its press came in this one, and the pointer leaves one frame after the lift.
+    next: Vec<Event>,
+    after: Vec<Event>,
+    /// Touches that started in the frame being routed.
+    started_now: HashSet<u64>,
 }
 
 impl TouchRouter {
+    /// Pointer events wait for a later frame.
+    fn pending(&self) -> bool {
+        !self.next.is_empty() || !self.after.is_empty()
+    }
+
+    /// The owner's lift at `pos`: now (or next frame if it was pressed in this one), and the
+    /// pointer leaves a frame later.
+    fn lift(&mut self, id: u64, pos: Pos2, out: &mut Vec<Event>) {
+        let release = Event::PointerButton { pos, button: egui::PointerButton::Primary, pressed: false, modifiers: self.modifiers };
+        if self.started_now.contains(&id) {
+            self.next.push(release);
+            self.after.push(Event::PointerGone);
+        } else {
+            out.push(release);
+            self.next.push(Event::PointerGone);
+        }
+    }
+
     fn pen_down(&self) -> bool {
         self.down.values().any(|d| d.tool == Tool::Pen)
     }
@@ -164,7 +195,10 @@ impl TouchRouter {
         if !pen::pen_only_drawing() {
             return;
         }
-        let mut out = Vec::with_capacity(events.len());
+        // What earlier frames held back comes first.
+        let mut out = std::mem::take(&mut self.next);
+        self.next = std::mem::take(&mut self.after);
+        self.started_now.clear();
         for event in std::mem::take(events) {
             match event {
                 Event::Key { modifiers, .. } => {
@@ -218,6 +252,11 @@ impl TouchRouter {
                 }
                 if self.owner.is_none() {
                     self.owner = Some(id);
+                    self.started_now.insert(id);
+                    // A new press: the last touch's pointer doesn't leave after all.
+                    out.retain(|e| !matches!(e, Event::PointerGone));
+                    self.next.retain(|e| !matches!(e, Event::PointerGone));
+                    self.after.retain(|e| !matches!(e, Event::PointerGone));
                     pen::set_pointer_source(match tool {
                         Tool::Pen => PointerSource::Pen,
                         Tool::Mouse => PointerSource::Mouse,
@@ -244,8 +283,7 @@ impl TouchRouter {
                 self.down.remove(&id);
                 if self.owner == Some(id) {
                     self.owner = None;
-                    self.press(out, pos, false);
-                    out.push(Event::PointerGone);
+                    self.lift(id, pos, out);
                 }
             }
         }
