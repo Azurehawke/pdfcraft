@@ -44,8 +44,10 @@ cp "$ROOT/assets/app-icon/hicolor/256x256/apps/ai.storyteller.pdfcraft.png" "$OU
     "$OUT/res.zip"
 
 echo "== native library"
-mkdir -p "$OUT/apk/lib"
-cp -r "$OUT/jniLibs/arm64-v8a" "$OUT/apk/lib/"
+# Only PdfCraft's library: cargo-ndk also copies dependencies' own dylib builds (ocrs, boa_engine),
+# which libpdfcraft_android.so doesn't load.
+mkdir -p "$OUT/apk/lib/arm64-v8a"
+cp "$OUT/jniLibs/arm64-v8a/libpdfcraft_android.so" "$OUT/apk/lib/arm64-v8a/"
 (cd "$OUT/apk" && zip -qr "$OUT/unaligned.apk" lib)
 
 echo "== align and sign"
