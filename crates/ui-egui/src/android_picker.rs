@@ -58,6 +58,12 @@ pub(crate) struct Browser {
     then: Then,
 }
 
+impl std::fmt::Debug for Browser {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Browser").field("mode", &self.mode).field("dir", &self.dir).field("selected", &self.selected).finish_non_exhaustive()
+    }
+}
+
 impl Browser {
     pub(crate) fn new(ask: Ask, target: Option<PickTarget>, then: Then) -> Self {
         let (mode, dialog) = match ask {
