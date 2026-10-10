@@ -27,8 +27,8 @@ static LAST_DIR: Mutex<Option<PathBuf>> = Mutex::new(None);
 pub struct AndroidFileAccess {
     /// Whether the user has turned it on.
     pub granted: fn() -> bool,
-    /// Open the Settings screen where it is turned on.
-    pub request: fn(),
+    /// Open the Settings screen where it is turned on; the error says why it didn't open.
+    pub request: fn() -> Result<(), String>,
 }
 
 static FILE_ACCESS: OnceLock<AndroidFileAccess> = OnceLock::new();
@@ -77,6 +77,8 @@ pub(crate) struct Browser {
     new_folder: Option<String>,
     /// All files access was on when last checked (checked every second until it is).
     access: bool,
+    /// What happened when the user last asked for access (shown under the button).
+    access_note: Option<String>,
     target: Option<PickTarget>,
     then: Then,
 }
@@ -118,6 +120,7 @@ impl Browser {
             confirm_replace: None,
             new_folder: None,
             access: access_granted(),
+            access_note: None,
             target,
             then,
         };
@@ -200,11 +203,21 @@ impl Browser {
                     ui.label(tl!(
                         "To open and save PDFs anywhere on this device, turn on All files access for PdfCraft. Settings opens on the switch; come back here afterwards."
                     ));
-                    if ui.button(tl!("Allow access…")).clicked()
-                        && let Some(access) = FILE_ACCESS.get()
-                    {
-                        (access.request)();
+                    let button = egui::Button::new(egui::RichText::new(tl!("Allow access…")).strong()).min_size(egui::vec2(220.0, ROW_HEIGHT + 8.0));
+                    if ui.add(button).clicked() {
+                        self.access_note = Some(match FILE_ACCESS.get() {
+                            None => tl!("This build can't open Settings by itself.").to_string(),
+                            Some(access) => match (access.request)() {
+                                Ok(()) => tl!("Opening Settings… If nothing appears, use the steps below.").to_string(),
+                                Err(e) => format!("{} {e}", tl!("Settings didn't open:")),
+                            },
+                        });
                     }
+                    if let Some(note) = &self.access_note {
+                        ui.label(egui::RichText::new(note).italics());
+                    }
+                    ui.add_space(4.0);
+                    ui.label(tl!("Or yourself: Settings ▸ Apps ▸ ⋮ (top right) ▸ Special access ▸ All files access ▸ PdfCraft ▸ turn it on."));
                 });
                 ui.add_space(6.0);
             }
