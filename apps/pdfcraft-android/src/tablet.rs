@@ -11,7 +11,6 @@
 
 use std::collections::{HashMap, HashSet};
 
-use eframe::App as _;
 use egui::{Event, Modifiers, Pos2, TouchPhase};
 use pdfcraft_ui_egui::PdfCraftApp;
 use pdfcraft_ui_egui::pen::{self, PointerSource};
