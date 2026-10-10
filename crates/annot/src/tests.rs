@@ -1058,3 +1058,50 @@ fn non_markup_annotations_are_not_comments() {
         assert!(is_comment_subtype(s), "{s}");
     }
 }
+
+/// Pen drawings (`pen`): a standard Ink annotation plus `/PCPen` and `/PCPressure`, drawn as
+/// filled outlines; erasing keeps the pressures of what's left. With `PEN_SAMPLE_OUT` set, the
+/// test also writes a page of every pen there, to look at.
+#[test]
+fn pen_drawings_keep_their_pen_and_pressure() {
+    let mut doc = fixture();
+    let wave = |y: f64| -> Vec<[f64; 2]> {
+        (0..=60).map(|i| f64::from(i) / 60.0).map(|t| [60.0 + 300.0 * t, y + 18.0 * (t * std::f64::consts::TAU * 1.5).sin()]).collect()
+    };
+    let swell = |n: usize| -> Vec<f64> { (0..n).map(|i| (std::f64::consts::PI * i as f64 / (n - 1) as f64).sin() * 0.9 + 0.1).collect() };
+    let ring = |cx: f64, cy: f64| -> Vec<[f64; 2]> {
+        (0..=40).map(|i| f64::from(i) / 40.0 * std::f64::consts::TAU).map(|a| [cx + 22.0 * a.cos(), cy + 22.0 * a.sin()]).collect()
+    };
+    for (row, pen) in PenKind::ALL.into_iter().enumerate() {
+        let y = 720.0 - 110.0 * row as f64;
+        let strokes = vec![wave(y), ring(420.0, y), vec![[480.0, y - 25.0], [540.0, y + 25.0]], vec![[480.0, y + 25.0], [540.0, y - 25.0]]];
+        let pressure = strokes.iter().map(|s| swell(s.len())).collect();
+        let shape = Shape::PenInk { strokes, pressure, pen };
+        add_annotation(&mut doc, &new(0, shape), &meta(pen.name())).unwrap();
+    }
+    let doc = reopen(&doc);
+    let annots = list(&doc, 0);
+    let fountain = annots.iter().find(|d| d.name(b"PCPen") == Some(&b"Fountain"[..])).expect("the fountain pen drawing");
+    assert_eq!(fountain.name(b"Subtype"), Some(&b"Ink"[..]));
+    assert!(fountain.get(b"InkList").and_then(|l| l.as_array()).is_some_and(|l| l.len() == 4));
+    let pressure = fountain.get(b"PCPressure").and_then(|p| p.as_array()).expect("pressures");
+    assert_eq!(pressure.len(), 4);
+    let highlighter = annots.iter().find(|d| d.name(b"PCPen") == Some(&b"Highlighter"[..])).expect("the highlighter drawing");
+    assert!(highlighter.get(b"CA").and_then(|o| o.as_f64()).is_some_and(|o| o < 0.5));
+    if let Ok(out) = std::env::var("PEN_SAMPLE_OUT") {
+        let bytes = write_incremental(&doc, &SaveOptions::default()).expect("writes");
+        std::fs::write(out, bytes).expect("writes the sample");
+    }
+    // Erase across the middle of the fountain pen's wave: the pieces keep their pressures.
+    let mut doc = doc;
+    let index = annots.iter().position(|d| d.name(b"PCPen") == Some(&b"Fountain"[..])).unwrap();
+    let y = 720.0 - 110.0;
+    assert!(erase_ink(&mut doc, 0, index, &[[210.0, y - 40.0], [210.0, y + 40.0]], 4.0, &meta("erase")).unwrap());
+    let d = list(&doc, 0).into_iter().find(|d| d.name(b"PCPen") == Some(&b"Fountain"[..])).unwrap();
+    let lists = d.get(b"InkList").and_then(|l| l.as_array()).unwrap().clone();
+    let pressures = d.get(b"PCPressure").and_then(|l| l.as_array()).unwrap().clone();
+    assert_eq!(lists.len(), pressures.len());
+    for (s, p) in lists.iter().zip(&pressures) {
+        assert_eq!(s.as_array().unwrap().len(), 2 * p.as_array().unwrap().len());
+    }
+}
