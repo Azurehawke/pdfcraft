@@ -28,3 +28,6 @@ egui = { workspace = true }
 winit = { version = "0.30", default-features = false, features = ["android-native-activity"] }
 log = { workspace = true }
 android_logger = "0.15"
+# All files access: check it and open its Settings screen (file_access.rs).
+jni = "0.21"
+ndk-context = "0.1"

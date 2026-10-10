@@ -11,9 +11,11 @@ running Android 11 or later.
 2. Open the downloaded file. Android asks to allow installs from your browser or Files app the
    first time; allow it, then install. If Play Protect warns about an unknown app, choose
    *More details ▸ Install anyway*.
-3. Open PdfCraft once, then give it file access: **Settings ▸ Apps ▸ PdfCraft ▸ Permissions ▸
-   Files and media ▸ Allow management of all files**. Without it, PdfCraft can only open and save
-   files in its own app folder.
+3. Give PdfCraft file access. It is a special access, not one of the app's regular permissions
+   (its Permissions page says it requests none): the first time you open or save a file, the file
+   browser shows **Allow access…**, which opens the switch in Settings. Or turn it on yourself:
+   **Settings ▸ Apps ▸ ⋮ ▸ Special access ▸ All files access ▸ PdfCraft**. Without it PdfCraft
+   can only open and save files in its own app folder.
 
 Later builds install over the earlier one as long as they are signed with the same key.
 

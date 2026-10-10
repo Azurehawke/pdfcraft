@@ -7,7 +7,7 @@
 //! arrives on a later frame like a native pick, so nothing else in the app changes.
 
 use std::path::{Path, PathBuf};
-use std::sync::{Mutex, PoisonError};
+use std::sync::{Mutex, OnceLock, PoisonError};
 
 use crate::files::PickTarget;
 use crate::pickers::{Ask, Then};
@@ -21,6 +21,27 @@ const ROW_HEIGHT: f32 = 40.0;
 
 /// The folder the last picker ended in, where the next one starts.
 static LAST_DIR: Mutex<Option<PathBuf>> = Mutex::new(None);
+
+/// All files access, from the Android shell (it needs JNI, which this crate can't use).
+#[derive(Clone, Copy, Debug)]
+pub struct AndroidFileAccess {
+    /// Whether the user has turned it on.
+    pub granted: fn() -> bool,
+    /// Open the Settings screen where it is turned on.
+    pub request: fn(),
+}
+
+static FILE_ACCESS: OnceLock<AndroidFileAccess> = OnceLock::new();
+
+/// Called once by the Android shell at startup.
+pub fn set_android_file_access(access: AndroidFileAccess) {
+    let _ = FILE_ACCESS.set(access);
+}
+
+/// Whether the app may browse shared storage (true when nobody can tell).
+fn access_granted() -> bool {
+    FILE_ACCESS.get().is_none_or(|a| (a.granted)())
+}
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum Mode {
@@ -54,6 +75,8 @@ pub(crate) struct Browser {
     /// Save: the existing file the user is asked to replace.
     confirm_replace: Option<PathBuf>,
     new_folder: Option<String>,
+    /// All files access was on when last checked (checked every second until it is).
+    access: bool,
     target: Option<PickTarget>,
     then: Then,
 }
@@ -94,6 +117,7 @@ impl Browser {
             name: dialog.file_name.unwrap_or_default(),
             confirm_replace: None,
             new_folder: None,
+            access: access_granted(),
             target,
             then,
         };
@@ -155,11 +179,35 @@ impl Browser {
         let mut answer: Option<Vec<PathBuf>> = None;
         let mut go_to: Option<PathBuf> = None;
         let screen = ctx.content_rect();
+        if !self.access {
+            // Back from Settings with access on: list the folder again.
+            if access_granted() {
+                self.access = true;
+                let dir = self.dir.clone();
+                self.go(dir);
+            } else {
+                ctx.request_repaint_after(std::time::Duration::from_secs(1));
+            }
+        }
         let modal = egui::Modal::new(egui::Id::new("android-file-picker")).show(ctx, |ui| {
             ui.set_width((screen.width() * 0.8).clamp(320.0, 980.0));
             ui.spacing_mut().interact_size.y = ROW_HEIGHT;
             ui.heading(&self.title);
             ui.add_space(6.0);
+            if !self.access {
+                egui::Frame::group(ui.style()).show(ui, |ui| {
+                    ui.label(egui::RichText::new(tl!("PdfCraft can't see your files yet")).strong());
+                    ui.label(tl!(
+                        "To open and save PDFs anywhere on this device, turn on All files access for PdfCraft. Settings opens on the switch; come back here afterwards."
+                    ));
+                    if ui.button(tl!("Allow access…")).clicked()
+                        && let Some(access) = FILE_ACCESS.get()
+                    {
+                        (access.request)();
+                    }
+                });
+                ui.add_space(6.0);
+            }
 
             // Places, then where we are.
             ui.horizontal_wrapped(|ui| {
@@ -183,11 +231,6 @@ impl Browser {
             egui::ScrollArea::vertical().max_height(list_height).auto_shrink([false, false]).show(ui, |ui| {
                 if let Some(e) = &self.error {
                     ui.colored_label(ui.visuals().error_fg_color, e);
-                    if self.dir.starts_with("/storage") {
-                        ui.label(tl!(
-                            "PdfCraft needs All files access to browse your files: Settings ▸ Apps ▸ PdfCraft ▸ Permissions ▸ Files and media ▸ Allow management of all files. Then come back and tap a place above."
-                        ));
-                    }
                 }
                 let shown: Vec<Entry> = self.entries.iter().filter(|e| self.shows(e)).cloned().collect();
                 if shown.is_empty() && self.error.is_none() {
@@ -334,14 +377,11 @@ impl Browser {
     }
 }
 
-/// Where a picker starts: shared storage when the app may read it, else the app's own folder.
+/// Where a picker starts: Documents in shared storage (listed once All files access is on).
 fn default_dir() -> PathBuf {
     let shared = PathBuf::from(SHARED);
-    if std::fs::read_dir(&shared).is_ok() {
-        let docs = shared.join("Documents");
-        return if docs.is_dir() { docs } else { shared };
-    }
-    std::env::var_os("HOME").map_or(shared, PathBuf::from)
+    let docs = shared.join("Documents");
+    if docs.is_dir() { docs } else { shared }
 }
 
 /// Shortcuts shown above the list: shared storage and its usual folders, SD cards and USB drives,

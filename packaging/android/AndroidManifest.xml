@@ -5,7 +5,7 @@
     package="ai.storyteller.pdfcraft">
 
     <!-- The in-app file picker browses shared storage by path (see android_picker.rs); granted
-         once in Settings ▸ Apps ▸ PdfCraft ▸ Permissions ▸ Files and media. -->
+         once in Settings ▸ Apps ▸ ⋮ ▸ Special access ▸ All files access (the picker opens it). -->
     <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="29" />

@@ -10,6 +10,8 @@
 //! Elsewhere the crate is empty, so `cargo build --workspace` on a desktop still works.
 #![cfg(target_os = "android")]
 
+mod file_access;
+
 use pdfcraft_ui_egui::PdfCraftApp;
 use winit::platform::android::activity::AndroidApp;
 
@@ -34,6 +36,9 @@ fn android_main(android: AndroidApp) {
         }
         log::info!("PdfCraft {} data folder {}", env!("CARGO_PKG_VERSION"), dir.display());
     }
+
+    pdfcraft_ui_egui::set_android_file_access(pdfcraft_ui_egui::AndroidFileAccess { granted: file_access::granted, request: file_access::request });
+    log::info!("All files access: {}", if file_access::granted() { "granted" } else { "not granted" });
 
     let options = eframe::NativeOptions {
         android_app: Some(android),

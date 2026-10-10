@@ -85,6 +85,8 @@ mod pickers;
 mod dialog;
 #[cfg(target_os = "android")]
 mod android_picker;
+#[cfg(target_os = "android")]
+pub use android_picker::{AndroidFileAccess, set_android_file_access};
 pub mod prepare;
 mod print_ui;
 mod signature_drag;
