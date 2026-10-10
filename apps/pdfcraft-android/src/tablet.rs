@@ -165,8 +165,8 @@ impl TouchRouter {
                 }
                 // On Android every pointer event comes from a touch: rebuilt below.
                 Event::PointerMoved(_) | Event::PointerGone => {}
-                Event::Touch { device_id, id, phase, pos, .. } => {
-                    self.touch(device_id, id.0, phase, pos, &mut out);
+                Event::Touch { device_id, id, phase, pos, force } => {
+                    self.touch(device_id, id.0, phase, pos, force, &mut out);
                     let ended = matches!(phase, TouchPhase::End | TouchPhase::Cancel);
                     let hidden = if ended { self.hidden.remove(&id.0) } else { self.hidden.contains(&id.0) };
                     if !hidden {
@@ -179,7 +179,7 @@ impl TouchRouter {
         *events = out;
     }
 
-    fn touch(&mut self, device: egui::TouchDeviceId, id: u64, phase: TouchPhase, pos: Pos2, out: &mut Vec<Event>) {
+    fn touch(&mut self, device: egui::TouchDeviceId, id: u64, phase: TouchPhase, pos: Pos2, force: Option<f32>, out: &mut Vec<Event>) {
         let tool = tool_of(id);
         match phase {
             TouchPhase::Start => {
@@ -211,6 +211,8 @@ impl TouchRouter {
                         Tool::Mouse => PointerSource::Mouse,
                         Tool::Finger | Tool::Palm => PointerSource::Finger,
                     });
+                    // The Draw tool records the pen's pressure with each point (`pen::pressure`).
+                    pen::set_pressure(if tool == Tool::Pen { force } else { None });
                     out.push(Event::PointerMoved(pos));
                     self.press(out, pos, true);
                 }
@@ -220,6 +222,9 @@ impl TouchRouter {
                     d.pos = pos;
                 }
                 if self.owner == Some(id) {
+                    if tool == Tool::Pen {
+                        pen::set_pressure(force);
+                    }
                     out.push(Event::PointerMoved(pos));
                 }
             }

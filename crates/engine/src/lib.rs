@@ -95,9 +95,10 @@ pub fn typed_signature_shape(at: [f64; 2], text: &str, height: f64, rotation: i6
 /// Comment geometry helpers (text-box line breaking) for frontends.
 pub use pdfcraft_annot::appearance as annot_text;
 pub use pdfcraft_annot::links::{Highlight as LinkHighlight, LinkAction, LinkItem, LinkStyle};
+pub use pdfcraft_annot::pen as annot_pen;
 pub use pdfcraft_annot::{
-    AttachIcon, FillMark, LineEnding, Markup, NOTE_SIZE, NewAnnotation, NoteIcon, OverlayFont, OverlayLook, Props as CommentProps, ReviewState, Rgb,
-    Shape, StampGroup, StampKind, Style, rect_quad,
+    AttachIcon, FillMark, LineEnding, Markup, NOTE_SIZE, NewAnnotation, NoteIcon, OverlayFont, OverlayLook, PenKind, Props as CommentProps,
+    ReviewState, Rgb, Shape, StampGroup, StampKind, Style, rect_quad,
 };
 pub use pdfcraft_forms::detect;
 pub use pdfcraft_optimize as optimize;
@@ -1237,7 +1238,7 @@ fn annotation_noun(s: &Shape) -> &'static str {
         Shape::Oval { .. } => "oval",
         Shape::Line { start: LineEnding::None, end: LineEnding::OpenArrow, .. } => "arrow",
         Shape::Line { .. } => "line",
-        Shape::Ink { .. } => "drawing",
+        Shape::Ink { .. } | Shape::PenInk { .. } => "drawing",
         Shape::TextBox { .. } => "text box",
         Shape::Typewriter { .. } => "text",
         Shape::Mark { mark: FillMark::Check, .. } => "checkmark",

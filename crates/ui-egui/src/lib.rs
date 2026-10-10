@@ -62,9 +62,13 @@ pub use create_ui::Clip;
 pub use link_ui::LinkDraft;
 pub use optimize_ui::{OptimizeDraft, OptimizeTab};
 pub use sign_ui::{DigitalIdEntry, SignDraft, SignStep};
+#[cfg(target_os = "android")]
+mod android_picker;
 mod autoscroll;
 mod bidi;
 pub mod bulk_fields;
+/// rfd, or on Android the builder `android_picker` reads.
+mod dialog;
 mod dialogs;
 mod edit_text_ui;
 mod editing;
@@ -79,13 +83,9 @@ pub mod last_session;
 mod pageboxes;
 mod palette;
 mod panels;
+pub mod pen;
 #[cfg(not(target_arch = "wasm32"))]
 mod pickers;
-pub mod pen;
-/// rfd, or on Android the builder `android_picker` reads.
-mod dialog;
-#[cfg(target_os = "android")]
-mod android_picker;
 #[cfg(target_os = "android")]
 pub use android_picker::{AndroidFileAccess, set_android_file_access};
 pub mod prepare;
@@ -1154,7 +1154,9 @@ impl PdfCraftApp {
         #[cfg(not(target_arch = "wasm32"))]
         self.pick(
             pickers::PickFor::Open,
-            crate::dialog::AsyncFileDialog::new().add_filter("PDF", &["pdf"]).add_filter(tl!("Images and text (converted to PDF)"), &create_ui::CONVERTIBLE),
+            crate::dialog::AsyncFileDialog::new()
+                .add_filter("PDF", &["pdf"])
+                .add_filter(tl!("Images and text (converted to PDF)"), &create_ui::CONVERTIBLE),
             false,
         );
         // Browsers pick files asynchronously; the bytes arrive through `inbox`.
@@ -1373,6 +1375,7 @@ impl PdfCraftApp {
             // Null follows the interface language.
             "date_language": self.session.date_language(),
             "author": self.comment_prefs.author,
+            "draw_pen": self.comment_prefs.pen.name(),
             // Per-tool comment defaults (colours, opacity, widths), so Make Current
             // Properties Default survives a restart (#340).
             "comment_styles": self
@@ -1461,6 +1464,9 @@ impl PdfCraftApp {
         // name is cut to a sane length.
         if let Some(author) = v["author"].as_str().map(str::trim).filter(|a| !a.is_empty()) {
             self.comment_prefs.author = author.chars().take(MAX_AUTHOR_CHARS).collect();
+        }
+        if let Some(pen) = v["draw_pen"].as_str().and_then(|p| pdfcraft_engine::PenKind::from_name(p.as_bytes())) {
+            self.comment_prefs.pen = pen;
         }
         // Per-tool comment styles (#340): each field goes through its clamping setter, so a
         // malformed or hostile entry is clamped or ignored rather than trusted.
