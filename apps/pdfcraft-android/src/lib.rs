@@ -11,6 +11,7 @@
 #![cfg(target_os = "android")]
 
 mod file_access;
+mod tablet;
 
 use pdfcraft_ui_egui::PdfCraftApp;
 use winit::platform::android::activity::AndroidApp;
@@ -40,6 +41,10 @@ fn android_main(android: AndroidApp) {
     pdfcraft_ui_egui::set_android_file_access(pdfcraft_ui_egui::AndroidFileAccess { granted: file_access::granted, request: file_access::request });
     log::info!("All files access: {}", if file_access::granted() { "granted" } else { "not granted" });
 
+    // Only the S Pen (or a mouse) draws on the page; fingers pan it (`tablet`).
+    pdfcraft_ui_egui::pen::set_pen_only_drawing(true);
+    let shell_android = android.clone();
+
     let options = eframe::NativeOptions {
         android_app: Some(android),
         persistence_path: data.map(|d| d.join("app.ron")),
@@ -64,7 +69,7 @@ fn android_main(android: AndroidApp) {
                 log::info!("renderer: wgpu on {} ({:?}, {:?})", info.name, info.device_type, info.backend);
             }
             app.reopen_last_files(&[]);
-            Ok(Box::new(app))
+            Ok(Box::new(tablet::TabletApp::new(app, shell_android)))
         }),
     );
     if let Err(e) = result {

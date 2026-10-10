@@ -81,6 +81,7 @@ mod palette;
 mod panels;
 #[cfg(not(target_arch = "wasm32"))]
 mod pickers;
+pub mod pen;
 /// rfd, or on Android the builder `android_picker` reads.
 mod dialog;
 #[cfg(target_os = "android")]

@@ -414,7 +414,11 @@ impl<T: 'static> EventLoop<T> {
                                 device_id,
                                 phase,
                                 location,
-                                id: pointer.pointer_id() as u64,
+                                // PdfCraft patch: the tool type (finger, stylus, eraser,
+                                // mouse, palm) rides in bits 32..40 of the id, so the app can
+                                // tell the pen from a finger or a resting palm. winit 0.30's
+                                // Touch has no field for it. See `touch_tool_bits`.
+                                id: pointer.pointer_id() as u32 as u64 | touch_tool_bits(pointer.tool_type()),
                                 force: Some(Force::Normalized(pointer.pressure() as f64)),
                             }),
                         };
@@ -1138,4 +1142,19 @@ impl VideoModeHandle {
     pub fn monitor(&self) -> MonitorHandle {
         self.monitor.clone()
     }
+}
+
+/// PdfCraft patch: the tool type of a touch, in bits 32..40 of `Touch::id` (the Android tool type
+/// constants: 1 finger, 2 stylus, 3 mouse, 4 eraser, 5 palm; 0 unknown).
+fn touch_tool_bits(tool: android_activity::input::ToolType) -> u64 {
+    use android_activity::input::ToolType;
+    let code: u64 = match tool {
+        ToolType::Finger => 1,
+        ToolType::Stylus => 2,
+        ToolType::Mouse => 3,
+        ToolType::Eraser => 4,
+        ToolType::Palm => 5,
+        _ => 0,
+    };
+    code << 32
 }

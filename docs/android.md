@@ -24,6 +24,12 @@ Later builds install over the earlier one as long as they are signed with the sa
 - **Files:** Open, Save As, Combine and the other file choices use a file browser drawn inside
   PdfCraft (shared storage, Documents, Download, SD cards and USB drives), not Android's own
   picker. Files open and save in place.
+- **S Pen first:** only the S Pen (or a mouse) draws, highlights or places things on the page. A
+  finger drag on the page scrolls it, as the Hand tool would, and a palm resting on the screen
+  is ignored, whether it lands before the pen or while you write. Fingers still work on
+  buttons, menus and tabs, and two-finger pinch zooms while the pen is up.
+- **Tabs:** each tab always shows its close button (there is no hover on a touch screen); a dot
+  on it marks unsaved changes.
 - **Clipboard:** text copy and paste work inside PdfCraft; Create ▸ Clipboard and copying
   snapshots to other apps don't (no system clipboard for images).
 - **Not on Android:** printing to a printer, the update check, signing with an OS key store, and

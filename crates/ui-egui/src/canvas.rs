@@ -1886,8 +1886,11 @@ pub fn document_area(app: &mut PdfCraftApp, index: usize, ui: &mut egui::Ui) {
     let mut scroll = egui::ScrollArea::both().auto_shrink([false, false]).scroll_source(egui::scroll_area::ScrollSource {
         drag: if middle_gesture {
             egui::scroll_area::DragScroll::Never
-        } else if app.quick_tool == QuickTool::Hand {
+        } else if app.quick_tool == QuickTool::Hand || crate::pen::finger_pans() {
             egui::scroll_area::DragScroll::Always
+        } else if crate::pen::pen_draws() {
+            // Pen-only drawing: the pen uses the tool; it never drags the page along.
+            egui::scroll_area::DragScroll::Never
         } else {
             egui::scroll_area::DragScroll::OnTouch
         },
@@ -1913,8 +1916,11 @@ pub fn document_area(app: &mut PdfCraftApp, index: usize, ui: &mut egui::Ui) {
     let ppp = ui.ctx().pixels_per_point();
     let scale = view.render_scale(ppp);
     let tag = scale_tag(scale);
-    let hand = app.quick_tool == QuickTool::Hand;
-    let tool = app.quick_tool;
+    // Pen-only drawing (tablets): a finger on the page pans it, whatever tool is chosen; the
+    // chosen tool (`app.quick_tool`) stays for the pen.
+    let finger_pans = crate::pen::finger_pans();
+    let hand = app.quick_tool == QuickTool::Hand || finger_pans;
+    let tool = if finger_pans { QuickTool::Hand } else { app.quick_tool };
     // Text selection runs for the Select tool and for the markup tools (highlight…).
     let selects_text = match tool {
         QuickTool::Comment(t) => t.markup().is_some() || t == comments::CommentTool::ReplaceText,
