@@ -556,10 +556,18 @@ pub(crate) fn overlay(ctx: &egui::Context, view: &mut DocView, info: &DocInfo) -
                 }
                 let esc = ui.input(|i| i.key_pressed(egui::Key::Escape));
                 let apply = ui.input(|i| i.key_pressed(egui::Key::Enter) && i.modifiers.command);
+                // A press on the page outside the box applies the text, as clicking away does.
+                // Losing focus alone doesn't: on a touch screen egui can drop the focus as the
+                // finger or pen lifts (the pointer leaves with it), which closed the editor the
+                // moment it opened; the box takes the focus back instead.
+                let pressed_away =
+                    !outside && ui.input(|i| i.pointer.any_pressed() && i.pointer.press_origin().is_some_and(|p| !r.rect.expand(4.0).contains(p)));
                 if esc {
                     done = Some(false);
-                } else if apply || (r.lost_focus() && !outside) {
+                } else if apply || pressed_away {
                     done = Some(true);
+                } else if !r.has_focus() && !outside {
+                    r.request_focus();
                 }
             });
         },
