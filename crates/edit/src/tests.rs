@@ -1646,3 +1646,85 @@ fn hostile_form_xobjects_are_read_once() {
     assert_eq!(texts, ["once", "from b", "from a", "inherited", "bad matrix"]);
     assert!(images::reading_images(&doc, 0).unwrap().is_empty());
 }
+
+/// A page whose text is drawn through nested form XObjects, as in flattened forms and pages
+/// re-saved by note-taking apps: page → `/Xf1` (a title, and a small form) → `/Xi1` → `/Xf2`
+/// (the entry). Each level calls its font `/F1`, as the page does. `/Xg` is a transparency group
+/// with text, which stays a form.
+fn nested_form_page() -> Document {
+    let form =
+        |dict: &str, content: &str| format!("<< /Type /XObject /Subtype /Form {dict} /Length {} >>\nstream\n{content}\nendstream", content.len());
+    let objs: Vec<String> = vec![
+        "<< /Type /Catalog /Pages 2 0 R >>".into(),
+        "<< /Type /Pages /Kids [3 0 R] /Count 1 >>".into(),
+        "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 600 800] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> /XObject << /Xf1 6 0 R /Xg 10 0 R >> >> >>".into(),
+        {
+            let c = "BT /F1 9 Tf 40 760 Td (Page) Tj ET q 1 0 0 1 0 0 cm /Xf1 Do Q /Xg Do";
+            format!("<< /Length {} >>\nstream\n{c}\nendstream", c.len())
+        },
+        "<< /Type /Font /Subtype /Type1 /BaseFont /Courier >>".into(),
+        form(
+            "/BBox [0 0 600 800] /Matrix [1 0 0 1 0 0] /Resources << /Font << /F1 7 0 R >> /XObject << /Xi1 8 0 R >> >>",
+            "BT /F1 20 Tf 50 700 Td (Weekly planner) Tj ET q 1 0 0 1 100 400 cm /Xi1 Do Q",
+        ),
+        "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>".into(),
+        form("/BBox [0 0 200 50] /Resources << /XObject << /Xf2 9 0 R >> >>", "/Xf2 Do"),
+        form("/BBox [0 0 600 800] /Resources << /Font << /F1 11 0 R >> >>", "BT /F1 10 Tf 5 20 Td (monday check in) Tj ET"),
+        form(
+            "/BBox [0 0 600 800] /Group << /S /Transparency >> /Resources << /Font << /F1 11 0 R >> >>",
+            "BT /F1 10 Tf 300 100 Td (grouped) Tj ET",
+        ),
+        "<< /Type /Font /Subtype /Type1 /BaseFont /Times-Roman >>".into(),
+    ];
+    let mut out = b"%PDF-1.7\n".to_vec();
+    let mut offs = Vec::new();
+    for (i, o) in objs.iter().enumerate() {
+        offs.push(out.len());
+        out.extend_from_slice(format!("{} 0 obj\n{o}\nendobj\n", i + 1).as_bytes());
+    }
+    let x = out.len();
+    out.extend_from_slice(format!("xref\n0 {}\n0000000000 65535 f \n", objs.len() + 1).as_bytes());
+    for o in offs {
+        out.extend_from_slice(format!("{o:010} 00000 n \n").as_bytes());
+    }
+    out.extend_from_slice(format!("trailer\n<< /Size {} /Root 1 0 R >>\nstartxref\n{x}\n%%EOF\n", objs.len() + 1).as_bytes());
+    Document::open(Arc::new(out)).unwrap()
+}
+
+#[test]
+fn text_in_forms_becomes_editable_page_text_in_the_same_place() {
+    let mut doc = nested_form_page();
+    let texts = |doc: &Document| text_blocks(doc, 0).unwrap().into_iter().map(|b| b.text).collect::<Vec<_>>();
+    let shown = |doc: &Document| {
+        let mut v: Vec<(String, [i64; 4], String)> =
+            reading_blocks(doc, 0).unwrap().into_iter().map(|b| (b.text, b.rect.map(|x| (x * 10.0).round() as i64), b.base_font)).collect();
+        v.sort();
+        v
+    };
+    assert_eq!(texts(&doc), vec!["Page".to_string()]);
+    assert!(has_text_in_forms(&doc, 0));
+    let before = shown(&doc);
+    if let Ok(dir) = std::env::var("UNPACK_SAMPLE_DIR") {
+        std::fs::write(format!("{dir}/unpack-before.pdf"), write_incremental(&doc, &SaveOptions::default()).unwrap()).unwrap();
+    }
+
+    assert_eq!(unpack_text_forms(&mut doc, 0).unwrap(), 3, "Xf1, Xi1 and Xf2; not the group");
+    let doc = reopen(&doc);
+    if let Ok(dir) = std::env::var("UNPACK_SAMPLE_DIR") {
+        std::fs::write(format!("{dir}/unpack-after.pdf"), write_incremental(&doc, &SaveOptions::default()).unwrap()).unwrap();
+    }
+    // The same text, in the same places and fonts, now editable; the group's text stays a form's.
+    assert_eq!(shown(&doc), before);
+    let mut t = texts(&doc);
+    t.sort();
+    assert_eq!(t, vec!["Page".to_string(), "Weekly planner".to_string(), "monday check in".to_string()]);
+    assert!(!has_text_in_forms(&doc, 0));
+    // A second time finds nothing to do.
+    let mut doc = doc;
+    assert_eq!(unpack_text_forms(&mut doc, 0).unwrap(), 0);
+    // And the unpacked text edits like any other.
+    let i = text_blocks(&doc, 0).unwrap().iter().position(|b| b.text == "monday check in").unwrap();
+    replace_block(&mut doc, 0, i, "monday: maths").unwrap();
+    let doc = reopen(&doc);
+    assert!(text_blocks(&doc, 0).unwrap().iter().any(|b| b.text == "monday: maths"));
+}

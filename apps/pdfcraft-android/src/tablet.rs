@@ -29,6 +29,16 @@ impl TabletApp {
         Self { app, android, touches: TouchRouter::default(), insets: egui::epaint::MarginF32::default() }
     }
 
+    /// With a keyboard cover or Bluetooth keyboard attached, typing arrives as key presses, so a
+    /// text field doesn't ask for the on-screen keyboard: Samsung shows its keyboard toolbar for
+    /// that request, which takes room from the app (the content rect shrinks) and comes and goes
+    /// as fields gain and lose focus. Without one, fields ask as usual.
+    fn keep_soft_keyboard_away(&self, ctx: &egui::Context) {
+        if matches!(self.android.config().keys_hidden(), ndk::configuration::KeysHidden::No) {
+            ctx.output_mut(|o| o.ime = None);
+        }
+    }
+
     /// The window's edges covered by system bars, in points, from Android's content rect.
     fn system_bar_insets(&self, ctx: &egui::Context, raw: &egui::RawInput) -> Option<egui::epaint::MarginF32> {
         let ppp = ctx.pixels_per_point();
@@ -78,6 +88,7 @@ impl eframe::App for TabletApp {
         let inner = egui::Rect::from_min_max(full.min + egui::vec2(m.left, m.top), full.max - egui::vec2(m.right, m.bottom));
         if inner.width() < 100.0 || inner.height() < 100.0 {
             self.app.ui(ui, frame);
+            self.keep_soft_keyboard_away(ui.ctx());
             return;
         }
         // Behind the status bar: the tab strip's colour, so the bar reads as part of the app.
@@ -87,6 +98,7 @@ impl eframe::App for TabletApp {
             ui.set_clip_rect(inner);
             self.app.ui(ui, frame);
         });
+        self.keep_soft_keyboard_away(ui.ctx());
     }
 }
 

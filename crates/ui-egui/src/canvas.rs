@@ -350,6 +350,8 @@ pub struct DocView {
     /// Edit text: the lines per page (with the document generation they were read at), and the
     /// line being edited.
     pub(crate) edit_lines: HashMap<usize, (u64, Vec<pdfcraft_engine::TextBlock>)>,
+    /// Edit text: whether each page has text inside form XObjects, by edit generation.
+    pub(crate) form_text: HashMap<usize, (u64, bool)>,
     pub line_editor: Option<crate::edit_text_ui::LineEditor>,
     /// Edit text & images: the images per page (by document generation), and the selected one.
     pub(crate) edit_images: HashMap<usize, (u64, Vec<pdfcraft_engine::PageImage>)>,
@@ -543,6 +545,7 @@ impl DocView {
             select_anchor: None,
             pending_edit: None,
             edit_lines: HashMap::new(),
+            form_text: HashMap::new(),
             line_editor: None,
             edit_images: HashMap::new(),
             image_selection: None,
@@ -1770,6 +1773,42 @@ pub fn document_area(app: &mut PdfCraftApp, index: usize, ui: &mut egui::Ui) {
         Some(Notice::Signatures) => app.right = Some(RightPanel::Signatures),
         Some(Notice::FieldHighlights(on)) => app.view_defaults.highlight_fields = on,
         None => {}
+    }
+    // Edit text: text a page draws from inside form XObjects can't be selected until it is drawn
+    // into the page itself; offer that for the current page.
+    if app.quick_tool == QuickTool::EditText && doc.allows_modification() {
+        let view = &mut app.views[index];
+        let page = view.current;
+        let generation = doc.edit_generation();
+        let locked = match view.form_text.get(&page) {
+            Some((g, l)) if *g == generation => *l,
+            _ => {
+                let l = doc.has_text_in_forms(page);
+                view.form_text.insert(page, (generation, l));
+                l
+            }
+        };
+        if locked {
+            let mut unpack = false;
+            notice_bar(
+                ui,
+                &t,
+                "text-cursor-input",
+                t.accent_text,
+                crate::i18n::fmt(
+                    tl!("Some text on page {n} is inside embedded content, so it can't be selected yet."),
+                    &[("n", &(page + 1).to_string())],
+                ),
+                |ui| {
+                    if crate::widgets::pill_button(ui, tl!("Make text editable"), false).clicked() {
+                        unpack = true;
+                    }
+                },
+            );
+            if unpack {
+                view.pending_edit = Some(pdfcraft_engine::Edit::UnpackTextForms { page });
+            }
+        }
     }
     // No dialog, close prompt or palette over the page: only then does page input count.
     let unobstructed = !app.modal_open() && !app.palette_open;

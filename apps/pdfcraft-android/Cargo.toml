@@ -31,3 +31,5 @@ android_logger = "0.15"
 # All files access: check it and open its Settings screen (file_access.rs).
 jni = "0.21"
 ndk-context = "0.1"
+# Whether a hardware keyboard is attached (tablet.rs; already in the build through android-activity).
+ndk = { version = "0.9", default-features = false }
