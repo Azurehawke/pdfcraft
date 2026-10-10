@@ -14,9 +14,7 @@ pdfcraft-engine = { workspace = true }
 pdfcraft-render = { workspace = true }
 pdfcraft-model = { workspace = true }
 pdfcraft-platform = { workspace = true }
-# `accesskit`: the accessibility tree the control channel reads (`control.rs`). The platform
-# adapter that hands it to screen readers comes with eframe's feature below.
-egui = { workspace = true, features = ["bytemuck", "accesskit"] }
+egui = { workspace = true, features = ["bytemuck"] }
 egui_extras = { workspace = true }
 eframe = { workspace = true, features = ["default_fonts", "wgpu", "persistence", "links"] }
 serde = { workspace = true }
