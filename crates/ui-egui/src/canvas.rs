@@ -1925,7 +1925,9 @@ pub fn document_area(app: &mut PdfCraftApp, index: usize, ui: &mut egui::Ui) {
     let mut scroll = egui::ScrollArea::both().auto_shrink([false, false]).scroll_source(egui::scroll_area::ScrollSource {
         drag: if middle_gesture {
             egui::scroll_area::DragScroll::Never
-        } else if app.quick_tool == QuickTool::Hand || crate::pen::finger_pans() {
+        } else if app.quick_tool == QuickTool::Hand
+            || (crate::pen::finger_pans() && matches!(app.quick_tool, QuickTool::Comment(_) | QuickTool::Stamp(_) | QuickTool::CustomStamp(_)))
+        {
             egui::scroll_area::DragScroll::Always
         } else if crate::pen::pen_draws() {
             // Pen-only drawing: the pen uses the tool; it never drags the page along.
@@ -1957,7 +1959,9 @@ pub fn document_area(app: &mut PdfCraftApp, index: usize, ui: &mut egui::Ui) {
     let tag = scale_tag(scale);
     // Pen-only drawing (tablets): a finger on the page pans it, whatever tool is chosen; the
     // chosen tool (`app.quick_tool`) stays for the pen.
-    let finger_pans = crate::pen::finger_pans();
+    // Only the tools that mark the page (drawing, highlighting, shapes, notes, stamps): fingers
+    // still select text, edit it and use the other tools.
+    let finger_pans = crate::pen::finger_pans() && matches!(app.quick_tool, QuickTool::Comment(_) | QuickTool::Stamp(_) | QuickTool::CustomStamp(_));
     let hand = app.quick_tool == QuickTool::Hand || finger_pans;
     let tool = if finger_pans { QuickTool::Hand } else { app.quick_tool };
     // Text selection runs for the Select tool and for the markup tools (highlight…).
@@ -2337,9 +2341,21 @@ pub fn document_area(app: &mut PdfCraftApp, index: usize, ui: &mut egui::Ui) {
                         l
                     }
                 };
-                // Images first (they can sit under text boxes' corners); then paragraphs.
-                crate::edit_text_ui::image_input(ui, &resp, &xf, i, info, &images, view, &mut image_action)
-                    || crate::edit_text_ui::page_input(ui, &resp, &xf, i, info, &lines, view)
+                // Paragraphs first where the pointer is on one: an image can cover the whole page
+                // (a scan, or a note-taking app's transparent handwriting layer) and would take
+                // every click. Elsewhere images first (they can sit under text boxes' corners).
+                let pointer = ui.input(|inp| inp.pointer.hover_pos());
+                let image_dragging = view.image_selection.as_ref().is_some_and(|s| s.page == i && s.dragging());
+                let on_text = !image_dragging
+                    && (view.block_drag.is_some_and(|d| d.on_page(i))
+                        || pointer.is_some_and(|p| lines.iter().any(|l| xf.user_rect(info, i, l.rect.map(|v| v as f32)).expand(2.0).contains(p))));
+                if on_text {
+                    crate::edit_text_ui::page_input(ui, &resp, &xf, i, info, &lines, view)
+                        || crate::edit_text_ui::image_input(ui, &resp, &xf, i, info, &images, view, &mut image_action)
+                } else {
+                    crate::edit_text_ui::image_input(ui, &resp, &xf, i, info, &images, view, &mut image_action)
+                        || crate::edit_text_ui::page_input(ui, &resp, &xf, i, info, &lines, view)
+                }
             };
             let on_link = tool == QuickTool::Link && can_modify && crate::link_ui::page_input(ui, &resp, &xf, i, info, &doc_links, view);
             let consumed = on_edit_text || on_link || on_content || boxing || on_field || comments::page_input(ui, &resp, &pcx, view);

@@ -194,6 +194,20 @@ pub struct BlockDrag {
     grip: Grip,
 }
 
+impl BlockDrag {
+    /// Whether this drag is on `page`.
+    pub(crate) fn on_page(&self, page: usize) -> bool {
+        self.page == page
+    }
+}
+
+impl ImageSelection {
+    /// Whether the selected image is being moved or resized.
+    pub(crate) fn dragging(&self) -> bool {
+        self.drag.is_some()
+    }
+}
+
 /// How far an edge grip reaches either side of a box's edge (screen pixels).
 const EDGE_REACH: f32 = 6.0;
 
