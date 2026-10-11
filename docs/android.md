@@ -28,6 +28,9 @@ Later builds install over the earlier one as long as they are signed with the sa
   finger drag on the page scrolls it, as the Hand tool would, and a palm resting on the screen
   is ignored, whether it lands before the pen or while you write. Fingers still work on
   buttons, menus and tabs, and two-finger pinch zooms while the pen is up.
+- **Mouse:** a paired Bluetooth or USB mouse works as on a desktop: the pointer follows it
+  (hover highlights, tooltips, cursor shapes), right-click opens context menus, the wheel
+  scrolls and Ctrl+wheel zooms. A hovering S Pen moves the pointer too.
 - **Pens:** the Draw tool's pen button (next to its colour) chooses a pen: Pen, Fountain pen,
   Calligraphy pen, Brush, Pencil or Highlighter. Their width follows how hard you press with the
   S Pen (and, for the calligraphy pen and highlighter, the direction of the stroke). Drawings

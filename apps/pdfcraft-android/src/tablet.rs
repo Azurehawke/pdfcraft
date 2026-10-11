@@ -199,19 +199,13 @@ impl TouchRouter {
         let mut out = std::mem::take(&mut self.next);
         self.next = std::mem::take(&mut self.after);
         self.started_now.clear();
+        // egui-winit puts a touch's pointer events right after its `Touch` event: those are
+        // rebuilt here. Other pointer events come from a mouse (vendor/winit) and stay.
+        let mut after_touch = false;
         for event in std::mem::take(events) {
             match event {
-                Event::Key { modifiers, .. } => {
-                    self.modifiers = modifiers;
-                    out.push(event);
-                }
-                Event::PointerButton { modifiers, .. } => {
-                    // Rebuilt from the touches below; only its modifiers are kept.
-                    self.modifiers = modifiers;
-                }
-                // On Android every pointer event comes from a touch: rebuilt below.
-                Event::PointerMoved(_) | Event::PointerGone => {}
                 Event::Touch { device_id, id, phase, pos, force } => {
+                    after_touch = true;
                     self.touch(device_id, id.0, phase, pos, force, &mut out);
                     let ended = matches!(phase, TouchPhase::End | TouchPhase::Cancel);
                     let hidden = if ended { self.hidden.remove(&id.0) } else { self.hidden.contains(&id.0) };
@@ -219,7 +213,25 @@ impl TouchRouter {
                         out.push(event);
                     }
                 }
-                other => out.push(other),
+                Event::PointerMoved(_) | Event::PointerButton { .. } | Event::PointerGone if after_touch => {
+                    if let Event::PointerButton { modifiers, .. } = event {
+                        self.modifiers = modifiers;
+                    }
+                }
+                other => {
+                    after_touch = false;
+                    match &other {
+                        Event::Key { modifiers, .. } => self.modifiers = *modifiers,
+                        // A mouse button: the mouse drives the pointer (it may draw).
+                        Event::PointerButton { modifiers, pressed: true, .. } => {
+                            self.modifiers = *modifiers;
+                            pen::set_pointer_source(PointerSource::Mouse);
+                            pen::set_pressure(None);
+                        }
+                        _ => {}
+                    }
+                    out.push(other);
+                }
             }
         }
         *events = out;

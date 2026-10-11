@@ -376,6 +376,12 @@ impl<T: 'static> EventLoop<T> {
             InputEvent::MotionEvent(motion_event) => {
                 let window_id = window::WindowId(WindowId);
                 let device_id = event::DeviceId(DeviceId(motion_event.device_id()));
+                // PdfCraft patch: a mouse (or a touchpad in pointer mode) is a mouse, not a
+                // touch: cursor moves, buttons and the wheel. A stylus hovering over the screen
+                // moves the cursor too. See `mouse_event`.
+                if mouse_event(motion_event, window_id, device_id, &mut |e| callback(e, self.window_target())) {
+                    return input_status;
+                }
 
                 let phase = match motion_event.action() {
                     MotionAction::Down | MotionAction::PointerDown => {
@@ -1157,4 +1163,76 @@ fn touch_tool_bits(tool: android_activity::input::ToolType) -> u64 {
         _ => 0,
     };
     code << 32
+}
+
+/// PdfCraft patch: whether `motion_event` comes from a mouse (Android's `SOURCE_MOUSE`, or a
+/// pointer whose tool is a mouse). winit 0.30 turns every motion event into a touch, which leaves
+/// a mouse without hover, right-click or wheel.
+fn is_mouse(motion_event: &android_activity::input::MotionEvent<'_>) -> bool {
+    const SOURCE_MOUSE: u32 = 0x0000_2002;
+    let source: u32 = motion_event.source().into();
+    source & SOURCE_MOUSE == SOURCE_MOUSE
+        || (motion_event.pointer_count() == 1
+            && motion_event.pointer_at_index(0).tool_type() == android_activity::input::ToolType::Mouse)
+}
+
+/// PdfCraft patch: deliver a mouse's motion events as cursor, button and wheel events, and a
+/// hovering stylus's as cursor moves. Returns whether it handled the event (otherwise it is a
+/// touch).
+fn mouse_event<T>(
+    motion_event: &android_activity::input::MotionEvent<'_>,
+    window_id: window::WindowId,
+    device_id: event::DeviceId,
+    send: &mut dyn FnMut(event::Event<T>),
+) -> bool {
+    use android_activity::input::{Axis, Button};
+    let action = motion_event.action();
+    let hover = matches!(action, MotionAction::HoverEnter | MotionAction::HoverMove | MotionAction::HoverExit);
+    if !is_mouse(motion_event) && !hover {
+        return false;
+    }
+    let mut window_event = |event: event::WindowEvent| send(event::Event::WindowEvent { window_id, event });
+    let pointer = motion_event.pointer_at_index(0);
+    let position = PhysicalPosition { x: pointer.x() as f64, y: pointer.y() as f64 };
+    let moved = |w: &mut dyn FnMut(event::WindowEvent)| w(event::WindowEvent::CursorMoved { device_id, position });
+    match action {
+        MotionAction::HoverEnter => {
+            window_event(event::WindowEvent::CursorEntered { device_id });
+            moved(&mut window_event);
+        },
+        MotionAction::HoverExit => window_event(event::WindowEvent::CursorLeft { device_id }),
+        MotionAction::HoverMove | MotionAction::Move | MotionAction::Down | MotionAction::Up => {
+            moved(&mut window_event)
+        },
+        MotionAction::ButtonPress | MotionAction::ButtonRelease => {
+            let button = match motion_event.action_button() {
+                Button::Primary => event::MouseButton::Left,
+                Button::Secondary => event::MouseButton::Right,
+                Button::Tertiary => event::MouseButton::Middle,
+                Button::Back => event::MouseButton::Back,
+                Button::Forward => event::MouseButton::Forward,
+                _ => return true,
+            };
+            let state = if action == MotionAction::ButtonPress {
+                event::ElementState::Pressed
+            } else {
+                event::ElementState::Released
+            };
+            moved(&mut window_event);
+            window_event(event::WindowEvent::MouseInput { device_id, state, button });
+        },
+        MotionAction::Scroll => {
+            // Android: positive is the wheel turned away (scroll up) and to the right; winit:
+            // positive moves the content right and down.
+            let (h, v) = (pointer.axis_value(Axis::Hscroll), pointer.axis_value(Axis::Vscroll));
+            window_event(event::WindowEvent::MouseWheel {
+                device_id,
+                delta: event::MouseScrollDelta::LineDelta(-h, v),
+                phase: event::TouchPhase::Moved,
+            });
+        },
+        MotionAction::Cancel => window_event(event::WindowEvent::CursorLeft { device_id }),
+        _ => {},
+    }
+    true
 }
