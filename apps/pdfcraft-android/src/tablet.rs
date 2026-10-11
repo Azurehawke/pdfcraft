@@ -11,6 +11,7 @@
 
 use std::collections::{HashMap, HashSet};
 
+use crate::incoming::Incoming;
 use egui::{Event, Modifiers, Pos2, TouchPhase};
 use pdfcraft_ui_egui::PdfCraftApp;
 use pdfcraft_ui_egui::pen::{self, PointerSource};
@@ -22,11 +23,29 @@ pub struct TabletApp {
     touches: TouchRouter,
     /// The insets last applied, in points.
     insets: egui::epaint::MarginF32,
+    /// Look for a PDF sent by another app (`incoming`): at start-up and when the app comes back
+    /// to the front.
+    check_incoming: bool,
+    focused: bool,
 }
 
 impl TabletApp {
     pub fn new(app: PdfCraftApp, android: AndroidApp) -> Self {
-        Self { app, android, touches: TouchRouter::default(), insets: egui::epaint::MarginF32::default() }
+        Self { app, android, touches: TouchRouter::default(), insets: egui::epaint::MarginF32::default(), check_incoming: true, focused: true }
+    }
+
+    /// Open the PDF another app sent, if there is one.
+    fn open_incoming(&mut self) {
+        match crate::incoming::take() {
+            None => {}
+            Some(Incoming::Path(path)) => self.app.open_recent(&path),
+            Some(Incoming::Bytes { name, bytes }) => {
+                if let Err(e) = self.app.open_bytes(&name, None, bytes) {
+                    self.app.notify_fmt("Couldn't open {name}: {e}", &[("name", &name), ("e", &e)]);
+                }
+            }
+            Some(Incoming::Failed(e)) => self.app.notify_error(e),
+        }
     }
 
     /// With a keyboard cover or Bluetooth keyboard attached, typing arrives as key presses, so a
@@ -70,6 +89,11 @@ impl eframe::App for TabletApp {
             self.insets = insets;
             raw.safe_area_insets = Some(egui::SafeAreaInsets(insets));
         }
+        if raw.focused && !self.focused {
+            // Back in front, perhaps with another PDF to open.
+            self.check_incoming = true;
+        }
+        self.focused = raw.focused;
         self.touches.route(&mut raw.events);
         if self.touches.pending() {
             // A lift held back for the next frame (`TouchRouter::next`).
@@ -83,6 +107,9 @@ impl eframe::App for TabletApp {
     }
 
     fn logic(&mut self, ctx: &egui::Context, frame: &mut eframe::Frame) {
+        if std::mem::take(&mut self.check_incoming) {
+            self.open_incoming();
+        }
         self.app.logic(ctx, frame);
     }
 

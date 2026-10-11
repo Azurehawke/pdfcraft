@@ -19,6 +19,18 @@ running Android 11 or later.
 
 Later builds install over the earlier one as long as they are signed with the same key.
 
+## Make PdfCraft the default PDF viewer
+
+PdfCraft appears in **Open with** whenever an app opens a PDF (Files, My Files, Gmail, Drive,
+Chrome downloads). Choose PdfCraft and **Always** to make it the default. To set or change it
+later: **Settings ▸ Apps ▸ Choose default apps** (on Samsung: **Settings ▸ Apps ▸ ⋮ ▸ Default
+apps**), or clear another app's default under its own **Set as default ▸ Clear defaults**, so
+Android asks again the next time.
+
+A PDF from a file in your storage opens as that file, and Save writes it in place (with All files
+access). A PDF that only exists in another app (an email attachment, a Drive file) opens as a
+copy: Save asks where to keep it. Opening another PDF while PdfCraft is running adds a tab.
+
 ## How it differs from the desktop app
 
 - **Files:** Open, Save As, Combine and the other file choices use a file browser drawn inside

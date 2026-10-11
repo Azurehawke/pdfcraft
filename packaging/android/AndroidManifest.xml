@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- PdfCraft for Android: a NativeActivity (no Java) that loads libpdfcraft_android.so
-     (apps/pdfcraft-android). Built by build-apk.sh. -->
+<!-- PdfCraft for Android: a NativeActivity that loads libpdfcraft_android.so
+     (apps/pdfcraft-android); its subclass PdfCraftActivity (java/) only keeps the latest intent.
+     Built by build-apk.sh. -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="ai.storyteller.pdfcraft">
 
@@ -15,7 +16,7 @@
     <application
         android:label="PdfCraft"
         android:icon="@mipmap/ic_launcher"
-        android:hasCode="false"
+        android:hasCode="true"
         android:extractNativeLibs="true"
         android:resizeableActivity="true"
         android:appCategory="productivity">
@@ -23,7 +24,7 @@
         <!-- configChanges: attaching the keyboard cover, rotating, or resizing in split screen
              must not recreate the activity (that would restart the app and its event loop). -->
         <activity
-            android:name="android.app.NativeActivity"
+            android:name="ai.storyteller.pdfcraft.PdfCraftActivity"
             android:exported="true"
             android:launchMode="singleTask"
             android:theme="@android:style/Theme.Material.NoActionBar"
@@ -33,6 +34,16 @@
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <!-- Open with PdfCraft, and PdfCraft as the default PDF viewer (incoming.rs). -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <action android:name="android.intent.action.EDIT" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="content" />
+                <data android:scheme="file" />
+                <data android:mimeType="application/pdf" />
             </intent-filter>
         </activity>
     </application>

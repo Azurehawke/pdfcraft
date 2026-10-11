@@ -8,7 +8,7 @@ use jni::objects::{JObject, JString, JValue};
 
 /// Run `f` with the JNI environment and the activity. A Java exception is cleared (never left
 /// pending) and returned as the error, with its message.
-fn with_activity<R>(what: &str, f: impl FnOnce(&mut jni::JNIEnv, &JObject) -> jni::errors::Result<R>) -> Result<R, String> {
+pub(crate) fn with_activity<R>(what: &str, f: impl FnOnce(&mut jni::JNIEnv, &JObject) -> jni::errors::Result<R>) -> Result<R, String> {
     let ctx = ndk_context::android_context();
     if ctx.vm().is_null() || ctx.context().is_null() {
         return Err(format!("{what}: Android's JNI context isn't set"));
@@ -35,7 +35,7 @@ fn with_activity<R>(what: &str, f: impl FnOnce(&mut jni::JNIEnv, &JObject) -> jn
 }
 
 /// Take the pending Java exception, if any, as its `toString()`.
-fn java_exception(env: &mut jni::JNIEnv) -> Option<String> {
+pub(crate) fn java_exception(env: &mut jni::JNIEnv) -> Option<String> {
     if !env.exception_check().unwrap_or(false) {
         return None;
     }

@@ -2,9 +2,10 @@
 # Build PdfCraft for Android (arm64) as a signed APK: target/android-apk/pdfcraft.apk.
 #
 # Needs: the Android SDK (ANDROID_HOME or ANDROID_SDK_ROOT, with build-tools and
-# platforms;android-34), the NDK (ANDROID_NDK_HOME), `rustup target add aarch64-linux-android`
-# and `cargo install cargo-ndk`. No Gradle: aapt2 links the manifest and icon, the library is
-# added to the archive, then zipalign and apksigner finish it.
+# platforms;android-34), the NDK (ANDROID_NDK_HOME), a JDK (javac), `rustup target add
+# aarch64-linux-android` and `cargo install cargo-ndk`. No Gradle: aapt2 links the manifest and
+# icon, javac and d8 compile the one small activity class (java/), the library and classes.dex
+# are added to the archive, then zipalign and apksigner finish it.
 #
 # Signing: ANDROID_KEYSTORE (a path) with ANDROID_KEYSTORE_PASSWORD and ANDROID_KEY_ALIAS when
 # set; otherwise the debug key next to this script (password "android"). Android only installs
@@ -45,12 +46,19 @@ cp -r "$HERE/res/." "$OUT/res/"
     --version-code "$VERSION_CODE" --version-name "$VERSION" \
     "$OUT/res.zip"
 
+echo "== activity class"
+# PdfCraftActivity: NativeActivity plus onNewIntent (PDFs opened from other apps).
+mkdir -p "$OUT/classes" "$OUT/dex"
+javac --release 11 -classpath "$PLATFORM" -d "$OUT/classes" $(find "$HERE/java" -name '*.java')
+"$BUILD_TOOLS/d8" --release --min-api "$MIN_API" --lib "$PLATFORM" --output "$OUT/dex" $(find "$OUT/classes" -name '*.class')
+cp "$OUT/dex/classes.dex" "$OUT/apk/"
+
 echo "== native library"
 # Only PdfCraft's library: cargo-ndk also copies dependencies' own dylib builds (ocrs, boa_engine),
 # which libpdfcraft_android.so doesn't load.
 mkdir -p "$OUT/apk/lib/arm64-v8a"
 cp "$OUT/jniLibs/arm64-v8a/libpdfcraft_android.so" "$OUT/apk/lib/arm64-v8a/"
-(cd "$OUT/apk" && zip -qr "$OUT/unaligned.apk" lib)
+(cd "$OUT/apk" && zip -qr "$OUT/unaligned.apk" lib classes.dex)
 
 echo "== align and sign"
 "$BUILD_TOOLS/zipalign" -p -f 4 "$OUT/unaligned.apk" "$OUT/aligned.apk"
