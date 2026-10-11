@@ -3263,3 +3263,48 @@ licence_file = "LICENSE-MIT"
 kind = "document"
 usage = "Signature validation tests (crates/sign/tests/pdf.rs): the legacy adbe.x509.rsa_sha1 format"
 sha256 = "b77bfb21166f4bd043597e45a1ea28b9d9f4ba6df0142b3a0fc8b7f8e0fc111b"
+
+
+[[asset]]
+path = "packaging/android/icon.svg"
+title = "PdfCraft for Android launcher icon (master vector)"
+author = "PdfCraft contributors (Android port): a document with a pen nib, drawn as SVG"
+source = "Contributor-original (packaging/android/icon.svg)"
+licence = "MIT OR Apache-2.0"
+licence_file = "assets/app-icon/LICENSE.txt"
+kind = "icon"
+usage = "Master artwork; the Android launcher PNGs are rendered from it"
+sha256 = "15173aaa5c1570b435d88404ffefd96aa5198965ccf320d888f8afd0f7c2a92c"
+
+[[asset]]
+path = "packaging/android/res/mipmap-xxxhdpi/ic_launcher.png"
+title = "PdfCraft for Android launcher icon, 192 px"
+author = "PdfCraft contributors (Android port): a document with a pen nib, drawn as SVG"
+source = "Contributor-original (packaging/android/icon.svg)"
+licence = "MIT OR Apache-2.0"
+licence_file = "assets/app-icon/LICENSE.txt"
+kind = "icon"
+usage = "Launcher icon for launchers that don't use adaptive icons"
+sha256 = "23135376668f8a5df20ce1291799a813428e59684de5876e147a832e6af5fe12"
+
+[[asset]]
+path = "packaging/android/res/mipmap-xxxhdpi/ic_launcher_foreground.png"
+title = "PdfCraft for Android adaptive icon foreground, 432 px"
+author = "PdfCraft contributors (Android port): a document with a pen nib, drawn as SVG"
+source = "Contributor-original (packaging/android/icon.svg)"
+licence = "MIT OR Apache-2.0"
+licence_file = "assets/app-icon/LICENSE.txt"
+kind = "icon"
+usage = "Adaptive launcher icon foreground layer"
+sha256 = "fe891142fc0a967b78dc29a1c946fcb701acbf012f4fd5fa28e3f8a98f341caf"
+
+[[asset]]
+path = "packaging/android/res/mipmap-xxxhdpi/ic_launcher_background.png"
+title = "PdfCraft for Android adaptive icon background, 432 px"
+author = "PdfCraft contributors (Android port): a document with a pen nib, drawn as SVG"
+source = "Contributor-original (packaging/android/icon.svg)"
+licence = "MIT OR Apache-2.0"
+licence_file = "assets/app-icon/LICENSE.txt"
+kind = "icon"
+usage = "Adaptive launcher icon background layer"
+sha256 = "038b1647887afcd377eddf2ad55321a403f8ebc3b1f9b9209c5a28d2a3c99ade"

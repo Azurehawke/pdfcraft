@@ -35,7 +35,9 @@ echo "== libpdfcraft_android.so"
 test -f "$OUT/jniLibs/arm64-v8a/libpdfcraft_android.so"
 
 echo "== resources and manifest"
-cp "$ROOT/assets/app-icon/hicolor/256x256/apps/ai.storyteller.pdfcraft.png" "$OUT/res/mipmap-xxxhdpi/ic_launcher.png"
+# The launcher icon: an adaptive icon (teal background, document-and-nib foreground) drawn
+# from packaging/android/icon.svg, and a whole-icon PNG for launchers that want one.
+cp -r "$HERE/res/." "$OUT/res/"
 "$BUILD_TOOLS/aapt2" compile --dir "$OUT/res" -o "$OUT/res.zip"
 "$BUILD_TOOLS/aapt2" link -o "$OUT/unaligned.apk" -I "$PLATFORM" \
     --manifest "$HERE/AndroidManifest.xml" \
