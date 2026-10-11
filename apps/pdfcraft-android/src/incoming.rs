@@ -86,7 +86,7 @@ fn string_of(env: &mut JNIEnv, obj: JObject) -> jni::errors::Result<Option<Strin
 }
 
 /// Run a Java call whose failure only means "not this way": a thrown exception is cleared.
-fn quietly<R>(env: &mut JNIEnv, f: impl FnOnce(&mut JNIEnv) -> jni::errors::Result<R>) -> Option<R> {
+fn quietly<'local, R>(env: &mut JNIEnv<'local>, f: impl FnOnce(&mut JNIEnv<'local>) -> jni::errors::Result<R>) -> Option<R> {
     let result = f(env);
     if crate::file_access::java_exception(env).is_some() {
         return None;
