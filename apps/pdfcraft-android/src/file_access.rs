@@ -3,8 +3,20 @@
 //! ask for it with a dialog, only open the Settings screen where the user turns it on. Both calls
 //! go through JNI to the activity that started the app.
 
+use std::sync::OnceLock;
+
 use jni::JavaVM;
 use jni::objects::{JObject, JString, JValue};
+use winit::platform::android::activity::AndroidApp;
+
+/// The running app, for its activity (`PdfCraftActivity`). ndk-context only holds the
+/// Application, which has none of the activity's methods (getIntent, the document picker).
+static APP: OnceLock<AndroidApp> = OnceLock::new();
+
+/// Called once at start-up.
+pub fn set_app(app: AndroidApp) {
+    let _ = APP.set(app);
+}
 
 /// Run `f` with the JNI environment and the activity. A Java exception is cleared (never left
 /// pending) and returned as the error, with its message.
@@ -18,10 +30,14 @@ pub(crate) fn with_activity<R>(what: &str, f: impl FnOnce(&mut jni::JNIEnv, &JOb
     // before `android_main` runs, and both live as long as the process (checked non-null above).
     let vm = unsafe { JavaVM::from_raw(ctx.vm().cast()) }.map_err(|e| format!("{what}: no JavaVM ({e})"))?;
     let mut env = vm.attach_current_thread_permanently().map_err(|e| format!("{what}: can't attach to Java ({e})"))?;
+    // The activity itself (a global reference NativeActivity keeps while it exists); the
+    // Application from ndk-context only when there is none.
+    let activity_ptr = APP.get().map(AndroidApp::activity_as_ptr).filter(|p| !p.is_null()).unwrap_or(ctx.context());
     #[allow(unsafe_code)]
-    // SAFETY: a global reference to the activity, owned by android-activity; wrapping it doesn't
-    // take ownership (JObject never deletes the reference).
-    let activity = unsafe { JObject::from_raw(ctx.context().cast()) };
+    // SAFETY: a global reference to the activity (or the Application), owned by Android's
+    // NativeActivity and android-activity; wrapping it doesn't take ownership (JObject never
+    // deletes the reference).
+    let activity = unsafe { JObject::from_raw(activity_ptr.cast()) };
     // In a local frame: the main thread stays attached for good, so references `f` makes would
     // otherwise never be freed.
     let result = env.with_local_frame(64, |env| f(env, &activity));

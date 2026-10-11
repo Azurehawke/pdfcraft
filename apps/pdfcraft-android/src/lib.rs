@@ -44,6 +44,7 @@ fn android_main(android: AndroidApp) {
         log::info!("PdfCraft {} data folder {}", env!("CARGO_PKG_VERSION"), dir.display());
     }
 
+    file_access::set_app(android.clone());
     pdfcraft_ui_egui::set_android_file_access(pdfcraft_ui_egui::AndroidFileAccess { granted: file_access::granted, request: file_access::request });
     // Google Drive and other document apps, through Android's picker (`cloud`).
     cloud::load();
