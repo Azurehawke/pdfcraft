@@ -48,8 +48,9 @@ from Google Drive again to get the latest version.
 - **Files:** Open, Save As, Combine and the other file choices use a file browser drawn inside
   PdfCraft (shared storage, Documents, Download, SD cards and USB drives), not Android's own
   picker. Files open and save in place.
-- **S Pen first:** only the S Pen (or a mouse) draws, highlights or places things on the page. A
-  finger drag on the page scrolls it, as the Hand tool would, and a palm resting on the screen
+- **S Pen first:** only the S Pen (or a mouse) draws, highlights, selects text or places things
+  on the page. A finger drag on the page scrolls it, as the Hand tool would (except with Add
+  Text, Edit Text and Fill & Sign, where a tap types), and a palm resting on the screen
   is ignored, whether it lands before the pen or while you write. Fingers still work on
   buttons, menus and tabs, and two-finger pinch zooms while the pen is up.
 - **Mouse:** a paired Bluetooth or USB mouse works as on a desktop: the pointer follows it

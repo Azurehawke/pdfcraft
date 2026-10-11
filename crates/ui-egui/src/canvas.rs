@@ -1926,7 +1926,7 @@ pub fn document_area(app: &mut PdfCraftApp, index: usize, ui: &mut egui::Ui) {
         drag: if middle_gesture {
             egui::scroll_area::DragScroll::Never
         } else if app.quick_tool == QuickTool::Hand
-            || (crate::pen::finger_pans() && matches!(app.quick_tool, QuickTool::Comment(_) | QuickTool::Stamp(_) | QuickTool::CustomStamp(_)))
+            || finger_pans_with(app.quick_tool)
         {
             egui::scroll_area::DragScroll::Always
         } else if crate::pen::pen_draws() {
@@ -1957,11 +1957,9 @@ pub fn document_area(app: &mut PdfCraftApp, index: usize, ui: &mut egui::Ui) {
     let ppp = ui.ctx().pixels_per_point();
     let scale = view.render_scale(ppp);
     let tag = scale_tag(scale);
-    // Pen-only drawing (tablets): a finger on the page pans it, whatever tool is chosen; the
-    // chosen tool (`app.quick_tool`) stays for the pen.
-    // Only the tools that mark the page (drawing, highlighting, shapes, notes, stamps): fingers
-    // still select text, edit it and use the other tools.
-    let finger_pans = crate::pen::finger_pans() && matches!(app.quick_tool, QuickTool::Comment(_) | QuickTool::Stamp(_) | QuickTool::CustomStamp(_));
+    // Pen-only drawing (tablets): a finger on the page pans it (`finger_pans_with`); the chosen
+    // tool (`app.quick_tool`) stays for the pen and the mouse.
+    let finger_pans = finger_pans_with(app.quick_tool);
     let hand = app.quick_tool == QuickTool::Hand || finger_pans;
     let tool = if finger_pans { QuickTool::Hand } else { app.quick_tool };
     // Text selection runs for the Select tool and for the markup tools (highlight…).
@@ -3731,6 +3729,13 @@ pub(crate) fn texture_image(size: [usize; 2], pixels: pdfcraft_render::Pixels) -
         Ok(px) => egui::ColorImage::from_rgba_premultiplied(size, bytemuck::cast_slice(&px)),
         Err((_, words)) => egui::ColorImage::from_rgba_premultiplied(size, bytemuck::cast_slice(&words)),
     }
+}
+
+/// Pen-only drawing (tablets): whether a finger on the page pans it, as the Hand tool would,
+/// rather than using `tool`. It does for every tool (selecting text included: the pen and the
+/// mouse select), except the ones a tap uses to type: Add Text, Edit Text and Fill & Sign.
+fn finger_pans_with(tool: QuickTool) -> bool {
+    crate::pen::finger_pans() && !matches!(tool, QuickTool::AddText | QuickTool::EditText | QuickTool::Fill(_))
 }
 
 #[cfg(test)]
