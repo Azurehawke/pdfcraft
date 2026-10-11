@@ -5,6 +5,8 @@
 //! - Files: the picker is drawn in the app (`pdfcraft_ui_egui`'s `android_picker`) over shared
 //!   storage, which needs "All files access" granted once in Settings.
 //! - Settings, logs and crash recovery live in the app's internal data folder (`HOME` below).
+//! - Google Drive and other document apps: the file browser's button opens Android's picker;
+//!   PdfCraft works on a copy and writes saves back (`cloud`).
 //! - PDFs from other apps ("Open with", PdfCraft as the default PDF viewer) open in a tab
 //!   (`incoming`).
 //! - No system clipboard for images, no printing to a printer, no update check.
@@ -12,6 +14,7 @@
 //! Elsewhere the crate is empty, so `cargo build --workspace` on a desktop still works.
 #![cfg(target_os = "android")]
 
+mod cloud;
 mod file_access;
 mod incoming;
 mod tablet;
@@ -42,6 +45,9 @@ fn android_main(android: AndroidApp) {
     }
 
     pdfcraft_ui_egui::set_android_file_access(pdfcraft_ui_egui::AndroidFileAccess { granted: file_access::granted, request: file_access::request });
+    // Google Drive and other document apps, through Android's picker (`cloud`).
+    cloud::load();
+    pdfcraft_ui_egui::set_android_documents(pdfcraft_ui_egui::AndroidDocuments { start: cloud::start, poll: cloud::poll });
     log::info!("All files access: {}", if file_access::granted() { "granted" } else { "not granted" });
 
     // Only the S Pen (or a mouse) draws on the page; fingers pan it (`tablet`).

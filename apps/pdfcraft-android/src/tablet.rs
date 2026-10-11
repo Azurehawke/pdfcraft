@@ -110,6 +110,8 @@ impl eframe::App for TabletApp {
         if std::mem::take(&mut self.check_incoming) {
             self.open_incoming();
         }
+        // Documents from Google Drive and other apps: write back what PdfCraft saved.
+        crate::cloud::sync(&mut self.app, ctx);
         self.app.logic(ctx, frame);
     }
 

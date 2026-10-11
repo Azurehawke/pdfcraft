@@ -1,9 +1,11 @@
 //! Android: a file browser drawn in the app, standing in for the native panels rfd shows elsewhere.
 //!
-//! Android's own picker (the Storage Access Framework) answers with `content://` URIs and needs
-//! a Java activity to receive them; PdfCraft opens and saves plain paths. So the Android build
-//! asks for "All files access" (MANAGE_EXTERNAL_STORAGE, granted once in Settings) and browses
-//! shared storage itself. Every pick still goes through `PdfCraftApp::ask`, and the answer
+//! Android's own picker (the Storage Access Framework) answers with `content://` URIs;
+//! PdfCraft opens and saves plain paths. So the Android build asks for "All files access"
+//! (MANAGE_EXTERNAL_STORAGE, granted once in Settings) and browses shared storage itself. For
+//! Google Drive and other document apps, a button hands the choice to Android's picker
+//! ([`AndroidDocuments`], from the shell), which answers with the path of a local copy that the
+//! shell keeps in step with the document. Every pick still goes through `PdfCraftApp::ask`, and the answer
 //! arrives on a later frame like a native pick, so nothing else in the app changes.
 
 use std::path::{Path, PathBuf};
@@ -36,6 +38,55 @@ static FILE_ACCESS: OnceLock<AndroidFileAccess> = OnceLock::new();
 /// Called once by the Android shell at startup.
 pub fn set_android_file_access(access: AndroidFileAccess) {
     let _ = FILE_ACCESS.set(access);
+}
+
+/// What to ask Android's own document picker (Google Drive and other document apps).
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum SystemPick {
+    /// Existing documents of these MIME types.
+    Open { multiple: bool, mime_types: Vec<String> },
+    /// A new document, with a suggested name.
+    Save { name: String, mime_type: String },
+}
+
+/// Android's document picker, from the Android shell. The shell keeps a copy of each chosen
+/// document on the device and answers with its path; saving to that path updates the document
+/// in its app.
+#[derive(Clone, Copy, Debug)]
+pub struct AndroidDocuments {
+    /// Show the system picker; the error says why it couldn't.
+    pub start: fn(SystemPick) -> Result<(), String>,
+    /// The answer once there is one: the local paths, or none when cancelled. Polled each frame
+    /// while waiting.
+    pub poll: fn() -> Option<Result<Vec<PathBuf>, String>>,
+}
+
+static DOCUMENTS: OnceLock<AndroidDocuments> = OnceLock::new();
+
+/// Called once by the Android shell at startup.
+pub fn set_android_documents(documents: AndroidDocuments) {
+    let _ = DOCUMENTS.set(documents);
+}
+
+/// A MIME type for a file name's extension, for the system picker.
+fn mime_for(ext: &str) -> &'static str {
+    match ext.to_ascii_lowercase().as_str() {
+        "pdf" => "application/pdf",
+        "png" => "image/png",
+        "jpg" | "jpeg" => "image/jpeg",
+        "tif" | "tiff" => "image/tiff",
+        "txt" => "text/plain",
+        "html" | "htm" => "text/html",
+        "xml" | "xfdf" => "application/xml",
+        "json" => "application/json",
+        "csv" => "text/csv",
+        "docx" => "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "xlsx" => "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "pptx" => "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+        "rtf" => "application/rtf",
+        "fdf" => "application/vnd.fdf",
+        _ => "application/octet-stream",
+    }
 }
 
 /// Whether the app may browse shared storage (true when nobody can tell).
@@ -79,6 +130,10 @@ pub(crate) struct Browser {
     access: bool,
     /// What happened when the user last asked for access (shown under the button).
     access_note: Option<String>,
+    /// Android's document picker is showing (or its document is being fetched).
+    system_waiting: bool,
+    /// Why the system picker didn't work, shown under its button.
+    system_note: Option<String>,
     target: Option<PickTarget>,
     then: Then,
 }
@@ -121,6 +176,8 @@ impl Browser {
             new_folder: None,
             access: access_granted(),
             access_note: None,
+            system_waiting: false,
+            system_note: None,
             target,
             then,
         };
@@ -177,6 +234,79 @@ impl Browser {
         Some(self.dir.join(name))
     }
 
+    /// What to ask the system picker for, in this picker's mode.
+    fn system_pick(&self) -> Option<SystemPick> {
+        match self.mode {
+            Mode::File | Mode::Files => {
+                let exts: Vec<&String> = self.filters.get(self.filter).map(|(_, e)| e.iter().collect()).unwrap_or_default();
+                let mut mime_types: Vec<String> = exts.iter().map(|e| mime_for(e).to_string()).collect();
+                mime_types.dedup();
+                if mime_types.is_empty() || exts.iter().any(|e| *e == "*") || mime_types.iter().any(|m| m == "application/octet-stream") {
+                    mime_types = vec!["*/*".to_string()];
+                }
+                Some(SystemPick::Open { multiple: self.mode == Mode::Files, mime_types })
+            }
+            Mode::Save => {
+                let path = self.save_path()?;
+                let name = path.file_name()?.to_string_lossy().into_owned();
+                let ext = path.extension().map(|e| e.to_string_lossy().into_owned()).unwrap_or_default();
+                Some(SystemPick::Save { name, mime_type: mime_for(&ext).to_string() })
+            }
+            Mode::Folder => None,
+        }
+    }
+
+    /// The button that hands the choice to Android's document picker, and its answer.
+    fn system_picker(&mut self, ui: &mut egui::Ui, answer: &mut Option<Vec<PathBuf>>) {
+        let Some(documents) = DOCUMENTS.get() else { return };
+        let pick = self.system_pick();
+        if self.mode == Mode::Folder {
+            return;
+        }
+        if self.system_waiting {
+            match (documents.poll)() {
+                None => {
+                    ui.horizontal(|ui| {
+                        ui.spinner();
+                        ui.label(tl!("Waiting for the document… (Google Drive downloads it first when it isn't on the tablet yet)"));
+                    });
+                    ui.ctx().request_repaint_after(std::time::Duration::from_millis(250));
+                    return;
+                }
+                Some(Ok(paths)) => {
+                    self.system_waiting = false;
+                    if !paths.is_empty() {
+                        *answer = Some(paths);
+                    }
+                }
+                Some(Err(e)) => {
+                    self.system_waiting = false;
+                    self.system_note = Some(e);
+                }
+            }
+        }
+        let label = if self.mode == Mode::Save { tl!("Save to Google Drive or another app…") } else { tl!("Google Drive and other apps…") };
+        let button = egui::Button::new(egui::RichText::new(format!("☁  {label}")).strong()).min_size(egui::vec2(0.0, ROW_HEIGHT));
+        let hint = if self.mode == Mode::Save {
+            tl!("Choose where to save with Android's picker: Google Drive, Dropbox, OneDrive and other apps. Saving again later updates it there.")
+        } else {
+            tl!("Open from Google Drive, Dropbox, OneDrive and other apps with Android's picker. Saving updates the file there.")
+        };
+        let clicked = ui.add_enabled(pick.is_some(), button).on_hover_text(hint).on_disabled_hover_text(tl!("Type a name first")).clicked();
+        if clicked && let Some(pick) = pick {
+            match (documents.start)(pick) {
+                Ok(()) => {
+                    self.system_waiting = true;
+                    self.system_note = None;
+                }
+                Err(e) => self.system_note = Some(e),
+            }
+        }
+        if let Some(note) = &self.system_note {
+            ui.colored_label(ui.visuals().error_fg_color, note);
+        }
+    }
+
     /// Draw the picker. `Some` once the user is done: the chosen paths, or none when cancelled.
     pub(crate) fn show(&mut self, ctx: &egui::Context) -> Option<Vec<PathBuf>> {
         let mut answer: Option<Vec<PathBuf>> = None;
@@ -197,6 +327,8 @@ impl Browser {
             ui.spacing_mut().interact_size.y = ROW_HEIGHT;
             ui.heading(&self.title);
             ui.add_space(6.0);
+            self.system_picker(ui, &mut answer);
+            ui.add_space(4.0);
             if !self.access {
                 egui::Frame::group(ui.style()).show(ui, |ui| {
                     ui.label(egui::RichText::new(tl!("PdfCraft can't see your files yet")).strong());

@@ -31,6 +31,18 @@ A PDF from a file in your storage opens as that file, and Save writes it in plac
 access). A PDF that only exists in another app (an email attachment, a Drive file) opens as a
 copy: Save asks where to keep it. Opening another PDF while PdfCraft is running adds a tab.
 
+## Google Drive and other apps
+
+Open, Save As and the other file choices show **Google Drive and other apps…** (or **Save to
+Google Drive or another app…**) at the top of PdfCraft's file browser. It opens Android's own
+document picker, where Google Drive, Dropbox, OneDrive and any other installed document app can
+be browsed. PdfCraft works on a copy of the chosen document kept on the tablet, and each time you
+save, it writes the copy back to the document and says so ("Saved Report.pdf to Google Drive").
+Access lasts, so a document reopened later from Recent Files still saves back.
+
+PdfCraft doesn't notice changes made to the document elsewhere after it fetched it: open it
+from Google Drive again to get the latest version.
+
 ## How it differs from the desktop app
 
 - **Files:** Open, Save As, Combine and the other file choices use a file browser drawn inside

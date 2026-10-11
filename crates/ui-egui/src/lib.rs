@@ -87,7 +87,7 @@ pub mod pen;
 #[cfg(not(target_arch = "wasm32"))]
 mod pickers;
 #[cfg(target_os = "android")]
-pub use android_picker::{AndroidFileAccess, set_android_file_access};
+pub use android_picker::{AndroidDocuments, AndroidFileAccess, SystemPick, set_android_documents, set_android_file_access};
 pub mod prepare;
 mod print_ui;
 mod signature_drag;

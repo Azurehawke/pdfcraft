@@ -22,7 +22,9 @@ pub(crate) fn with_activity<R>(what: &str, f: impl FnOnce(&mut jni::JNIEnv, &JOb
     // SAFETY: a global reference to the activity, owned by android-activity; wrapping it doesn't
     // take ownership (JObject never deletes the reference).
     let activity = unsafe { JObject::from_raw(ctx.context().cast()) };
-    let result = f(&mut env, &activity);
+    // In a local frame: the main thread stays attached for good, so references `f` makes would
+    // otherwise never be freed.
+    let result = env.with_local_frame(64, |env| f(env, &activity));
     let exception = java_exception(&mut env);
     result.map_err(|e| {
         let m = match exception {

@@ -73,12 +73,12 @@ fn take_intent(env: &mut JNIEnv, activity: &JObject) -> jni::errors::Result<Opti
 }
 
 /// `obj.method()` for a method returning a String (None for null).
-fn text_of(env: &mut JNIEnv, obj: &JObject, method: &str) -> jni::errors::Result<Option<String>> {
+pub(crate) fn text_of(env: &mut JNIEnv, obj: &JObject, method: &str) -> jni::errors::Result<Option<String>> {
     let s = env.call_method(obj, method, "()Ljava/lang/String;", &[])?.l()?;
     string_of(env, s)
 }
 
-fn string_of(env: &mut JNIEnv, obj: JObject) -> jni::errors::Result<Option<String>> {
+pub(crate) fn string_of(env: &mut JNIEnv, obj: JObject) -> jni::errors::Result<Option<String>> {
     if obj.is_null() {
         return Ok(None);
     }
@@ -86,7 +86,7 @@ fn string_of(env: &mut JNIEnv, obj: JObject) -> jni::errors::Result<Option<Strin
 }
 
 /// Run a Java call whose failure only means "not this way": a thrown exception is cleared.
-fn quietly<'local, R>(env: &mut JNIEnv<'local>, f: impl FnOnce(&mut JNIEnv<'local>) -> jni::errors::Result<R>) -> Option<R> {
+pub(crate) fn quietly<'local, R>(env: &mut JNIEnv<'local>, f: impl FnOnce(&mut JNIEnv<'local>) -> jni::errors::Result<R>) -> Option<R> {
     let result = f(env);
     if crate::file_access::java_exception(env).is_some() {
         return None;
@@ -142,7 +142,7 @@ fn external_storage_path(id: &str) -> Option<String> {
 }
 
 /// One string column of the URI's row (`_display_name`, `_data`), when the provider has it.
-fn column(env: &mut JNIEnv, resolver: &JObject, uri: &JObject, name: &str) -> Option<String> {
+pub(crate) fn column(env: &mut JNIEnv, resolver: &JObject, uri: &JObject, name: &str) -> Option<String> {
     let cursor = quietly(env, |env| {
         let col = env.new_string(name)?;
         let projection = env.new_object_array(1, "java/lang/String", &col)?;
@@ -176,7 +176,7 @@ fn column(env: &mut JNIEnv, resolver: &JObject, uri: &JObject, name: &str) -> Op
 }
 
 /// The whole content behind the URI, through the content resolver.
-fn read_all(env: &mut JNIEnv, resolver: &JObject, uri: &JObject) -> Result<Vec<u8>, String> {
+pub(crate) fn read_all(env: &mut JNIEnv, resolver: &JObject, uri: &JObject) -> Result<Vec<u8>, String> {
     let stream =
         quietly(env, |env| env.call_method(resolver, "openInputStream", "(Landroid/net/Uri;)Ljava/io/InputStream;", &[JValue::Object(uri)])?.l())
             .filter(|s| !s.is_null())
