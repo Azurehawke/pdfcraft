@@ -1925,9 +1925,7 @@ pub fn document_area(app: &mut PdfCraftApp, index: usize, ui: &mut egui::Ui) {
     let mut scroll = egui::ScrollArea::both().auto_shrink([false, false]).scroll_source(egui::scroll_area::ScrollSource {
         drag: if middle_gesture {
             egui::scroll_area::DragScroll::Never
-        } else if app.quick_tool == QuickTool::Hand
-            || finger_pans_with(app.quick_tool)
-        {
+        } else if app.quick_tool == QuickTool::Hand || finger_pans_with(app.quick_tool) {
             egui::scroll_area::DragScroll::Always
         } else if crate::pen::pen_draws() {
             // Pen-only drawing: the pen uses the tool; it never drags the page along.
