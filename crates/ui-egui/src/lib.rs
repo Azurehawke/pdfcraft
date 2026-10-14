@@ -115,6 +115,7 @@ pub(crate) const MAX_AUTHOR_CHARS: usize = 200;
 pub mod portable;
 mod protect;
 mod recovery;
+mod ribbon;
 #[cfg(not(target_arch = "wasm32"))]
 mod system_fonts;
 pub mod theme;
@@ -415,6 +416,8 @@ pub struct PdfCraftApp {
     pub theme_preference: ThemePreference,
     /// The interface accent colour, saved with the theme.
     pub accent: theme::Accent,
+    /// The ribbon's workflow tab.
+    pub workflow: ribbon::Workflow,
     /// The desktop's light/dark choice, watched while the app runs (Linux has no winit answer).
     desktop_theme: pdfcraft_platform::desktop_theme::DesktopTheme,
     /// The last answer [`desktop_theme`] gave, so a frame that asks costs nothing.
@@ -707,7 +710,7 @@ impl PdfCraftApp {
             date_format_draft: None,
             mode_override: None,
             left: LeftPanel::AllTools,
-            left_open: true,
+            left_open: false, // RevuCraft: the ribbon holds the tools; All tools opens the catalogue.
             right: None,
             comments_panel_closed: false,
             quick_tool: QuickTool::Select,
@@ -716,6 +719,7 @@ impl PdfCraftApp {
             theme: ThemeKind::Dark,
             theme_preference: ThemePreference::Dark,
             accent: theme::Accent::default(),
+            workflow: ribbon::Workflow::default(),
             desktop_theme: pdfcraft_platform::desktop_theme::DesktopTheme::start(),
             desktop_dark: None,
             language: i18n::AUTO.to_string(),
@@ -1560,6 +1564,9 @@ impl PdfCraftApp {
                 })?;
                 self.language = language.to_string();
             }
+            ("workflow", _) => {
+                self.workflow = ribbon::Workflow::parse(value).ok_or("workflow must be markup, measure, review or document")?;
+            }
             ("accent", _) => {
                 let accent = theme::Accent::from_code(value).ok_or_else(|| {
                     let codes: Vec<&str> = theme::Accent::ALL.iter().map(|a| a.code()).collect();
@@ -2077,6 +2084,9 @@ impl eframe::App for PdfCraftApp {
         }
         chrome::tab_strip(self, ui);
         chrome::mode_bar(self, ui);
+        if self.mode != Mode::Read {
+            ribbon::show(self, ui);
+        }
         if self.active.is_some() {
             chrome::right_rail(self, ui);
             if self.right.is_some() && self.mode != Mode::Read {

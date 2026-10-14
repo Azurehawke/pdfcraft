@@ -301,12 +301,17 @@ pub fn mode_bar(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
                 ui.add_space(6.0);
                 ui.painter().vline(ui.cursor().left(), ui.max_rect().y_range().shrink(12.0), Stroke::new(1.0, t.divider));
                 ui.add_space(10.0);
-                for (mode, label) in
-                    [(Mode::AllTools, "All tools"), (Mode::Read, "Read"), (Mode::Edit, "Edit"), (Mode::Convert, "Convert"), (Mode::Sign, "E-Sign")]
-                {
-                    if widgets::mode_tab(ui, tl!(label), app.mode == mode).clicked() {
-                        app.select_mode(mode);
-                    }
+                // RevuCraft: workflow tabs drive the ribbon below; the full tool catalogue and
+                // reading mode stay one click away.
+                crate::ribbon::tabs(app, ui);
+                ui.add_space(10.0);
+                ui.painter().vline(ui.cursor().left(), ui.max_rect().y_range().shrink(12.0), Stroke::new(1.0, t.divider));
+                ui.add_space(6.0);
+                if widgets::ghost_button(ui, "layout-grid", tl!("All tools")).clicked() {
+                    app.select_mode(Mode::AllTools);
+                }
+                if widgets::ghost_button(ui, "book-open", tl!("Read")).clicked() {
+                    app.select_mode(Mode::Read);
                 }
                 ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
                     ui.spacing_mut().item_spacing.x = 4.0;

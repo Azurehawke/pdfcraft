@@ -89,6 +89,11 @@ jobs:
           shot plan "$plan"
           shot plan-light "$plan" --theme light
           shot plan-comments "$plan" --panel comments
+          shot plan-measure "$plan" --workflow measure
+          shot plan-review "$plan" --workflow review
+          shot plan-document "$plan" --workflow document
+          shot plan-teal "$plan" --accent teal
+          shot all-tools "$plan" --mode all
 
       - name: Publish logs and screenshots
         if: always()
