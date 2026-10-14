@@ -1878,6 +1878,9 @@
 	Sensitivity	Empfindlichkeit
 	Unit	Einheit
 	Decimals	Nachkommastellen
+	Length format	Längenformat
+	Decimal	Dezimal
+	Feet and inches	Fuß und Zoll
 	Calibrate from two points	Anhand zweier Punkte kalibrieren
 	Entire page	Ganze Seite
 	Viewport rectangle in page points (x, y, width, height)	Ausschnittsrechteck in Seitenpunkten (x, y, Breite, Höhe)

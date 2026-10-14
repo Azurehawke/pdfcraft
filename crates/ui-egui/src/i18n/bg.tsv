@@ -1808,6 +1808,9 @@
 	Sensitivity	Чувствителност
 	Unit	Единица
 	Decimals	Десетични знаци
+	Length format	Формат на дължината
+	Decimal	Десетичен
+	Feet and inches	Футове и инчове
 	Calibrate from two points	Калибрирай по две точки
 	Entire page	Цялата страница
 	Viewport rectangle in page points (x, y, width, height)	Правоъгълник на изгледа в точки на страницата (x, y, ширина, височина)

@@ -1682,6 +1682,9 @@
 	Sensitivity	Sensibilidade
 	Unit	Unidade
 	Decimals	Casas decimais
+	Length format	Formato de comprimento
+	Decimal	Decimal
+	Feet and inches	Pés e polegadas
 	Calibrate from two points	Calibrar a partir de dois pontos
 	Entire page	Página inteira
 	Viewport rectangle in page points (x, y, width, height)	Retângulo da janela de visualização em pontos da página (x, y, largura, altura)

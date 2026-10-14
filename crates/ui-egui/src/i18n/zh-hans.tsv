@@ -1816,6 +1816,9 @@
 	Sensitivity	灵敏度
 	Unit	单位
 	Decimals	小数位数
+	Length format	长度格式
+	Decimal	十进制
+	Feet and inches	英尺和英寸
 	Calibrate from two points	使用两点校准
 	Entire page	整个页面
 	Viewport rectangle in page points (x, y, width, height)	以页面点数指定视口矩形（x、y、宽度、高度）

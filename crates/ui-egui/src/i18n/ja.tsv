@@ -1955,6 +1955,9 @@
 	Sensitivity	感度
 	Unit	単位
 	Decimals	小数桁数
+	Length format	長さの表示形式
+	Decimal	10進数
+	Feet and inches	フィートとインチ
 	Calibrate from two points	2点で校正
 	Entire page	ページ全体
 	Viewport rectangle in page points (x, y, width, height)	ページ上の矩形（ポイント単位：x、y、幅、高さ）

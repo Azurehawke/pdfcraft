@@ -1944,6 +1944,9 @@
 	Sensitivity	Czułość
 	Unit	Jednostka
 	Decimals	Miejsca dziesiętne
+	Length format	Format długości
+	Decimal	Dziesiętny
+	Feet and inches	Stopy i cale
 	Calibrate from two points	Kalibruj na podstawie dwóch punktów
 	Entire page	Cała strona
 	Viewport rectangle in page points (x, y, width, height)	Prostokąt obszaru widoku w punktach strony (x, y, szerokość, wysokość)

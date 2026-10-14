@@ -1941,6 +1941,9 @@
 	Sensitivity	Чутливість
 	Unit	Одиниця
 	Decimals	Знаків після коми
+	Length format	Формат довжини
+	Decimal	Десятковий
+	Feet and inches	Фути й дюйми
 	Calibrate from two points	Калібрувати за двома точками
 	Entire page	Уся сторінка
 	Viewport rectangle in page points (x, y, width, height)	Прямокутник області перегляду в пунктах сторінки (x, y, ширина, висота)

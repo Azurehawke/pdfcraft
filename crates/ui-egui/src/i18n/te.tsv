@@ -1871,6 +1871,9 @@ action wizard	Start	ప్రారంభించు
 	Sensitivity	సున్నితత్వం
 	Unit	యూనిట్
 	Decimals	దశాంశ స్థానాలు
+	Length format	పొడవు ఆకృతి
+	Decimal	దశాంశం
+	Feet and inches	అడుగులు మరియు అంగుళాలు
 	Calibrate from two points	రెండు బిందువుల నుండి క్యాలిబ్రేట్ చేయి
 	Entire page	మొత్తం పేజీ
 	Viewport rectangle in page points (x, y, width, height)	పేజీ పాయింట్‌లలో వ్యూపోర్ట్ దీర్ఘచతురస్రం (x, y, వెడల్పు, ఎత్తు)

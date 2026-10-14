@@ -39,6 +39,59 @@ impl Tool {
         }
     }
 }
+/// A common drawing scale: `paper_points` on the sheet stand for `real` `unit`s. `fractions`
+/// is the inch denominator for feet-and-inch scales, 0 for decimal ones. The names are the
+/// trade's own notation and aren't translated.
+pub struct Preset {
+    pub name: &'static str,
+    pub paper_points: f64,
+    pub real: f64,
+    pub unit: &'static str,
+    pub fractions: u16,
+}
+const fn arch(name: &'static str, paper_inches: f64) -> Preset {
+    // paper_inches on the sheet = 1 foot.
+    Preset { name, paper_points: paper_inches * 72.0, real: 1.0, unit: "ft", fractions: 16 }
+}
+const fn eng(name: &'static str, feet: f64) -> Preset {
+    // 1 inch on the sheet = `feet` feet.
+    Preset { name, paper_points: 72.0, real: feet, unit: "ft", fractions: 0 }
+}
+const fn metric(name: &'static str, ratio: f64) -> Preset {
+    // 1 mm on the sheet = `ratio` mm.
+    Preset { name, paper_points: 72.0 / 25.4, real: ratio / 1000.0, unit: "m", fractions: 0 }
+}
+pub const PRESETS: [Preset; 26] = [
+    arch("1/16\" = 1'-0\"", 1.0 / 16.0),
+    arch("3/32\" = 1'-0\"", 3.0 / 32.0),
+    arch("1/8\" = 1'-0\"", 1.0 / 8.0),
+    arch("3/16\" = 1'-0\"", 3.0 / 16.0),
+    arch("1/4\" = 1'-0\"", 1.0 / 4.0),
+    arch("3/8\" = 1'-0\"", 3.0 / 8.0),
+    arch("1/2\" = 1'-0\"", 1.0 / 2.0),
+    arch("3/4\" = 1'-0\"", 3.0 / 4.0),
+    arch("1\" = 1'-0\"", 1.0),
+    arch("1 1/2\" = 1'-0\"", 1.5),
+    arch("3\" = 1'-0\"", 3.0),
+    eng("1\" = 10'", 10.0),
+    eng("1\" = 20'", 20.0),
+    eng("1\" = 30'", 30.0),
+    eng("1\" = 40'", 40.0),
+    eng("1\" = 50'", 50.0),
+    eng("1\" = 60'", 60.0),
+    eng("1\" = 100'", 100.0),
+    metric("1:5", 5.0),
+    metric("1:10", 10.0),
+    metric("1:20", 20.0),
+    metric("1:50", 50.0),
+    metric("1:100", 100.0),
+    metric("1:200", 200.0),
+    metric("1:500", 500.0),
+    metric("1:1000", 1000.0),
+];
+/// Inch denominators offered for feet-and-inch scales.
+const FRACTIONS: [u16; 7] = [1, 2, 4, 8, 16, 32, 64];
+
 pub struct MeasureView {
     pub points: Vec<Point>,
     pub page: Option<usize>,
@@ -53,6 +106,8 @@ pub struct MeasureView {
     pub real_distance: f64,
     pub unit: String,
     pub precision: u8,
+    /// Inch denominator for feet-and-inch lengths; 0 writes decimal lengths.
+    pub fractions: u16,
     pub name: String,
     pub whole_page: bool,
     pub rect: [f64; 4],
@@ -80,6 +135,7 @@ impl Default for MeasureView {
             real_distance: 1.0,
             unit: "in".into(),
             precision: 2,
+            fractions: 0,
             name: "Drawing scale".into(),
             whole_page: true,
             rect: [0.0, 0.0, 100.0, 100.0],
@@ -307,6 +363,10 @@ fn panel_body(app: &mut PdfCraftApp, ui: &mut egui::Ui, _t: &Tokens) {
             state.real_distance = reading.value;
             state.unit = scale.unit;
             state.precision = scale.precision;
+            state.fractions = match scale.format {
+                measure::LengthFormat::FeetInches { denominator } => denominator,
+                measure::LengthFormat::Decimal => 0,
+            };
         }
     }
     ui.label(tl!("Click vertices. Enter or double-click finishes a perimeter or area. Click the first point to close an area."));
@@ -342,6 +402,25 @@ fn panel_body(app: &mut PdfCraftApp, ui: &mut egui::Ui, _t: &Tokens) {
     }
     ui.separator();
     ui.label(tl!("Drawing scale"));
+    let current = PRESETS.iter().find(|p| {
+        (p.paper_points - state.drawing_points).abs() < 1e-6
+            && (p.real - state.real_distance).abs() < 1e-9
+            && p.unit == state.unit
+            && p.fractions == state.fractions
+    });
+    egui::ComboBox::from_id_salt("measure-scale-preset")
+        .selected_text(current.map_or_else(|| tl!("Custom").to_string(), |p| p.name.to_string()))
+        .width(150.0)
+        .show_ui(ui, |ui| {
+            for p in &PRESETS {
+                if ui.selectable_label(current.is_some_and(|c| c.name == p.name), p.name).clicked() {
+                    state.drawing_points = p.paper_points;
+                    state.real_distance = p.real;
+                    state.unit = p.unit.into();
+                    state.fractions = p.fractions;
+                }
+            }
+        });
     ui.horizontal(|ui| {
         ui.add(egui::DragValue::new(&mut state.drawing_points).range(0.000001..=1e9).prefix("pt "));
         ui.label("=");
@@ -351,6 +430,23 @@ fn panel_body(app: &mut PdfCraftApp, ui: &mut egui::Ui, _t: &Tokens) {
         ui.label(tl!("Unit"));
         ui.add(egui::TextEdit::singleline(&mut state.unit).desired_width(64.0).char_limit(12));
         ui.add(egui::DragValue::new(&mut state.precision).range(0..=6).prefix(format!("{} ", tl!("Decimals"))));
+    });
+    ui.horizontal(|ui| {
+        ui.label(tl!("Length format"));
+        let feet_inches = state.fractions > 0;
+        if ui.selectable_label(!feet_inches, tl!("Decimal")).clicked() {
+            state.fractions = 0;
+        }
+        if ui.selectable_label(feet_inches, tl!("Feet and inches")).clicked() && !feet_inches {
+            state.fractions = 16;
+        }
+        if state.fractions > 0 {
+            egui::ComboBox::from_id_salt("measure-fractions").selected_text(format!("1/{}\"", state.fractions)).width(56.0).show_ui(ui, |ui| {
+                for d in FRACTIONS {
+                    ui.selectable_value(&mut state.fractions, d, format!("1/{d}\""));
+                }
+            });
+        }
     });
     if ui.button(tl!("Calibrate from two points")).clicked() {
         tool = Some(Tool::Calibrate);
@@ -400,7 +496,12 @@ fn panel_body(app: &mut PdfCraftApp, ui: &mut egui::Ui, _t: &Tokens) {
     if apply && let Some(info) = info {
         let result =
             doc.measurement_to_user(page, [0.0, 0.0]).and_then(|a| doc.measurement_to_user(page, [1.0, 0.0]).map(|b| (a, b))).and_then(|(a, b)| {
-                Scale::calibrate(a, b, state.real_distance / state.drawing_points, &state.unit, state.precision).map_err(|e| e.to_string())
+                let scale = Scale::calibrate(a, b, state.real_distance / state.drawing_points, &state.unit, state.precision);
+                match state.fractions {
+                    0 => scale,
+                    d => scale.and_then(|s| s.with_feet_inches(d)),
+                }
+                .map_err(|e| e.to_string())
             });
         match result {
             Ok(scale) => {

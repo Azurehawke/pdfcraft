@@ -1943,6 +1943,9 @@
 	Sensitivity	الحساسية
 	Unit	الوحدة
 	Decimals	المنازل العشرية
+	Length format	تنسيق الطول
+	Decimal	عشري
+	Feet and inches	أقدام وبوصات
 	Calibrate from two points	المعايرة من نقطتين
 	Entire page	الصفحة كاملة
 	Viewport rectangle in page points (x, y, width, height)	مستطيل منفذ العرض بنقاط الصفحة (x, y, العرض, الارتفاع)

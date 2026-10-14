@@ -1944,6 +1944,9 @@
 	Sensitivity	Чувствительность
 	Unit	Единица
 	Decimals	Десятичные знаки
+	Length format	Формат длины
+	Decimal	Десятичный
+	Feet and inches	Футы и дюймы
 	Calibrate from two points	Калибровать по двум точкам
 	Entire page	Вся страница
 	Viewport rectangle in page points (x, y, width, height)	Прямоугольник области просмотра в точках страницы (x, y, ширина, высота)

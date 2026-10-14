@@ -1867,6 +1867,9 @@
 	Sensitivity	Érzékenység
 	Unit	Mértékegység
 	Decimals	Tizedesjegyek
+	Length format	Hosszformátum
+	Decimal	Tizedes
+	Feet and inches	Láb és hüvelyk
 	Calibrate from two points	Kalibrálás két pontból
 	Entire page	Teljes oldal
 	Viewport rectangle in page points (x, y, width, height)	Nézetablak téglalapja oldalpontokban (x, y, szélesség, magasság)
