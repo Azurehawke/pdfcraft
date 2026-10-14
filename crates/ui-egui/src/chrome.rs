@@ -248,13 +248,22 @@ fn tab(
     ui.painter().rect_filled(rect, CornerRadius { nw: 7, ne: 7, sw: 0, se: 0 }, bg);
     icons::paint(ui, Rect::from_min_size(rect.min + vec2(6.0, 7.0), vec2(16.0, 16.0)), icon, 15.0, if active { t.accent } else { t.text_muted });
     ui.painter().text(rect.min + vec2(28.0, rect.height() / 2.0), Align2::LEFT_CENTER, label, font, if active { t.text } else { t.text_muted });
-    let x_rect = Rect::from_center_size(rect.right_center() - vec2(16.0, 0.0), vec2(20.0, 20.0));
+    // Touch screens have no hover to reveal the close button: it always shows, a size a finger
+    // can hit, with the unsaved-changes dot beside it.
+    let touch = cfg!(target_os = "android");
+    let x_size = if touch { 26.0 } else { 20.0 };
+    let x_rect = Rect::from_center_size(rect.right_center() - vec2(16.0, 0.0), vec2(x_size, x_size));
     let x = ui.interact(x_rect, ui.id().with(("tabclose", index)), Sense::click());
     if x.hovered() {
         ui.painter().rect_filled(x_rect, CornerRadius::same(4), t.pressed);
     }
-    // Unsaved changes: a dot where the close button sits, until the tab is hovered.
-    if dirty && !resp.hovered() && !x.hovered() {
+    if touch {
+        icons::paint(ui, x_rect.shrink((x_size - 20.0) / 2.0), "x", 13.0, t.text_muted);
+        if dirty {
+            ui.painter().circle_filled(x_rect.right_top() + vec2(-3.0, 4.0), 3.0, if active { t.accent } else { t.text_muted });
+        }
+    } else if dirty && !resp.hovered() && !x.hovered() {
+        // Unsaved changes: a dot where the close button sits, until the tab is hovered.
         ui.painter().circle_filled(x_rect.center(), 4.0, if active { t.text } else { t.text_muted });
     } else if active || resp.hovered() || x.hovered() {
         icons::paint(ui, x_rect, "x", 13.0, t.text_muted);

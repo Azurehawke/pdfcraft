@@ -13,7 +13,7 @@
 //! applied by the app, so each change is one undo step.
 
 use egui::{Color32, CornerRadius, Pos2, Rect, Sense, Stroke, pos2, vec2};
-use pdfcraft_engine::{Edit, LineEnding, Markup, NewAnnotation, NoteIcon, ReviewState, Rgb, Shape, Style};
+use pdfcraft_engine::{Edit, LineEnding, Markup, NewAnnotation, NoteIcon, PenKind, ReviewState, Rgb, Shape, Style};
 use pdfcraft_render::{Annotation, DocInfo};
 
 use crate::canvas::{DocView, PageXform};
@@ -250,6 +250,8 @@ pub struct CommentPrefs {
     pub pinned: bool,
     /// The tool each flyout group shows (the last one used).
     pub group_tool: [CommentTool; 3],
+    /// The Draw tool's pen (fountain pen, calligraphy…).
+    pub pen: PenKind,
 }
 
 impl Default for CommentPrefs {
@@ -259,6 +261,7 @@ impl Default for CommentPrefs {
             styles: ALL.iter().map(|t| (*t, Style::default_for(&t.sample()))).collect(),
             pinned: false,
             group_tool: [CommentTool::Note, CommentTool::Highlight, CommentTool::Ink],
+            pen: PenKind::default(),
         }
     }
 }
@@ -388,6 +391,9 @@ pub struct CommentView {
     /// The selected comment: (page, index in `/Annots`).
     pub selected: Option<(usize, usize)>,
     pub gesture: Option<Gesture>,
+    /// The pen's pressure at each point of a Draw gesture (`None`: no pressure reported, as
+    /// with a mouse).
+    pub pressures: Vec<Option<f64>>,
     /// Escape ends egui's drag too; ignore its synthetic release until the mouse is up.
     cancelled_drag: bool,
     pub composer: Option<Composer>,
@@ -617,6 +623,7 @@ pub(crate) fn page_input(ui: &egui::Ui, resp: &egui::Response, cx: &PageCx<'_>, 
                 && let Some(o) = origin
             {
                 cv.gesture = Some(Gesture::Draw { page: cx.page, tool, points: vec![cx.to_user(o)] });
+                cv.pressures = vec![crate::pen::pressure()];
                 cv.selected = None;
             }
             if let Some(Gesture::Draw { page, tool, points }) = cv.gesture.as_mut()
@@ -629,6 +636,7 @@ pub(crate) fn page_input(ui: &egui::Ui, resp: &egui::Response, cx: &PageCx<'_>, 
                     let last = points.last().map(|l| cx.to_screen(*l)).unwrap_or(p);
                     if last.distance(p) >= 1.5 {
                         points.push(u);
+                        cv.pressures.push(crate::pen::pressure());
                     }
                 } else {
                     points.truncate(1);
@@ -643,6 +651,7 @@ pub(crate) fn page_input(ui: &egui::Ui, resp: &egui::Response, cx: &PageCx<'_>, 
                 if tool == CommentTool::Eraser {
                     view.pending_edit = erase(cx, &points);
                 } else if let Some(shape) = drawn_shape(tool, &points) {
+                    let shape = with_pen(shape, &std::mem::take(&mut cv.pressures), cx.prefs.pen);
                     view.pending_edit = Some(new_comment(cx, tool, shape, String::new()));
                 }
             }
@@ -1000,7 +1009,12 @@ fn paint_gesture(painter: &egui::Painter, cx: &PageCx<'_>, view: &DocView) {
         let pts: Vec<Pos2> = points.iter().map(|p| cx.to_screen(*p)).collect();
         match tool {
             CommentTool::Ink => {
-                painter.add(egui::Shape::line(pts, stroke));
+                let pressed = view.comments.pressures.iter().any(Option::is_some);
+                if cx.prefs.pen == PenKind::Pen && !pressed {
+                    painter.add(egui::Shape::line(pts, stroke));
+                } else {
+                    paint_pen_stroke(painter, &pts, &view.comments.pressures, cx.prefs.pen, style.width, zoom, color32(style.color));
+                }
             }
             CommentTool::Eraser => {
                 painter.add(egui::Shape::line(pts, Stroke::new(12.0, Color32::from_gray(128).gamma_multiply(0.35))));
@@ -1039,6 +1053,65 @@ fn paint_gesture(painter: &egui::Painter, cx: &PageCx<'_>, view: &DocView) {
                 painter.rect_stroke(Rect::from_min_size(pts[1], vec2(160.0, 40.0) * zoom), CornerRadius::ZERO, stroke, egui::StrokeKind::Inside);
             }
             _ => {}
+        }
+    }
+}
+
+/// A freehand drawing drawn with the chosen pen: its width follows the pressures recorded with
+/// its points. A plain pen with no pressure (a mouse) stays a plain drawing.
+fn with_pen(shape: Shape, pressures: &[Option<f64>], pen: PenKind) -> Shape {
+    let Shape::Ink { strokes } = shape else { return shape };
+    let pressed = pressures.iter().any(Option::is_some);
+    if pen == PenKind::Pen && !pressed {
+        return Shape::Ink { strokes };
+    }
+    let pressure = strokes
+        .iter()
+        .map(|s| (0..s.len()).map(|i| pressures.get(i).copied().flatten().unwrap_or(pdfcraft_engine::annot_pen::DEFAULT_PRESSURE)).collect())
+        .collect();
+    Shape::PenInk { strokes, pressure, pen }
+}
+
+/// The stroke being drawn with `pen`, as it will look: pieces between successive points, each as
+/// wide as the pen draws at that point's pressure.
+fn paint_pen_stroke(painter: &egui::Painter, pts: &[Pos2], pressures: &[Option<f64>], pen: PenKind, width: f64, zoom: f32, color: Color32) {
+    let half = |i: usize| {
+        let p = pressures.get(i).copied().flatten().unwrap_or(pdfcraft_engine::annot_pen::DEFAULT_PRESSURE);
+        (pen.width_at(width, p) as f32 * zoom / 2.0).max(0.5)
+    };
+    let color = color.gamma_multiply(pen.opacity_factor() as f32);
+    match pen {
+        // Translucent pens: one even line, so overlapping pieces don't darken.
+        PenKind::Highlighter | PenKind::Pencil => {
+            painter.add(egui::Shape::line(pts.to_vec(), Stroke::new(2.0 * half(0), color)));
+        }
+        PenKind::Calligraphy => {
+            let nib = vec2(std::f32::consts::FRAC_1_SQRT_2, -std::f32::consts::FRAC_1_SQRT_2);
+            for (i, w) in pts.windows(2).enumerate() {
+                let (oa, ob) = (nib * half(i), nib * half(i + 1));
+                let mut quad = vec![w[0] + oa, w[1] + ob, w[1] - ob, w[0] - oa];
+                let cross = (quad[1] - quad[0]).x * (quad[2] - quad[1]).y - (quad[1] - quad[0]).y * (quad[2] - quad[1]).x;
+                if cross < 0.0 {
+                    quad.reverse();
+                }
+                painter.add(egui::Shape::convex_polygon(quad, color, Stroke::NONE));
+            }
+        }
+        PenKind::Pen | PenKind::Fountain | PenKind::Brush => {
+            for (i, w) in pts.windows(2).enumerate() {
+                let d = (w[1] - w[0]).normalized();
+                let normal = vec2(-d.y, d.x);
+                let (na, nb) = (normal * half(i), normal * half(i + 1));
+                let mut quad = vec![w[0] + na, w[1] + nb, w[1] - nb, w[0] - na];
+                let cross = (quad[1] - quad[0]).x * (quad[2] - quad[1]).y - (quad[1] - quad[0]).y * (quad[2] - quad[1]).x;
+                if cross < 0.0 {
+                    quad.reverse();
+                }
+                painter.add(egui::Shape::convex_polygon(quad, color, Stroke::NONE));
+            }
+            for (i, p) in pts.iter().enumerate() {
+                painter.circle_filled(*p, half(i), color);
+            }
         }
     }
 }
@@ -1403,6 +1476,9 @@ pub(crate) fn quick_bar_controls(ui: &mut egui::Ui, tool: CommentTool, prefs: &m
             ui.close();
         }
     });
+    if tool == CommentTool::Ink {
+        pen_button(ui, prefs, &style);
+    }
     if tool.has_fill() {
         let resp = fill_button(ui, style.fill);
         egui::Popup::menu(&resp).align(egui::RectAlign::RIGHT_START).show(|ui| {
@@ -1433,6 +1509,41 @@ pub(crate) fn quick_bar_controls(ui: &mut egui::Ui, tool: CommentTool, prefs: &m
             }
         });
     }
+}
+
+/// The Draw tool's pen: a button showing the current one, and a menu of pens, each with a sample
+/// stroke drawn as it would draw (pressing harder in the middle).
+fn pen_button(ui: &mut egui::Ui, prefs: &mut CommentPrefs, style: &Style) {
+    let icon = |pen: PenKind| match pen {
+        PenKind::Pen => "pen-line",
+        PenKind::Fountain | PenKind::Calligraphy => "pen-tool",
+        PenKind::Brush => "brush",
+        PenKind::Pencil => "pencil",
+        PenKind::Highlighter => "highlighter",
+    };
+    let current = prefs.pen;
+    let resp = icons::button(ui, icon(current), 32.0, false, &format!("{}: {}", tl!("Pen"), tl!(current.label())));
+    egui::Popup::menu(&resp).align(egui::RectAlign::RIGHT_START).show(|ui| {
+        ui.label(egui::RichText::new(tl!("Pen")).font(theme::semibold(12.0)));
+        for pen in PenKind::ALL {
+            let (r, row) = ui.allocate_exact_size(vec2(240.0, 40.0), Sense::click());
+            let t = Tokens::get(ui.ctx());
+            if pen == current || row.hovered() {
+                ui.painter().rect_filled(r, CornerRadius::same(6), if pen == current { t.pressed } else { t.hover });
+            }
+            ui.painter().text(r.left_center() + vec2(10.0, 0.0), egui::Align2::LEFT_CENTER, tl!(pen.label()), theme::regular(13.0), t.text);
+            // A sample: a gentle wave, light at both ends and pressed in the middle.
+            let (x0, x1) = (r.left() + 130.0, r.right() - 12.0);
+            let pts: Vec<Pos2> =
+                (0..=24).map(|i| i as f32 / 24.0).map(|f| pos2(x0 + (x1 - x0) * f, r.center().y + 7.0 * (f * std::f32::consts::TAU).sin())).collect();
+            let press: Vec<Option<f64>> = (0..=24).map(|i| Some((std::f64::consts::PI * f64::from(i) / 24.0).sin() * 0.9 + 0.1)).collect();
+            paint_pen_stroke(ui.painter(), &pts, &press, pen, style.width.clamp(1.0, 3.0), 1.0, color32(style.color));
+            if row.clicked() {
+                prefs.pen = pen;
+                ui.close();
+            }
+        }
+    });
 }
 
 /// The quick bar's fill button: a filled square in the fill colour, or a crossed-out outline

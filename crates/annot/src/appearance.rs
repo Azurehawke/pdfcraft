@@ -285,7 +285,9 @@ pub fn build(d: &Dict) -> Option<Stream> {
     let mut res = Dict::new();
     let mut c = String::new();
     let markup = matches!(subtype.as_slice(), b"Highlight" | b"Underline" | b"StrikeOut" | b"Squiggly");
-    if let Some(gs) = ext_gstate(opacity, subtype == b"Highlight") {
+    // A drawing made with one of PdfCraft's pens (`crate::pen`).
+    let pen = if subtype == b"Ink" { d.name(b"PCPen").and_then(crate::pen::PenKind::from_name) } else { None };
+    if let Some(gs) = ext_gstate(opacity, subtype == b"Highlight" || pen.is_some_and(|p| p.multiply())) {
         res.set(b"ExtGState".to_vec(), Object::Dict(gs));
         c.push_str("/GS0 gs\n");
     }
@@ -495,6 +497,22 @@ pub fn build(d: &Dict) -> Option<Stream> {
                 n(x1),
                 n(y0)
             ));
+        }
+        b"Ink" if pen.is_some() => {
+            let col = stroke?;
+            let pen = pen?;
+            let list = d.get(b"InkList")?.as_array()?;
+            let pressure: Vec<Vec<f64>> = d
+                .get(b"PCPressure")
+                .and_then(|p| p.as_array())
+                .map(|a| a.iter().map(|s| s.as_array().map(|v| v.iter().filter_map(Object::as_f64).collect()).unwrap_or_default()).collect())
+                .unwrap_or_default();
+            c.push_str(&rg(col));
+            for (i, s) in list.iter().enumerate() {
+                let pts: Vec<f64> = s.as_array()?.iter().map(|o| o.as_f64()).collect::<Option<_>>()?;
+                let pts: Vec<(f64, f64)> = pts.as_chunks::<2>().0.iter().map(|p| (p[0], p[1])).collect();
+                c.push_str(&crate::pen::outline(&pts, pressure.get(i).map(Vec::as_slice).unwrap_or_default(), pen, w));
+            }
         }
         b"Ink" => {
             let col = stroke?;

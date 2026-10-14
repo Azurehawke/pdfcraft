@@ -376,6 +376,12 @@ impl<T: 'static> EventLoop<T> {
             InputEvent::MotionEvent(motion_event) => {
                 let window_id = window::WindowId(WindowId);
                 let device_id = event::DeviceId(DeviceId(motion_event.device_id()));
+                // PdfCraft patch: a mouse (or a touchpad in pointer mode) is a mouse, not a
+                // touch: cursor moves, buttons and the wheel. A stylus hovering over the screen
+                // moves the cursor too. See `mouse_event`.
+                if mouse_event(motion_event, window_id, device_id, &mut |e| callback(e, self.window_target())) {
+                    return input_status;
+                }
 
                 let phase = match motion_event.action() {
                     MotionAction::Down | MotionAction::PointerDown => {
@@ -414,7 +420,11 @@ impl<T: 'static> EventLoop<T> {
                                 device_id,
                                 phase,
                                 location,
-                                id: pointer.pointer_id() as u64,
+                                // PdfCraft patch: the tool type (finger, stylus, eraser,
+                                // mouse, palm) rides in bits 32..40 of the id, so the app can
+                                // tell the pen from a finger or a resting palm. winit 0.30's
+                                // Touch has no field for it. See `touch_tool_bits`.
+                                id: pointer.pointer_id() as u32 as u64 | touch_tool_bits(pointer.tool_type()),
                                 force: Some(Force::Normalized(pointer.pressure() as f64)),
                             }),
                         };
@@ -1138,4 +1148,194 @@ impl VideoModeHandle {
     pub fn monitor(&self) -> MonitorHandle {
         self.monitor.clone()
     }
+}
+
+/// PdfCraft patch: the tool type of a touch, in bits 32..40 of `Touch::id` (the Android tool type
+/// constants: 1 finger, 2 stylus, 3 mouse, 4 eraser, 5 palm; 0 unknown).
+fn touch_tool_bits(tool: android_activity::input::ToolType) -> u64 {
+    use android_activity::input::ToolType;
+    let code: u64 = match tool {
+        ToolType::Finger => 1,
+        ToolType::Stylus => 2,
+        ToolType::Mouse => 3,
+        ToolType::Eraser => 4,
+        ToolType::Palm => 5,
+        _ => 0,
+    };
+    code << 32
+}
+
+/// PdfCraft patch: whether `motion_event` comes from a mouse (Android's `SOURCE_MOUSE`, or a
+/// pointer whose tool is a mouse). winit 0.30 turns every motion event into a touch, which leaves
+/// a mouse without hover, right-click or wheel.
+fn is_mouse(motion_event: &android_activity::input::MotionEvent<'_>) -> bool {
+    const SOURCE_MOUSE: u32 = 0x0000_2002;
+    let source: u32 = motion_event.source().into();
+    source & SOURCE_MOUSE == SOURCE_MOUSE
+        || (motion_event.pointer_count() == 1
+            && motion_event.pointer_at_index(0).tool_type() == android_activity::input::ToolType::Mouse)
+}
+
+thread_local! {
+    /// PdfCraft patch: the touchpad gesture in progress: its fake fingers' centre and spread.
+    static TOUCHPAD_GESTURE: Cell<Option<(f32, f32, f32)>> = const { Cell::new(None) };
+}
+
+/// PdfCraft patch: a touchpad's two-finger swipe and pinch. Android reports them from the mouse
+/// as fake fingers (tool type finger, source mouse; Android 13+ classifies them
+/// `TWO_FINGER_SWIPE` and `PINCH`): one finger dragged for a swipe, two for a pinch. A swipe
+/// becomes `MouseWheel` pixel deltas (the content follows the fingers, as on the touch screen),
+/// a pinch `PinchGesture`. Returns whether the event was one.
+fn touchpad_gesture(
+    motion_event: &android_activity::input::MotionEvent<'_>,
+    device_id: event::DeviceId,
+    window_event: &mut dyn FnMut(event::WindowEvent),
+) -> bool {
+    use android_activity::input::ToolType;
+    // Only drags without a button held: a touchpad reports its pointer moves, hovering, clicks
+    // and click-drags with a finger tool type too, and those stay the mouse's.
+    let action = motion_event.action();
+    if !matches!(
+        action,
+        MotionAction::Down | MotionAction::Move | MotionAction::Up | MotionAction::Cancel | MotionAction::PointerDown | MotionAction::PointerUp
+    ) {
+        return false;
+    }
+    let buttons = motion_event.button_state();
+    let in_gesture = TOUCHPAD_GESTURE.with(|g| g.get()).is_some();
+    if (buttons.primary() || buttons.secondary()) && !in_gesture {
+        return false;
+    }
+    let n = motion_event.pointer_count();
+    if n == 0 || !motion_event.pointers().all(|p| p.tool_type() == ToolType::Finger) {
+        return false;
+    }
+    // A move or lift with no gesture started is an ordinary pointer event.
+    if !in_gesture && !matches!(action, MotionAction::Down | MotionAction::PointerDown) {
+        return false;
+    }
+    let (mut x, mut y) = (0.0f32, 0.0f32);
+    for p in motion_event.pointers() {
+        x += p.x();
+        y += p.y();
+    }
+    let (x, y) = (x / n as f32, y / n as f32);
+    let spread = if n >= 2 {
+        let (a, b) = (motion_event.pointer_at_index(0), motion_event.pointer_at_index(1));
+        (a.x() - b.x()).hypot(a.y() - b.y())
+    } else {
+        0.0
+    };
+    let last = TOUCHPAD_GESTURE.with(|g| g.get());
+    match action {
+        MotionAction::Down => {
+            TOUCHPAD_GESTURE.with(|g| g.set(Some((x, y, spread))));
+            if n == 1 {
+                window_event(event::WindowEvent::MouseWheel {
+                    device_id,
+                    delta: event::MouseScrollDelta::PixelDelta(PhysicalPosition { x: 0.0, y: 0.0 }),
+                    phase: event::TouchPhase::Started,
+                });
+            }
+        },
+        // The second fake finger of a pinch: start measuring its spread.
+        MotionAction::PointerDown => TOUCHPAD_GESTURE.with(|g| g.set(Some((x, y, spread)))),
+        MotionAction::Move => {
+            if let Some((lx, ly, ls)) = last {
+                if n == 1 {
+                    let (dx, dy) = (x - lx, y - ly);
+                    if dx.is_finite() && dy.is_finite() && (dx != 0.0 || dy != 0.0) {
+                        window_event(event::WindowEvent::MouseWheel {
+                            device_id,
+                            delta: event::MouseScrollDelta::PixelDelta(PhysicalPosition { x: dx as f64, y: dy as f64 }),
+                            phase: event::TouchPhase::Moved,
+                        });
+                    }
+                } else if ls > 1.0 && spread > 1.0 {
+                    let delta = f64::from(spread / ls) - 1.0;
+                    if delta.is_finite() && delta != 0.0 {
+                        window_event(event::WindowEvent::PinchGesture { device_id, delta, phase: event::TouchPhase::Moved });
+                    }
+                }
+            }
+            TOUCHPAD_GESTURE.with(|g| g.set(Some((x, y, spread))));
+        },
+        MotionAction::Up | MotionAction::Cancel => {
+            TOUCHPAD_GESTURE.with(|g| g.set(None));
+            if n == 1 {
+                window_event(event::WindowEvent::MouseWheel {
+                    device_id,
+                    delta: event::MouseScrollDelta::PixelDelta(PhysicalPosition { x: 0.0, y: 0.0 }),
+                    phase: event::TouchPhase::Ended,
+                });
+            }
+        },
+        MotionAction::PointerUp => TOUCHPAD_GESTURE.with(|g| g.set(None)),
+        _ => {},
+    }
+    true
+}
+
+/// PdfCraft patch: deliver a mouse's motion events as cursor, button and wheel events, and a
+/// hovering stylus's as cursor moves. Returns whether it handled the event (otherwise it is a
+/// touch).
+fn mouse_event<T>(
+    motion_event: &android_activity::input::MotionEvent<'_>,
+    window_id: window::WindowId,
+    device_id: event::DeviceId,
+    send: &mut dyn FnMut(event::Event<T>),
+) -> bool {
+    use android_activity::input::{Axis, Button};
+    let action = motion_event.action();
+    let hover = matches!(action, MotionAction::HoverEnter | MotionAction::HoverMove | MotionAction::HoverExit);
+    if !is_mouse(motion_event) && !hover {
+        return false;
+    }
+    let mut window_event = |event: event::WindowEvent| send(event::Event::WindowEvent { window_id, event });
+    if touchpad_gesture(motion_event, device_id, &mut window_event) {
+        return true;
+    }
+    let pointer = motion_event.pointer_at_index(0);
+    let position = PhysicalPosition { x: pointer.x() as f64, y: pointer.y() as f64 };
+    let moved = |w: &mut dyn FnMut(event::WindowEvent)| w(event::WindowEvent::CursorMoved { device_id, position });
+    match action {
+        MotionAction::HoverEnter => {
+            window_event(event::WindowEvent::CursorEntered { device_id });
+            moved(&mut window_event);
+        },
+        MotionAction::HoverExit => window_event(event::WindowEvent::CursorLeft { device_id }),
+        MotionAction::HoverMove | MotionAction::Move | MotionAction::Down | MotionAction::Up => {
+            moved(&mut window_event)
+        },
+        MotionAction::ButtonPress | MotionAction::ButtonRelease => {
+            let button = match motion_event.action_button() {
+                Button::Primary => event::MouseButton::Left,
+                Button::Secondary => event::MouseButton::Right,
+                Button::Tertiary => event::MouseButton::Middle,
+                Button::Back => event::MouseButton::Back,
+                Button::Forward => event::MouseButton::Forward,
+                _ => return true,
+            };
+            let state = if action == MotionAction::ButtonPress {
+                event::ElementState::Pressed
+            } else {
+                event::ElementState::Released
+            };
+            moved(&mut window_event);
+            window_event(event::WindowEvent::MouseInput { device_id, state, button });
+        },
+        MotionAction::Scroll => {
+            // Android: positive is the wheel turned away (scroll up) and to the right; winit:
+            // positive moves the content right and down.
+            let (h, v) = (pointer.axis_value(Axis::Hscroll), pointer.axis_value(Axis::Vscroll));
+            window_event(event::WindowEvent::MouseWheel {
+                device_id,
+                delta: event::MouseScrollDelta::LineDelta(-h, v),
+                phase: event::TouchPhase::Moved,
+            });
+        },
+        MotionAction::Cancel => window_event(event::WindowEvent::CursorLeft { device_id }),
+        _ => {},
+    }
+    true
 }

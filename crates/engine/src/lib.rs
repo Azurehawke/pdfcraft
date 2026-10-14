@@ -95,9 +95,10 @@ pub fn typed_signature_shape(at: [f64; 2], text: &str, height: f64, rotation: i6
 /// Comment geometry helpers (text-box line breaking) for frontends.
 pub use pdfcraft_annot::appearance as annot_text;
 pub use pdfcraft_annot::links::{Highlight as LinkHighlight, LinkAction, LinkItem, LinkStyle};
+pub use pdfcraft_annot::pen as annot_pen;
 pub use pdfcraft_annot::{
-    AttachIcon, FillMark, LineEnding, Markup, NOTE_SIZE, NewAnnotation, NoteIcon, OverlayFont, OverlayLook, Props as CommentProps, ReviewState, Rgb,
-    Shape, StampGroup, StampKind, Style, rect_quad,
+    AttachIcon, FillMark, LineEnding, Markup, NOTE_SIZE, NewAnnotation, NoteIcon, OverlayFont, OverlayLook, PenKind, Props as CommentProps,
+    ReviewState, Rgb, Shape, StampGroup, StampKind, Style, rect_quad,
 };
 pub use pdfcraft_forms::detect;
 pub use pdfcraft_optimize as optimize;
@@ -281,6 +282,12 @@ impl Document {
             return Err("grouped Form artwork is not a bitmap; Save Image As is only available for raster images".into());
         }
         pdfcraft_create::image_file(&editor.cos, img.object.ok_or("the image has no object")?)
+    }
+
+    /// Edit text: whether `page` (0-based) has text inside form XObjects, which
+    /// [`Edit::UnpackTextForms`] makes editable.
+    pub fn has_text_in_forms(&self, page: usize) -> bool {
+        self.editor.as_ref().is_some_and(|e| pdfcraft_edit::has_text_in_forms(&e.cos, page))
     }
 
     /// Edit a PDF ▸ Edit text: the paragraphs on `page` (0-based).
@@ -1112,6 +1119,11 @@ pub enum Edit {
         comments: bool,
         fields: bool,
     },
+    /// Edit text: draw the form XObjects holding text on `page` into its own content, so their
+    /// text can be edited (`pdfcraft_edit::unpack_text_forms`). The page looks the same.
+    UnpackTextForms {
+        page: usize,
+    },
     /// Bake Fill & Sign text, marks and signatures into the page. Other comments and fields stay.
     /// A no-op (no undo step) when the document has none.
     FlattenFillSign,
@@ -1218,6 +1230,7 @@ impl Edit {
             Edit::Flatten { comments: false, fields: true } => "Flatten form fields".into(),
             Edit::Flatten { .. } => "Flatten".into(),
             Edit::FlattenFillSign => "Flatten Fill & Sign".into(),
+            Edit::UnpackTextForms { .. } => "Make text editable".into(),
             Edit::Protect(_) => "Protect with password".into(),
             Edit::RemoveProtection => "Remove security".into(),
             Edit::Batch { label, .. } => label.clone(),
@@ -1237,7 +1250,7 @@ fn annotation_noun(s: &Shape) -> &'static str {
         Shape::Oval { .. } => "oval",
         Shape::Line { start: LineEnding::None, end: LineEnding::OpenArrow, .. } => "arrow",
         Shape::Line { .. } => "line",
-        Shape::Ink { .. } => "drawing",
+        Shape::Ink { .. } | Shape::PenInk { .. } => "drawing",
         Shape::TextBox { .. } => "text box",
         Shape::Typewriter { .. } => "text",
         Shape::Mark { mark: FillMark::Check, .. } => "checkmark",
@@ -1362,6 +1375,7 @@ fn check_permission(edit: &Edit, p: &pdfcraft_cos::Permissions) -> Result<(), Ed
         | Edit::EditTextBlock { .. }
         | Edit::EditPageImage { .. }
         | Edit::Flatten { .. }
+        | Edit::UnpackTextForms { .. }
         | Edit::FlattenFillSign => {
             if p.modify() {
                 Ok(())
@@ -1726,6 +1740,9 @@ fn run_edit(doc: &mut pdfcraft_cos::Document, edit: &Edit, cx: &mut EditCtx) -> 
         Edit::Flatten { comments, fields } => {
             let n = pdfcraft_model::pages(doc).len();
             pdfcraft_edit::flatten(doc, &(0..n).collect::<Vec<_>>(), *comments, *fields)?;
+        }
+        Edit::UnpackTextForms { page } => {
+            pdfcraft_edit::unpack_text_forms(doc, *page)?;
         }
         Edit::FlattenFillSign => {
             let n = pdfcraft_model::pages(doc).len();

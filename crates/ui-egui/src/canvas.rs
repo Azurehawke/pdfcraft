@@ -350,6 +350,8 @@ pub struct DocView {
     /// Edit text: the lines per page (with the document generation they were read at), and the
     /// line being edited.
     pub(crate) edit_lines: HashMap<usize, (u64, Vec<pdfcraft_engine::TextBlock>)>,
+    /// Edit text: whether each page has text inside form XObjects, by edit generation.
+    pub(crate) form_text: HashMap<usize, (u64, bool)>,
     pub line_editor: Option<crate::edit_text_ui::LineEditor>,
     /// Edit text & images: the images per page (by document generation), and the selected one.
     pub(crate) edit_images: HashMap<usize, (u64, Vec<pdfcraft_engine::PageImage>)>,
@@ -543,6 +545,7 @@ impl DocView {
             select_anchor: None,
             pending_edit: None,
             edit_lines: HashMap::new(),
+            form_text: HashMap::new(),
             line_editor: None,
             edit_images: HashMap::new(),
             image_selection: None,
@@ -1771,6 +1774,42 @@ pub fn document_area(app: &mut PdfCraftApp, index: usize, ui: &mut egui::Ui) {
         Some(Notice::FieldHighlights(on)) => app.view_defaults.highlight_fields = on,
         None => {}
     }
+    // Edit text: text a page draws from inside form XObjects can't be selected until it is drawn
+    // into the page itself; offer that for the current page.
+    if app.quick_tool == QuickTool::EditText && doc.allows_modification() {
+        let view = &mut app.views[index];
+        let page = view.current;
+        let generation = doc.edit_generation();
+        let locked = match view.form_text.get(&page) {
+            Some((g, l)) if *g == generation => *l,
+            _ => {
+                let l = doc.has_text_in_forms(page);
+                view.form_text.insert(page, (generation, l));
+                l
+            }
+        };
+        if locked {
+            let mut unpack = false;
+            notice_bar(
+                ui,
+                &t,
+                "text-cursor-input",
+                t.accent_text,
+                crate::i18n::fmt(
+                    tl!("Some text on page {n} is inside embedded content, so it can't be selected yet."),
+                    &[("n", &(page + 1).to_string())],
+                ),
+                |ui| {
+                    if crate::widgets::pill_button(ui, tl!("Make text editable"), false).clicked() {
+                        unpack = true;
+                    }
+                },
+            );
+            if unpack {
+                view.pending_edit = Some(pdfcraft_engine::Edit::UnpackTextForms { page });
+            }
+        }
+    }
     // No dialog, close prompt or palette over the page: only then does page input count.
     let unobstructed = !app.modal_open() && !app.palette_open;
     let view = &mut app.views[index];
@@ -1886,8 +1925,11 @@ pub fn document_area(app: &mut PdfCraftApp, index: usize, ui: &mut egui::Ui) {
     let mut scroll = egui::ScrollArea::both().auto_shrink([false, false]).scroll_source(egui::scroll_area::ScrollSource {
         drag: if middle_gesture {
             egui::scroll_area::DragScroll::Never
-        } else if app.quick_tool == QuickTool::Hand {
+        } else if app.quick_tool == QuickTool::Hand || finger_pans_with(app.quick_tool) {
             egui::scroll_area::DragScroll::Always
+        } else if crate::pen::pen_draws() {
+            // Pen-only drawing: the pen uses the tool; it never drags the page along.
+            egui::scroll_area::DragScroll::Never
         } else {
             egui::scroll_area::DragScroll::OnTouch
         },
@@ -1913,8 +1955,11 @@ pub fn document_area(app: &mut PdfCraftApp, index: usize, ui: &mut egui::Ui) {
     let ppp = ui.ctx().pixels_per_point();
     let scale = view.render_scale(ppp);
     let tag = scale_tag(scale);
-    let hand = app.quick_tool == QuickTool::Hand;
-    let tool = app.quick_tool;
+    // Pen-only drawing (tablets): a finger on the page pans it (`finger_pans_with`); the chosen
+    // tool (`app.quick_tool`) stays for the pen and the mouse.
+    let finger_pans = finger_pans_with(app.quick_tool);
+    let hand = app.quick_tool == QuickTool::Hand || finger_pans;
+    let tool = if finger_pans { QuickTool::Hand } else { app.quick_tool };
     // Text selection runs for the Select tool and for the markup tools (highlight…).
     let selects_text = match tool {
         QuickTool::Comment(t) => t.markup().is_some() || t == comments::CommentTool::ReplaceText,
@@ -2292,9 +2337,21 @@ pub fn document_area(app: &mut PdfCraftApp, index: usize, ui: &mut egui::Ui) {
                         l
                     }
                 };
-                // Images first (they can sit under text boxes' corners); then paragraphs.
-                crate::edit_text_ui::image_input(ui, &resp, &xf, i, info, &images, view, &mut image_action)
-                    || crate::edit_text_ui::page_input(ui, &resp, &xf, i, info, &lines, view)
+                // Paragraphs first where the pointer is on one: an image can cover the whole page
+                // (a scan, or a note-taking app's transparent handwriting layer) and would take
+                // every click. Elsewhere images first (they can sit under text boxes' corners).
+                let pointer = ui.input(|inp| inp.pointer.hover_pos());
+                let image_dragging = view.image_selection.as_ref().is_some_and(|s| s.page == i && s.dragging());
+                let on_text = !image_dragging
+                    && (view.block_drag.is_some_and(|d| d.on_page(i))
+                        || pointer.is_some_and(|p| lines.iter().any(|l| xf.user_rect(info, i, l.rect.map(|v| v as f32)).expand(2.0).contains(p))));
+                if on_text {
+                    crate::edit_text_ui::page_input(ui, &resp, &xf, i, info, &lines, view)
+                        || crate::edit_text_ui::image_input(ui, &resp, &xf, i, info, &images, view, &mut image_action)
+                } else {
+                    crate::edit_text_ui::image_input(ui, &resp, &xf, i, info, &images, view, &mut image_action)
+                        || crate::edit_text_ui::page_input(ui, &resp, &xf, i, info, &lines, view)
+                }
             };
             let on_link = tool == QuickTool::Link && can_modify && crate::link_ui::page_input(ui, &resp, &xf, i, info, &doc_links, view);
             let consumed = on_edit_text || on_link || on_content || boxing || on_field || comments::page_input(ui, &resp, &pcx, view);
@@ -3670,6 +3727,13 @@ pub(crate) fn texture_image(size: [usize; 2], pixels: pdfcraft_render::Pixels) -
         Ok(px) => egui::ColorImage::from_rgba_premultiplied(size, bytemuck::cast_slice(&px)),
         Err((_, words)) => egui::ColorImage::from_rgba_premultiplied(size, bytemuck::cast_slice(&words)),
     }
+}
+
+/// Pen-only drawing (tablets): whether a finger on the page pans it, as the Hand tool would,
+/// rather than using `tool`. It does for every tool (selecting text included: the pen and the
+/// mouse select), except the ones a tap uses to type: Add Text, Edit Text and Fill & Sign.
+fn finger_pans_with(tool: QuickTool) -> bool {
+    crate::pen::finger_pans() && !matches!(tool, QuickTool::AddText | QuickTool::EditText | QuickTool::Fill(_))
 }
 
 #[cfg(test)]

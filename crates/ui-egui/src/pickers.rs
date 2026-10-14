@@ -45,17 +45,17 @@ pub enum PickFor {
 /// Which native panel to show.
 pub(crate) enum Ask {
     /// Choose one existing file.
-    File(rfd::AsyncFileDialog),
+    File(crate::dialog::AsyncFileDialog),
     /// Choose one or more existing files.
-    Files(rfd::AsyncFileDialog),
+    Files(crate::dialog::AsyncFileDialog),
     /// Choose a folder.
-    Folder(rfd::AsyncFileDialog),
+    Folder(crate::dialog::AsyncFileDialog),
     /// Choose where to save a file.
-    Save(rfd::AsyncFileDialog),
+    Save(crate::dialog::AsyncFileDialog),
 }
 
 /// What to do with the chosen paths, on a later frame.
-type Then = Box<dyn FnOnce(&mut PdfCraftApp, Vec<PathBuf>) + Send>;
+pub(crate) type Then = Box<dyn FnOnce(&mut PdfCraftApp, Vec<PathBuf>) + Send>;
 
 /// A finished pick, waiting for the next frame.
 struct Picked {
@@ -78,6 +78,9 @@ pub struct Pickers {
     /// until the pick's closure starts.
     showing: Arc<AtomicBool>,
     done: Arc<Mutex<Vec<Picked>>>,
+    /// Android: the in-app file browser that stands in for a native panel.
+    #[cfg(target_os = "android")]
+    browser: Arc<Mutex<Option<crate::android_picker::Browser>>>,
 }
 
 /// Clears `showing` if the worker ends without queueing a pick (it panicked).
@@ -138,12 +141,34 @@ impl Pickers {
     fn take(&self) -> Vec<Picked> {
         std::mem::take(&mut *self.done.lock().unwrap_or_else(PoisonError::into_inner))
     }
+
+    /// Android: show `browser` until the user chooses or cancels.
+    #[cfg(target_os = "android")]
+    fn browse(&self, browser: crate::android_picker::Browser) {
+        *self.browser.lock().unwrap_or_else(PoisonError::into_inner) = Some(browser);
+    }
+}
+
+/// Android: draw the in-app file browser, if one is open, and hand a finished choice (or a
+/// cancel, as no paths) to [`PdfCraftApp::process_picked`] for the next frame.
+#[cfg(target_os = "android")]
+pub(crate) fn show_browser(app: &mut PdfCraftApp, ctx: &egui::Context) {
+    let slot = app.pickers.browser.clone();
+    let mut guard = slot.lock().unwrap_or_else(PoisonError::into_inner);
+    let Some(browser) = guard.as_mut() else { return };
+    if let Some(paths) = browser.show(ctx) {
+        if let Some(done) = guard.take() {
+            let (target, then) = done.into_answer();
+            app.pickers.deliver(target, paths, then);
+            ctx.request_repaint();
+        }
+    }
 }
 
 impl PdfCraftApp {
     /// Show a native picker for `pick_for` without blocking the frame. The choice is used on a
     /// later frame by [`Self::process_picked`].
-    pub(crate) fn pick(&mut self, pick_for: PickFor, dialog: rfd::AsyncFileDialog, multiple: bool) {
+    pub(crate) fn pick(&mut self, pick_for: PickFor, dialog: crate::dialog::AsyncFileDialog, multiple: bool) {
         // Insert and Replace edit the active document: remember which one.
         let target = match pick_for {
             PickFor::Files(purpose) if purpose.edits_active_document() => self.active_ids().map(|(_, id)| id),
@@ -178,30 +203,43 @@ impl PdfCraftApp {
             self.pickers.deliver(target, paths.into_iter().map(PathBuf::from).collect(), then);
             return true;
         }
-        // On macOS creating the future shows the panel; it must happen here, on the main thread.
-        let ctx = self.ctx.clone();
-        let one = |h: Option<rfd::FileHandle>| h.map(|h| h.path().to_path_buf()).into_iter().collect::<Vec<_>>();
-        let started = match ask {
-            Ask::File(d) => {
-                let pick = d.pick_file();
-                self.pickers.spawn(target, ctx, async move { one(pick.await) }, then)
+        // Android: no native panel (rfd has no backend there); the app draws its own browser and
+        // answers through `deliver`, on a later frame like a real pick.
+        #[cfg(target_os = "android")]
+        let started = {
+            self.pickers.browse(crate::android_picker::Browser::new(ask, target, then));
+            if let Some(ctx) = &self.ctx {
+                ctx.request_repaint();
             }
-            Ask::Folder(d) => {
-                let pick = d.pick_folder();
-                self.pickers.spawn(target, ctx, async move { one(pick.await) }, then)
-            }
-            Ask::Save(d) => {
-                let pick = d.save_file();
-                self.pickers.spawn(target, ctx, async move { one(pick.await) }, then)
-            }
-            Ask::Files(d) => {
-                let pick = d.pick_files();
-                self.pickers.spawn(
-                    target,
-                    ctx,
-                    async move { pick.await.unwrap_or_default().into_iter().map(|h| h.path().to_path_buf()).collect() },
-                    then,
-                )
+            true
+        };
+        #[cfg(not(target_os = "android"))]
+        let started = {
+            // On macOS creating the future shows the panel; it must happen here, on the main thread.
+            let ctx = self.ctx.clone();
+            let one = |h: Option<crate::dialog::FileHandle>| h.map(|h| h.path().to_path_buf()).into_iter().collect::<Vec<_>>();
+            match ask {
+                Ask::File(d) => {
+                    let pick = d.pick_file();
+                    self.pickers.spawn(target, ctx, async move { one(pick.await) }, then)
+                }
+                Ask::Folder(d) => {
+                    let pick = d.pick_folder();
+                    self.pickers.spawn(target, ctx, async move { one(pick.await) }, then)
+                }
+                Ask::Save(d) => {
+                    let pick = d.save_file();
+                    self.pickers.spawn(target, ctx, async move { one(pick.await) }, then)
+                }
+                Ask::Files(d) => {
+                    let pick = d.pick_files();
+                    self.pickers.spawn(
+                        target,
+                        ctx,
+                        async move { pick.await.unwrap_or_default().into_iter().map(|h| h.path().to_path_buf()).collect() },
+                        then,
+                    )
+                }
             }
         };
         if !started {
@@ -296,7 +334,7 @@ mod tests {
         app.pickers.showing.store(true, Ordering::SeqCst);
         let got = Arc::new(Mutex::new(Vec::new()));
         let into = got.clone();
-        assert!(!app.ask(Ask::File(rfd::AsyncFileDialog::new()), None, move |_, paths| into.lock().unwrap().extend(paths)));
+        assert!(!app.ask(Ask::File(crate::dialog::AsyncFileDialog::new()), None, move |_, paths| into.lock().unwrap().extend(paths)));
         app.process_picked();
         assert!(got.lock().unwrap().is_empty());
         assert!(app.pickers.showing.load(Ordering::SeqCst), "the showing picker still owns the flag");
@@ -309,12 +347,12 @@ mod tests {
         app.pick_override = Some(vec!["first.fdf".into()]);
         let got = Arc::new(Mutex::new(Vec::new()));
         let into = got.clone();
-        assert!(app.ask(Ask::Files(rfd::AsyncFileDialog::new()), None, move |app, _| {
+        assert!(app.ask(Ask::Files(crate::dialog::AsyncFileDialog::new()), None, move |app, _| {
             // Merge data: the spreadsheet's save picker, asked from the first pick's closure.
-            assert!(app.ask(Ask::Save(rfd::AsyncFileDialog::new()), None, move |_, paths| into.lock().unwrap().extend(paths)));
+            assert!(app.ask(Ask::Save(crate::dialog::AsyncFileDialog::new()), None, move |_, paths| into.lock().unwrap().extend(paths)));
         }));
         // Another command asks for a picker before the frame uses the first pick: refused.
-        assert!(!app.ask(Ask::File(rfd::AsyncFileDialog::new()), None, |_, _| panic!("must not run")));
+        assert!(!app.ask(Ask::File(crate::dialog::AsyncFileDialog::new()), None, |_, _| panic!("must not run")));
         app.process_picked();
         app.process_picked();
         assert_eq!(*got.lock().unwrap(), vec![PathBuf::from("first.fdf")], "the chained picker answered");

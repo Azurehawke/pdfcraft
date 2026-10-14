@@ -62,9 +62,13 @@ pub use create_ui::Clip;
 pub use link_ui::LinkDraft;
 pub use optimize_ui::{OptimizeDraft, OptimizeTab};
 pub use sign_ui::{DigitalIdEntry, SignDraft, SignStep};
+#[cfg(target_os = "android")]
+mod android_picker;
 mod autoscroll;
 mod bidi;
 pub mod bulk_fields;
+/// rfd, or on Android the builder `android_picker` reads.
+mod dialog;
 mod dialogs;
 mod edit_text_ui;
 mod editing;
@@ -79,8 +83,11 @@ pub mod last_session;
 mod pageboxes;
 mod palette;
 mod panels;
+pub mod pen;
 #[cfg(not(target_arch = "wasm32"))]
 mod pickers;
+#[cfg(target_os = "android")]
+pub use android_picker::{AndroidDocuments, AndroidFileAccess, SystemPick, set_android_documents, set_android_file_access};
 pub mod prepare;
 mod print_ui;
 mod signature_drag;
@@ -1072,7 +1079,7 @@ impl PdfCraftApp {
             }
             (Ok(bytes), false) => {
                 #[cfg(not(target_arch = "wasm32"))]
-                self.ask_one(pickers::Ask::Save(rfd::AsyncFileDialog::new().set_file_name(&att.name)), None, move |app, path| {
+                self.ask_one(pickers::Ask::Save(crate::dialog::AsyncFileDialog::new().set_file_name(&att.name)), None, move |app, path| {
                     match crate::editing::write_atomically(&path.to_string_lossy(), &bytes) {
                         Ok(()) => app.notify_fmt("Saved {name}", &[("name", &path.display().to_string())]),
                         Err(e) => app.notify_fmt("Couldn't save: {e}", &[("e", &e.to_string())]),
@@ -1147,7 +1154,9 @@ impl PdfCraftApp {
         #[cfg(not(target_arch = "wasm32"))]
         self.pick(
             pickers::PickFor::Open,
-            rfd::AsyncFileDialog::new().add_filter("PDF", &["pdf"]).add_filter(tl!("Images and text (converted to PDF)"), &create_ui::CONVERTIBLE),
+            crate::dialog::AsyncFileDialog::new()
+                .add_filter("PDF", &["pdf"])
+                .add_filter(tl!("Images and text (converted to PDF)"), &create_ui::CONVERTIBLE),
             false,
         );
         // Browsers pick files asynchronously; the bytes arrive through `inbox`.
@@ -1156,7 +1165,7 @@ impl PdfCraftApp {
             let inbox = self.inbox.clone();
             let ctx = self.ctx.clone();
             wasm_bindgen_futures::spawn_local(async move {
-                if let Some(h) = rfd::AsyncFileDialog::new()
+                if let Some(h) = crate::dialog::AsyncFileDialog::new()
                     .add_filter("PDF", &["pdf"])
                     .add_filter(tl!("Images and text"), &create_ui::CONVERTIBLE)
                     .pick_file()
@@ -1366,6 +1375,7 @@ impl PdfCraftApp {
             // Null follows the interface language.
             "date_language": self.session.date_language(),
             "author": self.comment_prefs.author,
+            "draw_pen": self.comment_prefs.pen.name(),
             // Per-tool comment defaults (colours, opacity, widths), so Make Current
             // Properties Default survives a restart (#340).
             "comment_styles": self
@@ -1454,6 +1464,9 @@ impl PdfCraftApp {
         // name is cut to a sane length.
         if let Some(author) = v["author"].as_str().map(str::trim).filter(|a| !a.is_empty()) {
             self.comment_prefs.author = author.chars().take(MAX_AUTHOR_CHARS).collect();
+        }
+        if let Some(pen) = v["draw_pen"].as_str().and_then(|p| pdfcraft_engine::PenKind::from_name(p.as_bytes())) {
+            self.comment_prefs.pen = pen;
         }
         // Per-tool comment styles (#340): each field goes through its clamping setter, so a
         // malformed or hostile entry is clamped or ignored rather than trusted.
@@ -2028,6 +2041,8 @@ impl eframe::App for PdfCraftApp {
                 },
             );
             dialogs::show(self, &ctx);
+            #[cfg(target_os = "android")]
+            pickers::show_browser(self, &ctx);
             // Notices too: a refused field value or a failed save must be seen in full screen.
             self.show_progress(&ctx);
             widgets::toast(self, &ctx);
@@ -2054,6 +2069,8 @@ impl eframe::App for PdfCraftApp {
         self.process_pending_edits();
         palette::show(self, &ctx);
         dialogs::show(self, &ctx);
+        #[cfg(target_os = "android")]
+        pickers::show_browser(self, &ctx);
         self.show_progress(&ctx);
         widgets::toast(self, &ctx);
         self.finish_render_frame(&ctx);
