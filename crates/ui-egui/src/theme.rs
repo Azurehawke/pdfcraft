@@ -1,5 +1,5 @@
-//! Design tokens and egui style (plan/acrobat/02-ui-ux.md §1: neutral chrome, white panels,
-//! one blue accent; Dark Gray keeps pages white). Every custom widget reads `Tokens::get`.
+//! Design tokens and egui style. RevuCraft: charcoal chrome by default, one accent colour the
+//! user picks (amber unless changed), pages stay white. Every custom widget reads `Tokens::get`.
 
 use std::sync::Arc;
 
@@ -16,9 +16,74 @@ pub enum ThemeKind {
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Default, serde::Serialize, serde::Deserialize)]
 pub enum ThemePreference {
     System,
-    #[default]
     Light,
+    #[default]
     Dark,
+}
+
+/// The interface's accent colour (selections, active tools, primary buttons, links): the user's
+/// choice, saved with the theme. Each is tuned separately for the dark and light themes.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Default, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum Accent {
+    #[default]
+    Amber,
+    Blue,
+    Teal,
+    Green,
+    Red,
+    Violet,
+}
+
+impl Accent {
+    pub const ALL: [Accent; 6] = [Accent::Amber, Accent::Blue, Accent::Teal, Accent::Green, Accent::Red, Accent::Violet];
+
+    /// The English name, translated where it is shown.
+    pub fn label(self) -> &'static str {
+        match self {
+            Self::Amber => "Amber",
+            Self::Blue => "Blue",
+            Self::Teal => "Teal",
+            Self::Green => "Green",
+            Self::Red => "Red",
+            Self::Violet => "Violet",
+        }
+    }
+
+    pub fn code(self) -> &'static str {
+        match self {
+            Self::Amber => "amber",
+            Self::Blue => "blue",
+            Self::Teal => "teal",
+            Self::Green => "green",
+            Self::Red => "red",
+            Self::Violet => "violet",
+        }
+    }
+
+    pub fn from_code(code: &str) -> Option<Self> {
+        Self::ALL.into_iter().find(|a| a.code() == code)
+    }
+
+    /// (accent, accent_text, accent_soft, selected, on_accent) for a theme.
+    fn colors(self, kind: ThemeKind) -> (Color32, Color32, Color32, Color32, Color32) {
+        let rgb = |v: u32| Color32::from_rgb((v >> 16) as u8, (v >> 8) as u8, v as u8);
+        let (a, text, soft, selected, on) = match (self, kind) {
+            (Self::Amber, ThemeKind::Dark) => (0xF2A33A, 0xF5BA63, 0x3D2E17, 0x3A2C17, 0x1A1205),
+            (Self::Amber, ThemeKind::Light) => (0xC77700, 0x8F5300, 0xFCEBD0, 0xFDF0DC, 0x1A1205),
+            (Self::Blue, ThemeKind::Dark) => (0x4B8BF5, 0x8CB6FA, 0x243657, 0x233A63, 0xFFFFFF),
+            (Self::Blue, ThemeKind::Light) => (0x1B63E0, 0x1755C4, 0xE3ECFD, 0xE6EEFD, 0xFFFFFF),
+            (Self::Teal, ThemeKind::Dark) => (0x2BB3A3, 0x62D4C5, 0x173A37, 0x163A36, 0x06201D),
+            (Self::Teal, ThemeKind::Light) => (0x0F7F73, 0x0B6B61, 0xDDF3F0, 0xE3F5F2, 0xFFFFFF),
+            (Self::Green, ThemeKind::Dark) => (0x4CB772, 0x80D49C, 0x1B3A27, 0x1A3926, 0x07200F),
+            (Self::Green, ThemeKind::Light) => (0x2E7D46, 0x256B3B, 0xE1F2E6, 0xE6F4EA, 0xFFFFFF),
+            (Self::Red, ThemeKind::Dark) => (0xE5534B, 0xF28C86, 0x43201E, 0x46211F, 0xFFFFFF),
+            (Self::Red, ThemeKind::Light) => (0xC62F28, 0xB0251F, 0xFBE3E1, 0xFCE8E6, 0xFFFFFF),
+            (Self::Violet, ThemeKind::Dark) => (0x9B7BF0, 0xBCA6F7, 0x2E2552, 0x30275A, 0xFFFFFF),
+            (Self::Violet, ThemeKind::Light) => (0x6B4BD8, 0x5A3BC4, 0xECE6FD, 0xEFEAFD, 0xFFFFFF),
+        };
+        (rgb(a), rgb(text), rgb(soft), rgb(selected), rgb(on))
+    }
 }
 
 impl ThemePreference {
@@ -61,6 +126,8 @@ pub struct Tokens {
     pub accent: Color32,
     pub accent_text: Color32,
     pub accent_soft: Color32,
+    /// Text and icons drawn on an `accent` fill (primary buttons, badges).
+    pub on_accent: Color32,
     pub field: Color32,
     pub badge_new: Color32,
     pub page_shadow: Color32,
@@ -68,7 +135,24 @@ pub struct Tokens {
 }
 
 impl Tokens {
+    /// The tokens for a theme with the default accent.
     pub fn for_kind(kind: ThemeKind) -> Self {
+        Self::new(kind, Accent::default())
+    }
+
+    pub fn new(kind: ThemeKind, accent: Accent) -> Self {
+        let mut t = Self::base(kind);
+        let (a, text, soft, selected, on) = accent.colors(kind);
+        t.accent = a;
+        t.accent_text = text;
+        t.accent_soft = soft;
+        t.selected = selected;
+        t.on_accent = on;
+        t.badge_new = a;
+        t
+    }
+
+    fn base(kind: ThemeKind) -> Self {
         match kind {
             ThemeKind::Light => Self {
                 kind,
@@ -89,31 +173,35 @@ impl Tokens {
                 accent: Color32::from_rgb(0x1B, 0x63, 0xE0),
                 accent_text: Color32::from_rgb(0x17, 0x55, 0xC4),
                 accent_soft: Color32::from_rgb(0xE3, 0xEC, 0xFD),
+                on_accent: Color32::WHITE,
                 field: Color32::from_rgb(0xFF, 0xFF, 0xFF),
                 badge_new: Color32::from_rgb(0x1B, 0x63, 0xE0),
                 page_shadow: Color32::from_black_alpha(34),
                 radius: 6,
             },
+            // Charcoal chrome; the pasteboard is lighter than the panels so white sheets and
+            // dark linework both stand out.
             ThemeKind::Dark => Self {
                 kind,
-                titlebar: Color32::from_rgb(0x1B, 0x1B, 0x1E),
-                chrome: Color32::from_rgb(0x26, 0x26, 0x2A),
-                panel: Color32::from_rgb(0x26, 0x26, 0x2A),
-                pasteboard: Color32::from_rgb(0x19, 0x19, 0x1C),
-                card: Color32::from_rgb(0x2E, 0x2E, 0x33),
-                border: Color32::from_rgb(0x3C, 0x3C, 0x43),
-                divider: Color32::from_rgb(0x33, 0x33, 0x39),
-                text: Color32::from_rgb(0xEC, 0xEC, 0xEF),
-                text_muted: Color32::from_rgb(0xAE, 0xAE, 0xB6),
-                text_faint: Color32::from_rgb(0x97, 0x97, 0x9E),
-                icon: Color32::from_rgb(0xD4, 0xD4, 0xDA),
-                hover: Color32::from_rgb(0x34, 0x34, 0x3A),
-                pressed: Color32::from_rgb(0x3E, 0x3E, 0x45),
+                titlebar: Color32::from_rgb(0x16, 0x18, 0x1B),
+                chrome: Color32::from_rgb(0x1E, 0x20, 0x24),
+                panel: Color32::from_rgb(0x1A, 0x1C, 0x20),
+                pasteboard: Color32::from_rgb(0x2A, 0x2D, 0x32),
+                card: Color32::from_rgb(0x24, 0x27, 0x2C),
+                border: Color32::from_rgb(0x3A, 0x3F, 0x46),
+                divider: Color32::from_rgb(0x2E, 0x32, 0x38),
+                text: Color32::from_rgb(0xE6, 0xE8, 0xEC),
+                text_muted: Color32::from_rgb(0xAE, 0xB4, 0xBD),
+                text_faint: Color32::from_rgb(0x9A, 0xA0, 0xAA),
+                icon: Color32::from_rgb(0xCD, 0xD1, 0xD8),
+                hover: Color32::from_rgb(0x2B, 0x2F, 0x35),
+                pressed: Color32::from_rgb(0x35, 0x3A, 0x41),
                 selected: Color32::from_rgb(0x23, 0x3A, 0x63),
                 accent: Color32::from_rgb(0x4B, 0x8B, 0xF5),
                 accent_text: Color32::from_rgb(0x8C, 0xB6, 0xFA),
                 accent_soft: Color32::from_rgb(0x24, 0x36, 0x57),
-                field: Color32::from_rgb(0x1E, 0x1E, 0x22),
+                on_accent: Color32::WHITE,
+                field: Color32::from_rgb(0x16, 0x18, 0x1B),
                 badge_new: Color32::from_rgb(0x3D, 0x7D, 0xEE),
                 page_shadow: Color32::from_black_alpha(120),
                 radius: 6,
@@ -121,6 +209,7 @@ impl Tokens {
         }
     }
 
+    /// The current tokens (theme and accent, as last applied).
     pub fn get(ctx: &egui::Context) -> Self {
         ctx.data(|d| d.get_temp::<Tokens>(egui::Id::new("pdfcraft-theme"))).unwrap_or_else(|| Self::for_kind(ThemeKind::Light))
     }
@@ -227,10 +316,20 @@ pub fn semibold(size: f32) -> FontId {
     FontId::new(size, FontFamily::Name("semibold".into()))
 }
 
+/// The accent [`apply`] uses, as last set with [`set_accent`].
+pub fn accent(ctx: &egui::Context) -> Accent {
+    ctx.data(|d| d.get_temp::<Accent>(egui::Id::new("pdfcraft-accent"))).unwrap_or_default()
+}
+
+/// Remember `accent` for this context; the next [`apply`] uses it.
+pub fn set_accent(ctx: &egui::Context, accent: Accent) {
+    ctx.data_mut(|d| d.insert_temp(egui::Id::new("pdfcraft-accent"), accent));
+}
+
 pub fn apply(ctx: &egui::Context, kind: ThemeKind) {
     // egui must use the same theme for popup/menu styles as our custom chrome.
     ctx.set_theme(if kind == ThemeKind::Dark { egui::Theme::Dark } else { egui::Theme::Light });
-    let t = Tokens::for_kind(kind);
+    let t = Tokens::new(kind, accent(ctx));
     ctx.data_mut(|d| d.insert_temp(egui::Id::new("pdfcraft-theme"), t));
     let mut v = if t.dark() { Visuals::dark() } else { Visuals::light() };
     v.panel_fill = t.panel;
@@ -330,5 +429,32 @@ mod tests {
                 }
             }
         }
+    }
+
+    /// Every accent stays readable in both themes: links and accent text on the panels, and
+    /// button text on an accent fill.
+    #[test]
+    fn every_accent_is_readable_in_both_themes() {
+        for kind in [ThemeKind::Light, ThemeKind::Dark] {
+            for accent in Accent::ALL {
+                let t = Tokens::new(kind, accent);
+                for bg in [t.chrome, t.panel, t.card] {
+                    let r = contrast(t.accent_text, bg);
+                    assert!(r >= 4.5, "{kind:?} {accent:?} accent text on {bg:?}: {r:.2}:1");
+                }
+                let r = contrast(t.on_accent, t.accent);
+                assert!(r >= 3.0, "{kind:?} {accent:?} text on the accent fill: {r:.2}:1");
+                assert!(contrast(t.text, t.selected) >= 4.5, "{kind:?} {accent:?} text on a selected row");
+            }
+        }
+    }
+
+    #[test]
+    fn accents_round_trip_by_code() {
+        for a in Accent::ALL {
+            assert_eq!(Accent::from_code(a.code()), Some(a));
+        }
+        assert_eq!(Accent::default(), Accent::Amber);
+        assert_eq!(ThemePreference::default(), ThemePreference::Dark);
     }
 }

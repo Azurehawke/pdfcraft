@@ -9,7 +9,8 @@
 #
 # Identity: APP_ID (the Android application id, default ai.storyteller.pdfcraft), APP_LABEL
 # (the launcher name, default PdfCraft) and APK_NAME (default pdfcraft) let a fork install as its
-# own app beside PdfCraft. The activity class keeps its name; only the application id changes.
+# own app beside PdfCraft, and ANDROID_RES (default packaging/android/res) its own launcher icon.
+# The activity class keeps its name; only the application id changes.
 #
 # Signing: ANDROID_KEYSTORE (a path) with ANDROID_KEYSTORE_PASSWORD and ANDROID_KEY_ALIAS when
 # set; otherwise the debug key next to this script (password "android"). Android only installs
@@ -34,6 +35,8 @@ VERSION_CODE=${VERSION_CODE:-1}
 APP_ID=${APP_ID:-ai.storyteller.pdfcraft}
 APP_LABEL=${APP_LABEL:-PdfCraft}
 APK_NAME=${APK_NAME:-pdfcraft}
+# The launcher icon resources (a res/ folder); a fork can bring its own.
+ANDROID_RES=${ANDROID_RES:-$HERE/res}
 
 rm -rf "$OUT"
 mkdir -p "$OUT/jniLibs" "$OUT/res/mipmap-xxxhdpi" "$OUT/apk"
@@ -45,7 +48,7 @@ test -f "$OUT/jniLibs/arm64-v8a/libpdfcraft_android.so"
 echo "== resources and manifest"
 # The launcher icon: an adaptive icon (teal background, document-and-nib foreground) drawn
 # from packaging/android/icon.svg, and a whole-icon PNG for launchers that want one.
-cp -r "$HERE/res/." "$OUT/res/"
+cp -r "$ANDROID_RES/." "$OUT/res/"
 "$BUILD_TOOLS/aapt2" compile --dir "$OUT/res" -o "$OUT/res.zip"
 sed "s|android:label=\"PdfCraft\"|android:label=\"$APP_LABEL\"|" "$HERE/AndroidManifest.xml" > "$OUT/AndroidManifest.xml"
 "$BUILD_TOOLS/aapt2" link -o "$OUT/unaligned.apk" -I "$PLATFORM" \

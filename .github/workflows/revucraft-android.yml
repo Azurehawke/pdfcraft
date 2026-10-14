@@ -25,6 +25,7 @@ env:
   APP_ID: io.github.azurehawke.revucraft
   APP_LABEL: RevuCraft
   APK_NAME: revucraft
+  ANDROID_RES: packaging/android/revucraft/res
 
 jobs:
   apk:

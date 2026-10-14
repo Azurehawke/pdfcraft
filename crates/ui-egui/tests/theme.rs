@@ -48,9 +48,9 @@ fn open_view_menu(h: &mut Harness<'static, PdfCraftApp>) {
 #[test]
 fn toolbar_and_view_menu_share_three_state_preferences() {
     let mut h = harness();
-    // Explicit light wins even on a dark desktop, including egui's popup style.
-    assert_theme(&h, ThemePreference::Light, ThemeKind::Light);
-    open_toolbar(&mut h, "Light gray");
+    // RevuCraft starts dark.
+    assert_theme(&h, ThemePreference::Dark, ThemeKind::Dark);
+    open_toolbar(&mut h, "Dark gray");
     h.get_by_label("Use system setting").click();
     h.run_steps(3);
     assert_theme(&h, ThemePreference::System, ThemeKind::Dark);

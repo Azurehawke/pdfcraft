@@ -133,10 +133,6 @@ pub fn tab_strip(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
                     if icons::button(ui, "circle-help", 28.0, false, tl!("Keyboard shortcuts")).clicked() {
                         app.dialog = Some(Dialog::Shortcuts);
                     }
-                    // One click to the community, from anywhere in the app.
-                    if widgets::ghost_button(ui, "messages-square", "Discord").on_hover_text(pdfcraft_engine::links::DISCORD).clicked() {
-                        app.execute("help.discord");
-                    }
                 });
             });
         });
@@ -151,6 +147,21 @@ fn theme_menu(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
     ] {
         if ui.radio(app.theme_preference == preference, tl!(label)).clicked() {
             app.execute(command);
+            ui.close();
+        }
+    }
+    ui.separator();
+    ui.label(egui::RichText::new(tl!("Accent color")).color(crate::theme::Tokens::get(ui.ctx()).text_muted));
+    for accent in crate::theme::Accent::ALL {
+        let t = crate::theme::Tokens::get(ui.ctx());
+        let swatch = crate::theme::Tokens::new(app.theme, accent).accent;
+        // A dot in the colour itself before its name.
+        let font = egui::TextStyle::Body.resolve(ui.style());
+        let mut job = egui::text::LayoutJob::default();
+        job.append("\u{25CF}  ", 0.0, egui::TextFormat::simple(font.clone(), swatch));
+        job.append(tl!(accent.label()), 0.0, egui::TextFormat::simple(font, t.text));
+        if ui.radio(app.accent == accent, job).clicked() {
+            app.set_accent(accent);
             ui.close();
         }
     }

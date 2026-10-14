@@ -31,7 +31,7 @@ pub fn pill_button(ui: &mut egui::Ui, label: &str, primary: bool) -> Response {
     let (rect, resp) = ui.allocate_exact_size(vec2(w + 26.0, 28.0), Sense::click());
     resp.widget_info(|| egui::WidgetInfo::labeled(egui::WidgetType::Button, ui.is_enabled(), label));
     let (fill, stroke, text) = if primary {
-        (if resp.hovered() { t.accent_text } else { t.accent }, Stroke::NONE, Color32::WHITE)
+        (if resp.hovered() { t.accent_text } else { t.accent }, Stroke::NONE, t.on_accent)
     } else {
         (if resp.hovered() { t.hover } else { t.card }, Stroke::new(1.2, t.text_muted), t.text)
     };
@@ -223,34 +223,37 @@ pub fn progress_notice(app: &PdfCraftApp, ctx: &egui::Context) -> bool {
     cancel
 }
 
-/// The ArtCraft wordmark (Storyteller's brand, docs/brand/; not open source), sized to `height`.
-pub fn artcraft_logo(ui: &mut egui::Ui, height: f32) -> Response {
-    let dark = ui.visuals().dark_mode;
-    let (uri, bytes): (&str, &'static [u8]) = if dark {
-        ("bytes://artcraft-logo-white.svg", include_bytes!("../../../docs/brand/artcraft-logo-white.svg"))
-    } else {
-        ("bytes://artcraft-logo.svg", include_bytes!("../../../docs/brand/artcraft-logo.svg"))
-    };
-    ui.add(egui::Image::from_bytes(uri, bytes).max_height(height).alt_text("ArtCraft"))
+/// RevuCraft's mark, drawn rather than loaded (no image asset): a drawing sheet in the accent
+/// colour with a dimension line across it, `size` points square.
+pub fn app_mark(ui: &mut egui::Ui, size: f32) -> Response {
+    let t = Tokens::get(ui.ctx());
+    let (rect, resp) = ui.allocate_exact_size(vec2(size, size), Sense::hover());
+    resp.widget_info(|| egui::WidgetInfo::labeled(egui::WidgetType::Image, true, "RevuCraft"));
+    let p = ui.painter();
+    let s = size / 32.0;
+    p.rect_filled(rect, CornerRadius::same((7.0 * s) as u8), t.accent);
+    let ink = Stroke::new((2.0 * s).max(1.0), t.on_accent);
+    let at = |x: f32, y: f32| rect.min + vec2(x * s, y * s);
+    // The sheet: an outline with a folded corner.
+    p.line_segment([at(9.0, 6.0), at(19.0, 6.0)], ink);
+    p.line_segment([at(19.0, 6.0), at(24.0, 11.0)], ink);
+    p.line_segment([at(24.0, 11.0), at(24.0, 18.0)], ink);
+    p.line_segment([at(9.0, 6.0), at(9.0, 18.0)], ink);
+    // The dimension line with its end ticks, below the sheet.
+    p.line_segment([at(7.0, 24.0), at(26.0, 24.0)], ink);
+    p.line_segment([at(7.0, 21.0), at(7.0, 27.0)], ink);
+    p.line_segment([at(26.0, 21.0), at(26.0, 27.0)], ink);
+    resp
 }
 
-/// The ArtCraft mark (brand blue, works on light and dark), `size` points square.
-pub fn artcraft_mark(ui: &mut egui::Ui, size: f32) -> Response {
-    ui.add(
-        egui::Image::from_bytes("bytes://artcraft-mark.svg", include_bytes!("../../../docs/brand/artcraft-mark.svg"))
-            .fit_to_exact_size(vec2(size, size))
-            .alt_text("ArtCraft"),
-    )
-}
-
-/// Buttons for every community link (`pdfcraft_engine::links`), Discord first and prominent.
-/// Returns the registry command of the one clicked.
+/// Buttons for RevuCraft's links (`pdfcraft_engine::links`). Returns the registry command of the
+/// one clicked.
 pub fn community_links(ui: &mut egui::Ui) -> Option<&'static str> {
     let mut clicked = None;
     ui.horizontal_wrapped(|ui| {
         ui.spacing_mut().item_spacing = vec2(8.0, 8.0);
         for (i, l) in pdfcraft_engine::links::LINKS.iter().enumerate() {
-            let resp = if i == 0 { icon_pill(ui, l.icon, tl!("Join our Discord"), true) } else { icon_pill(ui, l.icon, tl!(l.label), false) };
+            let resp = icon_pill(ui, l.icon, tl!(l.label), i == 0);
             if resp.on_hover_text(l.url).clicked() {
                 clicked = Some(l.command);
             }
@@ -295,7 +298,7 @@ pub fn icon_pill(ui: &mut egui::Ui, icon: &str, label: &str, primary: bool) -> R
     let (rect, resp) = ui.allocate_exact_size(vec2(w + 46.0, 30.0), Sense::click());
     resp.widget_info(|| egui::WidgetInfo::labeled(egui::WidgetType::Button, ui.is_enabled(), label));
     let (fill, stroke, text) = if primary {
-        (if resp.hovered() { t.accent_text } else { t.accent }, Stroke::NONE, Color32::WHITE)
+        (if resp.hovered() { t.accent_text } else { t.accent }, Stroke::NONE, t.on_accent)
     } else {
         (if resp.hovered() { t.hover } else { t.card }, Stroke::new(1.2, t.text_muted), t.text)
     };

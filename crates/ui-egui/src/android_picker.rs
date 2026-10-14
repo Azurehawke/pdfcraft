@@ -331,9 +331,9 @@ impl Browser {
             ui.add_space(4.0);
             if !self.access {
                 egui::Frame::group(ui.style()).show(ui, |ui| {
-                    ui.label(egui::RichText::new(tl!("PdfCraft can't see your files yet")).strong());
+                    ui.label(egui::RichText::new(tl!("RevuCraft can't see your files yet")).strong());
                     ui.label(tl!(
-                        "To open and save PDFs anywhere on this device, turn on All files access for PdfCraft. Settings opens on the switch; come back here afterwards."
+                        "To open and save PDFs anywhere on this device, turn on All files access for RevuCraft. Settings opens on the switch; come back here afterwards."
                     ));
                     let button = egui::Button::new(egui::RichText::new(tl!("Allow access…")).strong()).min_size(egui::vec2(220.0, ROW_HEIGHT + 8.0));
                     if ui.add(button).clicked() {
@@ -349,7 +349,7 @@ impl Browser {
                         ui.label(egui::RichText::new(note).italics());
                     }
                     ui.add_space(4.0);
-                    ui.label(tl!("Or yourself: Settings ▸ Apps ▸ ⋮ (top right) ▸ Special access ▸ All files access ▸ PdfCraft ▸ turn it on."));
+                    ui.label(tl!("Or yourself: Settings ▸ Apps ▸ ⋮ (top right) ▸ Special access ▸ All files access ▸ RevuCraft ▸ turn it on."));
                 });
                 ui.add_space(6.0);
             }

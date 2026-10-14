@@ -413,6 +413,8 @@ pub struct PdfCraftApp {
     /// Resolved colours, including the current OS theme when following the system.
     pub theme: ThemeKind,
     pub theme_preference: ThemePreference,
+    /// The interface accent colour, saved with the theme.
+    pub accent: theme::Accent,
     /// The desktop's light/dark choice, watched while the app runs (Linux has no winit answer).
     desktop_theme: pdfcraft_platform::desktop_theme::DesktopTheme,
     /// The last answer [`desktop_theme`] gave, so a frame that asks costs nothing.
@@ -711,8 +713,9 @@ impl PdfCraftApp {
             quick_tool: QuickTool::Select,
             space_hand: None,
             comment_prefs: Default::default(),
-            theme: ThemeKind::Light,
-            theme_preference: ThemePreference::Light,
+            theme: ThemeKind::Dark,
+            theme_preference: ThemePreference::Dark,
+            accent: theme::Accent::default(),
             desktop_theme: pdfcraft_platform::desktop_theme::DesktopTheme::start(),
             desktop_dark: None,
             language: i18n::AUTO.to_string(),
@@ -1240,9 +1243,9 @@ impl PdfCraftApp {
             Err(e) => {
                 use pdfcraft_engine::links::BlockedLink;
                 let template = if matches!(e, BlockedLink::MailFile | BlockedLink::MailEncodedWord) {
-                    "{who} in this document tried to open an address PdfCraft won't open: {e}."
+                    "{who} in this document tried to open an address RevuCraft won't open: {e}."
                 } else {
-                    "{who} in this document tried to open an address PdfCraft won't open: {e}. Only web (http, https) and email (mailto) links open from documents."
+                    "{who} in this document tried to open an address RevuCraft won't open: {e}. Only web (http, https) and email (mailto) links open from documents."
                 };
                 self.notify_fmt(template, &[("who", tl!(origin.noun())), ("e", &e.to_string())]);
             }
@@ -1284,6 +1287,16 @@ impl PdfCraftApp {
         let system = self.ctx.as_ref().and_then(|ctx| system_theme(ctx, self.desktop_dark));
         self.theme = preference.resolve(system, self.theme);
         if let Some(ctx) = &self.ctx {
+            theme::set_accent(ctx, self.accent);
+            theme::apply(ctx, self.theme);
+        }
+    }
+
+    /// Use `accent` for the interface from now on (saved with the settings).
+    pub fn set_accent(&mut self, accent: theme::Accent) {
+        self.accent = accent;
+        if let Some(ctx) = &self.ctx {
+            theme::set_accent(ctx, accent);
             theme::apply(ctx, self.theme);
         }
     }
@@ -1302,6 +1315,7 @@ impl PdfCraftApp {
         let kind = self.theme_preference.resolve(system_theme(ctx, self.desktop_dark), self.theme);
         if kind != self.theme {
             self.theme = kind;
+            theme::set_accent(ctx, self.accent);
             theme::apply(ctx, kind);
         }
     }
@@ -1365,6 +1379,7 @@ impl PdfCraftApp {
             "last_session": self.reopen_last_session.then(|| self.session_to_save()),
             "pinned_folders": self.pinned.folders,
             "theme": self.theme_preference,
+            "accent": self.accent,
             "default_mode": self.default_mode,
             "default_layout": self.view_defaults.layout.as_str(),
             "default_zoom": self.view_defaults.zoom_name(),
@@ -1429,6 +1444,9 @@ impl PdfCraftApp {
         }
         self.last_session = last_session::LastSession::from_json(&v["last_session"]);
         self.pinned.restore(&v["pinned_folders"]);
+        if let Ok(accent) = serde_json::from_value::<theme::Accent>(v["accent"].clone()) {
+            self.set_accent(accent);
+        }
         if let Ok(preference) = serde_json::from_value::<ThemePreference>(v["theme"].clone()) {
             self.set_theme_preference(preference);
         }
@@ -1541,6 +1559,13 @@ impl PdfCraftApp {
                     format!("language must be one of {}", codes.join(", "))
                 })?;
                 self.language = language.to_string();
+            }
+            ("accent", _) => {
+                let accent = theme::Accent::from_code(value).ok_or_else(|| {
+                    let codes: Vec<&str> = theme::Accent::ALL.iter().map(|a| a.code()).collect();
+                    format!("accent must be one of {}", codes.join(", "))
+                })?;
+                self.set_accent(accent);
             }
             ("theme", _) => {
                 let preference = match value {
@@ -1889,6 +1914,7 @@ impl eframe::App for PdfCraftApp {
             egui_extras::install_image_loaders(ctx);
             theme::install_fonts_for(ctx, hans);
             self.fonts_hans = hans;
+            theme::set_accent(ctx, self.accent);
             theme::apply(ctx, self.theme);
             self.styled = true;
         } else {
@@ -2024,7 +2050,7 @@ impl eframe::App for PdfCraftApp {
             .and_then(|i| self.session.get(self.views[i].id))
             .map(|d| d.display_name())
             .or_else(|| self.combine_showing().then(|| tl!("Combine files").to_owned()))
-            .map_or_else(|| "PdfCraft".to_owned(), |name| format!("{name} — PdfCraft"));
+            .map_or_else(|| "RevuCraft".to_owned(), |name| format!("{name} — RevuCraft"));
         if title != self.window_title {
             ctx.send_viewport_cmd(egui::ViewportCommand::Title(title.clone()));
             self.window_title = title;
