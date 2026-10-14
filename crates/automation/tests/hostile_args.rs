@@ -82,7 +82,10 @@ fn zoo() -> Vec<Value> {
 /// Paths that must never resolve inside the root. Absolute ones point into the test's own temp
 /// `base` (the root's parent), never at real system files or network shares, so a confinement
 /// bug can only touch what the test made.
-fn escapes(base: &std::path::Path) -> Vec<String> {
+/// `linked`: whether the test managed to plant the `link-out` link. Without it (Windows without
+/// Developer Mode or administrator rights), `link-out/outside.pdf` is an ordinary new file inside
+/// the root, which a writing tool may rightly accept.
+fn escapes(base: &std::path::Path, linked: bool) -> Vec<String> {
     let mut out: Vec<String> = vec![
         "../outside.pdf".into(),
         "../../outside.pdf".into(),
@@ -92,8 +95,10 @@ fn escapes(base: &std::path::Path) -> Vec<String> {
         base.join("outside.pdf").to_string_lossy().into_owned(),
         base.join("new-outside.pdf").to_string_lossy().into_owned(),
         base.join("sub").join("new-outside.pdf").to_string_lossy().into_owned(),
-        "link-out/outside.pdf".into(), // through a planted symbolic link, when the system allows one
     ];
+    if linked {
+        out.push("link-out/outside.pdf".into()); // through the planted symbolic link
+    }
     // Backslashes separate only on Windows; elsewhere this is an ordinary file name in the root.
     if cfg!(windows) {
         out.push(r"..\..\outside.pdf".into());
@@ -225,9 +230,14 @@ fn no_tool_escapes_the_root() {
 
     // A link inside the root pointing out of it, where the system allows one to be made.
     #[cfg(unix)]
-    let _ = std::os::unix::fs::symlink(&base, root.join("link-out"));
+    let linked = std::os::unix::fs::symlink(&base, root.join("link-out")).is_ok();
     #[cfg(windows)]
-    let _ = std::os::windows::fs::symlink_dir(&base, root.join("link-out"));
+    let linked = std::os::windows::fs::symlink_dir(&base, root.join("link-out")).is_ok();
+    #[cfg(not(any(unix, windows)))]
+    let linked = false;
+    if !linked {
+        eprintln!("root confinement: no symbolic link can be made here, so escaping through one is not tested");
+    }
 
     let mut a = Automation::new().with_root(&root).expect("root");
 
@@ -247,7 +257,7 @@ fn no_tool_escapes_the_root() {
 
     for def in tools() {
         for (prop, is_list) in path_props(&def) {
-            for escape in escapes(&base) {
+            for escape in escapes(&base, linked) {
                 let mut obj = plausible_with(&def, Some(doc));
                 obj.insert(prop.clone(), if is_list { json!([escape]) } else { json!(escape) });
                 let args = Value::Object(obj);
