@@ -1,0 +1,103 @@
+name: RevuCraft checks
+
+# The repository's gates for the revucraft branch (format, clippy, tests), plus headless
+# screenshots of the app, so UI changes can be looked at without a desktop. Logs and screenshots
+# are pushed to the ci-logs-revucraft-ui branch.
+on:
+  push:
+    branches: [revucraft]
+    paths-ignore: ["**.md"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: revucraft-checks-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: 1
+
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Linux dependencies (egui, winit, rfd) and a software Vulkan driver for screenshots
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            libxkbcommon-dev libwayland-dev libx11-dev libxrandr-dev libxi-dev \
+            libgl1-mesa-dev libgtk-3-dev mesa-vulkan-drivers
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: revucraft-checks
+
+      - name: Format
+        run: cargo fmt --all -- --check 2>&1 | tee "$RUNNER_TEMP/fmt.log"
+
+      - name: Clippy
+        if: always()
+        run: |
+          set -o pipefail
+          cargo clippy --workspace --all-targets -- -D warnings 2>&1 | tee "$RUNNER_TEMP/clippy.log"
+
+      - name: Tests (measure, automation, engine, UI)
+        if: always()
+        run: |
+          set -o pipefail
+          cargo test -p pdfcraft-measure -p pdfcraft-automation -p pdfcraft-engine -p pdfcraft-ui-egui 2>&1 | tee "$RUNNER_TEMP/test.log"
+
+      - name: Screenshots
+        if: always()
+        env:
+          WGPU_BACKEND: vulkan
+        run: |
+          mkdir -p "$RUNNER_TEMP/shots"
+          plan="$RUNNER_TEMP/plan.pdf"
+          # A small synthetic floor plan (walls, a door swing, dimension text); PdfCraft repairs
+          # the missing cross-reference table on open.
+          cat > "$plan" <<'PDF'
+          %PDF-1.7
+          1 0 obj << /Type /Catalog /Pages 2 0 R >> endobj
+          2 0 obj << /Type /Pages /Kids [3 0 R] /Count 1 >> endobj
+          3 0 obj << /Type /Page /Parent 2 0 R /MediaBox [0 0 1224 792] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >> endobj
+          4 0 obj << >> stream
+          3 w 120 120 m 900 120 l 900 640 l 120 640 l h S
+          2 w 480 120 m 480 400 l 480 460 m 480 640 l 120 400 m 300 400 l 360 400 m 480 400 l S
+          1 w 300 400 m 300 460 l S 300 400 m 300 433 327 460 360 460 c S
+          0.5 w 120 90 m 900 90 l S 120 84 m 120 96 l 900 84 m 900 96 l S
+          BT /F1 14 Tf 470 70 Td (65'-0") Tj ET
+          BT /F1 18 Tf 940 600 Td (A-201) Tj 0 -24 Td (FLOOR PLAN) Tj 0 -24 Td (SCALE 1/8" = 1'-0") Tj ET
+          endstream endobj
+          5 0 obj << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >> endobj
+          trailer << /Root 1 0 R >>
+          %%EOF
+          PDF
+          sed -i 's/^          //' "$plan"
+          shot() { name=$1; shift; cargo run -q --release -p pdfcraft-ui-egui --example shot -- "$RUNNER_TEMP/shots/$name.png" --scale 1 "$@" 2>&1 | tee -a "$RUNNER_TEMP/shots.log" || echo "shot $name failed" >> "$RUNNER_TEMP/shots.log"; }
+          shot home
+          shot plan "$plan"
+          shot plan-light "$plan" --theme light
+          shot plan-comments "$plan" --panel comments
+
+      - name: Publish logs and screenshots
+        if: always()
+        run: |
+          dir=$(mktemp -d)
+          cp "$RUNNER_TEMP"/*.log "$dir/" 2>/dev/null || true
+          cp -r "$RUNNER_TEMP/shots" "$dir/" 2>/dev/null || true
+          grep -E "^(error|warning)(\[[A-Z0-9]+\])?:" -A14 "$RUNNER_TEMP"/clippy.log "$RUNNER_TEMP"/test.log 2>/dev/null | head -c 80000 > "$dir/errors.txt" || true
+          grep -E "^test .* FAILED|panicked at|^failures:" -A6 "$RUNNER_TEMP"/test.log 2>/dev/null | head -c 40000 >> "$dir/errors.txt" || true
+          cd "$dir" && git init -q -b ci-logs-revucraft-ui && git add -A \
+            && git -c user.name=github-actions -c user.email=github-actions@users.noreply.github.com commit -qm "RevuCraft checks ${{ github.run_number }} (${GITHUB_SHA::7}): ${{ job.status }}" \
+            && git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" ci-logs-revucraft-ui
