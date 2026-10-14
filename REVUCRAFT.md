@@ -6,9 +6,9 @@ PdfCraft's engine, clean-room rules, layering and quality gates (see `CLAUDE.md`
 `AGENTS.md`), and adds the workflows estimators, architects and field crews use on
 large-format drawing sets.
 
-**Status:** started 2026-10-14. The first change (feet-and-fractional-inch lengths) was
-written in an environment without crates.io access, so it has **not been compiled or
-tested yet**. Run the gates below before building on it.
+**Status:** started 2026-10-14. R1 (feet-and-fractional-inch lengths) passes
+`cargo test -p pdfcraft-measure` and `pdfcraft-automation`'s hostile-argument tests on
+Windows; clippy has not been run on it yet. Run the gates below before building on it.
 
 ```
 cargo fmt --check
@@ -32,7 +32,7 @@ Ordered by value for construction work. Each item is one or more commits with te
 
 | # | Item | Status |
 |---|------|--------|
-| R1 | Feet and fractional inches (`12'-6 1/2"`) for lengths: format, compound `/Measure` write and read, automation `fractions` option | Written, unverified |
+| R1 | Feet and fractional inches (`12'-6 1/2"`) for lengths: format, compound `/Measure` write and read, automation `fractions` option | Done, tested |
 | R2 | Calibration panel: format picker (decimal or feet-inches, 1/2 to 1/64) and common architectural and engineering presets (1/8" = 1'-0", 1:100…) | Next |
 | R3 | Count tool (symbols counted per page, grouped by subject) and angle tool | Planned |
 | R4 | Markups list: a sortable, filterable table of every annotation and measurement, with status, author, page, subject, value, and custom columns stored on the annotation | Planned |
