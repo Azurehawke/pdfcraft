@@ -8,7 +8,8 @@ large-format drawing sets.
 
 **Status:** started 2026-10-14. R1 (feet-and-fractional-inch lengths) passes
 `cargo test -p pdfcraft-measure` and `pdfcraft-automation`'s hostile-argument tests on
-Windows; clippy has not been run on it yet. Run the gates below before building on it.
+Windows, and `cargo clippy -p pdfcraft-measure -p pdfcraft-automation -- -D warnings` is clean.
+Run the gates below after every change.
 
 ```
 cargo fmt --check
