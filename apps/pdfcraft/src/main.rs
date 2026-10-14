@@ -304,6 +304,7 @@ fn app_creator<'a>(
         }
         app.integrated_titlebar = integrated;
         app.update_source = Some(std::sync::Arc::new(updates::latest_release));
+        app.revucraft_shell();
         app.os_key_store_ids = cfg!(any(target_os = "macos", target_os = "windows"));
         #[cfg(target_os = "macos")]
         {

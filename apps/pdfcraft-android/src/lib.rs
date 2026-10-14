@@ -69,6 +69,7 @@ fn android_main(android: AndroidApp) {
         Box::new(|cc| {
             let mut app = PdfCraftApp::new();
             app.update_source = Some(std::sync::Arc::new(updates::latest_release));
+            app.revucraft_shell();
             // "printcraft": settings saved under the app's former name, PrintCraft.
             if let Some(json) = cc.storage.and_then(|s| s.get_string("pdfcraft").or_else(|| s.get_string("printcraft"))) {
                 app.restore(&json);

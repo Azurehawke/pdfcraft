@@ -84,7 +84,7 @@ jobs:
           %%EOF
           PDF
           sed -i 's/^          //' "$plan"
-          shot() { name=$1; shift; cargo run -q --release -p pdfcraft-ui-egui --example shot -- "$RUNNER_TEMP/shots/$name.png" --scale 1 "$@" 2>&1 | tee -a "$RUNNER_TEMP/shots.log" || echo "shot $name failed" >> "$RUNNER_TEMP/shots.log"; }
+          shot() { name=$1; shift; cargo run -q --release -p pdfcraft-ui-egui --example shot -- "$RUNNER_TEMP/shots/$name.png" --scale 1 --shell revucraft "$@" 2>&1 | tee -a "$RUNNER_TEMP/shots.log" || echo "shot $name failed" >> "$RUNNER_TEMP/shots.log"; }
           shot home
           shot plan "$plan"
           shot plan-light "$plan" --theme light

@@ -418,6 +418,8 @@ pub struct PdfCraftApp {
     pub accent: theme::Accent,
     /// The ribbon's workflow tab.
     pub workflow: ribbon::Workflow,
+    /// RevuCraft's tool ribbon under the mode bar (on in the apps; see [`Self::revucraft_shell`]).
+    pub show_ribbon: bool,
     /// The desktop's light/dark choice, watched while the app runs (Linux has no winit answer).
     desktop_theme: pdfcraft_platform::desktop_theme::DesktopTheme,
     /// The last answer [`desktop_theme`] gave, so a frame that asks costs nothing.
@@ -710,7 +712,7 @@ impl PdfCraftApp {
             date_format_draft: None,
             mode_override: None,
             left: LeftPanel::AllTools,
-            left_open: false, // RevuCraft: the ribbon holds the tools; All tools opens the catalogue.
+            left_open: true,
             right: None,
             comments_panel_closed: false,
             quick_tool: QuickTool::Select,
@@ -720,6 +722,7 @@ impl PdfCraftApp {
             theme_preference: ThemePreference::Dark,
             accent: theme::Accent::default(),
             workflow: ribbon::Workflow::default(),
+            show_ribbon: false,
             desktop_theme: pdfcraft_platform::desktop_theme::DesktopTheme::start(),
             desktop_dark: None,
             language: i18n::AUTO.to_string(),
@@ -1296,6 +1299,14 @@ impl PdfCraftApp {
         }
     }
 
+    /// RevuCraft's workspace, which the desktop and Android apps start in: the tool ribbon on and
+    /// the All tools catalogue closed, so the drawing gets the room. A bare `PdfCraftApp::new()`
+    /// keeps PdfCraft's layout, which the interface tests are written against.
+    pub fn revucraft_shell(&mut self) {
+        self.show_ribbon = true;
+        self.left_open = false;
+    }
+
     /// Use `accent` for the interface from now on (saved with the settings).
     pub fn set_accent(&mut self, accent: theme::Accent) {
         self.accent = accent;
@@ -1564,6 +1575,10 @@ impl PdfCraftApp {
                 })?;
                 self.language = language.to_string();
             }
+            ("shell", _) => match value {
+                "revucraft" => self.revucraft_shell(),
+                _ => return Err("shell must be revucraft".into()),
+            },
             ("workflow", _) => {
                 self.workflow = ribbon::Workflow::parse(value).ok_or("workflow must be markup, measure, review or document")?;
             }
@@ -2086,7 +2101,7 @@ impl eframe::App for PdfCraftApp {
         }
         chrome::tab_strip(self, ui);
         chrome::mode_bar(self, ui);
-        if self.mode != Mode::Read {
+        if self.show_ribbon && self.mode != Mode::Read {
             ribbon::show(self, ui);
         }
         if self.active.is_some() {

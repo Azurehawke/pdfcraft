@@ -2192,7 +2192,7 @@ key	Space	スペース
 	New folder	新しいフォルダー
 	Open from Google Drive, Dropbox, OneDrive and other apps with Android's picker. Saving updates the file there.	Android のピッカーで Google ドライブ、Dropbox、OneDrive などのアプリから開きます。保存するとそこのファイルが更新されます。
 	Opening Settings… If nothing appears, use the steps below.	設定を開いています… 何も表示されない場合は、下の手順に従ってください。
-	Or yourself: Settings ▸ Apps ▸ ⋮ (top right) ▸ Special access ▸ All files access ▸ RevuCraft ▸ turn it on.	または手動で：設定 ▸ アプリ ▸ ⋮（右上）▸ 特別なアクセス ▸ すべてのファイルへのアクセス ▸ RevuCraft ▸ オンにします。
+	Or yourself: Settings ▸ Apps ▸ ⋮ (top right) ▸ Special access ▸ All files access ▸ RevuCraft ▸ turn it on.	または手動で：設定 › アプリ › （右上）› 特別なアクセス › すべてのファイルへのアクセス › RevuCraft › オンにします。
 	Pen	ペン
 	RevuCraft can't see your files yet	RevuCraft はまだファイルを表示できません
 	Save As	名前を付けて保存
