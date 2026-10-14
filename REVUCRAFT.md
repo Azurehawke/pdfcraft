@@ -17,6 +17,15 @@ cargo clippy --workspace -- -D warnings
 cargo test -p pdfcraft-measure -p pdfcraft-automation -p pdfcraft-engine
 ```
 
+## Android
+
+The `android` branch's tablet build is merged in. Every push to `revucraft` runs
+`.github/workflows/revucraft-android.yml`, which builds `revucraft.apk` as its own app
+(`io.github.azurehawke.revucraft`, named RevuCraft) so it installs beside PdfCraft, and publishes
+it as the `revucraft-latest` prerelease. On the tablet, open the repository's Releases page and
+install `revucraft.apk` from there; `docs/android.md` covers file access and pen input. To pick up
+later tablet work, merge `android` into `revucraft` again.
+
 ## What PdfCraft already provides
 
 - `pdfcraft-measure`: calibration, page viewports (`/VP`), distance, perimeter and area
@@ -42,7 +51,7 @@ Ordered by value for construction work. Each item is one or more commits with te
 | R7 | Area extras: cutouts, depth to volume, dynamic fill | Planned |
 | R8 | Sheet sets: title-block page labels, auto-linking of sheet references, batch stamps and slip-sheets | Planned |
 | R9 | Large CAD sheets: tiled, cached vector rendering for pages with millions of paths | Depends on PdfCraft's own renderer |
-| R10 | Pen-first measuring and markup on Android tablets (Galaxy Tab, S Pen) | Planned |
+| R10 | Pen-first measuring and markup on Android tablets (Galaxy Tab, S Pen) | APK build in place (from `android`); measuring with the pen not yet tuned |
 
 Real-time shared sessions are out of scope until the single-user workflows are solid.
 
