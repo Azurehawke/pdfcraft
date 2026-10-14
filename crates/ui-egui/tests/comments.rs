@@ -24,7 +24,8 @@ trailer << /Root 1 0 R >>
 %%EOF";
 
 fn harness(setup: impl FnOnce(&mut PdfCraftApp) + 'static) -> Harness<'static, PdfCraftApp> {
-    let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(move |_cc| {
+    // 962 = 900 plus RevuCraft's ribbon, so the whole page stays on screen as before.
+    let mut h = Harness::builder().with_size(egui::vec2(1400.0, 962.0)).build_eframe(move |_cc| {
         let mut app = PdfCraftApp::new();
         app.set_option("language", "en").unwrap();
         app.open_bytes("text.pdf", None, TEXT_FIXTURE.to_vec()).expect("opens");
