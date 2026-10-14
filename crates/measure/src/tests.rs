@@ -342,3 +342,75 @@ fn user_unit_is_read_as_acrobat_reads_it() {
         close(view[1], 72.0);
     }
 }
+#[test]
+fn feet_and_fractional_inches_format_rounds_carries_and_reduces() {
+    let f = |v: f64, d: u16| format_feet_inches(v, d).unwrap();
+    assert_eq!(f(12.5, 16), "12'-6\"");
+    assert_eq!(f(12.0 + 6.5 / 12.0, 16), "12'-6 1/2\"");
+    assert_eq!(f(3.0 / 16.0 / 12.0, 16), "0'-0 3/16\"");
+    assert_eq!(f(0.0, 8), "0'-0\"");
+    // 11 15.99/16 rounds up through the inch and the foot.
+    assert_eq!(f(1.0 - 0.001 / 12.0, 16), "1'-0\"");
+    assert_eq!(f(10.0 + 11.97 / 12.0, 16), "11'-0\"");
+    // Whole inches only; 1/64 resolution.
+    assert_eq!(f(2.0 + 3.4 / 12.0, 1), "2'-3\"");
+    assert_eq!(f(1.0 / 64.0 / 12.0, 64), "0'-0 1/64\"");
+    assert_eq!(f(-(1.0 + 1.5 / 12.0), 4), "-1'-1 1/2\"");
+    assert!(format_feet_inches(1.0, 3).is_err());
+    assert!(format_feet_inches(1.0, 0).is_err());
+    assert!(format_feet_inches(f64::NAN, 16).is_err());
+    assert!(format_feet_inches(1e300, 16).is_err());
+}
+#[test]
+fn feet_inch_scale_converts_inches_and_refuses_other_units() {
+    // 1/4" = 1'-0": one user unit (1/72 in on paper) is 4/72 ft.
+    let quarter = Scale::new(4.0 / 72.0, "ft", 2).unwrap().with_feet_inches(16).unwrap();
+    assert_eq!(quarter.format, LengthFormat::FeetInches { denominator: 16 });
+    assert_eq!((quarter.unit.as_str(), quarter.area_unit.as_str()), ("ft", "sq ft"));
+    let same = Scale::new(48.0 / 72.0, "in", 2).unwrap().with_feet_inches(16).unwrap();
+    close(same.x, quarter.x);
+    assert!(Scale::new(1.0, "m", 2).unwrap().with_feet_inches(16).is_err());
+    assert!(Scale::new(1.0, "ft", 2).unwrap().with_feet_inches(10).is_err());
+    // 3" on paper at 1/4" scale is 12 feet; 3 1/8" is 12'-6".
+    let r = reading(Kind::Distance, &[[0.0, 0.0], [216.0, 0.0]], &quarter).unwrap();
+    assert_eq!(r.label, "12'-0\"");
+    let r = reading(Kind::Perimeter, &[[0.0, 0.0], [216.0, 0.0], [216.0, 9.0]], &quarter).unwrap();
+    assert_eq!(r.label, "12'-6\"");
+    // Areas stay decimal square feet.
+    let r = reading(Kind::Area, &[[0.0, 0.0], [216.0, 0.0], [216.0, 216.0], [0.0, 216.0]], &quarter).unwrap();
+    assert_eq!(r.label, "144.00 sq ft");
+}
+#[test]
+fn feet_inch_scale_writes_compound_formats_and_roundtrips() {
+    let scale = Scale::new(4.0 / 72.0, "ft", 1).unwrap().with_feet_inches(8).unwrap();
+    let dict = scale.dictionary().unwrap();
+    for key in [&b"X"[..], b"D"] {
+        let parts = dict.get(key).and_then(Object::as_array).unwrap();
+        assert_eq!(parts.len(), 2, "{key:?} is a two-part compound format");
+        let inches = parts[1].as_dict().unwrap();
+        assert_eq!(inches.name(b"F"), Some(&b"F"[..]));
+        assert_eq!(inches.int(b"D"), Some(8));
+        close(inches.get(b"C").and_then(Object::as_f64).unwrap(), 12.0);
+    }
+    assert_eq!(dict.get(b"A").and_then(Object::as_array).unwrap().len(), 1);
+    let mut d = fixture("", "", &[]);
+    set_scale(&mut d, 0, [0.0, 0.0, 612.0, 792.0], "Plan", &scale).unwrap();
+    let mut m = new(Kind::Distance, vec![[0.0, 0.0], [225.0, 0.0]]);
+    m.scale = scale_at(&d, 0, m.points[0]).unwrap();
+    assert_eq!(m.scale, scale);
+    add(&mut d, &m, &Meta::default()).unwrap();
+    let bytes = write_full(&d, &SaveOptions::default()).unwrap();
+    let d = Document::open(Arc::new(bytes)).unwrap();
+    let listing = list(&d);
+    assert!(listing.unsupported.is_empty(), "{:?}", listing.unsupported);
+    assert_eq!(listing.measurements[0].scale.format, scale.format);
+    assert_eq!(listing.measurements[0].reading.label, "12'-6\"");
+    // Compound formats that aren't feet-and-fractional-inches stay unsupported.
+    let mut other = scale.dictionary().unwrap();
+    let mut parts = other.get(b"D").and_then(Object::as_array).unwrap().clone();
+    if let Some(Object::Dict(inches)) = parts.get_mut(1) {
+        inches.set(b"C".to_vec(), Object::Real(100.0));
+    }
+    other.set(b"D".to_vec(), Object::Array(parts));
+    assert!(Scale::read(&d, &Object::Dict(other)).unwrap_err().to_string().contains("compound"));
+}
