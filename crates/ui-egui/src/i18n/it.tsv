@@ -2186,3 +2186,32 @@ key	Space	Spazio
 	Collapse all	Comprimi tutto
 	Remove page	Rimuovi pagina
 	Remove {n} pages	Rimuovi {n} pagine
+# Android tablet build and RevuCraft additions.
+	All files	Tutti i file
+	Allow access…	Consenti accesso…
+	App folder	Cartella dell’app
+	Choose a folder	Scegli una cartella
+	Choose files	Scegli file
+	Choose where to save with Android's picker: Google Drive, Dropbox, OneDrive and other apps. Saving again later updates it there.	Scegli dove salvare con il selettore di Android: Google Drive, Dropbox, OneDrive e altre app. I salvataggi successivi lo aggiornano lì.
+	Documents	Documenti
+	Downloads	Download
+	Google Drive and other apps…	Google Drive e altre app…
+	Internal storage	Memoria interna
+	Make text editable	Rendi il testo modificabile
+	New folder	Nuova cartella
+	Open from Google Drive, Dropbox, OneDrive and other apps with Android's picker. Saving updates the file there.	Apri da Google Drive, Dropbox, OneDrive e altre app con il selettore di Android. Il salvataggio aggiorna il file lì.
+	Opening Settings… If nothing appears, use the steps below.	Apertura delle Impostazioni… Se non appare nulla, segui i passaggi qui sotto.
+	Or yourself: Settings ▸ Apps ▸ ⋮ (top right) ▸ Special access ▸ All files access ▸ RevuCraft ▸ turn it on.	Oppure manualmente: Impostazioni ▸ App ▸ ⋮ (in alto a destra) ▸ Accesso speciale ▸ Accesso a tutti i file ▸ RevuCraft ▸ attivalo.
+	Pen	Penna
+	RevuCraft can't see your files yet	RevuCraft non vede ancora i tuoi file
+	Save As	Salva con nome
+	Save to Google Drive or another app…	Salva su Google Drive o un’altra app…
+	Settings didn't open:	Le Impostazioni non si sono aperte:
+	Some text on page {n} is inside embedded content, so it can't be selected yet.	Parte del testo a pagina {n} è in un contenuto incorporato e non può ancora essere selezionata.
+	This build can't open Settings by itself.	Questa versione non può aprire le Impostazioni da sola.
+	This folder is empty	Questa cartella è vuota
+	Type a name first	Prima inserisci un nome
+	Up one folder	Cartella superiore
+	Use this folder	Usa questa cartella
+	Waiting for the document… (Google Drive downloads it first when it isn't on the tablet yet)	In attesa del documento… (Google Drive lo scarica prima se non è ancora sul tablet)
+	already exists. Replace it?	esiste già. Sostituirlo?

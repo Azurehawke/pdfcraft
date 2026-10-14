@@ -2200,3 +2200,32 @@ key	Space	Пробіл
 	Collapse all	Згорнути всі
 	Remove page	Видалити сторінку
 	Remove {n} pages	Видалити сторінки: {n}
+# Android tablet build and RevuCraft additions.
+	All files	Усі файли
+	Allow access…	Дозволити доступ…
+	App folder	Папка застосунку
+	Choose a folder	Вибрати папку
+	Choose files	Вибрати файли
+	Choose where to save with Android's picker: Google Drive, Dropbox, OneDrive and other apps. Saving again later updates it there.	Виберіть, куди зберегти, у засобі вибору Android: Google Диск, Dropbox, OneDrive та інші застосунки. Подальші збереження оновлять файл там.
+	Documents	Документи
+	Downloads	Завантаження
+	Google Drive and other apps…	Google Диск та інші застосунки…
+	Internal storage	Внутрішня пам’ять
+	Make text editable	Зробити текст редагованим
+	New folder	Нова папка
+	Open from Google Drive, Dropbox, OneDrive and other apps with Android's picker. Saving updates the file there.	Відкрийте файл із Google Диска, Dropbox, OneDrive та інших застосунків через засіб вибору Android. Збереження оновить файл там.
+	Opening Settings… If nothing appears, use the steps below.	Відкриваються налаштування… Якщо нічого не з’явилося, виконайте кроки нижче.
+	Or yourself: Settings ▸ Apps ▸ ⋮ (top right) ▸ Special access ▸ All files access ▸ RevuCraft ▸ turn it on.	Або вручну: Налаштування ▸ Застосунки ▸ ⋮ (угорі праворуч) ▸ Спеціальний доступ ▸ Доступ до всіх файлів ▸ RevuCraft ▸ увімкніть.
+	Pen	Перо
+	RevuCraft can't see your files yet	RevuCraft ще не бачить ваші файли
+	Save As	Зберегти як
+	Save to Google Drive or another app…	Зберегти в Google Диск або інший застосунок…
+	Settings didn't open:	Налаштування не відкрилися:
+	Some text on page {n} is inside embedded content, so it can't be selected yet.	Частина тексту на сторінці {n} міститься у вбудованому вмісті й поки що не може бути виділена.
+	This build can't open Settings by itself.	Ця збірка не може сама відкрити налаштування.
+	This folder is empty	Папка порожня
+	Type a name first	Спершу введіть назву
+	Up one folder	На рівень вище
+	Use this folder	Використати цю папку
+	Waiting for the document… (Google Drive downloads it first when it isn't on the tablet yet)	Очікування документа… (Google Диск спочатку завантажує його, якщо його ще немає на планшеті)
+	already exists. Replace it?	уже існує. Замінити?

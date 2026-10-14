@@ -2177,3 +2177,32 @@ key	Space	スペース
 	Collapse all	すべて折りたたむ
 	Remove page	ページを削除
 	Remove {n} pages	{n} ページを削除
+# Android tablet build and RevuCraft additions.
+	All files	すべてのファイル
+	Allow access…	アクセスを許可…
+	App folder	アプリのフォルダー
+	Choose a folder	フォルダーを選択
+	Choose files	ファイルを選択
+	Choose where to save with Android's picker: Google Drive, Dropbox, OneDrive and other apps. Saving again later updates it there.	Android のピッカーで保存先を選択します：Google ドライブ、Dropbox、OneDrive などのアプリ。以後の保存でそこが更新されます。
+	Documents	ドキュメント
+	Downloads	ダウンロード
+	Google Drive and other apps…	Google ドライブとその他のアプリ…
+	Internal storage	内部ストレージ
+	Make text editable	テキストを編集可能にする
+	New folder	新しいフォルダー
+	Open from Google Drive, Dropbox, OneDrive and other apps with Android's picker. Saving updates the file there.	Android のピッカーで Google ドライブ、Dropbox、OneDrive などのアプリから開きます。保存するとそこのファイルが更新されます。
+	Opening Settings… If nothing appears, use the steps below.	設定を開いています… 何も表示されない場合は、下の手順に従ってください。
+	Or yourself: Settings ▸ Apps ▸ ⋮ (top right) ▸ Special access ▸ All files access ▸ RevuCraft ▸ turn it on.	または手動で：設定 ▸ アプリ ▸ ⋮（右上）▸ 特別なアクセス ▸ すべてのファイルへのアクセス ▸ RevuCraft ▸ オンにします。
+	Pen	ペン
+	RevuCraft can't see your files yet	RevuCraft はまだファイルを表示できません
+	Save As	名前を付けて保存
+	Save to Google Drive or another app…	Google ドライブまたは他のアプリに保存…
+	Settings didn't open:	設定が開きませんでした：
+	Some text on page {n} is inside embedded content, so it can't be selected yet.	{n} ページの一部のテキストは埋め込みコンテンツ内にあるため、まだ選択できません。
+	This build can't open Settings by itself.	このビルドでは設定を直接開けません。
+	This folder is empty	このフォルダーは空です
+	Type a name first	先に名前を入力してください
+	Up one folder	1 つ上のフォルダー
+	Use this folder	このフォルダーを使用
+	Waiting for the document… (Google Drive downloads it first when it isn't on the tablet yet)	ドキュメントを待っています…（タブレットにまだない場合、Google ドライブが先にダウンロードします）
+	already exists. Replace it?	は既に存在します。置き換えますか？

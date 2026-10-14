@@ -2199,3 +2199,32 @@ key	Space	مسافة
 	Collapse all	طي الكل
 	Remove page	إزالة الصفحة
 	Remove {n} pages	إزالة {n} صفحات
+# Android tablet build and RevuCraft additions.
+	All files	كل الملفات
+	Allow access…	السماح بالوصول…
+	App folder	مجلد التطبيق
+	Choose a folder	اختيار مجلد
+	Choose files	اختيار ملفات
+	Choose where to save with Android's picker: Google Drive, Dropbox, OneDrive and other apps. Saving again later updates it there.	اختر مكان الحفظ بأداة اختيار Android: ‏Google Drive وDropbox وOneDrive وتطبيقات أخرى. الحفظ لاحقًا يحدّث الملف هناك.
+	Documents	المستندات
+	Downloads	التنزيلات
+	Google Drive and other apps…	Google Drive وتطبيقات أخرى…
+	Internal storage	وحدة التخزين الداخلية
+	Make text editable	جعل النص قابلًا للتحرير
+	New folder	مجلد جديد
+	Open from Google Drive, Dropbox, OneDrive and other apps with Android's picker. Saving updates the file there.	افتح من Google Drive وDropbox وOneDrive وتطبيقات أخرى بأداة اختيار Android. الحفظ يحدّث الملف هناك.
+	Opening Settings… If nothing appears, use the steps below.	جارٍ فتح الإعدادات… إذا لم يظهر شيء، فاتبع الخطوات أدناه.
+	Or yourself: Settings ▸ Apps ▸ ⋮ (top right) ▸ Special access ▸ All files access ▸ RevuCraft ▸ turn it on.	أو بنفسك: الإعدادات ▸ التطبيقات ▸ ⋮ (أعلى اليمين) ▸ الوصول الخاص ▸ الوصول إلى كل الملفات ▸ RevuCraft ▸ شغّله.
+	Pen	قلم
+	RevuCraft can't see your files yet	لا يستطيع RevuCraft رؤية ملفاتك بعد
+	Save As	حفظ باسم
+	Save to Google Drive or another app…	الحفظ في Google Drive أو تطبيق آخر…
+	Settings didn't open:	لم تُفتح الإعدادات:
+	Some text on page {n} is inside embedded content, so it can't be selected yet.	بعض النص في الصفحة {n} داخل محتوى مضمّن، لذا لا يمكن تحديده بعد.
+	This build can't open Settings by itself.	لا يستطيع هذا الإصدار فتح الإعدادات بنفسه.
+	This folder is empty	هذا المجلد فارغ
+	Type a name first	اكتب اسمًا أولًا
+	Up one folder	مجلد واحد لأعلى
+	Use this folder	استخدام هذا المجلد
+	Waiting for the document… (Google Drive downloads it first when it isn't on the tablet yet)	في انتظار المستند… (يُنزّله Google Drive أولًا إن لم يكن على الجهاز اللوحي بعد)
+	already exists. Replace it?	موجود بالفعل. هل تريد استبداله؟

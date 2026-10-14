@@ -2177,3 +2177,32 @@ key	Space	Leertaste
 	Collapse all	Alle einklappen
 	Remove page	Seite entfernen
 	Remove {n} pages	{n} Seiten entfernen
+# Android tablet build and RevuCraft additions.
+	All files	Alle Dateien
+	Allow access…	Zugriff erlauben…
+	App folder	App-Ordner
+	Choose a folder	Ordner auswählen
+	Choose files	Dateien auswählen
+	Choose where to save with Android's picker: Google Drive, Dropbox, OneDrive and other apps. Saving again later updates it there.	Wähle mit der Android-Auswahl, wo gespeichert wird: Google Drive, Dropbox, OneDrive und andere Apps. Späteres Speichern aktualisiert die Datei dort.
+	Documents	Dokumente
+	Downloads	Downloads
+	Google Drive and other apps…	Google Drive und andere Apps…
+	Internal storage	Interner Speicher
+	Make text editable	Text bearbeitbar machen
+	New folder	Neuer Ordner
+	Open from Google Drive, Dropbox, OneDrive and other apps with Android's picker. Saving updates the file there.	Öffne Dateien aus Google Drive, Dropbox, OneDrive und anderen Apps mit der Android-Auswahl. Speichern aktualisiert die Datei dort.
+	Opening Settings… If nothing appears, use the steps below.	Einstellungen werden geöffnet… Falls nichts erscheint, folge den Schritten unten.
+	Or yourself: Settings ▸ Apps ▸ ⋮ (top right) ▸ Special access ▸ All files access ▸ RevuCraft ▸ turn it on.	Oder selbst: Einstellungen ▸ Apps ▸ ⋮ (oben rechts) ▸ Spezieller Zugriff ▸ Zugriff auf alle Dateien ▸ RevuCraft ▸ einschalten.
+	Pen	Stift
+	RevuCraft can't see your files yet	RevuCraft kann deine Dateien noch nicht sehen
+	Save As	Speichern unter
+	Save to Google Drive or another app…	In Google Drive oder einer anderen App speichern…
+	Settings didn't open:	Einstellungen wurden nicht geöffnet:
+	Some text on page {n} is inside embedded content, so it can't be selected yet.	Ein Teil des Texts auf Seite {n} liegt in eingebettetem Inhalt und kann noch nicht ausgewählt werden.
+	This build can't open Settings by itself.	Diese Version kann die Einstellungen nicht selbst öffnen.
+	This folder is empty	Dieser Ordner ist leer
+	Type a name first	Gib zuerst einen Namen ein
+	Up one folder	Einen Ordner nach oben
+	Use this folder	Diesen Ordner verwenden
+	Waiting for the document… (Google Drive downloads it first when it isn't on the tablet yet)	Warte auf das Dokument… (Google Drive lädt es zuerst herunter, wenn es noch nicht auf dem Tablet ist)
+	already exists. Replace it?	ist bereits vorhanden. Ersetzen?

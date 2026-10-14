@@ -2139,3 +2139,32 @@ key	Space	Интервал
 	Collapse all	Свий всички
 	Remove page	Премахни страницата
 	Remove {n} pages	Премахни {n} страници
+# Android tablet build and RevuCraft additions.
+	All files	Всички файлове
+	Allow access…	Разрешаване на достъп…
+	App folder	Папка на приложението
+	Choose a folder	Избор на папка
+	Choose files	Избор на файлове
+	Choose where to save with Android's picker: Google Drive, Dropbox, OneDrive and other apps. Saving again later updates it there.	Изберете къде да запазите чрез избора на Android: Google Диск, Dropbox, OneDrive и други приложения. Следващите запазвания го обновяват там.
+	Documents	Документи
+	Downloads	Изтегляния
+	Google Drive and other apps…	Google Диск и други приложения…
+	Internal storage	Вътрешно хранилище
+	Make text editable	Направи текста редактируем
+	New folder	Нова папка
+	Open from Google Drive, Dropbox, OneDrive and other apps with Android's picker. Saving updates the file there.	Отваряйте от Google Диск, Dropbox, OneDrive и други приложения чрез избора на Android. Запазването обновява файла там.
+	Opening Settings… If nothing appears, use the steps below.	Отварят се Настройки… Ако нищо не се появи, следвайте стъпките по-долу.
+	Or yourself: Settings ▸ Apps ▸ ⋮ (top right) ▸ Special access ▸ All files access ▸ RevuCraft ▸ turn it on.	Или ръчно: Настройки ▸ Приложения ▸ ⋮ (горе вдясно) ▸ Специален достъп ▸ Достъп до всички файлове ▸ RevuCraft ▸ включете го.
+	Pen	Писалка
+	RevuCraft can't see your files yet	RevuCraft все още не вижда файловете ви
+	Save As	Запазване като
+	Save to Google Drive or another app…	Запазване в Google Диск или друго приложение…
+	Settings didn't open:	Настройките не се отвориха:
+	Some text on page {n} is inside embedded content, so it can't be selected yet.	Част от текста на страница {n} е във вградено съдържание и засега не може да се маркира.
+	This build can't open Settings by itself.	Тази версия не може сама да отвори Настройки.
+	This folder is empty	Папката е празна
+	Type a name first	Първо въведете име
+	Up one folder	Една папка нагоре
+	Use this folder	Използване на тази папка
+	Waiting for the document… (Google Drive downloads it first when it isn't on the tablet yet)	Изчакване на документа… (Google Диск първо го изтегля, ако още не е на таблета)
+	already exists. Replace it?	вече съществува. Да се замени ли?

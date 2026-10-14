@@ -2177,3 +2177,32 @@ key	Space	Espace
 	Collapse all	Tout réduire
 	Remove page	Retirer la page
 	Remove {n} pages	Retirer {n} pages
+# Android tablet build and RevuCraft additions.
+	All files	Tous les fichiers
+	Allow access…	Autoriser l’accès…
+	App folder	Dossier de l’app
+	Choose a folder	Choisir un dossier
+	Choose files	Choisir des fichiers
+	Choose where to save with Android's picker: Google Drive, Dropbox, OneDrive and other apps. Saving again later updates it there.	Choisissez où enregistrer avec le sélecteur d’Android : Google Drive, Dropbox, OneDrive et d’autres apps. Les enregistrements suivants le mettent à jour là-bas.
+	Documents	Documents
+	Downloads	Téléchargements
+	Google Drive and other apps…	Google Drive et autres apps…
+	Internal storage	Stockage interne
+	Make text editable	Rendre le texte modifiable
+	New folder	Nouveau dossier
+	Open from Google Drive, Dropbox, OneDrive and other apps with Android's picker. Saving updates the file there.	Ouvrez depuis Google Drive, Dropbox, OneDrive et d’autres apps avec le sélecteur d’Android. L’enregistrement met à jour le fichier là-bas.
+	Opening Settings… If nothing appears, use the steps below.	Ouverture des Paramètres… Si rien n’apparaît, suivez les étapes ci-dessous.
+	Or yourself: Settings ▸ Apps ▸ ⋮ (top right) ▸ Special access ▸ All files access ▸ RevuCraft ▸ turn it on.	Ou vous-même : Paramètres ▸ Applications ▸ ⋮ (en haut à droite) ▸ Accès spéciaux ▸ Accès à tous les fichiers ▸ RevuCraft ▸ activez-le.
+	Pen	Stylo
+	RevuCraft can't see your files yet	RevuCraft ne voit pas encore vos fichiers
+	Save As	Enregistrer sous
+	Save to Google Drive or another app…	Enregistrer dans Google Drive ou une autre app…
+	Settings didn't open:	Les Paramètres ne se sont pas ouverts :
+	Some text on page {n} is inside embedded content, so it can't be selected yet.	Une partie du texte de la page {n} se trouve dans un contenu incorporé et ne peut pas encore être sélectionnée.
+	This build can't open Settings by itself.	Cette version ne peut pas ouvrir les Paramètres elle-même.
+	This folder is empty	Ce dossier est vide
+	Type a name first	Saisissez d’abord un nom
+	Up one folder	Dossier parent
+	Use this folder	Utiliser ce dossier
+	Waiting for the document… (Google Drive downloads it first when it isn't on the tablet yet)	En attente du document… (Google Drive le télécharge d’abord s’il n’est pas encore sur la tablette)
+	already exists. Replace it?	existe déjà. Le remplacer ?

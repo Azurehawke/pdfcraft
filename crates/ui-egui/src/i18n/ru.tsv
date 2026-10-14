@@ -2090,3 +2090,32 @@ key	Space	Пробел
 	Collapse all	Свернуть все
 	Remove page	Удалить страницу
 	Remove {n} pages	Удалить страницы: {n}
+# Android tablet build and RevuCraft additions.
+	All files	Все файлы
+	Allow access…	Разрешить доступ…
+	App folder	Папка приложения
+	Choose a folder	Выбрать папку
+	Choose files	Выбрать файлы
+	Choose where to save with Android's picker: Google Drive, Dropbox, OneDrive and other apps. Saving again later updates it there.	Выберите, куда сохранить, в средстве выбора Android: Google Диск, Dropbox, OneDrive и другие приложения. Последующие сохранения обновят файл там.
+	Documents	Документы
+	Downloads	Загрузки
+	Google Drive and other apps…	Google Диск и другие приложения…
+	Internal storage	Внутренняя память
+	Make text editable	Сделать текст редактируемым
+	New folder	Новая папка
+	Open from Google Drive, Dropbox, OneDrive and other apps with Android's picker. Saving updates the file there.	Откройте файл из Google Диска, Dropbox, OneDrive и других приложений через средство выбора Android. Сохранение обновит файл там.
+	Opening Settings… If nothing appears, use the steps below.	Открываются настройки… Если ничего не появилось, выполните шаги ниже.
+	Or yourself: Settings ▸ Apps ▸ ⋮ (top right) ▸ Special access ▸ All files access ▸ RevuCraft ▸ turn it on.	Или вручную: Настройки ▸ Приложения ▸ ⋮ (вверху справа) ▸ Специальный доступ ▸ Доступ ко всем файлам ▸ RevuCraft ▸ включите.
+	Pen	Перо
+	RevuCraft can't see your files yet	RevuCraft пока не видит ваши файлы
+	Save As	Сохранить как
+	Save to Google Drive or another app…	Сохранить в Google Диск или другое приложение…
+	Settings didn't open:	Настройки не открылись:
+	Some text on page {n} is inside embedded content, so it can't be selected yet.	Часть текста на странице {n} находится во встроенном содержимом и пока не может быть выделена.
+	This build can't open Settings by itself.	Эта сборка не может сама открыть настройки.
+	This folder is empty	Папка пуста
+	Type a name first	Сначала введите имя
+	Up one folder	На уровень вверх
+	Use this folder	Использовать эту папку
+	Waiting for the document… (Google Drive downloads it first when it isn't on the tablet yet)	Ожидание документа… (Google Диск сначала скачивает его, если его ещё нет на планшете)
+	already exists. Replace it?	уже существует. Заменить?

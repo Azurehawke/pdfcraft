@@ -2141,3 +2141,32 @@ key	Space	空格
 	Collapse all	全部折叠
 	Remove page	删除页面
 	Remove {n} pages	删除 {n} 页
+# Android tablet build and RevuCraft additions.
+	All files	所有文件
+	Allow access…	允许访问…
+	App folder	应用文件夹
+	Choose a folder	选择文件夹
+	Choose files	选择文件
+	Choose where to save with Android's picker: Google Drive, Dropbox, OneDrive and other apps. Saving again later updates it there.	使用 Android 选择器选择保存位置：Google 云端硬盘、Dropbox、OneDrive 和其他应用。之后再次保存会更新那里的文件。
+	Documents	文档
+	Downloads	下载
+	Google Drive and other apps…	Google 云端硬盘和其他应用…
+	Internal storage	内部存储
+	Make text editable	使文本可编辑
+	New folder	新建文件夹
+	Open from Google Drive, Dropbox, OneDrive and other apps with Android's picker. Saving updates the file there.	使用 Android 选择器从 Google 云端硬盘、Dropbox、OneDrive 和其他应用打开。保存会更新那里的文件。
+	Opening Settings… If nothing appears, use the steps below.	正在打开设置… 如果没有出现，请按以下步骤操作。
+	Or yourself: Settings ▸ Apps ▸ ⋮ (top right) ▸ Special access ▸ All files access ▸ RevuCraft ▸ turn it on.	或手动：设置 ▸ 应用 ▸ ⋮（右上角）▸ 特殊访问权限 ▸ 所有文件访问权限 ▸ RevuCraft ▸ 打开。
+	Pen	笔
+	RevuCraft can't see your files yet	RevuCraft 还看不到你的文件
+	Save As	另存为
+	Save to Google Drive or another app…	保存到 Google 云端硬盘或其他应用…
+	Settings didn't open:	设置未打开：
+	Some text on page {n} is inside embedded content, so it can't be selected yet.	第 {n} 页的部分文本位于嵌入内容中，暂时无法选择。
+	This build can't open Settings by itself.	此版本无法自行打开设置。
+	This folder is empty	此文件夹为空
+	Type a name first	请先输入名称
+	Up one folder	上一级文件夹
+	Use this folder	使用此文件夹
+	Waiting for the document… (Google Drive downloads it first when it isn't on the tablet yet)	正在等待文档…（如果平板上还没有，Google 云端硬盘会先下载它）
+	already exists. Replace it?	已存在。要替换吗？

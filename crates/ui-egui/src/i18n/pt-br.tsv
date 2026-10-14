@@ -2178,3 +2178,32 @@ key	Space	Espaço
 	Collapse all	Recolher tudo
 	Remove page	Remover página
 	Remove {n} pages	Remover {n} páginas
+# Android tablet build and RevuCraft additions.
+	All files	Todos os arquivos
+	Allow access…	Permitir acesso…
+	App folder	Pasta do app
+	Choose a folder	Escolher uma pasta
+	Choose files	Escolher arquivos
+	Choose where to save with Android's picker: Google Drive, Dropbox, OneDrive and other apps. Saving again later updates it there.	Escolha onde salvar com o seletor do Android: Google Drive, Dropbox, OneDrive e outros apps. Salvar de novo depois atualiza o arquivo lá.
+	Documents	Documentos
+	Downloads	Downloads
+	Google Drive and other apps…	Google Drive e outros apps…
+	Internal storage	Armazenamento interno
+	Make text editable	Tornar o texto editável
+	New folder	Nova pasta
+	Open from Google Drive, Dropbox, OneDrive and other apps with Android's picker. Saving updates the file there.	Abra do Google Drive, Dropbox, OneDrive e outros apps com o seletor do Android. Salvar atualiza o arquivo lá.
+	Opening Settings… If nothing appears, use the steps below.	Abrindo as Configurações… Se nada aparecer, siga as etapas abaixo.
+	Or yourself: Settings ▸ Apps ▸ ⋮ (top right) ▸ Special access ▸ All files access ▸ RevuCraft ▸ turn it on.	Ou você mesmo: Configurações ▸ Apps ▸ ⋮ (canto superior direito) ▸ Acesso especial ▸ Acesso a todos os arquivos ▸ RevuCraft ▸ ative.
+	Pen	Caneta
+	RevuCraft can't see your files yet	O RevuCraft ainda não vê seus arquivos
+	Save As	Salvar como
+	Save to Google Drive or another app…	Salvar no Google Drive ou em outro app…
+	Settings didn't open:	As Configurações não abriram:
+	Some text on page {n} is inside embedded content, so it can't be selected yet.	Parte do texto da página {n} está em conteúdo incorporado e ainda não pode ser selecionada.
+	This build can't open Settings by itself.	Esta versão não consegue abrir as Configurações sozinha.
+	This folder is empty	Esta pasta está vazia
+	Type a name first	Digite um nome primeiro
+	Up one folder	Subir uma pasta
+	Use this folder	Usar esta pasta
+	Waiting for the document… (Google Drive downloads it first when it isn't on the tablet yet)	Aguardando o documento… (o Google Drive baixa primeiro quando ele ainda não está no tablet)
+	already exists. Replace it?	já existe. Substituir?
