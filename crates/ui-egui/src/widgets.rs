@@ -18,7 +18,8 @@ pub fn mode_tab(ui: &mut egui::Ui, label: &str, active: bool) -> Response {
     ui.painter().text(rect.center(), Align2::CENTER_CENTER, label, font, if active { t.text } else { t.text_muted });
     if active {
         let r = Rect::from_min_max(rect.left_bottom() + vec2(11.0, -3.0), rect.right_bottom() - vec2(11.0, 0.0));
-        ui.painter().rect_filled(r, CornerRadius::same(1), t.text);
+        // The active workflow tab is marked in the accent colour.
+        ui.painter().rect_filled(r, CornerRadius::same(1), t.accent);
     }
     resp
 }

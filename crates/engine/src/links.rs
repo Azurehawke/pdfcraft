@@ -341,9 +341,10 @@ fn mixes_scripts(label: &str) -> bool {
 #[cfg(test)]
 mod tests {
     #[test]
-    fn urls_follow_the_artcraft_scheme() {
-        assert_eq!(super::APP_PAGE, format!("{}/apps/{}", super::WEBSITE, super::APP));
-        assert_eq!(super::GITHUB, format!("https://github.com/storytold/{}", super::APP));
+    fn urls_point_at_revucraft_and_its_upstream() {
+        assert!(super::APP_PAGE.starts_with("https://github.com/Azurehawke/pdfcraft/"));
+        assert!(super::GITHUB.starts_with("https://github.com/Azurehawke/pdfcraft/"));
+        assert_eq!(super::UPSTREAM, format!("https://github.com/storytold/{}", super::APP));
         for l in super::LINKS {
             assert!(l.url.starts_with("https://"), "{}", l.url);
             assert!(crate::commands::command(l.command).is_some(), "{} is a registered command", l.command);

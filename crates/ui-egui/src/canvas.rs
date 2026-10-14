@@ -2345,12 +2345,17 @@ pub fn document_area(app: &mut PdfCraftApp, index: usize, ui: &mut egui::Ui) {
                 let on_text = !image_dragging
                     && (view.block_drag.is_some_and(|d| d.on_page(i))
                         || pointer.is_some_and(|p| lines.iter().any(|l| xf.user_rect(info, i, l.rect.map(|v| v as f32)).expand(2.0).contains(p))));
-                if on_text {
-                    crate::edit_text_ui::page_input(ui, &resp, &xf, i, info, &lines, view)
-                        || crate::edit_text_ui::image_input(ui, &resp, &xf, i, info, &images, view, &mut image_action)
-                } else {
-                    crate::edit_text_ui::image_input(ui, &resp, &xf, i, info, &images, view, &mut image_action)
-                        || crate::edit_text_ui::page_input(ui, &resp, &xf, i, info, &lines, view)
+                // Not the same arms: `||` stops at the first that takes the input, so the order
+                // is the point (clippy's if_same_then_else misreads it as an if).
+                match on_text {
+                    true => {
+                        crate::edit_text_ui::page_input(ui, &resp, &xf, i, info, &lines, view)
+                            || crate::edit_text_ui::image_input(ui, &resp, &xf, i, info, &images, view, &mut image_action)
+                    }
+                    false => {
+                        crate::edit_text_ui::image_input(ui, &resp, &xf, i, info, &images, view, &mut image_action)
+                            || crate::edit_text_ui::page_input(ui, &resp, &xf, i, info, &lines, view)
+                    }
                 }
             };
             let on_link = tool == QuickTool::Link && can_modify && crate::link_ui::page_input(ui, &resp, &xf, i, info, &doc_links, view);

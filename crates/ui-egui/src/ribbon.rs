@@ -71,6 +71,21 @@ impl Workflow {
     }
 }
 
+/// The ribbon's icon for a command: the measuring commands share one icon in the registry, which
+/// tells them apart nowhere when they sit side by side.
+fn icon(id: &str, registry: &'static str) -> &'static str {
+    match id {
+        "measure.scale" => "compass",
+        "measure.distance" => "ruler",
+        "measure.perimeter" => "spline",
+        "measure.area" => "pentagon",
+        "measure.snap" => "grid-3x3",
+        "measure.info" => "info",
+        "measure.export" => "file-spreadsheet",
+        _ => registry,
+    }
+}
+
 /// Whether `id` names the tool that is in use now.
 fn tool_active(app: &PdfCraftApp, id: &str) -> bool {
     if let Some(tool) = crate::comments::CommentTool::from_command(id) {
@@ -123,7 +138,7 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
                                     let enabled = app.command_enabled(spec);
                                     let tip = crate::commands::command_tip(ui.ctx(), crate::i18n::t(spec.label), id);
                                     let selected = tool_active(app, id);
-                                    let resp = ui.add_enabled_ui(enabled, |ui| icons::button(ui, spec.icon, 34.0, selected, &tip)).inner;
+                                    let resp = ui.add_enabled_ui(enabled, |ui| icons::button(ui, icon(id, spec.icon), 34.0, selected, &tip)).inner;
                                     if resp.clicked() {
                                         run = Some(*id);
                                     }
@@ -153,7 +168,7 @@ mod tests {
             for (_, ids) in w.groups() {
                 for id in ids.iter() {
                     let spec = commands::command(id).unwrap_or_else(|| panic!("{id} is not a registered command"));
-                    assert!(icons::exists(spec.icon), "{id}: missing icon {}", spec.icon);
+                    assert!(icons::exists(icon(id, spec.icon)), "{id}: missing icon {}", icon(id, spec.icon));
                     assert!(seen.insert(*id), "{id} is on the ribbon twice");
                 }
             }
