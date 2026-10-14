@@ -9,7 +9,8 @@
 //!   PdfCraft works on a copy and writes saves back (`cloud`).
 //! - PDFs from other apps ("Open with", PdfCraft as the default PDF viewer) open in a tab
 //!   (`incoming`).
-//! - No system clipboard for images, no printing to a printer, no update check.
+//! - No system clipboard for images, no printing to a printer.
+//! - Updates: RevuCraft asks GitHub for its latest build at start (`updates`).
 //!
 //! Elsewhere the crate is empty, so `cargo build --workspace` on a desktop still works.
 #![cfg(target_os = "android")]
@@ -18,6 +19,7 @@ mod cloud;
 mod file_access;
 mod incoming;
 mod tablet;
+mod updates;
 
 use pdfcraft_ui_egui::PdfCraftApp;
 use winit::platform::android::activity::AndroidApp;
@@ -66,6 +68,7 @@ fn android_main(android: AndroidApp) {
         options,
         Box::new(|cc| {
             let mut app = PdfCraftApp::new();
+            app.update_source = Some(std::sync::Arc::new(updates::latest_release));
             // "printcraft": settings saved under the app's former name, PrintCraft.
             if let Some(json) = cc.storage.and_then(|s| s.get_string("pdfcraft").or_else(|| s.get_string("printcraft"))) {
                 app.restore(&json);

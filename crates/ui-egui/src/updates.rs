@@ -1,9 +1,11 @@
-//! Help ▸ Check for updates (issue #28): ask for the latest release and offer its download page.
+//! Help ▸ Check for updates: ask for RevuCraft's latest build and offer its download.
 //!
-//! The desktop app supplies how to ask ([`PdfCraftApp::update_source`]), so this crate has no
-//! network code; without a source (the web build, tests) the command opens the releases page.
-//! PdfCraft never downloads or installs anything itself: the user downloads the new version.
-//! It asks only when the user does: there is no check at start (the owner's decision).
+//! The app supplies how to ask ([`PdfCraftApp::update_source`]), so this crate has no network
+//! code; without a source (the web build, tests) the command opens the releases page. RevuCraft
+//! builds are published by CI as the `revucraft-latest` release, numbered by build; a build knows
+//! its own number from `REVUCRAFT_BUILD` at compile time. RevuCraft checks once, quietly, at
+//! start and only speaks up when a newer build exists. It never installs anything itself: the
+//! download goes to the browser, and Android asks before installing.
 
 use std::sync::Arc;
 
@@ -11,8 +13,61 @@ use egui::{Align, Layout};
 
 use crate::{PdfCraftApp, theme, widgets};
 
-/// Where every PdfCraft release is listed.
-pub const RELEASES_PAGE: &str = "https://github.com/storytold/pdfcraft/releases";
+/// Where every RevuCraft build is listed.
+pub const RELEASES_PAGE: &str = "https://github.com/Azurehawke/pdfcraft/releases";
+
+/// GitHub's API answer for the latest RevuCraft build.
+pub const LATEST_API: &str = "https://api.github.com/repos/Azurehawke/pdfcraft/releases/tags/revucraft-latest";
+
+/// This build's number (`REVUCRAFT_BUILD`, set by CI), or the crate version for a local build.
+pub fn current_version() -> &'static str {
+    option_env!("REVUCRAFT_BUILD").filter(|b| !b.is_empty()).unwrap_or(env!("CARGO_PKG_VERSION"))
+}
+
+fn is_build_number(v: &str) -> bool {
+    !v.is_empty() && v.len() <= 9 && v.bytes().all(|b| b.is_ascii_digit())
+}
+
+/// Whether `latest` is newer than this build. Build numbers compare with build numbers; a local
+/// build (no number) is never told a CI build is newer.
+pub fn update_available(latest: &str) -> bool {
+    let current = current_version();
+    match (is_build_number(latest), is_build_number(current)) {
+        (true, true) => latest.parse::<u64>().ok() > current.parse::<u64>().ok(),
+        (true, false) => false,
+        _ => is_newer(latest, current),
+    }
+}
+
+/// A version as shown: "build 12" for a build number, the version otherwise.
+pub fn display_version(v: &str) -> String {
+    let v = v.trim_start_matches(['v', 'V']);
+    if is_build_number(v) { format!("build {v}") } else { v.to_string() }
+}
+
+/// Read GitHub's answer for the `revucraft-latest` release: the build number from its title
+/// ("RevuCraft for Android (build 12)") and where to get it: the APK itself when `apk`, else the
+/// release page. The answer is untrusted: only addresses under [`RELEASES_PAGE`] are offered.
+pub fn parse_latest(body: &str, apk: bool) -> Result<Release, String> {
+    let v: serde_json::Value = serde_json::from_str(body).map_err(|e| format!("unreadable answer ({e})"))?;
+    let name = v["name"].as_str().unwrap_or_default();
+    let version = name
+        .split_once("(build ")
+        .and_then(|(_, rest)| rest.split_once(')'))
+        .map(|(n, _)| n.trim())
+        .filter(|n| is_build_number(n))
+        .ok_or("no RevuCraft build found")?
+        .to_string();
+    let ours = |u: &&str| u.strip_prefix(RELEASES_PAGE).is_some_and(|rest| rest.starts_with('/') && !rest.contains(['?', '#', '\\']));
+    let url = if apk {
+        v["assets"].as_array().into_iter().flatten().filter_map(|a| a["browser_download_url"].as_str()).find(|u| ours(u) && u.ends_with(".apk"))
+    } else {
+        v["html_url"].as_str().filter(ours)
+    }
+    .unwrap_or(RELEASES_PAGE)
+    .to_string();
+    Ok(Release { version, url })
+}
 
 /// The latest published release.
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -58,6 +113,8 @@ pub(crate) enum Check {
 #[derive(Default)]
 pub(crate) struct Updates {
     pub(crate) check: Check,
+    /// The running check is the quiet one at start: show the dialog only for a newer build.
+    pub(crate) quiet: bool,
     /// The Updates dialog is showing.
     pub(crate) open: bool,
 }
@@ -93,6 +150,17 @@ impl PdfCraftApp {
         }
     }
 
+    /// The check at start: like Help ▸ Check for updates, but the dialog only opens when a
+    /// newer build exists; an up-to-date answer or a failure stays silent.
+    pub fn check_for_updates_quietly(&mut self) {
+        if self.update_source.is_none() || !matches!(self.updates.check, Check::Idle) {
+            return;
+        }
+        self.check_for_updates();
+        self.updates.open = false;
+        self.updates.quiet = true;
+    }
+
     /// Pick up a finished check (each frame).
     pub(crate) fn poll_updates(&mut self) {
         #[cfg(not(target_arch = "wasm32"))]
@@ -102,6 +170,9 @@ impl PdfCraftApp {
                 Err(std::sync::mpsc::TryRecvError::Empty) => return,
                 Err(std::sync::mpsc::TryRecvError::Disconnected) => Err("the update check stopped unexpectedly".into()),
             };
+            if std::mem::take(&mut self.updates.quiet) && result.as_ref().is_ok_and(|r| update_available(&r.version)) {
+                self.updates.open = true;
+            }
             self.updates.check = Check::Done(result);
         }
     }
@@ -113,7 +184,8 @@ pub(crate) fn dialog(app: &mut PdfCraftApp, ctx: &egui::Context) {
         return;
     }
     let t = theme::Tokens::get(ctx);
-    let current = env!("CARGO_PKG_VERSION");
+    let current = display_version(current_version());
+    let current = current.as_str();
     let mut close = false;
     let mut download: Option<String> = None;
     let modal = egui::Modal::new(egui::Id::new("updates")).show(ctx, |ui| {
@@ -134,9 +206,9 @@ pub(crate) fn dialog(app: &mut PdfCraftApp, ctx: &egui::Context) {
                     ui.label(tl!("Checking for a newer version…"));
                 });
             }
-            Check::Done(Ok(r)) if is_newer(&r.version, current) => {
-                let version = r.version.trim_start_matches(['v', 'V']);
-                ui.label(egui::RichText::new(crate::i18n::fmt(tl!("RevuCraft {v} is available."), &[("v", version)])).strong());
+            Check::Done(Ok(r)) if update_available(&r.version) => {
+                let version = display_version(&r.version);
+                ui.label(egui::RichText::new(crate::i18n::fmt(tl!("RevuCraft {v} is available."), &[("v", &version)])).strong());
                 ui.label(
                     egui::RichText::new(crate::i18n::fmt(
                         tl!("You have version {c}. Download the new version from its release page."),

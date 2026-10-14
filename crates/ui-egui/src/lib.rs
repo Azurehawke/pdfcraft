@@ -1924,6 +1924,8 @@ impl eframe::App for PdfCraftApp {
             theme::set_accent(ctx, self.accent);
             theme::apply(ctx, self.theme);
             self.styled = true;
+            // RevuCraft looks for a newer build once per start, quietly.
+            self.check_for_updates_quietly();
         } else {
             self.fonts_ready = true;
             if hans != self.fonts_hans {

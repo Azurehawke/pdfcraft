@@ -83,6 +83,8 @@ jobs:
       - name: Build the APK
         env:
           VERSION_CODE: ${{ github.run_number }}
+          # The build's own number, for the update check (pdfcraft_ui_egui::updates).
+          REVUCRAFT_BUILD: ${{ github.run_number }}
         run: |
           set -o pipefail
           bash packaging/android/build-apk.sh 2>&1 | tee "$RUNNER_TEMP/build.log"
