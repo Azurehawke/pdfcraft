@@ -1567,7 +1567,11 @@ impl Automation {
     /// namespace is refused without touching it, and the deepest existing ancestor (links
     /// followed) must be inside the root before anything about the rest is reported.
     fn resolve(&self, path: &str, for_write: bool) -> Result<PathBuf> {
-        let p = Path::new(path);
+        // On Windows the canonical root is verbatim (`\\?\C:\…`), and below a verbatim prefix
+        // `/` is not a separator: `link-out/outside.pdf` joined onto it is one file name, so
+        // neither `..` nor a link in it would be seen. Spell separators the native way first.
+        let native = if cfg!(windows) { path.replace('/', "\\") } else { path.to_owned() };
+        let p = Path::new(&native);
         let Some(root) = &self.root else { return Ok(p.to_path_buf()) };
         let outside = || failed(format!("{path} is outside the allowed directory {}", root.display()));
         let joined = lexical(&root.join(p)).ok_or_else(outside)?;
@@ -2153,5 +2157,23 @@ mod tests {
         perms.set_readonly(false);
         std::fs::set_permissions(&target, perms).unwrap();
         let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    /// Forward slashes are separators on every system, including below Windows' verbatim
+    /// root, so `..` in them is resolved and refused. Needs no symbolic-link privilege.
+    #[test]
+    fn forward_slash_parent_paths_stay_refused() {
+        let base = staging_dir("slash-escape");
+        let root = base.join("root");
+        std::fs::create_dir_all(root.join("sub")).unwrap();
+        let a = Automation::new().with_root(&root).unwrap();
+        for path in ["../outside.pdf", "sub/../../outside.pdf", "./sub/../../x/new.pdf"] {
+            for for_write in [false, true] {
+                assert!(a.resolve(path, for_write).is_err(), "{path} (write: {for_write}) escaped the root");
+            }
+        }
+        let inside = a.resolve("sub/new.pdf", true).unwrap();
+        assert!(inside.starts_with(root.canonicalize().unwrap()) && inside.ends_with(Path::new("sub").join("new.pdf")), "{inside:?}");
+        let _ = std::fs::remove_dir_all(&base);
     }
 }
