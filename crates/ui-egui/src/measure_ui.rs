@@ -169,8 +169,14 @@ pub(crate) fn page_input(ui: &egui::Ui, resp: &egui::Response, doc: &Document, v
     }
     // Keys belong to a focused text field (the label, unit or viewport name) when there is one.
     let typing = ui.ctx().egui_wants_keyboard_input();
+    // Escape keeps a perimeter or area that has enough points (it used to throw it away); with
+    // too few points it cancels.
     if !typing && ui.input(|i| i.key_pressed(egui::Key::Escape)) {
-        state.cancel();
+        if state.page == Some(page) && enough_points(tool, state.points.len()) {
+            finish(state, &mut view.pending_edit, doc, page, tool, author);
+        } else if state.page.is_none_or(|p| p == page) {
+            state.cancel();
+        }
     }
     let screen = |p: Point| {
         let v = info.user_to_view(p[0] as f32, p[1] as f32);
@@ -216,6 +222,16 @@ pub(crate) fn page_input(ui: &egui::Ui, resp: &egui::Response, doc: &Document, v
         {
             point = measure::snap::constrain(*last, point);
         }
+        // Near the first point of an area or perimeter, the pointer snaps to it, so the preview
+        // shows the closed shape and a tap closes it.
+        if matches!(tool, Tool::Area | Tool::Perimeter)
+            && state.points.len() >= 3
+            && let Some(first) = state.points.first().copied()
+            && screen(first).distance(pos) <= crate::point_bar::CLOSE_RADIUS
+        {
+            point = first;
+            snap = Some(measure::snap::SnapKind::Endpoint);
+        }
         hover = Some(point);
         if resp.clicked() {
             if state.page != Some(page) {
@@ -234,8 +250,16 @@ pub(crate) fn page_input(ui: &egui::Ui, resp: &egui::Response, doc: &Document, v
                     }
                 }
             }
-            let closes =
-                tool == Tool::Area && state.points.len() >= 3 && state.points.first().is_some_and(|first| screen(*first).distance(pos) <= 6.0);
+            // Tapping the first point again closes an area or a perimeter.
+            let closes = matches!(tool, Tool::Area | Tool::Perimeter)
+                && state.points.len() >= 3
+                && state.points.first().is_some_and(|first| screen(*first).distance(pos) <= crate::point_bar::CLOSE_RADIUS);
+            if closes
+                && tool == Tool::Perimeter
+                && let Some(first) = state.points.first().copied()
+            {
+                state.points.push(first);
+            }
             let repeats = state.points.last().is_some_and(|last| measure::distance(*last, point) < 1e-6);
             if !closes && !repeats && state.points.len() < measure::MAX_POINTS {
                 state.points.push(point);
@@ -280,6 +304,36 @@ pub(crate) fn page_input(ui: &egui::Ui, resp: &egui::Response, doc: &Document, v
         for &p in &positions {
             ui.painter().circle_filled(p, 3.0, stroke.color);
         }
+        // The first point is a target: tapping it closes the shape.
+        if matches!(tool, Tool::Area | Tool::Perimeter)
+            && state.points.len() >= 3
+            && let Some(first) = state.points.first()
+        {
+            let at = screen(*first);
+            let near = pos.is_some_and(|p| p.distance(at) <= crate::point_bar::CLOSE_RADIUS);
+            ui.painter().circle_stroke(at, if near { crate::point_bar::CLOSE_RADIUS } else { 7.0 }, Stroke::new(1.5, stroke.color));
+        }
+        // Finish, close, undo and cancel as buttons: the way to end the shape on a tablet.
+        if matches!(tool, Tool::Perimeter | Tool::Area)
+            && let Some(last) = state.points.last().copied()
+        {
+            let n = state.points.len();
+            let closes = tool == Tool::Perimeter && n >= 3;
+            match crate::point_bar::show(ui.ctx(), ("measure", page), screen(last), ui.clip_rect(), enough_points(tool, n), closes) {
+                Some(crate::point_bar::PointAction::Finish) => finish(state, &mut view.pending_edit, doc, page, tool, author),
+                Some(crate::point_bar::PointAction::Close) => {
+                    if let Some(first) = state.points.first().copied() {
+                        state.points.push(first);
+                    }
+                    finish(state, &mut view.pending_edit, doc, page, tool, author);
+                }
+                Some(crate::point_bar::PointAction::Undo) => {
+                    state.points.pop();
+                }
+                Some(crate::point_bar::PointAction::Cancel) => state.cancel(),
+                None => {}
+            }
+        }
         if let (Some(p), Some(kind)) = (hover, snap) {
             ui.painter().circle_stroke(screen(p), 6.0, Stroke::new(1.0, Color32::from_rgb(46, 158, 92)));
             ui.painter().text(
@@ -300,6 +354,15 @@ pub(crate) fn page_input(ui: &egui::Ui, resp: &egui::Response, doc: &Document, v
         }
     }
 }
+/// Whether a perimeter or area has enough points to keep.
+fn enough_points(tool: Tool, n: usize) -> bool {
+    match tool {
+        Tool::Area => n >= 3,
+        Tool::Perimeter => n >= 2,
+        _ => false,
+    }
+}
+
 fn finish(state: &mut MeasureView, pending: &mut Option<Edit>, doc: &Document, page: usize, tool: Tool, author: &str) {
     if tool == Tool::Calibrate {
         if let [a, b] = state.points.as_slice() {
@@ -369,8 +432,8 @@ fn panel_body(app: &mut PdfCraftApp, ui: &mut egui::Ui, _t: &Tokens) {
             };
         }
     }
-    ui.label(tl!("Click vertices. Enter or double-click finishes a perimeter or area. Click the first point to close an area."));
-    ui.label(tl!("Shift constrains to 45 degrees. Backspace removes a vertex. Escape cancels."));
+    ui.label(tl!("Click vertices, then finish with the check button beside the last point, Enter, a double-click or Escape. Tap the first point to close the shape."));
+    ui.label(tl!("Shift constrains to 45 degrees. Backspace or the undo button removes a vertex; the cross button cancels."));
     ui.separator();
     ui.label(tl!("Measurement information"));
     if let Some(reading) = &state.reading {

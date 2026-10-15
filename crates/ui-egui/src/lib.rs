@@ -86,6 +86,7 @@ mod panels;
 pub mod pen;
 #[cfg(not(target_arch = "wasm32"))]
 mod pickers;
+mod point_bar;
 #[cfg(target_os = "android")]
 pub use android_picker::{AndroidDocuments, AndroidFileAccess, SystemPick, set_android_documents, set_android_file_access};
 pub mod prepare;

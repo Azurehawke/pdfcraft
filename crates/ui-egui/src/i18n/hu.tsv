@@ -2258,3 +2258,8 @@ key	Space	Szóköz
 	Speaker	Hangszóró
 	J-hook	J-horog
 	Conduit stub-up	Védőcső-kivezetés
+	Finish	Kész
+	Close shape	Alakzat bezárása
+	Undo last point	Utolsó pont visszavonása
+	Click vertices, then finish with the check button beside the last point, Enter, a double-click or Escape. Tap the first point to close the shape.	Kattintson a csúcsokra, majd fejezze be az utolsó pont melletti pipa gombbal, Enterrel, dupla kattintással vagy Esc-pel. Az első pontra koppintva bezárja az alakzatot.
+	Shift constrains to 45 degrees. Backspace or the undo button removes a vertex; the cross button cancels.	A Shift 45 fokos lépésekre korlátoz. A Backspace vagy a visszavonás gomb töröl egy csúcsot; az X megszakítja.

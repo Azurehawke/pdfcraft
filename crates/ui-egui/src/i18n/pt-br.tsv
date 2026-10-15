@@ -2262,3 +2262,8 @@ key	Space	Espaço
 	Speaker	Alto-falante
 	J-hook	Gancho J
 	Conduit stub-up	Saída de eletroduto
+	Finish	Concluir
+	Close shape	Fechar forma
+	Undo last point	Desfazer último ponto
+	Click vertices, then finish with the check button beside the last point, Enter, a double-click or Escape. Tap the first point to close the shape.	Clique nos vértices e conclua com o botão de confirmação ao lado do último ponto, Enter, um clique duplo ou Esc. Toque no primeiro ponto para fechar a forma.
+	Shift constrains to 45 degrees. Backspace or the undo button removes a vertex; the cross button cancels.	Shift restringe a 45 graus. Backspace ou o botão desfazer remove um vértice; o X cancela.

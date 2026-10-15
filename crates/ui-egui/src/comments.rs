@@ -599,7 +599,16 @@ pub(crate) fn page_input(ui: &egui::Ui, resp: &egui::Response, cx: &PageCx<'_>, 
     let fill_grab = fill_grabs(ui, cx, view);
     let cv = &mut view.comments;
     if cv.gesture.is_some() && ui.input_mut(|i| i.consume_key(egui::Modifiers::NONE, egui::Key::Escape)) {
-        cv.gesture = None;
+        // A polygon, connected lines or cloud placed point by point is kept when it has enough
+        // points (Escape used to throw it away); anything else is cancelled.
+        if let Some(Gesture::Draw { page, tool, points }) = cv.gesture.take()
+            && page == cx.page
+            && tool.clicks_points()
+            && let Some(shape) = drawn_shape(tool, &points)
+        {
+            view.pending_edit = Some(new_comment(cx, tool, shape, String::new()));
+            return true;
+        }
         cv.cancelled_drag = true;
         return true;
     }
@@ -674,10 +683,16 @@ pub(crate) fn page_input(ui: &egui::Ui, resp: &egui::Response, cx: &PageCx<'_>, 
                 let u = cx.to_user(p);
                 match cv.gesture.as_mut() {
                     Some(Gesture::Draw { page, tool: t, points }) if *page == cx.page && *t == tool => {
-                        // Clicking the first point again closes a polygon.
-                        let closes = points.len() >= 3 && tool != CommentTool::PolyLine && cx.to_screen(points[0]).distance(p) <= 6.0;
+                        // Tapping the first point again closes the shape (connected lines too).
+                        let first = points.first().copied();
+                        let closes = points.len() >= 3 && first.is_some_and(|f| cx.to_screen(f).distance(p) <= crate::point_bar::CLOSE_RADIUS);
                         let repeat = points.last().is_some_and(|l| cx.to_screen(*l).distance(p) < 2.0);
                         if closes {
+                            if tool == CommentTool::PolyLine
+                                && let Some(first) = first
+                            {
+                                points.push(first);
+                            }
                             let pts = std::mem::take(points);
                             cv.gesture = None;
                             if let Some(shape) = drawn_shape(tool, &pts) {
@@ -695,12 +710,38 @@ pub(crate) fn page_input(ui: &egui::Ui, resp: &egui::Response, cx: &PageCx<'_>, 
                     }
                 }
             }
-            if finish
-                && let Some(Gesture::Draw { page, tool: t, points }) = cv.gesture.clone()
+            // Finish, close, undo and cancel as buttons beside the last point (for tablets).
+            let mut bar = None;
+            if let Some(Gesture::Draw { page, tool: t, points }) = cv.gesture.as_ref()
+                && *page == cx.page
+                && *t == tool
+                && let Some(last) = points.last()
+            {
+                let can_finish = drawn_shape(tool, points).is_some();
+                let closes = tool == CommentTool::PolyLine && points.len() >= 3;
+                bar = crate::point_bar::show(ui.ctx(), ("markup", cx.page), cx.to_screen(*last), ui.clip_rect(), can_finish, closes);
+            }
+            if let Some(crate::point_bar::PointAction::Undo) = bar
+                && let Some(Gesture::Draw { points, .. }) = cv.gesture.as_mut()
+            {
+                points.pop();
+                if points.is_empty() {
+                    cv.gesture = None;
+                }
+            }
+            if let Some(crate::point_bar::PointAction::Cancel) = bar {
+                cv.gesture = None;
+            }
+            let close = bar == Some(crate::point_bar::PointAction::Close);
+            if (finish || close || bar == Some(crate::point_bar::PointAction::Finish))
+                && let Some(Gesture::Draw { page, tool: t, mut points }) = cv.gesture.clone()
                 && page == cx.page
                 && t == tool
             {
                 cv.gesture = None;
+                if close && let Some(first) = points.first().copied() {
+                    points.push(first);
+                }
                 if let Some(shape) = drawn_shape(tool, &points) {
                     view.pending_edit = Some(new_comment(cx, tool, shape, String::new()));
                 }
@@ -1046,12 +1087,16 @@ fn paint_gesture(painter: &egui::Painter, cx: &PageCx<'_>, view: &DocView) {
             CommentTool::Polygon | CommentTool::PolyLine | CommentTool::Cloud => {
                 // The vertices so far, and a rubber band to the pointer.
                 let mut line = pts.clone();
-                if let Some(p) = painter.ctx().input(|i| i.pointer.hover_pos()) {
+                let hover = painter.ctx().input(|i| i.pointer.hover_pos());
+                // Near the first point the rubber band snaps to it: a tap there closes the shape.
+                let near_first = pts.first().filter(|f| pts.len() >= 3 && hover.is_some_and(|p| p.distance(**f) <= crate::point_bar::CLOSE_RADIUS));
+                if let Some(p) = near_first.copied().or(hover) {
                     line.push(p);
                 }
                 painter.add(egui::Shape::line(line, stroke));
-                if let Some(first) = pts.first().filter(|_| *tool != CommentTool::PolyLine && pts.len() >= 3) {
-                    painter.circle_stroke(*first, 5.0, Stroke::new(1.0, SELECT_BLUE));
+                if let Some(first) = pts.first().filter(|_| pts.len() >= 3) {
+                    let r = if near_first.is_some() { crate::point_bar::CLOSE_RADIUS } else { 5.0 };
+                    painter.circle_stroke(*first, r, Stroke::new(1.5, SELECT_BLUE));
                 }
             }
             CommentTool::Callout if pts.len() == 2 => {

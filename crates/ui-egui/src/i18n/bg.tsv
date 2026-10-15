@@ -2222,3 +2222,8 @@ key	Space	Интервал
 	Speaker	Високоговорител
 	J-hook	J-кука
 	Conduit stub-up	Изход на тръба
+	Finish	Готово
+	Close shape	Затваряне на фигурата
+	Undo last point	Отмяна на последната точка
+	Click vertices, then finish with the check button beside the last point, Enter, a double-click or Escape. Tap the first point to close the shape.	Щракайте върховете, после завършете с бутона с отметка до последната точка, Enter, двойно щракване или Esc. Докоснете първата точка, за да затворите фигурата.
+	Shift constrains to 45 degrees. Backspace or the undo button removes a vertex; the cross button cancels.	Shift ограничава до 45 градуса. Backspace или бутонът за отмяна премахва връх; кръстчето отказва.

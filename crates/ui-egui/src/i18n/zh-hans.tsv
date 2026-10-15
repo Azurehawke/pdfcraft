@@ -2225,3 +2225,8 @@ key	Space	空格
 	Speaker	扬声器
 	J-hook	J 型钩
 	Conduit stub-up	线管出口
+	Finish	完成
+	Close shape	闭合形状
+	Undo last point	撤销最后一个点
+	Click vertices, then finish with the check button beside the last point, Enter, a double-click or Escape. Tap the first point to close the shape.	单击各顶点，然后用最后一个点旁的对勾按钮、Enter、双击或 Esc 结束。点按第一个点可闭合形状。
+	Shift constrains to 45 degrees. Backspace or the undo button removes a vertex; the cross button cancels.	按住 Shift 限制为 45 度。Backspace 或撤销按钮删除一个顶点；叉号按钮取消。

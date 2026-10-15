@@ -2260,3 +2260,8 @@ key	Space	Leertaste
 	Speaker	Lautsprecher
 	J-hook	J-Haken
 	Conduit stub-up	Leerrohrauslass
+	Finish	Fertig
+	Close shape	Form schließen
+	Undo last point	Letzten Punkt rückgängig
+	Click vertices, then finish with the check button beside the last point, Enter, a double-click or Escape. Tap the first point to close the shape.	Eckpunkte klicken, dann mit dem Häkchen neben dem letzten Punkt, Eingabe, einem Doppelklick oder Esc abschließen. Auf den ersten Punkt tippen, um die Form zu schließen.
+	Shift constrains to 45 degrees. Backspace or the undo button removes a vertex; the cross button cancels.	Umschalt beschränkt auf 45 Grad. Rücktaste oder die Rückgängig-Schaltfläche entfernt einen Eckpunkt; das Kreuz bricht ab.
