@@ -118,6 +118,8 @@ pub struct DraftSettings {
     /// The on-screen keypad is shown while drafting.
     pub keypad: bool,
     pub sheet: SheetDraft,
+    /// Who new markup is by (filled in from the comment author before drafting).
+    pub author: String,
 }
 
 impl Default for DraftSettings {
@@ -129,6 +131,7 @@ impl Default for DraftSettings {
             keypad: cfg!(target_os = "android"),
             // ARCH D landscape at 1/4" = 1'-0".
             sheet: SheetDraft { open: false, paper: 8, landscape: true, scale: 4, add_to_document: false },
+            author: String::new(),
         }
     }
 }
@@ -379,16 +382,9 @@ pub fn wall_quads(points: &[[f64; 2]], thickness: f64, closed: bool) -> Vec<[[f6
 }
 
 /// The markup for a finished shape (none when it has too few points).
-fn finish_edit(
-    tool: DraftTool,
-    page: usize,
-    points: &[[f64; 2]],
-    closed: bool,
-    doc: &Document,
-    settings: &DraftSettings,
-    author: &str,
-) -> Option<Edit> {
+fn finish_edit(tool: DraftTool, page: usize, points: &[[f64; 2]], closed: bool, doc: &Document, settings: &DraftSettings) -> Option<Edit> {
     let color = layer_color(doc);
+    let author = settings.author.as_str();
     match tool {
         DraftTool::Line => match points {
             [a, b, ..] => {
@@ -433,7 +429,7 @@ fn finish_edit(
 }
 
 /// Add `p` to the shape being placed; returns the markup when that completes a shape.
-fn add_point(view: &mut DocView, doc: &Document, page: usize, tool: DraftTool, p: [f64; 2], settings: &DraftSettings, author: &str) -> Option<Edit> {
+fn add_point(view: &mut DocView, doc: &Document, page: usize, tool: DraftTool, p: [f64; 2], settings: &DraftSettings) -> Option<Edit> {
     let d = &mut view.draft;
     if d.page != Some(page) {
         d.points.clear();
@@ -448,13 +444,13 @@ fn add_point(view: &mut DocView, doc: &Document, page: usize, tool: DraftTool, p
     d.points.push(p);
     match tool {
         DraftTool::Line if d.points.len() >= 2 => {
-            let edit = finish_edit(tool, page, &d.points, false, doc, settings, author);
+            let edit = finish_edit(tool, page, &d.points, false, doc, settings);
             // Lines chain: the next one starts where this one ended.
             d.points = vec![p];
             edit
         }
         DraftTool::Rectangle if d.points.len() >= 2 => {
-            let edit = finish_edit(tool, page, &d.points, false, doc, settings, author);
+            let edit = finish_edit(tool, page, &d.points, false, doc, settings);
             d.points.clear();
             d.page = None;
             edit
@@ -464,10 +460,10 @@ fn add_point(view: &mut DocView, doc: &Document, page: usize, tool: DraftTool, p
 }
 
 /// Finish an open-ended shape (polyline, wall), closed or not.
-fn finish(view: &mut DocView, doc: &Document, tool: DraftTool, closed: bool, settings: &DraftSettings, author: &str) -> Option<Edit> {
+fn finish(view: &mut DocView, doc: &Document, tool: DraftTool, closed: bool, settings: &DraftSettings) -> Option<Edit> {
     let d = &mut view.draft;
     let page = d.page?;
-    let edit = if tool.open_ended() { finish_edit(tool, page, &d.points, closed, doc, settings, author) } else { None };
+    let edit = if tool.open_ended() { finish_edit(tool, page, &d.points, closed, doc, settings) } else { None };
     d.points.clear();
     d.page = None;
     edit
@@ -476,11 +472,11 @@ fn finish(view: &mut DocView, doc: &Document, tool: DraftTool, closed: bool, set
 // ---- input -------------------------------------------------------------------------------------
 
 /// Apply the typed entry: the next point.
-pub fn submit(view: &mut DocView, doc: &Document, tool: DraftTool, settings: &DraftSettings, author: &str) -> Option<Edit> {
+pub fn submit(view: &mut DocView, doc: &Document, tool: DraftTool, settings: &DraftSettings) -> Option<Edit> {
     let text = std::mem::take(&mut view.draft.input);
     if text.trim().is_empty() {
         // Enter with nothing typed finishes a polyline or wall.
-        return finish(view, doc, tool, false, settings, author);
+        return finish(view, doc, tool, false, settings);
     }
     let page = view.draft.page.or(view.cursor.map(|c| c.0)).unwrap_or(view.current);
     let Some(entry) = parse_entry(&text, settings.bare) else {
@@ -496,12 +492,12 @@ pub fn submit(view: &mut DocView, doc: &Document, tool: DraftTool, settings: &Dr
         view.draft.error = Some(tl!("Type a length after placing the first point, or give coordinates.").to_string());
         return None;
     };
-    add_point(view, doc, page, tool, p, settings, author)
+    add_point(view, doc, page, tool, p, settings)
 }
 
 /// Keys while drafting (when no text field has focus): typing goes to the entry, Enter applies
 /// it, Backspace edits it or removes the last point, Escape keeps what is drawn.
-pub fn keys(ctx: &egui::Context, doc: &Document, view: &mut DocView, tool: DraftTool, settings: &DraftSettings, author: &str) -> Option<Edit> {
+pub fn keys(ctx: &egui::Context, doc: &Document, view: &mut DocView, tool: DraftTool, settings: &DraftSettings) -> Option<Edit> {
     if view.draft.tool != Some(tool) {
         view.draft.cancel();
         view.draft.tool = Some(tool);
@@ -522,18 +518,16 @@ pub fn keys(ctx: &egui::Context, doc: &Document, view: &mut DocView, tool: Draft
         }
     });
     if ctx.input(|i| i.key_pressed(egui::Key::Enter)) {
-        out = submit(view, doc, tool, settings, author);
+        out = submit(view, doc, tool, settings);
     }
-    if ctx.input(|i| i.key_pressed(egui::Key::Backspace)) {
-        if view.draft.input.pop().is_none() {
-            view.draft.points.pop();
-        }
+    if ctx.input(|i| i.key_pressed(egui::Key::Backspace)) && view.draft.input.pop().is_none() {
+        view.draft.points.pop();
     }
     if ctx.input(|i| i.key_pressed(egui::Key::Escape)) {
         if !view.draft.input.is_empty() {
             view.draft.input.clear();
         } else {
-            out = finish(view, doc, tool, false, settings, author);
+            out = finish(view, doc, tool, false, settings);
         }
     }
     out
@@ -550,7 +544,6 @@ pub(crate) fn page_input(
     cx: &PageCx<'_>,
     tool: DraftTool,
     settings: &DraftSettings,
-    author: &str,
 ) {
     let page = cx.page;
     let xf = cx.xf;
@@ -606,15 +599,14 @@ pub(crate) fn page_input(
                     && view.draft.page == Some(page)
                     && view.draft.points.len() >= 3
                     && view.draft.points.first().is_some_and(|f| cx.to_screen(*f).distance(pos) <= crate::point_bar::CLOSE_RADIUS);
-                let edit =
-                    if closes { finish(view, doc, tool, true, settings, author) } else { add_point(view, doc, page, tool, point, settings, author) };
+                let edit = if closes { finish(view, doc, tool, true, settings) } else { add_point(view, doc, page, tool, point, settings) };
                 if edit.is_some() {
                     view.pending_edit = edit;
                 }
             }
         }
         if resp.double_clicked() && tool.open_ended() && view.draft.page == Some(page) {
-            let edit = finish(view, doc, tool, false, settings, author);
+            let edit = finish(view, doc, tool, false, settings);
             if edit.is_some() {
                 view.pending_edit = edit;
             }
@@ -690,8 +682,8 @@ pub(crate) fn page_input(
     {
         let n = view.draft.points.len();
         match crate::point_bar::show(ui.ctx(), ("draft", page), cx.to_screen(last), ui.clip_rect(), n >= 2, n >= 3) {
-            Some(crate::point_bar::PointAction::Finish) => view.pending_edit = finish(view, doc, tool, false, settings, author),
-            Some(crate::point_bar::PointAction::Close) => view.pending_edit = finish(view, doc, tool, true, settings, author),
+            Some(crate::point_bar::PointAction::Finish) => view.pending_edit = finish(view, doc, tool, false, settings),
+            Some(crate::point_bar::PointAction::Close) => view.pending_edit = finish(view, doc, tool, true, settings),
             Some(crate::point_bar::PointAction::Undo) => {
                 view.draft.points.pop();
             }
@@ -766,9 +758,9 @@ pub fn ribbon(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
                     && let Some(tool) = tool
                     && let Some(doc) = app.session.get(id)
                 {
-                    let author = app.comment_prefs.author.clone();
-                    let settings = app.draft.clone();
-                    let edit = submit(&mut app.views[index], doc, tool, &settings, &author);
+                    let mut settings = app.draft.clone();
+                    settings.author = app.comment_prefs.author.clone();
+                    let edit = submit(&mut app.views[index], doc, tool, &settings);
                     if edit.is_some() {
                         app.views[index].pending_edit = edit;
                     }
@@ -848,10 +840,10 @@ pub fn keypad(app: &mut PdfCraftApp, ctx: &egui::Context) {
             }
         }
         Some("OK") => {
-            let author = app.comment_prefs.author.clone();
-            let settings = app.draft.clone();
+            let mut settings = app.draft.clone();
+            settings.author = app.comment_prefs.author.clone();
             if let Some(doc) = app.session.get(id) {
-                let edit = submit(&mut app.views[index], doc, tool, &settings, &author);
+                let edit = submit(&mut app.views[index], doc, tool, &settings);
                 if edit.is_some() {
                     app.views[index].pending_edit = edit;
                 }

@@ -504,8 +504,8 @@ pub fn markup_vertices(doc: &Document, page: usize) -> Vec<[f64; 2]> {
                 .unwrap_or_default()
         };
         match d.name(b"Subtype") {
-            Some(b"Line") => out.extend(nums(b"L").chunks_exact(2).map(|c| [c[0], c[1]])),
-            Some(b"PolyLine" | b"Polygon") => out.extend(nums(b"Vertices").chunks_exact(2).map(|c| [c[0], c[1]])),
+            Some(b"Line") => out.extend(nums(b"L").as_chunks::<2>().0.iter().copied()),
+            Some(b"PolyLine" | b"Polygon") => out.extend(nums(b"Vertices").as_chunks::<2>().0.iter().copied()),
             Some(b"Square") => {
                 if let [x0, y0, x1, y1] = nums(b"Rect")[..] {
                     out.extend([[x0, y0], [x1, y0], [x1, y1], [x0, y1]]);

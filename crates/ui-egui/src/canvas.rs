@@ -1769,15 +1769,15 @@ pub fn document_area(app: &mut PdfCraftApp, index: usize, ui: &mut egui::Ui) {
     // Edit a PDF: added text and images can be selected, moved and edited.
     let editing_content = (app.left_open && app.left == crate::LeftPanel::Tool("edit")) || app.quick_tool == QuickTool::AddText;
     let text_style = app.text_style.clone();
-    let draft_settings = app.draft.clone();
-    let draft_author = app.comment_prefs.author.clone();
+    let mut draft_settings = app.draft.clone();
+    draft_settings.author = app.comment_prefs.author.clone();
     let draft_tool = match app.quick_tool {
         QuickTool::Draft(t) => Some(t),
         _ => None,
     };
     let view = &mut app.views[index];
     if let Some(t) = draft_tool
-        && let Some(edit) = crate::draft::keys(ui.ctx(), doc, view, t, &draft_settings, &draft_author)
+        && let Some(edit) = crate::draft::keys(ui.ctx(), doc, view, t, &draft_settings)
     {
         view.pending_edit = Some(edit);
     }
@@ -2237,7 +2237,7 @@ pub fn document_area(app: &mut PdfCraftApp, index: usize, ui: &mut egui::Ui) {
                 crate::measure_ui::page_input(ui, &resp, doc, view, &pcx, measure_tool);
             }
             if let QuickTool::Draft(draft_tool) = tool {
-                crate::draft::page_input(ui, &resp, doc, view, &pcx, draft_tool, &draft_settings, &draft_author);
+                crate::draft::page_input(ui, &resp, doc, view, &pcx, draft_tool, &draft_settings);
             }
 
             // Form fields take clicks first with the Select tool (as Acrobat fills fields in

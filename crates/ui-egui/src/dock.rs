@@ -309,7 +309,7 @@ fn docked_boxes(app: &mut PdfCraftApp, ui: &mut egui::Ui, t: &Tokens, items: &[I
     {
         let before = rects.iter().position(|r| p.y < r.center().y).unwrap_or(rects.len());
         let y = rects.get(before).map_or_else(|| rects.last().map_or(dock_rect.top(), |r| r.bottom() + 3.0), |r| r.top() - 3.0);
-        ui.painter().with_layer_id(egui::LayerId::new(egui::Order::Foreground, egui::Id::new("dock-drop"))).hline(
+        ui.ctx().layer_painter(egui::LayerId::new(egui::Order::Foreground, egui::Id::new("dock-drop"))).hline(
             dock_rect.x_range().shrink(6.0),
             y,
             Stroke::new(3.0, t.accent),
