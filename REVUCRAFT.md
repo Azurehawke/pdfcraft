@@ -77,6 +77,36 @@ Tablet
 Builds
 - [ ] One build number shared by Android and Windows.
 
+Draft tab: CAD-style drawing on the PDF (direction decided 2026-10-15)
+
+RevuCraft takes over the drafting Steve needs instead of merging with CADCraft: plans are drawn
+to scale on PDF sheets, marked up, and handed over as PDF, with DWG/DXF for CAD users. CADCraft
+stays its own app; its geometry, DXF and DWG crates (Rust, MIT OR Apache-2.0) are reused rather
+than rewritten.
+- [ ] New sheet: ARCH A–E (9×12 to 36×48) and ANSI A–E (8½×11 to 34×44), portrait or landscape,
+      with a drawing scale (1/4" = 1'-0", 1:50…) set on the page, so measuring works at once;
+      optional simple title block.
+- [ ] Drawing by numbers: lengths in feet-inches (`15'`, `12'6"`), relative `@0,15`, polar
+      `@15<90`, ortho and polar angles, a big keypad on the tablet; later fed by the laser
+      meter and the LiDAR scan.
+- [ ] Tools: line, polyline, rectangle, circle and arc, walls with a thickness, doors and windows
+      from the symbol library; object snaps (end, mid, intersection, perpendicular) shared with
+      measuring.
+- [ ] Editing: grips, move, copy, rotate, offset, trim and extend; dimensions (from the
+      measuring tools); text.
+- [ ] Cursor coordinates in feet-inches in the status bar; a page origin to measure from.
+- [ ] Everything drawn stays editable, on layers, and saved in the PDF (annotations with their
+      geometry in drawing units).
+
+DWG/DXF round trip
+- [ ] Export: drawn geometry, layers (names, colours), symbols as blocks with their labels,
+      text and dimensions to DXF and DWG, at real-world size (drawing units from the page
+      scale).
+- [ ] Import: a DXF or DWG (changed in CAD) placed back on the PDF sheet at the same scale and
+      origin, as a new revision under the existing markup, so markups, photos and counts stay
+      put; or as a fresh sheet.
+- [ ] Revision compare between the old and new import (overlay in two colours).
+
 ## Roadmap
 
 Ordered by value for construction work. Each item is one or more commits with tests.
