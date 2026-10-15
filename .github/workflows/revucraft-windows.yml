@@ -1,0 +1,83 @@
+name: RevuCraft Windows
+
+# Builds RevuCraft (the revucraft branch) for Windows x64 and publishes the installer and a
+# portable zip as the `revucraft-windows-latest` prerelease. The desktop app's update check reads
+# that release ("RevuCraft for Windows (build N)") and offers the installer.
+on:
+  push:
+    branches: [revucraft]
+    paths-ignore: ["**.md"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: revucraft-windows-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+  # Faster CI builds than the desktop release profile.
+  CARGO_PROFILE_RELEASE_LTO: "false"
+  CARGO_PROFILE_RELEASE_CODEGEN_UNITS: "16"
+  CARGO_PROFILE_RELEASE_STRIP: debuginfo
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    timeout-minutes: 150
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-pc-windows-msvc
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: revucraft-windows-x64
+
+      - name: Install WiX
+        shell: pwsh
+        run: dotnet tool install --global wix --version 5.0.2
+
+      - name: Build and package
+        shell: pwsh
+        env:
+          # The build's own number, for the update check (pdfcraft_ui_egui::updates).
+          REVUCRAFT_BUILD: ${{ github.run_number }}
+        run: |
+          ./packaging/windows/revucraft-package.ps1 *>&1 | Tee-Object -FilePath "$env:RUNNER_TEMP\build.log"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      # The log, readable without the Actions log viewer, on the ci-logs-revucraft-windows branch.
+      - name: Publish the build log
+        if: always()
+        shell: bash
+        run: |
+          log="$RUNNER_TEMP/build.log"
+          [ -f "$log" ] || exit 0
+          dir=$(mktemp -d)
+          cp "$log" "$dir/"
+          grep -E "^error(\[E[0-9]+\])?:" -A12 "$log" | head -c 60000 > "$dir/errors.txt" || true
+          cd "$dir" && git init -q -b ci-logs-revucraft-windows && git add -A \
+            && git -c user.name=github-actions -c user.email=github-actions@users.noreply.github.com commit -qm "RevuCraft Windows build ${{ github.run_number }} (${GITHUB_SHA::7}): ${{ job.status }}" \
+            && git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" ci-logs-revucraft-windows
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: revucraft-windows
+          path: dist/revucraft/*
+          if-no-files-found: error
+
+      - name: Publish as the revucraft-windows-latest prerelease
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete revucraft-windows-latest --yes --cleanup-tag || true
+          gh release create revucraft-windows-latest dist/revucraft/RevuCraft-setup.msi dist/revucraft/RevuCraft-portable.zip \
+            --prerelease --target "$GITHUB_SHA" \
+            --title "RevuCraft for Windows (build ${{ github.run_number }})" \
+            --notes "Built from ${GITHUB_SHA::7} on the revucraft branch. RevuCraft-setup.msi installs RevuCraft for all users (Start menu and desktop shortcuts); RevuCraft-portable.zip runs from any folder without installing. The files aren't code-signed, so Windows SmartScreen may ask: choose More info, then Run anyway. See REVUCRAFT.md."

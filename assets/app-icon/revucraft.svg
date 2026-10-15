@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="20 20 68 68">
+  <!-- RevuCraft desktop icon: the launcher artwork (packaging/android/revucraft/icon.svg),
+       cropped to its safe zone on a rounded charcoal tile. -->
+  <rect x="21" y="21" width="66" height="66" rx="13" fill="#1E2024"/>
+  <g fill="none" stroke="#F2A33A" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M38 30 H62 L72 40 V62 H38 Z"/>
+    <path d="M62 30 V40 H72"/>
+    <path d="M44 46 H64 M44 54 H58"/>
+    <path d="M32 74 H76 M32 69 V79 M76 69 V79"/>
+  </g>
+</svg>

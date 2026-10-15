@@ -17,6 +17,17 @@ cargo clippy --workspace -- -D warnings
 cargo test -p pdfcraft-measure -p pdfcraft-automation -p pdfcraft-engine
 ```
 
+## Windows
+
+Every push to `revucraft` also runs `.github/workflows/revucraft-windows.yml`, which builds
+RevuCraft for Windows x64 with its own icon and name and publishes it as the
+`revucraft-windows-latest` prerelease: `RevuCraft-setup.msi` (installs for all users, with Start
+menu and desktop shortcuts, and offers RevuCraft under "Open with" for PDFs) and
+`RevuCraft-portable.zip` (runs from any folder; settings stay in `RevuCraftData` beside it). It
+installs beside PdfCraft. The files are not code-signed, so SmartScreen may ask once: More info,
+then Run anyway. The app checks that release at start and offers newer installers. Packaging:
+`packaging/windows/revucraft-package.ps1`, `revucraft.wxs`, `revucraft-installer-ui.wxs`.
+
 ## Android
 
 The `android` branch's tablet build is merged in. Every push to `revucraft` runs

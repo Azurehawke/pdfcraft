@@ -1,5 +1,6 @@
-//! Windows only: embed the app icon and version info (VERSIONINFO) into `pdfcraft.exe`, so it
-//! shows in Explorer, the taskbar, the Start menu and Alt-Tab.
+//! Windows only: embed the app icon and version info (VERSIONINFO) into the executable, so it
+//! shows in Explorer, the taskbar, the Start menu and Alt-Tab. RevuCraft: its own icon and name
+//! (the binary is built as `pdfcraft.exe` and shipped as `revucraft.exe`).
 //!
 //! On every other target this does nothing. A missing resource compiler is a warning, so a
 //! cross-compile from macOS or Linux still links, unless `PDFCRAFT_REQUIRE_WINRES=1` turns it
@@ -10,25 +11,25 @@ mod windows_manifest;
 
 fn main() {
     println!("cargo:rerun-if-changed=build.rs");
-    println!("cargo:rerun-if-changed=../../assets/app-icon/pdfcraft.ico");
+    println!("cargo:rerun-if-changed=../../assets/app-icon/revucraft.ico");
     println!("cargo:rerun-if-changed=src/windows_manifest.rs");
     println!("cargo:rerun-if-env-changed=PDFCRAFT_REQUIRE_WINRES");
     if std::env::var("CARGO_CFG_TARGET_OS").as_deref() != Ok("windows") {
         return;
     }
     let mut res = winresource::WindowsResource::new();
-    res.set_icon("../../assets/app-icon/pdfcraft.ico")
+    res.set_icon("../../assets/app-icon/revucraft.ico")
         .set_manifest(windows_manifest::WINDOWS_MANIFEST)
-        .set("ProductName", "PdfCraft")
-        .set("FileDescription", "PdfCraft PDF workbench")
-        .set("LegalCopyright", "Copyright (c) the PdfCraft contributors. MIT OR Apache-2.0.")
-        .set("OriginalFilename", "pdfcraft.exe")
-        .set("InternalName", "pdfcraft");
+        .set("ProductName", "RevuCraft")
+        .set("FileDescription", "RevuCraft plan markup and takeoff")
+        .set("LegalCopyright", "Copyright (c) the PdfCraft and RevuCraft contributors. MIT OR Apache-2.0.")
+        .set("OriginalFilename", "revucraft.exe")
+        .set("InternalName", "revucraft");
     if let Err(e) = res.compile() {
         if std::env::var_os("PDFCRAFT_REQUIRE_WINRES").is_some() {
             println!("cargo::error=embedding Windows resources failed: {e}");
             return;
         }
-        println!("cargo:warning=pdfcraft.exe built without icon/version resources: {e}");
+        println!("cargo:warning=RevuCraft built without icon/version resources: {e}");
     }
 }

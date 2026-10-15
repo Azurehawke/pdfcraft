@@ -16,8 +16,12 @@ use crate::{PdfCraftApp, theme, widgets};
 /// Where every RevuCraft build is listed.
 pub const RELEASES_PAGE: &str = "https://github.com/Azurehawke/pdfcraft/releases";
 
-/// GitHub's API answer for the latest RevuCraft build.
+/// GitHub's API answer for the latest RevuCraft build for Android.
 pub const LATEST_API: &str = "https://api.github.com/repos/Azurehawke/pdfcraft/releases/tags/revucraft-latest";
+
+/// GitHub's API answer for the latest RevuCraft build for Windows (`revucraft-windows-latest`,
+/// numbered by its own workflow's builds).
+pub const LATEST_WINDOWS_API: &str = "https://api.github.com/repos/Azurehawke/pdfcraft/releases/tags/revucraft-windows-latest";
 
 /// This build's number (`REVUCRAFT_BUILD`, set by CI), or the crate version for a local build.
 pub fn current_version() -> &'static str {
@@ -49,6 +53,12 @@ pub fn display_version(v: &str) -> String {
 /// ("RevuCraft for Android (build 12)") and where to get it: the APK itself when `apk`, else the
 /// release page. The answer is untrusted: only addresses under [`RELEASES_PAGE`] are offered.
 pub fn parse_latest(body: &str, apk: bool) -> Result<Release, String> {
+    parse_latest_asset(body, apk.then_some(".apk"))
+}
+
+/// [`parse_latest`], offering the release's first asset whose name ends with `suffix` (".apk",
+/// ".msi") when there is one, else the release page.
+pub fn parse_latest_asset(body: &str, suffix: Option<&str>) -> Result<Release, String> {
     let v: serde_json::Value = serde_json::from_str(body).map_err(|e| format!("unreadable answer ({e})"))?;
     let name = v["name"].as_str().unwrap_or_default();
     let version = name
@@ -59,13 +69,10 @@ pub fn parse_latest(body: &str, apk: bool) -> Result<Release, String> {
         .ok_or("no RevuCraft build found")?
         .to_string();
     let ours = |u: &&str| u.strip_prefix(RELEASES_PAGE).is_some_and(|rest| rest.starts_with('/') && !rest.contains(['?', '#', '\\']));
-    let url = if apk {
-        v["assets"].as_array().into_iter().flatten().filter_map(|a| a["browser_download_url"].as_str()).find(|u| ours(u) && u.ends_with(".apk"))
-    } else {
-        v["html_url"].as_str().filter(ours)
-    }
-    .unwrap_or(RELEASES_PAGE)
-    .to_string();
+    let asset = suffix.and_then(|suffix| {
+        v["assets"].as_array().into_iter().flatten().filter_map(|a| a["browser_download_url"].as_str()).find(|u| ours(u) && u.ends_with(suffix))
+    });
+    let url = asset.or_else(|| v["html_url"].as_str().filter(ours)).unwrap_or(RELEASES_PAGE).to_string();
     Ok(Release { version, url })
 }
 

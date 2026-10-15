@@ -4,7 +4,7 @@ use std::time::Duration;
 
 #[cfg(test)]
 use pdfcraft_ui_egui::updates::RELEASES_PAGE;
-use pdfcraft_ui_egui::updates::{LATEST_API as LATEST, Release};
+use pdfcraft_ui_egui::updates::{LATEST_WINDOWS_API as LATEST, Release};
 
 /// The latest build. The answer is untrusted: its size is capped, and only a page under the
 /// releases list is ever offered for download (anything else falls back to that list).
@@ -70,7 +70,8 @@ fn rate_limited(reset: Option<&str>, now: u64) -> String {
 }
 
 fn parse(body: &str) -> Result<Release, String> {
-    pdfcraft_ui_egui::updates::parse_latest(body, false)
+    // Windows: offer the installer itself; elsewhere the release page.
+    pdfcraft_ui_egui::updates::parse_latest_asset(body, cfg!(windows).then_some(".msi"))
 }
 
 #[cfg(test)]
@@ -88,6 +89,19 @@ mod tests {
         }
         assert!(parse(r#"{"message":"Not Found"}"#).is_err());
         assert!(parse("<html>").is_err());
+    }
+
+    #[test]
+    fn the_windows_installer_is_offered_when_the_release_has_one() {
+        let page = "https://github.com/Azurehawke/pdfcraft/releases/tag/revucraft-windows-latest";
+        let msi = "https://github.com/Azurehawke/pdfcraft/releases/download/revucraft-windows-latest/RevuCraft-setup.msi";
+        let body = format!(
+            r#"{{"name":"RevuCraft for Windows (build 3)","html_url":"{page}","assets":[{{"browser_download_url":"https://example.com/x.msi"}},{{"browser_download_url":"{msi}"}}]}}"#
+        );
+        let r = pdfcraft_ui_egui::updates::parse_latest_asset(&body, Some(".msi")).unwrap();
+        assert_eq!(r, Release { version: "3".into(), url: msi.into() });
+        let r = pdfcraft_ui_egui::updates::parse_latest_asset(&body, Some(".apk")).unwrap();
+        assert_eq!(r.url, page, "no such asset: the release page");
     }
 
     #[test]

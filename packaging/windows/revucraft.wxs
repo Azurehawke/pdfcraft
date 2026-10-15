@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  RevuCraft MSI (WiX Toolset v5: `dotnet tool install -g wix`). Built by revucraft-package.ps1:
+
+    wix build revucraft.wxs revucraft-installer-ui.wxs -arch x64 -d Version=1.2.3 -d BinDir=... -d ModelsDir=... -d IconPath=... -o out.msi
+
+  Per-machine install into Program Files, a Start Menu shortcut, a desktop shortcut (on by default,
+  optional), an App Paths entry, and RevuCraft registered as a PDF handler (offered under "Open with"
+  and in Default apps, never forced as the default). Files opened with RevuCraft arrive on its
+  command line.
+-->
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+  <Package
+      Name="RevuCraft"
+      Manufacturer="RevuCraft"
+      Version="$(var.Version)"
+      UpgradeCode="683D3095-2A78-49B3-95CB-E33E6E6EDCA8"
+      Scope="perMachine"
+      Compressed="yes"
+      Language="1033">
+    <SummaryInformation Description="RevuCraft plan markup and takeoff" Manufacturer="RevuCraft" />
+    <!-- HKLM registrations must never point into a per-user installation (#305). Allow removal
+         of an existing installation even if an older MSI let it install per-user. -->
+    <Launch Condition="ALLUSERS = 1 OR (Installed AND REMOVE = &quot;ALL&quot;)"
+        Message="RevuCraft must be installed for all users. Run setup with administrator privileges and ALLUSERS=1; per-user installation is not supported." />
+    <!-- Same-version upgrades let successive pre-releases of one X.Y.Z replace each other
+         (MSI versions are numeric, so 1.2.3-rc.1 and 1.2.3-rc.2 are both 1.2.3). -->
+    <MajorUpgrade AllowSameVersionUpgrades="yes"
+        DowngradeErrorMessage="A newer version of RevuCraft is already installed." />
+    <MediaTemplate EmbedCab="yes" CompressionLevel="high" />
+
+    <!-- Windows Installer requires an Icon id ending in .ico or .exe, or advertised shortcuts and
+         Add/Remove Programs show a blank icon (#57). -->
+    <Icon Id="RevucraftIcon.ico" SourceFile="$(var.IconPath)" />
+    <Property Id="ARPPRODUCTICON" Value="RevucraftIcon.ico" />
+    <Property Id="ARPURLINFOABOUT" Value="https://github.com/Azurehawke/pdfcraft/releases" />
+    <Property Id="ARPURLUPDATEINFO" Value="https://github.com/Azurehawke/pdfcraft/releases" />
+    <!-- Desktop shortcut (#143): on by default, a checkbox in the full-UI welcome dialog, and
+         INSTALLDESKTOPSHORTCUT=0 on the msiexec command line for unattended installs. Secure, so the
+         choice made in the (unelevated) UI reaches the elevated install. -->
+    <Property Id="INSTALLDESKTOPSHORTCUT" Value="1" Secure="yes" />
+    <UIRef Id="RevucraftInstallerUI" />
+
+    <StandardDirectory Id="ProgramFiles6432Folder">
+      <Directory Id="INSTALLFOLDER" Name="RevuCraft">
+        <Directory Id="ModelsFolder" Name="models" />
+      </Directory>
+    </StandardDirectory>
+    <StandardDirectory Id="ProgramMenuFolder" />
+    <StandardDirectory Id="DesktopFolder" />
+
+    <Feature Id="Main" Title="RevuCraft" Level="1">
+      <ComponentGroupRef Id="RevucraftFiles" />
+      <ComponentGroupRef Id="RevucraftModels" />
+    </Feature>
+  </Package>
+
+  <Fragment>
+    <ComponentGroup Id="RevucraftFiles" Directory="INSTALLFOLDER">
+      <Component Id="RevucraftApp" Guid="7575D590-E644-492B-A805-13E0522A6F5D">
+        <File Id="RevucraftExe" Source="$(var.BinDir)\revucraft.exe" KeyPath="yes" />
+
+        <RegistryValue Root="HKLM" Key="Software\Microsoft\Windows\CurrentVersion\App Paths\revucraft.exe" Value="[#RevucraftExe]" Type="string" />
+
+        <!-- PDF files (#107): RevuCraft is offered under "Open with" and in Settings ▸ Default
+             apps, through Windows' Default Programs registration (a ProgID, OpenWithProgids,
+             Capabilities and RegisteredApplications). It never takes over an existing default:
+             .pdf's own default value is left alone, and the user chooses. Without this, the only
+             RevuCraft entry to pick was the advertised Start Menu shortcut, which Windows can't
+             run as a file handler ("This app can't run on your PC"). -->
+        <RegistryValue Root="HKLM" Key="Software\Classes\RevuCraft.Document" Value="PDF Document" Type="string" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\RevuCraft.Document\DefaultIcon" Value="[#RevucraftExe],0" Type="string" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\RevuCraft.Document\shell\open\command" Value="&quot;[#RevucraftExe]&quot; &quot;%1&quot;" Type="string" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\.pdf\OpenWithProgids" Name="RevuCraft.Document" Value="" Type="string" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\Applications\revucraft.exe" Name="FriendlyAppName" Value="RevuCraft" Type="string" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\Applications\revucraft.exe\SupportedTypes" Name=".pdf" Value="" Type="string" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\Applications\revucraft.exe\shell\open\command" Value="&quot;[#RevucraftExe]&quot; &quot;%1&quot;" Type="string" />
+        <RegistryValue Root="HKLM" Key="Software\RevuCraft\Capabilities" Name="ApplicationName" Value="RevuCraft" Type="string" />
+        <RegistryValue Root="HKLM" Key="Software\RevuCraft\Capabilities" Name="ApplicationDescription" Value="Plan markup, measuring and takeoff" Type="string" />
+        <RegistryValue Root="HKLM" Key="Software\RevuCraft\Capabilities" Name="ApplicationIcon" Value="[#RevucraftExe],0" Type="string" />
+        <RegistryValue Root="HKLM" Key="Software\RevuCraft\Capabilities\FileAssociations" Name=".pdf" Value="RevuCraft.Document" Type="string" />
+        <RegistryValue Root="HKLM" Key="Software\RegisteredApplications" Name="RevuCraft" Value="Software\RevuCraft\Capabilities" Type="string" />
+
+        <!-- Image context menu (#190): convert without changing image file defaults. -->
+        <RegistryValue Root="HKLM" Key="Software\Classes\SystemFileAssociations\.png\shell\RevuCraft.CreatePdf" Value="Create PDF with RevuCraft…" Type="string" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\SystemFileAssociations\.png\shell\RevuCraft.CreatePdf" Name="MultiSelectModel" Value="Single" Type="string" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\SystemFileAssociations\.png\shell\RevuCraft.CreatePdf\command" Value="&quot;[#RevucraftExe]&quot; --create-images &quot;%1&quot;" Type="string" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\SystemFileAssociations\.jpg\shell\RevuCraft.CreatePdf" Value="Create PDF with RevuCraft…" Type="string" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\SystemFileAssociations\.jpg\shell\RevuCraft.CreatePdf" Name="MultiSelectModel" Value="Single" Type="string" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\SystemFileAssociations\.jpg\shell\RevuCraft.CreatePdf\command" Value="&quot;[#RevucraftExe]&quot; --create-images &quot;%1&quot;" Type="string" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\SystemFileAssociations\.jpeg\shell\RevuCraft.CreatePdf" Value="Create PDF with RevuCraft…" Type="string" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\SystemFileAssociations\.jpeg\shell\RevuCraft.CreatePdf" Name="MultiSelectModel" Value="Single" Type="string" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\SystemFileAssociations\.jpeg\shell\RevuCraft.CreatePdf\command" Value="&quot;[#RevucraftExe]&quot; --create-images &quot;%1&quot;" Type="string" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\SystemFileAssociations\.tif\shell\RevuCraft.CreatePdf" Value="Create PDF with RevuCraft…" Type="string" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\SystemFileAssociations\.tif\shell\RevuCraft.CreatePdf" Name="MultiSelectModel" Value="Single" Type="string" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\SystemFileAssociations\.tif\shell\RevuCraft.CreatePdf\command" Value="&quot;[#RevucraftExe]&quot; --create-images &quot;%1&quot;" Type="string" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\SystemFileAssociations\.tiff\shell\RevuCraft.CreatePdf" Value="Create PDF with RevuCraft…" Type="string" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\SystemFileAssociations\.tiff\shell\RevuCraft.CreatePdf" Name="MultiSelectModel" Value="Single" Type="string" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\SystemFileAssociations\.tiff\shell\RevuCraft.CreatePdf\command" Value="&quot;[#RevucraftExe]&quot; --create-images &quot;%1&quot;" Type="string" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\SystemFileAssociations\.gif\shell\RevuCraft.CreatePdf" Value="Create PDF with RevuCraft…" Type="string" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\SystemFileAssociations\.gif\shell\RevuCraft.CreatePdf" Name="MultiSelectModel" Value="Single" Type="string" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\SystemFileAssociations\.gif\shell\RevuCraft.CreatePdf\command" Value="&quot;[#RevucraftExe]&quot; --create-images &quot;%1&quot;" Type="string" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\SystemFileAssociations\.bmp\shell\RevuCraft.CreatePdf" Value="Create PDF with RevuCraft…" Type="string" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\SystemFileAssociations\.bmp\shell\RevuCraft.CreatePdf" Name="MultiSelectModel" Value="Single" Type="string" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\SystemFileAssociations\.bmp\shell\RevuCraft.CreatePdf\command" Value="&quot;[#RevucraftExe]&quot; --create-images &quot;%1&quot;" Type="string" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\SystemFileAssociations\.jp2\shell\RevuCraft.CreatePdf" Value="Create PDF with RevuCraft…" Type="string" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\SystemFileAssociations\.jp2\shell\RevuCraft.CreatePdf" Name="MultiSelectModel" Value="Single" Type="string" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\SystemFileAssociations\.jp2\shell\RevuCraft.CreatePdf\command" Value="&quot;[#RevucraftExe]&quot; --create-images &quot;%1&quot;" Type="string" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\SystemFileAssociations\.j2k\shell\RevuCraft.CreatePdf" Value="Create PDF with RevuCraft…" Type="string" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\SystemFileAssociations\.j2k\shell\RevuCraft.CreatePdf" Name="MultiSelectModel" Value="Single" Type="string" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\SystemFileAssociations\.j2k\shell\RevuCraft.CreatePdf\command" Value="&quot;[#RevucraftExe]&quot; --create-images &quot;%1&quot;" Type="string" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\SystemFileAssociations\.jpx\shell\RevuCraft.CreatePdf" Value="Create PDF with RevuCraft…" Type="string" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\SystemFileAssociations\.jpx\shell\RevuCraft.CreatePdf" Name="MultiSelectModel" Value="Single" Type="string" />
+        <RegistryValue Root="HKLM" Key="Software\Classes\SystemFileAssociations\.jpx\shell\RevuCraft.CreatePdf\command" Value="&quot;[#RevucraftExe]&quot; --create-images &quot;%1&quot;" Type="string" />
+      </Component>
+
+      <!-- Shortcuts (#143) are plain links to revucraft.exe, not advertised MSI shortcuts: advertised
+           ones point at a Windows Installer descriptor rather than the program, which Windows can't
+           use as a file handler (#107), and 0.2.1's advertised one went missing from the Start menu
+           (#143). Each has its own component with an HKLM key path, so Windows Installer removes it
+           on uninstall; in this per-machine package both folders are the all-users ones. -->
+      <Component Id="RevucraftStartMenuShortcut" Directory="ProgramMenuFolder" Guid="51B2DCBA-AD12-4C08-83F5-7DC597B8C5B2">
+        <Shortcut Id="StartMenuShortcut" Name="RevuCraft" Description="RevuCraft plan markup and takeoff"
+            Target="[#RevucraftExe]" WorkingDirectory="INSTALLFOLDER" Icon="RevucraftIcon.ico" IconIndex="0" />
+        <RegistryValue Root="HKLM" Key="Software\RevuCraft\Shortcuts" Name="StartMenu" Type="integer" Value="1" KeyPath="yes" />
+      </Component>
+
+      <Component Id="RevucraftDesktopShortcut" Directory="DesktopFolder" Guid="2CC5B4C2-90E0-40C6-A970-A97FA15E9A26"
+          Condition="INSTALLDESKTOPSHORTCUT = 1">
+        <Shortcut Id="DesktopShortcut" Name="RevuCraft" Description="RevuCraft plan markup and takeoff"
+            Target="[#RevucraftExe]" WorkingDirectory="INSTALLFOLDER" Icon="RevucraftIcon.ico" IconIndex="0" />
+        <RegistryValue Root="HKLM" Key="Software\RevuCraft\Shortcuts" Name="Desktop" Type="integer" Value="1" KeyPath="yes" />
+      </Component>
+
+      <Component Id="RevucraftCli">
+        <File Id="RevucraftCliExe" Source="$(var.BinDir)\revucraft-cli.exe" KeyPath="yes" />
+      </Component>
+    </ComponentGroup>
+
+    <!-- OCR models (#103), with their licences and ATTRIBUTION.txt, in models\ beside revucraft.exe
+         where the app looks for them: every file `cargo xtask models` fetched (revucraft-package.ps1), one
+         component each, so new models ship without naming them here. -->
+    <ComponentGroup Id="RevucraftModels" Directory="ModelsFolder">
+      <Files Include="$(var.ModelsDir)\*" />
+    </ComponentGroup>
+  </Fragment>
+</Wix>
