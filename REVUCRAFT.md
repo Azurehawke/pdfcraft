@@ -47,6 +47,36 @@ later tablet work, merge `android` into `revucraft` again.
 - Layers, forms, page organizing, combine/split, incremental saves, undo, the CLI and
   MCP server, desktop and web builds.
 
+## Next build: refinements list
+
+Started 2026-10-15. Steve's requests are marked **(Steve)**; the rest are suggestions to confirm.
+Tick items as they ship.
+
+Panels and layout
+- [ ] **(Steve)** Draggable dock boxes: reorder by dragging the title bar, drag a box out to float it
+      as its own window over the drawing, drag it back to dock it.
+- [ ] Remember the dock (which boxes, order, collapsed, width, floating positions) between sessions.
+- [ ] Workspaces: save and switch dock layouts ("Office", "Field"), as Adobe apps do.
+- [ ] Properties box: the selected markup's colour, line width, opacity, layer, subject, label and
+      measurement scale, edited in place (Revu's Properties panel).
+- [ ] Markups list box: every markup and measurement in a sortable, filterable table (type, label,
+      layer, page, author, status, value), click to go to it, export CSV (roadmap R4).
+- [ ] Status bar: cursor position in feet-inches, page scale, snapping on/off, current layer.
+
+Markup and measuring
+- [ ] Tool chest box: saved tools with their settings (a red cloud on "Revisions", a 6" data jack
+      labelled "PC"), recently used tools (roadmap R5).
+- [ ] Rectangle area (two taps), angle and radius tools.
+- [ ] Symbols: rotate (and snap to the nearest wall), edit the label after placing, renumber a
+      selection; electrical and security libraries; make a symbol from your own drawing.
+
+Tablet
+- [ ] Touch mode: bigger buttons and handles, long-press for the context menu, two-finger tap to
+      undo.
+
+Builds
+- [ ] One build number shared by Android and Windows.
+
 ## Roadmap
 
 Ordered by value for construction work. Each item is one or more commits with tests.
