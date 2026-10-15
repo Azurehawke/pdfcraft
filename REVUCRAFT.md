@@ -53,15 +53,15 @@ Started 2026-10-15. Steve's requests are marked **(Steve)**; the rest are sugges
 Tick items as they ship.
 
 Panels and layout
-- [ ] **(Steve)** Draggable dock boxes: reorder by dragging the title bar, drag a box out to float it
+- [x] **(Steve)** Draggable dock boxes: reorder by dragging the title bar, drag a box out to float it
       as its own window over the drawing, drag it back to dock it.
-- [ ] Remember the dock (which boxes, order, collapsed, width, floating positions) between sessions.
+- [x] Remember the dock (which boxes, order, collapsed, width, floating positions) between sessions.
 - [ ] Workspaces: save and switch dock layouts ("Office", "Field"), as Adobe apps do.
-- [ ] Properties box: the selected markup's colour, line width, opacity, layer, subject, label and
+- [x] Properties box: the selected markup's colour, line width, opacity, layer, subject, label and
       measurement scale, edited in place (Revu's Properties panel).
 - [ ] Markups list box: every markup and measurement in a sortable, filterable table (type, label,
       layer, page, author, status, value), click to go to it, export CSV (roadmap R4).
-- [ ] Status bar: cursor position in feet-inches, page scale, snapping on/off, current layer.
+- [x] Status bar: cursor position in feet-inches, page scale, snapping on/off, current layer.
 
 Markup and measuring
 - [ ] Tool chest box: saved tools with their settings (a red cloud on "Revisions", a 6" data jack
@@ -83,18 +83,18 @@ RevuCraft takes over the drafting Steve needs instead of merging with CADCraft: 
 to scale on PDF sheets, marked up, and handed over as PDF, with DWG/DXF for CAD users. CADCraft
 stays its own app; its geometry, DXF and DWG crates (Rust, MIT OR Apache-2.0) are reused rather
 than rewritten.
-- [ ] New sheet: ARCH A–E (9×12 to 36×48) and ANSI A–E (8½×11 to 34×44), portrait or landscape,
+- [x] New sheet: ARCH A–E (9×12 to 36×48) and ANSI A–E (8½×11 to 34×44), portrait or landscape,
       with a drawing scale (1/4" = 1'-0", 1:50…) set on the page, so measuring works at once;
-      optional simple title block.
-- [ ] Drawing by numbers: lengths in feet-inches (`15'`, `12'6"`), relative `@0,15`, polar
+      optional simple title block (title block still to come).
+- [x] Drawing by numbers: lengths in feet-inches (`15'`, `12'6"`), relative `@0,15`, polar
       `@15<90`, ortho and polar angles, a big keypad on the tablet; later fed by the laser
       meter and the LiDAR scan.
-- [ ] Tools: line, polyline, rectangle, circle and arc, walls with a thickness, doors and windows
+- [ ] Tools (line, polyline, rectangle and walls done; circle, arc, doors and windows to come): line, polyline, rectangle, circle and arc, walls with a thickness, doors and windows
       from the symbol library; object snaps (end, mid, intersection, perpendicular) shared with
       measuring.
 - [ ] Editing: grips, move, copy, rotate, offset, trim and extend; dimensions (from the
       measuring tools); text.
-- [ ] Cursor coordinates in feet-inches in the status bar; a page origin to measure from.
+- [x] Cursor coordinates in feet-inches in the status bar; a page origin to measure from.
 - [ ] Everything drawn stays editable, on layers, and saved in the PDF (annotations with their
       geometry in drawing units).
 
