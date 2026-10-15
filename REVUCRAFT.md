@@ -64,6 +64,9 @@ Panels and layout
 - [x] Status bar: cursor position in feet-inches, page scale, snapping on/off, current layer.
 
 Markup and measuring
+- [ ] **(Steve)** Form tools on the ribbon: a Forms tab (or group) with PdfCraft's field tools
+      (text, checkbox, radio, drop-down, list, button, image, date), Detect fields, Preview,
+      tab order and Field properties. They exist today only under All tools ▸ Prepare a form.
 - [ ] **(Steve)** Option to turn off the hover tooltip with the author's name on markup: it
       covers the live measurement label when drawing over other lines. Also: never show it while a
       drawing or measuring tool is placing points.
