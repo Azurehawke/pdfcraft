@@ -2266,3 +2266,35 @@ key	Space	Szóköz
 	Options panel	Beállítások panel
 	Expand panel	Panel kibontása
 	Collapse panel	Panel összecsukása
+	A new document	Új dokumentum
+	Add to	Hozzáadás ide
+	Couldn't read “{text}”. Try 15', 12'6", @0,15 or @15<90.	„{text}” nem értelmezhető. Próbálja: 15', 12'6", @0,15 vagy @15<90.
+	Current layer (click to manage layers)	Aktuális réteg (kattintson a rétegek kezeléséhez)
+	Dock this panel	Panel rögzítése
+	Draw only horizontal and vertical lines (hold Shift for the other way)	Csak vízszintes és függőleges vonalak (Shift a fordítottjához)
+	Float this panel	Panel leválasztása
+	Keypad	Számbillentyűzet
+	More properties…	További tulajdonságok…
+	New sheet	Új lap
+	New sheet at a drawing scale	Új lap rajzléptékben
+	Not calibrated (paper size)	Nincs kalibrálva (papírméret)
+	Orientation	Tájolás
+	Origin	Kezdőpont
+	Ortho	Orto
+	Plain numbers are feet	A mértékegység nélküli számok lábak
+	Plain numbers are inches	A mértékegység nélküli számok hüvelykek
+	Point at the drawing to see coordinates	Mutasson a rajzra a koordinátákért
+	Properties	Tulajdonságok
+	Select a markup to see its properties.	Jelöljön ki egy jelölést a tulajdonságaihoz.
+	Set the origin: click a point on the page	Kezdőpont megadása: kattintson egy pontra az oldalon
+	Sheet	Lap
+	Snap	Illesztés
+	Snap to ends, middles and crossings of the drawing	Illesztés a rajz végpontjaihoz, felezőpontjaihoz és metszéspontjaihoz
+	This document	Ez a dokumentum
+	Type a length after placing the first point, or give coordinates.	Az első pont után adjon meg hosszt, vagy koordinátákat.
+	Type a length or coordinates, then Enter	Írjon be hosszt vagy koordinátákat, majd Enter
+	Wall	Fal
+	Wall thickness	Falvastagság
+	ft	ft
+	in	in
+	Draft	Rajzolás

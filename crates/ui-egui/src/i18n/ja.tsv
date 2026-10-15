@@ -2268,3 +2268,35 @@ key	Space	スペース
 	Options panel	オプションパネル
 	Expand panel	パネルを展開
 	Collapse panel	パネルを折りたたむ
+	A new document	新しいドキュメント
+	Add to	追加先
+	Couldn't read “{text}”. Try 15', 12'6", @0,15 or @15<90.	「{text}」を読み取れません。15'、12'6"、@0,15、@15<90 のように入力してください。
+	Current layer (click to manage layers)	現在のレイヤー（クリックでレイヤーを管理）
+	Dock this panel	パネルをドック
+	Draw only horizontal and vertical lines (hold Shift for the other way)	水平線と垂直線だけを描く（Shift で反対）
+	Float this panel	パネルを切り離す
+	Keypad	キーパッド
+	More properties…	その他のプロパティ…
+	New sheet	新しいシート
+	New sheet at a drawing scale	図面縮尺の新しいシート
+	Not calibrated (paper size)	未校正（用紙サイズ）
+	Orientation	向き
+	Origin	原点
+	Ortho	直交
+	Plain numbers are feet	単位なしの数値はフィート
+	Plain numbers are inches	単位なしの数値はインチ
+	Point at the drawing to see coordinates	図面を指すと座標が表示されます
+	Properties	プロパティ
+	Select a markup to see its properties.	マークアップを選択するとプロパティが表示されます。
+	Set the origin: click a point on the page	原点を設定：ページ上の点をクリック
+	Sheet	シート
+	Snap	スナップ
+	Snap to ends, middles and crossings of the drawing	図面の端点・中点・交点にスナップ
+	This document	このドキュメント
+	Type a length after placing the first point, or give coordinates.	最初の点を置いた後に長さを入力するか、座標を指定してください。
+	Type a length or coordinates, then Enter	長さまたは座標を入力して Enter
+	Wall	壁
+	Wall thickness	壁の厚さ
+	ft	ft
+	in	in
+	Draft	製図

@@ -2233,3 +2233,35 @@ key	Space	空格
 	Options panel	选项面板
 	Expand panel	展开面板
 	Collapse panel	折叠面板
+	A new document	新文档
+	Add to	添加到
+	Couldn't read “{text}”. Try 15', 12'6", @0,15 or @15<90.	无法读取“{text}”。请尝试 15'、12'6"、@0,15 或 @15<90。
+	Current layer (click to manage layers)	当前图层（单击以管理图层）
+	Dock this panel	停靠此面板
+	Draw only horizontal and vertical lines (hold Shift for the other way)	只画水平和垂直线（按住 Shift 反之）
+	Float this panel	浮动此面板
+	Keypad	数字键盘
+	More properties…	更多属性…
+	New sheet	新图纸
+	New sheet at a drawing scale	按绘图比例新建图纸
+	Not calibrated (paper size)	未校准（纸张尺寸）
+	Orientation	方向
+	Origin	原点
+	Ortho	正交
+	Plain numbers are feet	不带单位的数字为英尺
+	Plain numbers are inches	不带单位的数字为英寸
+	Point at the drawing to see coordinates	指向图纸以查看坐标
+	Properties	属性
+	Select a markup to see its properties.	选择一个标记以查看其属性。
+	Set the origin: click a point on the page	设置原点：单击页面上的一点
+	Sheet	图纸
+	Snap	捕捉
+	Snap to ends, middles and crossings of the drawing	捕捉图纸的端点、中点和交点
+	This document	此文档
+	Type a length after placing the first point, or give coordinates.	放置第一个点后输入长度，或给出坐标。
+	Type a length or coordinates, then Enter	输入长度或坐标，然后按 Enter
+	Wall	墙
+	Wall thickness	墙厚
+	ft	英尺
+	in	英寸
+	Draft	绘图

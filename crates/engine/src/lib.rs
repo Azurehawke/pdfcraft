@@ -311,6 +311,11 @@ impl Document {
         let e = self.editor.as_ref().ok_or("the document can't be read")?;
         measure::scale_at(&e.cos, page, at).map_err(|e| e.to_string())
     }
+    /// Points in the markup on `page` that drafting snaps to (line ends, vertices, corners).
+    pub fn markup_vertices(&self, page: usize) -> Vec<[f64; 2]> {
+        self.editor.as_ref().map(|e| pdfcraft_annot::symbols::markup_vertices(&e.cos, page)).unwrap_or_default()
+    }
+
     /// RevuCraft's layers, with their colours and locks.
     pub fn layer_list(&self) -> Vec<pdfcraft_annot::layers::LayerInfo> {
         self.editor.as_ref().map(|e| pdfcraft_annot::layers::list(&e.cos)).unwrap_or_default()

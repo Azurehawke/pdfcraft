@@ -93,6 +93,7 @@ jobs:
           shot plan-symbols "$plan" --workflow symbols
           shot plan-layers "$plan" --workflow symbols --panel layers
           shot plan-dock "$plan" --workflow measure --tool measure --dock layers,comments
+          shot plan-draft "$plan" --workflow draft --quick draft-wall --dock layers
           shot plan-review "$plan" --workflow review
           shot plan-document "$plan" --workflow document
           shot plan-teal "$plan" --accent teal

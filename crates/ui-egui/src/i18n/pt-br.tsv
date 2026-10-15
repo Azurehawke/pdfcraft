@@ -2270,3 +2270,35 @@ key	Space	Espaço
 	Options panel	Painel de opções
 	Expand panel	Expandir painel
 	Collapse panel	Recolher painel
+	A new document	Um novo documento
+	Add to	Adicionar a
+	Couldn't read “{text}”. Try 15', 12'6", @0,15 or @15<90.	Não foi possível ler “{text}”. Tente 15', 12'6", @0,15 ou @15<90.
+	Current layer (click to manage layers)	Camada atual (clique para gerenciar camadas)
+	Dock this panel	Encaixar este painel
+	Draw only horizontal and vertical lines (hold Shift for the other way)	Desenhar só linhas horizontais e verticais (Shift para o contrário)
+	Float this panel	Soltar este painel
+	Keypad	Teclado numérico
+	More properties…	Mais propriedades…
+	New sheet	Nova folha
+	New sheet at a drawing scale	Nova folha em uma escala de desenho
+	Not calibrated (paper size)	Não calibrado (tamanho do papel)
+	Orientation	Orientação
+	Origin	Origem
+	Ortho	Orto
+	Plain numbers are feet	Números sem unidade são pés
+	Plain numbers are inches	Números sem unidade são polegadas
+	Point at the drawing to see coordinates	Aponte para o desenho para ver as coordenadas
+	Properties	Propriedades
+	Select a markup to see its properties.	Selecione uma marcação para ver suas propriedades.
+	Set the origin: click a point on the page	Definir a origem: clique em um ponto da página
+	Sheet	Folha
+	Snap	Atrair
+	Snap to ends, middles and crossings of the drawing	Atrair a extremidades, pontos médios e cruzamentos do desenho
+	This document	Este documento
+	Type a length after placing the first point, or give coordinates.	Digite um comprimento depois de colocar o primeiro ponto, ou informe coordenadas.
+	Type a length or coordinates, then Enter	Digite um comprimento ou coordenadas e pressione Enter
+	Wall	Parede
+	Wall thickness	Espessura da parede
+	ft	pés
+	in	pol
+	Draft	Desenho

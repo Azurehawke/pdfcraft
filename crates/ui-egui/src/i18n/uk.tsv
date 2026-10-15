@@ -2292,3 +2292,35 @@ key	Space	Пробіл
 	Options panel	Панель параметрів
 	Expand panel	Розгорнути панель
 	Collapse panel	Згорнути панель
+	A new document	Новий документ
+	Add to	Додати до
+	Couldn't read “{text}”. Try 15', 12'6", @0,15 or @15<90.	Не вдалося прочитати «{text}». Спробуйте 15', 12'6", @0,15 або @15<90.
+	Current layer (click to manage layers)	Поточний шар (клацніть, щоб керувати шарами)
+	Dock this panel	Закріпити панель
+	Draw only horizontal and vertical lines (hold Shift for the other way)	Малювати лише горизонтальні й вертикальні лінії (Shift — навпаки)
+	Float this panel	Відкріпити панель
+	Keypad	Цифрова клавіатура
+	More properties…	Інші властивості…
+	New sheet	Новий аркуш
+	New sheet at a drawing scale	Новий аркуш у масштабі креслення
+	Not calibrated (paper size)	Без калібрування (розмір паперу)
+	Orientation	Орієнтація
+	Origin	Початок координат
+	Ortho	Орто
+	Plain numbers are feet	Числа без одиниць — фути
+	Plain numbers are inches	Числа без одиниць — дюйми
+	Point at the drawing to see coordinates	Наведіть на креслення, щоб побачити координати
+	Properties	Властивості
+	Select a markup to see its properties.	Виберіть позначку, щоб побачити її властивості.
+	Set the origin: click a point on the page	Задати початок координат: клацніть точку на сторінці
+	Sheet	Аркуш
+	Snap	Прив’язка
+	Snap to ends, middles and crossings of the drawing	Прив’язка до кінців, середин і перетинів креслення
+	This document	Цей документ
+	Type a length after placing the first point, or give coordinates.	Введіть довжину після першої точки або вкажіть координати.
+	Type a length or coordinates, then Enter	Введіть довжину або координати, потім Enter
+	Wall	Стіна
+	Wall thickness	Товщина стіни
+	ft	фт
+	in	дюйм
+	Draft	Креслення

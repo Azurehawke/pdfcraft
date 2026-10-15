@@ -71,6 +71,7 @@ pub mod bulk_fields;
 mod dialog;
 mod dialogs;
 mod dock;
+mod draft;
 mod edit_text_ui;
 mod editing;
 mod files;
@@ -88,6 +89,8 @@ pub mod pen;
 #[cfg(not(target_arch = "wasm32"))]
 mod pickers;
 mod point_bar;
+mod props_box;
+mod status_bar;
 #[cfg(target_os = "android")]
 pub use android_picker::{AndroidDocuments, AndroidFileAccess, SystemPick, set_android_documents, set_android_file_access};
 pub mod prepare;
@@ -225,6 +228,8 @@ pub enum QuickTool {
     Symbol,
     /// RevuCraft: tap to pin a photo.
     PhotoPin,
+    /// RevuCraft: draw at scale (the Draft tab).
+    Draft(draft::DraftTool),
 }
 
 /// Files dropped on a document's page grid.
@@ -427,12 +432,24 @@ pub struct PdfCraftApp {
     pub workflow: ribbon::Workflow,
     /// The Symbols tab's settings.
     pub symbols: revu::SymbolSettings,
+    /// The Draft tab's settings.
+    pub(crate) draft: draft::DraftSettings,
     pub(crate) layer_panel: revu::LayerPanel,
     pub(crate) photo_viewer: Option<revu::PhotoViewer>,
     /// RevuCraft: the side panels open in the dock, in the order opened.
     pub(crate) dock: Vec<RightPanel>,
     /// Dock boxes collapsed to their title bar.
     pub(crate) dock_collapsed: Vec<String>,
+    /// The boxes' order (keys), as the user dragged them.
+    pub(crate) dock_order: Vec<String>,
+    /// Boxes floated out of the dock as windows.
+    pub(crate) dock_floating: Vec<String>,
+    /// The Properties box is open.
+    pub(crate) dock_properties: bool,
+    /// Where the dock was last drawn (for dropping floating boxes back on it).
+    pub(crate) dock_rect: Option<egui::Rect>,
+    /// The Properties box's edits for the selected markup.
+    pub(crate) props_box: Option<comment_props::PropsDraft>,
     /// RevuCraft's tool ribbon under the mode bar (on in the apps; see [`Self::revucraft_shell`]).
     pub show_ribbon: bool,
     /// The desktop's light/dark choice, watched while the app runs (Linux has no winit answer).
@@ -738,10 +755,16 @@ impl PdfCraftApp {
             accent: theme::Accent::default(),
             workflow: ribbon::Workflow::default(),
             symbols: Default::default(),
+            draft: Default::default(),
             layer_panel: Default::default(),
             photo_viewer: None,
             dock: Vec::new(),
             dock_collapsed: Vec::new(),
+            dock_order: Vec::new(),
+            dock_floating: Vec::new(),
+            dock_properties: false,
+            dock_rect: None,
+            props_box: None,
             show_ribbon: false,
             desktop_theme: pdfcraft_platform::desktop_theme::DesktopTheme::start(),
             desktop_dark: None,
@@ -1454,6 +1477,7 @@ impl PdfCraftApp {
             "combine_view": self.combine_view.as_str(),
             "combine_zoom": self.combine_zoom,
             "comments_panel_closed": self.comments_panel_closed,
+            "dock": self.dock_layout(),
         })
         .to_string()
     }
@@ -1496,6 +1520,9 @@ impl PdfCraftApp {
         }
         if let Some(closed) = v["comments_panel_closed"].as_bool() {
             self.comments_panel_closed = closed;
+        }
+        if v["dock"].is_object() {
+            self.restore_dock_layout(&v["dock"]);
         }
         if let Some(defaults) = v["default_zoom"].as_str().and_then(|zoom| self.view_defaults.with_zoom(zoom)) {
             self.view_defaults = defaults;
@@ -1600,7 +1627,7 @@ impl PdfCraftApp {
                 _ => return Err("shell must be revucraft".into()),
             },
             ("workflow", _) => {
-                self.workflow = ribbon::Workflow::parse(value).ok_or("workflow must be markup, symbols, measure, review or document")?;
+                self.workflow = ribbon::Workflow::parse(value).ok_or("workflow must be markup, draft, symbols, measure, review or document")?;
             }
             ("accent", _) => {
                 let accent = theme::Accent::from_code(value).ok_or_else(|| {
@@ -1791,6 +1818,9 @@ impl PdfCraftApp {
                     "column-select" => QuickTool::ColumnSelect,
                     "symbol" => QuickTool::Symbol,
                     "photo-pin" => QuickTool::PhotoPin,
+                    d if d.starts_with("draft-") => {
+                        QuickTool::Draft(draft::DraftTool::from_name(&d[6..]).ok_or_else(|| format!("unknown draft tool {d}"))?)
+                    }
                     "certify" => QuickTool::SignArea { certify: true },
                     custom if custom.starts_with("custom-stamp-") => {
                         let i: usize = custom[13..].parse().map_err(|_| format!("bad stamp {custom}"))?;
@@ -2139,8 +2169,10 @@ impl eframe::App for PdfCraftApp {
             ribbon::show(self, ui);
         }
         if self.show_ribbon {
-            // RevuCraft: no left tool panel; tool options and side panels are boxes in the dock.
+            // RevuCraft: no left tool panel; tool options and side panels are boxes in the dock;
+            // the status bar under the drawing.
             if self.active.is_some() {
+                status_bar::show(self, ui);
                 chrome::right_rail(self, ui);
                 if self.mode != Mode::Read {
                     dock::show(self, ui);
@@ -2167,6 +2199,8 @@ impl eframe::App for PdfCraftApp {
         palette::show(self, &ctx);
         dialogs::show(self, &ctx);
         revu::photo_window(self, &ctx);
+        draft::sheet_dialog(self, &ctx);
+        draft::keypad(self, &ctx);
         #[cfg(target_os = "android")]
         pickers::show_browser(self, &ctx);
         self.show_progress(&ctx);

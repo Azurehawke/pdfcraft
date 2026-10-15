@@ -488,6 +488,44 @@ pub fn layer_at(doc: &Document, page: usize, index: usize) -> Option<ObjRef> {
     crate::layers::layer_of(obj.as_dict()?)
 }
 
+/// Points worth snapping to in the markup on `page`: line ends, polyline and polygon vertices,
+/// rectangle corners and the centres of stamps and symbols (RevuCraft's drafting snaps).
+pub fn markup_vertices(doc: &Document, page: usize) -> Vec<[f64; 2]> {
+    const MAX: usize = 50_000;
+    let mut out = Vec::new();
+    let Some(p) = page_refs(doc).ok().and_then(|r| r.get(page).copied()) else { return out };
+    for entry in annots(doc, p) {
+        let obj = doc.resolve(&entry);
+        let Some(d) = obj.as_dict() else { continue };
+        let nums = |k: &[u8]| -> Vec<f64> {
+            d.get(k)
+                .map(|o| doc.resolve(o))
+                .and_then(|o| o.as_array().map(|a| a.iter().filter_map(|x| doc.resolve(x).as_f64()).filter(|v| v.is_finite()).collect()))
+                .unwrap_or_default()
+        };
+        match d.name(b"Subtype") {
+            Some(b"Line") => out.extend(nums(b"L").chunks_exact(2).map(|c| [c[0], c[1]])),
+            Some(b"PolyLine" | b"Polygon") => out.extend(nums(b"Vertices").chunks_exact(2).map(|c| [c[0], c[1]])),
+            Some(b"Square") => {
+                if let [x0, y0, x1, y1] = nums(b"Rect")[..] {
+                    out.extend([[x0, y0], [x1, y0], [x1, y1], [x0, y1]]);
+                }
+            }
+            Some(b"Stamp") => {
+                if let [x0, y0, x1, y1] = nums(b"Rect")[..] {
+                    out.push([(x0 + x1) / 2.0, (y0 + y1) / 2.0]);
+                }
+            }
+            _ => {}
+        }
+        if out.len() > MAX {
+            out.truncate(MAX);
+            break;
+        }
+    }
+    out
+}
+
 /// A spreadsheet cell: quoted when it has to be, and never read as a formula.
 fn cell(text: &str) -> String {
     let text = if text.starts_with(['=', '+', '-', '@', '\t', '\r']) { format!("'{text}") } else { text.to_string() };

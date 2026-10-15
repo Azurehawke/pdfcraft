@@ -2268,3 +2268,35 @@ key	Space	Leertaste
 	Options panel	Optionsbereich
 	Expand panel	Bereich aufklappen
 	Collapse panel	Bereich einklappen
+	A new document	Ein neues Dokument
+	Add to	Hinzufügen zu
+	Couldn't read “{text}”. Try 15', 12'6", @0,15 or @15<90.	„{text}“ ist unverständlich. Versuchen Sie 15', 12'6", @0,15 oder @15<90.
+	Current layer (click to manage layers)	Aktuelle Ebene (klicken, um Ebenen zu verwalten)
+	Dock this panel	Bereich andocken
+	Draw only horizontal and vertical lines (hold Shift for the other way)	Nur waagrechte und senkrechte Linien zeichnen (Umschalt für das Gegenteil)
+	Float this panel	Bereich lösen
+	Keypad	Ziffernblock
+	More properties…	Weitere Eigenschaften…
+	New sheet	Neues Blatt
+	New sheet at a drawing scale	Neues Blatt in einem Zeichnungsmaßstab
+	Not calibrated (paper size)	Nicht kalibriert (Papiergröße)
+	Orientation	Ausrichtung
+	Origin	Ursprung
+	Ortho	Ortho
+	Plain numbers are feet	Zahlen ohne Einheit sind Fuß
+	Plain numbers are inches	Zahlen ohne Einheit sind Zoll
+	Point at the drawing to see coordinates	Auf die Zeichnung zeigen, um Koordinaten zu sehen
+	Properties	Eigenschaften
+	Select a markup to see its properties.	Markierung auswählen, um ihre Eigenschaften zu sehen.
+	Set the origin: click a point on the page	Ursprung festlegen: einen Punkt auf der Seite anklicken
+	Sheet	Blatt
+	Snap	Fangen
+	Snap to ends, middles and crossings of the drawing	An Enden, Mitten und Schnittpunkten der Zeichnung fangen
+	This document	Dieses Dokument
+	Type a length after placing the first point, or give coordinates.	Geben Sie nach dem ersten Punkt eine Länge oder Koordinaten ein.
+	Type a length or coordinates, then Enter	Länge oder Koordinaten eingeben, dann Eingabe
+	Wall	Wand
+	Wall thickness	Wandstärke
+	ft	ft
+	in	in
+	Draft	Zeichnen

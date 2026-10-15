@@ -2290,3 +2290,35 @@ key	Space	مسافة
 	Options panel	لوحة الخيارات
 	Expand panel	توسيع اللوحة
 	Collapse panel	طي اللوحة
+	A new document	مستند جديد
+	Add to	إضافة إلى
+	Couldn't read “{text}”. Try 15', 12'6", @0,15 or @15<90.	تعذّرت قراءة «{text}». جرّب 15' أو 12'6" أو @0,15 أو @15<90.
+	Current layer (click to manage layers)	الطبقة الحالية (انقر لإدارة الطبقات)
+	Dock this panel	تثبيت هذه اللوحة
+	Draw only horizontal and vertical lines (hold Shift for the other way)	رسم خطوط أفقية ورأسية فقط (Shift للعكس)
+	Float this panel	تعويم هذه اللوحة
+	Keypad	لوحة الأرقام
+	More properties…	مزيد من الخصائص…
+	New sheet	ورقة جديدة
+	New sheet at a drawing scale	ورقة جديدة بمقياس رسم
+	Not calibrated (paper size)	غير معايَر (حجم الورق)
+	Orientation	الاتجاه
+	Origin	الأصل
+	Ortho	متعامد
+	Plain numbers are feet	الأرقام دون وحدة بالأقدام
+	Plain numbers are inches	الأرقام دون وحدة بالبوصات
+	Point at the drawing to see coordinates	أشر إلى الرسم لرؤية الإحداثيات
+	Properties	الخصائص
+	Select a markup to see its properties.	حدد علامة لرؤية خصائصها.
+	Set the origin: click a point on the page	تعيين الأصل: انقر نقطة على الصفحة
+	Sheet	الورقة
+	Snap	الالتقاط
+	Snap to ends, middles and crossings of the drawing	الالتقاط إلى أطراف الرسم ومنتصفاته وتقاطعاته
+	This document	هذا المستند
+	Type a length after placing the first point, or give coordinates.	اكتب طولًا بعد وضع النقطة الأولى، أو أعطِ إحداثيات.
+	Type a length or coordinates, then Enter	اكتب طولًا أو إحداثيات ثم Enter
+	Wall	جدار
+	Wall thickness	سماكة الجدار
+	ft	قدم
+	in	بوصة
+	Draft	الرسم

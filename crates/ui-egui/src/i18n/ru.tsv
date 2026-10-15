@@ -2181,3 +2181,35 @@ key	Space	Пробел
 	Options panel	Панель параметров
 	Expand panel	Развернуть панель
 	Collapse panel	Свернуть панель
+	A new document	Новый документ
+	Add to	Добавить в
+	Couldn't read “{text}”. Try 15', 12'6", @0,15 or @15<90.	Не удалось прочитать «{text}». Попробуйте 15', 12'6", @0,15 или @15<90.
+	Current layer (click to manage layers)	Текущий слой (щёлкните, чтобы управлять слоями)
+	Dock this panel	Закрепить панель
+	Draw only horizontal and vertical lines (hold Shift for the other way)	Рисовать только горизонтальные и вертикальные линии (Shift — наоборот)
+	Float this panel	Открепить панель
+	Keypad	Цифровая клавиатура
+	More properties…	Другие свойства…
+	New sheet	Новый лист
+	New sheet at a drawing scale	Новый лист в масштабе чертежа
+	Not calibrated (paper size)	Без калибровки (размер бумаги)
+	Orientation	Ориентация
+	Origin	Начало координат
+	Ortho	Орто
+	Plain numbers are feet	Числа без единиц — футы
+	Plain numbers are inches	Числа без единиц — дюймы
+	Point at the drawing to see coordinates	Наведите на чертёж, чтобы увидеть координаты
+	Properties	Свойства
+	Select a markup to see its properties.	Выберите пометку, чтобы увидеть её свойства.
+	Set the origin: click a point on the page	Задать начало координат: щёлкните точку на странице
+	Sheet	Лист
+	Snap	Привязка
+	Snap to ends, middles and crossings of the drawing	Привязка к концам, серединам и пересечениям чертежа
+	This document	Этот документ
+	Type a length after placing the first point, or give coordinates.	Введите длину после первой точки или укажите координаты.
+	Type a length or coordinates, then Enter	Введите длину или координаты, затем Enter
+	Wall	Стена
+	Wall thickness	Толщина стены
+	ft	фт
+	in	дюйм
+	Draft	Черчение

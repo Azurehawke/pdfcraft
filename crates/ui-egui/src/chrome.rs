@@ -510,6 +510,10 @@ pub fn right_rail(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
             if has_check {
                 rail_button(ui, RightPanel::Accessibility, "accessibility", "Accessibility Checker", false);
             }
+            // RevuCraft: the selected markup's Properties box.
+            if docks && icons::button(ui, "sliders-horizontal", 34.0, app.dock_properties, tl!("Properties")).clicked() {
+                app.toggle_properties();
+            }
 
             // Page navigation cluster at the bottom (as in Acrobat's rail).
             let view = &mut app.views[index];

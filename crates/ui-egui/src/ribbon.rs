@@ -20,10 +20,12 @@ pub enum Workflow {
     Document,
     /// RevuCraft's symbols, layers and photos ([`crate::revu::ribbon`]).
     Symbols,
+    /// Drawing at scale ([`crate::draft::ribbon`]).
+    Draft,
 }
 
 impl Workflow {
-    pub const ALL: [Workflow; 5] = [Workflow::Markup, Workflow::Symbols, Workflow::Measure, Workflow::Review, Workflow::Document];
+    pub const ALL: [Workflow; 6] = [Workflow::Markup, Workflow::Draft, Workflow::Symbols, Workflow::Measure, Workflow::Review, Workflow::Document];
 
     /// The English tab name, translated where it is shown.
     pub fn label(self) -> &'static str {
@@ -33,6 +35,7 @@ impl Workflow {
             Self::Review => "Review",
             Self::Document => "Document",
             Self::Symbols => "Symbols",
+            Self::Draft => "Draft",
         }
     }
 
@@ -70,7 +73,7 @@ impl Workflow {
                 ("Edit", &["edit.edit_text", "edit.text", "edit.image", "edit.link"]),
                 ("Secure", &["redact.mark", "protect.password", "sign.digital"]),
             ],
-            Self::Symbols => &[],
+            Self::Symbols | Self::Draft => &[],
         }
     }
 }
@@ -124,6 +127,10 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
         .show(ui, |ui| {
             if app.workflow == Workflow::Symbols {
                 crate::revu::ribbon(app, ui);
+                return;
+            }
+            if app.workflow == Workflow::Draft {
+                crate::draft::ribbon(app, ui);
                 return;
             }
             ui.add_enabled_ui(app.active.is_some(), |ui| {

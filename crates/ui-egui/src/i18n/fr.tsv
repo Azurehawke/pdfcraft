@@ -2268,3 +2268,35 @@ key	Space	Espace
 	Options panel	Panneau d’options
 	Expand panel	Déplier le panneau
 	Collapse panel	Replier le panneau
+	A new document	Un nouveau document
+	Add to	Ajouter à
+	Couldn't read “{text}”. Try 15', 12'6", @0,15 or @15<90.	Impossible de lire « {text} ». Essayez 15', 12'6", @0,15 ou @15<90.
+	Current layer (click to manage layers)	Calque actif (cliquez pour gérer les calques)
+	Dock this panel	Ancrer ce panneau
+	Draw only horizontal and vertical lines (hold Shift for the other way)	Tracer seulement des lignes horizontales et verticales (Maj pour l’inverse)
+	Float this panel	Détacher ce panneau
+	Keypad	Pavé numérique
+	More properties…	Plus de propriétés…
+	New sheet	Nouvelle feuille
+	New sheet at a drawing scale	Nouvelle feuille à une échelle de dessin
+	Not calibrated (paper size)	Non étalonné (taille papier)
+	Orientation	Orientation
+	Origin	Origine
+	Ortho	Ortho
+	Plain numbers are feet	Les nombres seuls sont en pieds
+	Plain numbers are inches	Les nombres seuls sont en pouces
+	Point at the drawing to see coordinates	Pointez le dessin pour voir les coordonnées
+	Properties	Propriétés
+	Select a markup to see its properties.	Sélectionnez une annotation pour voir ses propriétés.
+	Set the origin: click a point on the page	Définir l’origine : cliquez un point de la page
+	Sheet	Feuille
+	Snap	Accrochage
+	Snap to ends, middles and crossings of the drawing	Accrocher aux extrémités, milieux et intersections du dessin
+	This document	Ce document
+	Type a length after placing the first point, or give coordinates.	Tapez une longueur après avoir placé le premier point, ou donnez des coordonnées.
+	Type a length or coordinates, then Enter	Tapez une longueur ou des coordonnées, puis Entrée
+	Wall	Mur
+	Wall thickness	Épaisseur du mur
+	ft	pi
+	in	po
+	Draft	Dessin

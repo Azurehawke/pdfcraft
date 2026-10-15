@@ -89,6 +89,16 @@ pub const PRESETS: [Preset; 26] = [
     metric("1:500", 500.0),
     metric("1:1000", 1000.0),
 ];
+/// The scale a preset sets: its real length per point of paper, in feet-and-inches when the
+/// preset is architectural.
+pub fn preset_scale(p: &Preset) -> Result<Scale, String> {
+    let scale = Scale::new(p.real / p.paper_points, p.unit, 2);
+    match p.fractions {
+        0 => scale,
+        d => scale.and_then(|s| s.with_feet_inches(d)),
+    }
+    .map_err(|e| e.to_string())
+}
 /// Inch denominators offered for feet-and-inch scales.
 const FRACTIONS: [u16; 7] = [1, 2, 4, 8, 16, 32, 64];
 

@@ -79,7 +79,7 @@ pub struct PhotoViewer {
     pub texture: Result<egui::TextureHandle, String>,
 }
 
-fn color32(c: [f64; 3]) -> Color32 {
+pub(crate) fn color32(c: [f64; 3]) -> Color32 {
     let v = |x: f64| (x.clamp(0.0, 1.0) * 255.0).round() as u8;
     Color32::from_rgb(v(c[0]), v(c[1]), v(c[2]))
 }

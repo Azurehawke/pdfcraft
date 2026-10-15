@@ -2230,3 +2230,35 @@ key	Space	Интервал
 	Options panel	Панел с опции
 	Expand panel	Разгъване на панела
 	Collapse panel	Свиване на панела
+	A new document	Нов документ
+	Add to	Добавяне към
+	Couldn't read “{text}”. Try 15', 12'6", @0,15 or @15<90.	„{text}“ не може да се разчете. Опитайте 15', 12'6", @0,15 или @15<90.
+	Current layer (click to manage layers)	Текущ слой (щракнете, за да управлявате слоевете)
+	Dock this panel	Закачане на панела
+	Draw only horizontal and vertical lines (hold Shift for the other way)	Само хоризонтални и вертикални линии (Shift за обратното)
+	Float this panel	Откачане на панела
+	Keypad	Цифрова клавиатура
+	More properties…	Още свойства…
+	New sheet	Нов лист
+	New sheet at a drawing scale	Нов лист в мащаб на чертежа
+	Not calibrated (paper size)	Некалибриран (размер на хартията)
+	Orientation	Ориентация
+	Origin	Начало
+	Ortho	Орто
+	Plain numbers are feet	Числата без мерна единица са футове
+	Plain numbers are inches	Числата без мерна единица са инчове
+	Point at the drawing to see coordinates	Посочете чертежа, за да видите координатите
+	Properties	Свойства
+	Select a markup to see its properties.	Изберете маркировка, за да видите свойствата ѝ.
+	Set the origin: click a point on the page	Задаване на начало: щракнете точка от страницата
+	Sheet	Лист
+	Snap	Прихващане
+	Snap to ends, middles and crossings of the drawing	Прихващане към краища, среди и пресечни точки на чертежа
+	This document	Този документ
+	Type a length after placing the first point, or give coordinates.	Въведете дължина след първата точка или задайте координати.
+	Type a length or coordinates, then Enter	Въведете дължина или координати, после Enter
+	Wall	Стена
+	Wall thickness	Дебелина на стената
+	ft	фт
+	in	инч
+	Draft	Чертане

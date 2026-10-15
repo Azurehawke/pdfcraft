@@ -361,6 +361,10 @@ pub struct DocView {
     /// Commenting state: selected comment, gestures, composer.
     pub comments: crate::comments::CommentView,
     pub measure: crate::measure_ui::MeasureView,
+    /// The pointer over a page this frame: the page and the point in user space (the status bar).
+    pub cursor: Option<(usize, [f64; 2])>,
+    /// Drafting state (the Draft tab).
+    pub draft: crate::draft::DraftView,
     /// Form filling state: the focused field.
     pub forms: crate::forms_ui::FormView,
     /// Prepare a form: the selected field and the gesture in progress.
@@ -559,6 +563,8 @@ impl DocView {
             grid_pages: HashMap::new(),
             comments: Default::default(),
             measure: Default::default(),
+            cursor: None,
+            draft: Default::default(),
             forms: Default::default(),
             prepare: Default::default(),
             content: Default::default(),
@@ -1763,7 +1769,18 @@ pub fn document_area(app: &mut PdfCraftApp, index: usize, ui: &mut egui::Ui) {
     // Edit a PDF: added text and images can be selected, moved and edited.
     let editing_content = (app.left_open && app.left == crate::LeftPanel::Tool("edit")) || app.quick_tool == QuickTool::AddText;
     let text_style = app.text_style.clone();
+    let draft_settings = app.draft.clone();
+    let draft_author = app.comment_prefs.author.clone();
+    let draft_tool = match app.quick_tool {
+        QuickTool::Draft(t) => Some(t),
+        _ => None,
+    };
     let view = &mut app.views[index];
+    if let Some(t) = draft_tool
+        && let Some(edit) = crate::draft::keys(ui.ctx(), doc, view, t, &draft_settings, &draft_author)
+    {
+        view.pending_edit = Some(edit);
+    }
     // Opened without the owner password and something is restricted.
     let secured = doc.security_summary().is_some_and(|s| !(s.owner || (s.permissions.modify() && s.permissions.assemble())));
     let repaired = !doc.repair_log().is_empty();
@@ -1979,7 +1996,8 @@ pub fn document_area(app: &mut PdfCraftApp, index: usize, ui: &mut egui::Ui) {
         | QuickTool::MarqueeZoom
         | QuickTool::Snapshot
         | QuickTool::Symbol
-        | QuickTool::PhotoPin => false,
+        | QuickTool::PhotoPin
+        | QuickTool::Draft(_) => false,
     };
     let prefs = &app.comment_prefs;
     let allowed = doc.allows_annotation();
@@ -2208,8 +2226,18 @@ pub fn document_area(app: &mut PdfCraftApp, index: usize, ui: &mut egui::Ui) {
 
             // Comments: tools, selection, moving and resizing come before text selection.
             let pcx = comments::PageCx { page: i, xf: &xf, info, tool, prefs, allowed, hidden: comments_hidden };
+            if let Some(p) = ui.input(|inp| inp.pointer.hover_pos()).filter(|p| xf.rect.contains(*p))
+                && let Some(page_info) = info.pages.get(i)
+            {
+                let (vx, vy) = xf.screen_to_view(p);
+                let u = page_info.view_to_user(vx, vy);
+                view.cursor = Some((i, [f64::from(u[0]), f64::from(u[1])]));
+            }
             if let QuickTool::Measure(measure_tool) = tool {
                 crate::measure_ui::page_input(ui, &resp, doc, view, &pcx, measure_tool);
+            }
+            if let QuickTool::Draft(draft_tool) = tool {
+                crate::draft::page_input(ui, &resp, doc, view, &pcx, draft_tool, &draft_settings, &draft_author);
             }
 
             // Form fields take clicks first with the Select tool (as Acrobat fills fields in
