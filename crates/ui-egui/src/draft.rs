@@ -16,7 +16,7 @@ use crate::{PdfCraftApp, QuickTool, icons};
 /// Points per inch on paper.
 const PT_PER_IN: f64 = 72.0;
 /// Snap radius on screen, in pixels.
-const SNAP_PX: f64 = 10.0;
+pub(crate) const SNAP_PX: f64 = 10.0;
 /// Typed entries are short; anything longer is cut.
 const MAX_INPUT: usize = 64;
 
@@ -26,10 +26,41 @@ pub enum DraftTool {
     Polyline,
     Rectangle,
     Wall,
+    /// Centre, then a point on the circle (or a typed radius).
+    Circle,
+    /// Start, a point on the arc, end.
+    Arc,
+    /// A dimension: a distance measurement at the page's scale.
+    Dimension,
+    Move,
+    Copy,
+    Rotate,
+    Offset,
+    Trim,
+    Extend,
 }
 
 impl DraftTool {
-    pub const ALL: [DraftTool; 4] = [DraftTool::Line, DraftTool::Polyline, DraftTool::Rectangle, DraftTool::Wall];
+    pub const ALL: [DraftTool; 13] = [
+        DraftTool::Line,
+        DraftTool::Polyline,
+        DraftTool::Rectangle,
+        DraftTool::Wall,
+        DraftTool::Circle,
+        DraftTool::Arc,
+        DraftTool::Dimension,
+        DraftTool::Move,
+        DraftTool::Copy,
+        DraftTool::Rotate,
+        DraftTool::Offset,
+        DraftTool::Trim,
+        DraftTool::Extend,
+    ];
+    /// The drawing tools, on the ribbon's Draw group.
+    pub const DRAW: [DraftTool; 7] =
+        [DraftTool::Line, DraftTool::Polyline, DraftTool::Rectangle, DraftTool::Wall, DraftTool::Circle, DraftTool::Arc, DraftTool::Dimension];
+    /// The tools that change what is drawn, on the Modify group.
+    pub const MODIFY: [DraftTool; 6] = [DraftTool::Move, DraftTool::Copy, DraftTool::Rotate, DraftTool::Offset, DraftTool::Trim, DraftTool::Extend];
 
     pub fn name(self) -> &'static str {
         match self {
@@ -37,7 +68,21 @@ impl DraftTool {
             Self::Polyline => "polyline",
             Self::Rectangle => "rectangle",
             Self::Wall => "wall",
+            Self::Circle => "circle",
+            Self::Arc => "arc",
+            Self::Dimension => "dimension",
+            Self::Move => "move",
+            Self::Copy => "copy",
+            Self::Rotate => "rotate",
+            Self::Offset => "offset",
+            Self::Trim => "trim",
+            Self::Extend => "extend",
         }
+    }
+
+    /// Changes markup that is already drawn rather than drawing more.
+    pub fn modifies(self) -> bool {
+        Self::MODIFY.contains(&self)
     }
 
     pub fn from_name(s: &str) -> Option<Self> {
@@ -50,6 +95,15 @@ impl DraftTool {
             Self::Polyline => "Polyline",
             Self::Rectangle => "Rectangle",
             Self::Wall => "Wall",
+            Self::Circle => "Circle (centre, then radius)",
+            Self::Arc => "Arc (start, a point on it, end)",
+            Self::Dimension => "Dimension",
+            Self::Move => "Move (pick, base point, then where to)",
+            Self::Copy => "Copy (pick, base point, then each copy)",
+            Self::Rotate => "Rotate (pick, centre, then the angle)",
+            Self::Offset => "Offset (a parallel copy at the offset distance)",
+            Self::Trim => "Trim (click the part to cut away at crossing lines)",
+            Self::Extend => "Extend (click near an end to reach the next line)",
         }
     }
 
@@ -59,6 +113,24 @@ impl DraftTool {
             Self::Polyline => "spline",
             Self::Rectangle => "square",
             Self::Wall => "rectangle-horizontal",
+            Self::Circle => "circle",
+            Self::Arc => "circle-dashed",
+            Self::Dimension => "ruler",
+            Self::Move => "move",
+            Self::Copy => "copy",
+            Self::Rotate => "rotate-ccw",
+            Self::Offset => "columns-2",
+            Self::Trim => "scissors",
+            Self::Extend => "move-right",
+        }
+    }
+
+    /// How many points finish the shape (open-ended shapes finish when told).
+    fn points_needed(self) -> Option<usize> {
+        match self {
+            Self::Line | Self::Rectangle | Self::Circle | Self::Dimension => Some(2),
+            Self::Arc => Some(3),
+            _ => None,
         }
     }
 
@@ -120,6 +192,8 @@ pub struct DraftSettings {
     pub sheet: SheetDraft,
     /// Who new markup is by (filled in from the comment author before drafting).
     pub author: String,
+    /// Offset distance, inches.
+    pub offset_inches: f64,
 }
 
 impl Default for DraftSettings {
@@ -132,6 +206,7 @@ impl Default for DraftSettings {
             // ARCH D landscape at 1/4" = 1'-0".
             sheet: SheetDraft { open: false, paper: 8, landscape: true, scale: 4, add_to_document: false },
             author: String::new(),
+            offset_inches: 12.0,
         }
     }
 }
@@ -151,6 +226,14 @@ pub struct DraftView {
     pub setting_origin: bool,
     /// Snapping geometry of the page content, per (page, edit generation).
     paths: Option<(usize, u64, Option<measure::snap::Geometry>)>,
+    /// Move, Copy and Rotate: the base point (on `page`).
+    pub base: Option<[f64; 2]>,
+    /// A grip being dragged with the Select tool.
+    pub grip: Option<crate::draft_edit::Grip>,
+    /// The markup's lines and shapes per (page, edit generation).
+    pub(crate) geometry: Option<(usize, u64, Vec<pdfcraft_engine::geometry::Geometry>)>,
+    /// An offset distance typed with the Offset tool (inches), for the shared settings.
+    pub typed_offset: Option<f64>,
 }
 
 impl DraftView {
@@ -158,6 +241,8 @@ impl DraftView {
         self.points.clear();
         self.page = None;
         self.input.clear();
+        self.base = None;
+        self.grip = None;
     }
 }
 
@@ -275,17 +360,17 @@ pub fn parse_entry(s: &str, bare: BareUnit) -> Option<Entry> {
 
 /// User-space units per real inch on `page` near `at`: from the page's scale, or paper inches
 /// when the page has none.
-fn units_per_inch(doc: &Document, page: usize, at: [f64; 2]) -> f64 {
+pub(crate) fn units_per_inch(doc: &Document, page: usize, at: [f64; 2]) -> f64 {
     doc.real_size_points(page, at, 1.0).unwrap_or(PT_PER_IN)
 }
 
 /// Keep `to` horizontal or vertical from `from`.
-fn orthogonal(from: [f64; 2], to: [f64; 2]) -> [f64; 2] {
+pub(crate) fn orthogonal(from: [f64; 2], to: [f64; 2]) -> [f64; 2] {
     if (to[0] - from[0]).abs() >= (to[1] - from[1]).abs() { [to[0], from[1]] } else { [from[0], to[1]] }
 }
 
 /// Where a typed entry puts the next point (user space).
-fn entry_point(entry: Entry, last: Option<[f64; 2]>, origin: [f64; 2], toward: Option<[f64; 2]>, k: f64, ortho: bool) -> Option<[f64; 2]> {
+pub(crate) fn entry_point(entry: Entry, last: Option<[f64; 2]>, origin: [f64; 2], toward: Option<[f64; 2]>, k: f64, ortho: bool) -> Option<[f64; 2]> {
     let polar = |from: [f64; 2], len: f64, deg: f64| {
         let r = deg.to_radians();
         [from[0] + len * k * r.cos(), from[1] + len * k * r.sin()]
@@ -342,37 +427,7 @@ pub fn wall_quads(points: &[[f64; 2]], thickness: f64, closed: bool) -> Vec<[[f6
     if n < 2 || !thickness.is_finite() || thickness <= 0.0 {
         return Vec::new();
     }
-    let half = thickness / 2.0;
-    let normal = |a: [f64; 2], b: [f64; 2]| {
-        let (dx, dy) = (b[0] - a[0], b[1] - a[1]);
-        let d = dx.hypot(dy).max(1e-12);
-        [-dy / d, dx / d]
-    };
-    let get = |i: isize| -> [f64; 2] { pts[i.rem_euclid(n as isize) as usize] };
-    // The offset of each vertex, left of the direction of travel.
-    let offsets: Vec<[f64; 2]> = (0..n as isize)
-        .map(|i| {
-            let has_prev = closed || i > 0;
-            let has_next = closed || i + 1 < n as isize;
-            let n_in = has_prev.then(|| normal(get(i - 1), get(i)));
-            let n_out = has_next.then(|| normal(get(i), get(i + 1)));
-            match (n_in, n_out) {
-                (Some(a), Some(b)) => {
-                    let m = [a[0] + b[0], a[1] + b[1]];
-                    let len = m[0].hypot(m[1]);
-                    let dot = if len < 1e-9 { 0.0 } else { (m[0] * a[0] + m[1] * a[1]) / len };
-                    if dot < 0.25 {
-                        // A hairpin: no mitre spike.
-                        [a[0] * half, a[1] * half]
-                    } else {
-                        [m[0] / len * half / dot, m[1] / len * half / dot]
-                    }
-                }
-                (Some(a), None) | (None, Some(a)) => [a[0] * half, a[1] * half],
-                (None, None) => [0.0, 0.0],
-            }
-        })
-        .collect();
+    let offsets = crate::draft_edit::mitre_offsets(&pts, thickness / 2.0, closed);
     let segments = if closed { n } else { n - 1 };
     (0..segments)
         .map(|i| {
@@ -428,6 +483,37 @@ fn finish_edit(tool: DraftTool, page: usize, points: &[[f64; 2]], closed: bool, 
                 .collect();
             (!edits.is_empty()).then(|| Edit::Batch { label: "Draw wall".into(), edits })
         }
+        DraftTool::Circle => match points {
+            [c, p, ..] => {
+                let r = (p[0] - c[0]).hypot(p[1] - c[1]);
+                (r >= 0.5).then(|| annotation(page, Shape::Oval { rect: [c[0] - r, c[1] - r, c[0] + r, c[1] + r] }, color, 1.0, None, author))
+            }
+            _ => None,
+        },
+        DraftTool::Arc => match points {
+            [a, m, b, ..] => {
+                let vertices = crate::draft_edit::arc_points(*a, *m, *b);
+                (vertices.len() >= 2)
+                    .then(|| annotation(page, Shape::PolyLine { vertices, start: LineEnding::None, end: LineEnding::None }, color, 1.0, None, author))
+            }
+            _ => None,
+        },
+        DraftTool::Dimension => match points {
+            [a, b, ..] => {
+                let scale = doc.measurement_scale(page, *a).ok()?;
+                Some(Edit::AddMeasurement(measure::NewMeasurement {
+                    page,
+                    kind: measure::Kind::Distance,
+                    points: vec![*a, *b],
+                    scale,
+                    style: Style { color, opacity: 1.0, width: 1.0, fill: None },
+                    label: String::new(),
+                    author: author.to_string(),
+                }))
+            }
+            _ => None,
+        },
+        DraftTool::Move | DraftTool::Copy | DraftTool::Rotate | DraftTool::Offset | DraftTool::Trim | DraftTool::Extend => None,
     }
 }
 
@@ -445,17 +531,16 @@ fn add_point(view: &mut DocView, doc: &Document, page: usize, tool: DraftTool, p
         return None;
     }
     d.points.push(p);
-    match tool {
-        DraftTool::Line if d.points.len() >= 2 => {
+    match tool.points_needed() {
+        Some(n) if d.points.len() >= n => {
             let edit = finish_edit(tool, page, &d.points, false, doc, settings);
-            // Lines chain: the next one starts where this one ended.
-            d.points = vec![p];
-            edit
-        }
-        DraftTool::Rectangle if d.points.len() >= 2 => {
-            let edit = finish_edit(tool, page, &d.points, false, doc, settings);
-            d.points.clear();
-            d.page = None;
+            if tool == DraftTool::Line {
+                // Lines chain: the next one starts where this one ended.
+                d.points = vec![p];
+            } else {
+                d.points.clear();
+                d.page = None;
+            }
             edit
         }
         _ => None,
@@ -477,6 +562,9 @@ fn finish(view: &mut DocView, doc: &Document, tool: DraftTool, closed: bool, set
 /// Apply the typed entry: the next point.
 pub fn submit(view: &mut DocView, doc: &Document, tool: DraftTool, settings: &DraftSettings) -> Option<Edit> {
     let text = std::mem::take(&mut view.draft.input);
+    if tool.modifies() {
+        return if text.trim().is_empty() { None } else { crate::draft_edit::submit(view, doc, tool, settings, &text) };
+    }
     if text.trim().is_empty() {
         // Enter with nothing typed finishes a polyline or wall.
         return finish(view, doc, tool, false, settings);
@@ -529,6 +617,8 @@ pub fn keys(ctx: &egui::Context, doc: &Document, view: &mut DocView, tool: Draft
     if ctx.input(|i| i.key_pressed(egui::Key::Escape)) {
         if !view.draft.input.is_empty() {
             view.draft.input.clear();
+        } else if tool.modifies() {
+            crate::draft_edit::step_back(view);
         } else {
             out = finish(view, doc, tool, false, settings);
         }
@@ -593,6 +683,15 @@ pub(crate) fn page_input(
             point = orthogonal(*last, point);
         }
         hover = Some(point);
+        if tool.modifies() {
+            if resp.clicked() && view.draft.setting_origin {
+                view.draft.origin = Some((page, point));
+                view.draft.setting_origin = false;
+            } else {
+                crate::draft_edit::modify_input(ui, resp, doc, view, cx, tool, settings, pos, point, tolerance);
+            }
+            return;
+        }
         if resp.clicked() {
             if view.draft.setting_origin {
                 view.draft.origin = Some((page, point));
@@ -640,6 +739,23 @@ pub(crate) fn page_input(
                 painter.rect_stroke(egui::Rect::from_two_pos(a, b), egui::CornerRadius::ZERO, stroke, egui::StrokeKind::Middle);
             }
         }
+        DraftTool::Circle => {
+            if let ([c, p, ..], Some(sc)) = (&pts[..], screen.first()) {
+                let r = (p[0] - c[0]).hypot(p[1] - c[1]);
+                let edge = cx.to_screen([c[0] + r, c[1]]);
+                painter.circle_stroke(*sc, sc.distance(edge), stroke);
+                painter.add(egui::Shape::line(screen.clone(), Stroke::new(1.0, accent.gamma_multiply(0.6))));
+            }
+        }
+        DraftTool::Arc => match &pts[..] {
+            [a, m, b, ..] => {
+                let arc: Vec<Pos2> = crate::draft_edit::arc_points(*a, *m, *b).iter().map(|p| cx.to_screen(*p)).collect();
+                painter.add(egui::Shape::line(arc, stroke));
+            }
+            _ => {
+                painter.add(egui::Shape::line(screen.clone(), Stroke::new(1.0, accent.gamma_multiply(0.6))));
+            }
+        },
         DraftTool::Wall => {
             let at = pts.first().copied().unwrap_or([0.0, 0.0]);
             let thickness = settings.wall_inches * units_per_inch(doc, page, at);
@@ -718,82 +834,113 @@ pub fn ribbon(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
     let t = Tokens::get(ui.ctx());
     let active = app.active_ids();
     let allowed = active.and_then(|(_, id)| app.session.get(id)).is_some_and(|d| d.allows_annotation() && d.read_only_reason.is_none());
-    ui.horizontal(|ui| {
-        ui.spacing_mut().item_spacing.x = 4.0;
-        group(ui, &t, tl!("Sheet"), |ui| {
-            if icons::button(ui, "file-plus-2", 34.0, false, tl!("New sheet at a drawing scale")).clicked() {
-                app.draft.sheet.open = true;
-                app.draft.sheet.add_to_document = active.is_some();
-            }
-        });
-        separator(ui, &t);
-        ui.add_enabled_ui(allowed, |ui| {
-            group(ui, &t, tl!("Draw"), |ui| {
-                ui.horizontal(|ui| {
-                    ui.spacing_mut().item_spacing.x = 2.0;
-                    for tool in DraftTool::ALL {
-                        let selected = app.quick_tool == QuickTool::Draft(tool);
-                        if icons::button(ui, tool.icon(), 34.0, selected, tl!(tool.label())).clicked() {
-                            app.quick_tool = if selected { QuickTool::Select } else { QuickTool::Draft(tool) };
+    let mut text_tool = false;
+    egui::ScrollArea::horizontal().id_salt("draft-ribbon").scroll_bar_visibility(egui::scroll_area::ScrollBarVisibility::AlwaysHidden).show(
+        ui,
+        |ui| {
+            ui.horizontal(|ui| {
+                ui.spacing_mut().item_spacing.x = 4.0;
+                group(ui, &t, tl!("Sheet"), |ui| {
+                    if icons::button(ui, "file-plus-2", 34.0, false, tl!("New sheet at a drawing scale")).clicked() {
+                        app.draft.sheet.open = true;
+                        app.draft.sheet.add_to_document = active.is_some();
+                    }
+                });
+                separator(ui, &t);
+                ui.add_enabled_ui(allowed, |ui| {
+                    group(ui, &t, tl!("Draw"), |ui| {
+                        ui.horizontal(|ui| {
+                            ui.spacing_mut().item_spacing.x = 2.0;
+                            for tool in DraftTool::DRAW {
+                                let selected = app.quick_tool == QuickTool::Draft(tool);
+                                if icons::button(ui, tool.icon(), 34.0, selected, tl!(tool.label())).clicked() {
+                                    app.quick_tool = if selected { QuickTool::Select } else { QuickTool::Draft(tool) };
+                                }
+                            }
+                            let typing = app.quick_tool == QuickTool::Comment(crate::comments::CommentTool::TextBox);
+                            if icons::button(ui, "type", 34.0, typing, tl!("Text (a text box on the drawing)")).clicked() {
+                                text_tool = true;
+                            }
+                        });
+                    });
+                    separator(ui, &t);
+                    group(ui, &t, tl!("Modify"), |ui| {
+                        ui.horizontal(|ui| {
+                            ui.spacing_mut().item_spacing.x = 2.0;
+                            for tool in DraftTool::MODIFY {
+                                let selected = app.quick_tool == QuickTool::Draft(tool);
+                                if icons::button(ui, tool.icon(), 34.0, selected, tl!(tool.label())).clicked() {
+                                    app.quick_tool = if selected { QuickTool::Select } else { QuickTool::Draft(tool) };
+                                }
+                            }
+                        });
+                    });
+                });
+                separator(ui, &t);
+                group(ui, &t, tl!("Wall"), |ui| {
+                    ui.add(egui::DragValue::new(&mut app.draft.wall_inches).range(0.5..=48.0).speed(0.25).suffix(" in"))
+                        .on_hover_text(tl!("Wall thickness"));
+                });
+                separator(ui, &t);
+                group(ui, &t, tl!("Offset"), |ui| {
+                    ui.add(egui::DragValue::new(&mut app.draft.offset_inches).range(0.125..=1200.0).speed(0.5).suffix(" in"))
+                        .on_hover_text(tl!("Offset distance (or type it with the Offset tool, then Enter)"));
+                });
+                separator(ui, &t);
+                group(ui, &t, tl!("Type a length or coordinates, then Enter"), |ui| {
+                    ui.horizontal(|ui| {
+                        let Some((index, id)) = active else { return };
+                        let tool = match app.quick_tool {
+                            QuickTool::Draft(tool) => Some(tool),
+                            _ => None,
+                        };
+                        let r = ui.add_enabled(
+                            tool.is_some(),
+                            egui::TextEdit::singleline(&mut app.views[index].draft.input).desired_width(120.0).hint_text("15'6\"  @0,15  @15<90"),
+                        );
+                        if r.lost_focus()
+                            && ui.input(|i| i.key_pressed(egui::Key::Enter))
+                            && let Some(tool) = tool
+                            && let Some(doc) = app.session.get(id)
+                        {
+                            let mut settings = app.draft.clone();
+                            settings.author = app.comment_prefs.author.clone();
+                            let edit = submit(&mut app.views[index], doc, tool, &settings);
+                            if edit.is_some() {
+                                app.views[index].pending_edit = edit;
+                            }
+                            r.request_focus();
+                        }
+                        egui::ComboBox::from_id_salt("draft-bare-unit")
+                            .selected_text(if app.draft.bare == BareUnit::Feet { tl!("ft") } else { tl!("in") })
+                            .width(44.0)
+                            .show_ui(ui, |ui| {
+                                ui.selectable_value(&mut app.draft.bare, BareUnit::Feet, tl!("Plain numbers are feet"));
+                                ui.selectable_value(&mut app.draft.bare, BareUnit::Inches, tl!("Plain numbers are inches"));
+                            });
+                        if icons::button(ui, "hash", 28.0, app.draft.keypad, tl!("Keypad")).clicked() {
+                            app.draft.keypad = !app.draft.keypad;
+                        }
+                    });
+                });
+                separator(ui, &t);
+                group(ui, &t, tl!("Origin"), |ui| {
+                    if let Some((index, _)) = active {
+                        let setting = app.views[index].draft.setting_origin;
+                        if icons::button(ui, "plus", 34.0, setting, tl!("Set the origin: click a point on the page")).clicked() {
+                            app.views[index].draft.setting_origin = !setting;
+                            if !matches!(app.quick_tool, QuickTool::Draft(_)) {
+                                app.quick_tool = QuickTool::Draft(DraftTool::Line);
+                            }
                         }
                     }
                 });
             });
-        });
-        separator(ui, &t);
-        group(ui, &t, tl!("Wall"), |ui| {
-            ui.add(egui::DragValue::new(&mut app.draft.wall_inches).range(0.5..=48.0).speed(0.25).suffix(" in")).on_hover_text(tl!("Wall thickness"));
-        });
-        separator(ui, &t);
-        group(ui, &t, tl!("Type a length or coordinates, then Enter"), |ui| {
-            ui.horizontal(|ui| {
-                let Some((index, id)) = active else { return };
-                let tool = match app.quick_tool {
-                    QuickTool::Draft(tool) => Some(tool),
-                    _ => None,
-                };
-                let r = ui.add_enabled(
-                    tool.is_some(),
-                    egui::TextEdit::singleline(&mut app.views[index].draft.input).desired_width(120.0).hint_text("15'6\"  @0,15  @15<90"),
-                );
-                if r.lost_focus()
-                    && ui.input(|i| i.key_pressed(egui::Key::Enter))
-                    && let Some(tool) = tool
-                    && let Some(doc) = app.session.get(id)
-                {
-                    let mut settings = app.draft.clone();
-                    settings.author = app.comment_prefs.author.clone();
-                    let edit = submit(&mut app.views[index], doc, tool, &settings);
-                    if edit.is_some() {
-                        app.views[index].pending_edit = edit;
-                    }
-                    r.request_focus();
-                }
-                egui::ComboBox::from_id_salt("draft-bare-unit")
-                    .selected_text(if app.draft.bare == BareUnit::Feet { tl!("ft") } else { tl!("in") })
-                    .width(44.0)
-                    .show_ui(ui, |ui| {
-                        ui.selectable_value(&mut app.draft.bare, BareUnit::Feet, tl!("Plain numbers are feet"));
-                        ui.selectable_value(&mut app.draft.bare, BareUnit::Inches, tl!("Plain numbers are inches"));
-                    });
-                if icons::button(ui, "hash", 28.0, app.draft.keypad, tl!("Keypad")).clicked() {
-                    app.draft.keypad = !app.draft.keypad;
-                }
-            });
-        });
-        separator(ui, &t);
-        group(ui, &t, tl!("Origin"), |ui| {
-            if let Some((index, _)) = active {
-                let setting = app.views[index].draft.setting_origin;
-                if icons::button(ui, "plus", 34.0, setting, tl!("Set the origin: click a point on the page")).clicked() {
-                    app.views[index].draft.setting_origin = !setting;
-                    if !matches!(app.quick_tool, QuickTool::Draft(_)) {
-                        app.quick_tool = QuickTool::Draft(DraftTool::Line);
-                    }
-                }
-            }
-        });
-    });
+        },
+    );
+    if text_tool {
+        app.execute("comment.freetext");
+    }
     if let Some((index, _)) = active
         && let Some(e) = app.views[index].draft.error.clone()
     {

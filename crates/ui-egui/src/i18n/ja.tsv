@@ -2300,3 +2300,34 @@ key	Space	スペース
 	ft	ft
 	in	in
 	Draft	製図
+	Arc (start, a point on it, end)	円弧（始点、弧上の点、終点）
+	Circle (centre, then radius)	円（中心、次に半径）
+	Click near the end of a line to extend	線の端の近くをクリックして延長
+	Click the base point	基点をクリック
+	Click the centre to turn about	回転の中心をクリック
+	Click the line on the drawing.	図面上の線をクリックしてください。
+	Click the part of a line to cut away	切り取る線の部分をクリック
+	Click the side to offset to	オフセットする側をクリック
+	Copy (pick, base point, then each copy)	コピー（選択、基点、各コピーの位置）
+	Couldn't read “{text}” as a distance.	「{text}」を距離として読み取れません。
+	Couldn't read “{text}” as an angle in degrees.	「{text}」を角度（度）として読み取れません。
+	Data	データ
+	Dimension	寸法
+	Extend (click near an end to reach the next line)	延長（端の近くをクリックして次の線まで延ばす）
+	Form	フォーム
+	Give coordinates for the base point.	基点の座標を入力してください。
+	Modify	修正
+	Move (pick, base point, then where to)	移動（選択、基点、移動先）
+	Nothing ahead of this end to extend to	この端の先に延長できるものがありません
+	Nothing crosses this line to trim to	この線と交差する線がないためトリムできません
+	Offset	オフセット
+	Offset (a parallel copy at the offset distance)	オフセット（オフセット距離の平行コピー）
+	Offset distance (or type it with the Offset tool, then Enter)	オフセット距離（オフセットツールで入力して Enter でも可）
+	Pick the line or shape to offset	オフセットする線または図形を選択
+	Pick the markup	マークアップを選択
+	Pick the markup first.	先にマークアップを選択してください。
+	Rotate (pick, centre, then the angle)	回転（選択、中心、角度）
+	Show the author and comment when pointing at a markup	マークアップを指したときに作成者とコメントを表示
+	Text (a text box on the drawing)	テキスト（図面上のテキストボックス）
+	Tips	ヒント
+	Trim (click the part to cut away at crossing lines)	トリム（交差する線で切り取る部分をクリック）

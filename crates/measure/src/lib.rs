@@ -507,6 +507,27 @@ pub fn add(doc: &mut Document, new: &NewMeasurement, meta: &Meta) -> Result<usiz
     pdfcraft_annot::set_appearance(doc, r)?;
     Ok(index)
 }
+/// Recompute the reading of the measurement at `(page_index, index)` after its points changed
+/// (moved grips, a trim): the value and, when it still shows the old value, the comment text.
+/// Returns whether the annotation is a measurement. Other annotations are left alone.
+pub fn refresh(doc: &mut Document, page_index: usize, index: usize) -> Result<bool> {
+    let (r, mut d) = annot(doc, page_index, index)?;
+    let kind = match d.name(b"IT") {
+        Some(b"LineDimension") => Kind::Distance,
+        Some(b"PolyLineDimension") => Kind::Perimeter,
+        Some(b"PolygonDimension") => Kind::Area,
+        _ => return Ok(false),
+    };
+    let m = read_measurement(doc, &d, kind, page_index, index)?;
+    let old = text(&d, b"PCMeasureValue");
+    if text(&d, b"Contents") == old || old.is_empty() {
+        d.set(b"Contents".to_vec(), PdfString::text(&m.reading.label));
+    }
+    d.set(b"PCMeasureValue".to_vec(), PdfString::text(&m.reading.label));
+    doc.update_dict(r, |target| *target = d).map_err(|e| invalid(&e.to_string()))?;
+    pdfcraft_annot::set_appearance(doc, r)?;
+    Ok(true)
+}
 #[derive(Clone, Debug, PartialEq, Serialize)]
 pub struct Measurement {
     pub page: usize,

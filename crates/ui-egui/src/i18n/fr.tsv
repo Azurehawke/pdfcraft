@@ -2300,3 +2300,34 @@ key	Space	Espace
 	ft	pi
 	in	po
 	Draft	Dessin
+	Arc (start, a point on it, end)	Arc (début, un point de l'arc, fin)
+	Circle (centre, then radius)	Cercle (centre, puis rayon)
+	Click near the end of a line to extend	Cliquez près de l'extrémité d'une ligne pour la prolonger
+	Click the base point	Cliquez sur le point de base
+	Click the centre to turn about	Cliquez sur le centre de rotation
+	Click the line on the drawing.	Cliquez sur la ligne dans le dessin.
+	Click the part of a line to cut away	Cliquez sur la partie de ligne à supprimer
+	Click the side to offset to	Cliquez du côté où décaler
+	Copy (pick, base point, then each copy)	Copier (choisir, point de base, puis chaque copie)
+	Couldn't read “{text}” as a distance.	Impossible de lire « {text} » comme distance.
+	Couldn't read “{text}” as an angle in degrees.	Impossible de lire « {text} » comme angle en degrés.
+	Data	Données
+	Dimension	Cote
+	Extend (click near an end to reach the next line)	Prolonger (cliquez près d'une extrémité pour atteindre la ligne suivante)
+	Form	Formulaire
+	Give coordinates for the base point.	Indiquez les coordonnées du point de base.
+	Modify	Modifier
+	Move (pick, base point, then where to)	Déplacer (choisir, point de base, puis destination)
+	Nothing ahead of this end to extend to	Rien devant cette extrémité pour la prolonger
+	Nothing crosses this line to trim to	Aucune ligne ne croise celle-ci pour l'ajuster
+	Offset	Décalage
+	Offset (a parallel copy at the offset distance)	Décaler (une copie parallèle à la distance de décalage)
+	Offset distance (or type it with the Offset tool, then Enter)	Distance de décalage (ou saisissez-la avec l'outil Décaler, puis Entrée)
+	Pick the line or shape to offset	Choisissez la ligne ou la forme à décaler
+	Pick the markup	Choisissez l'annotation
+	Pick the markup first.	Choisissez d'abord l'annotation.
+	Rotate (pick, centre, then the angle)	Faire pivoter (choisir, centre, puis angle)
+	Show the author and comment when pointing at a markup	Afficher l'auteur et le commentaire au survol d'une annotation
+	Text (a text box on the drawing)	Texte (une zone de texte sur le dessin)
+	Tips	Infobulles
+	Trim (click the part to cut away at crossing lines)	Ajuster (cliquez sur la partie à couper aux lignes qui la croisent)

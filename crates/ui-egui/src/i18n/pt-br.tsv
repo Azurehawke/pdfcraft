@@ -2302,3 +2302,34 @@ key	Space	Espaço
 	ft	pés
 	in	pol
 	Draft	Desenho
+	Arc (start, a point on it, end)	Arco (início, um ponto do arco, fim)
+	Circle (centre, then radius)	Círculo (centro, depois raio)
+	Click near the end of a line to extend	Clique perto da ponta de uma linha para estendê-la
+	Click the base point	Clique no ponto base
+	Click the centre to turn about	Clique no centro da rotação
+	Click the line on the drawing.	Clique na linha do desenho.
+	Click the part of a line to cut away	Clique na parte da linha a remover
+	Click the side to offset to	Clique no lado para onde deslocar
+	Copy (pick, base point, then each copy)	Copiar (escolher, ponto base, depois cada cópia)
+	Couldn't read “{text}” as a distance.	Não foi possível ler “{text}” como distância.
+	Couldn't read “{text}” as an angle in degrees.	Não foi possível ler “{text}” como ângulo em graus.
+	Data	Dados
+	Dimension	Cota
+	Extend (click near an end to reach the next line)	Estender (clique perto de uma ponta para alcançar a próxima linha)
+	Form	Formulário
+	Give coordinates for the base point.	Informe as coordenadas do ponto base.
+	Modify	Modificar
+	Move (pick, base point, then where to)	Mover (escolher, ponto base, depois destino)
+	Nothing ahead of this end to extend to	Nada à frente desta ponta para estender até lá
+	Nothing crosses this line to trim to	Nenhuma linha cruza esta para aparar
+	Offset	Deslocamento
+	Offset (a parallel copy at the offset distance)	Deslocar (uma cópia paralela na distância de deslocamento)
+	Offset distance (or type it with the Offset tool, then Enter)	Distância de deslocamento (ou digite-a com a ferramenta Deslocar, depois Enter)
+	Pick the line or shape to offset	Escolha a linha ou forma a deslocar
+	Pick the markup	Escolha a marcação
+	Pick the markup first.	Escolha a marcação primeiro.
+	Rotate (pick, centre, then the angle)	Girar (escolher, centro, depois ângulo)
+	Show the author and comment when pointing at a markup	Mostrar autor e comentário ao apontar para uma marcação
+	Text (a text box on the drawing)	Texto (uma caixa de texto no desenho)
+	Tips	Dicas
+	Trim (click the part to cut away at crossing lines)	Aparar (clique na parte a cortar entre linhas que a cruzam)

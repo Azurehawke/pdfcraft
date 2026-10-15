@@ -22,10 +22,13 @@ pub enum Workflow {
     Symbols,
     /// Drawing at scale ([`crate::draft::ribbon`]).
     Draft,
+    /// Building fillable forms: field tools, tab order and form data.
+    Forms,
 }
 
 impl Workflow {
-    pub const ALL: [Workflow; 6] = [Workflow::Markup, Workflow::Draft, Workflow::Symbols, Workflow::Measure, Workflow::Review, Workflow::Document];
+    pub const ALL: [Workflow; 7] =
+        [Workflow::Markup, Workflow::Draft, Workflow::Symbols, Workflow::Measure, Workflow::Review, Workflow::Forms, Workflow::Document];
 
     /// The English tab name, translated where it is shown.
     pub fn label(self) -> &'static str {
@@ -36,6 +39,7 @@ impl Workflow {
             Self::Document => "Document",
             Self::Symbols => "Symbols",
             Self::Draft => "Draft",
+            Self::Forms => "Forms",
         }
     }
 
@@ -73,6 +77,25 @@ impl Workflow {
                 ("Edit", &["edit.edit_text", "edit.text", "edit.image", "edit.link"]),
                 ("Secure", &["redact.mark", "protect.password", "sign.digital"]),
             ],
+            Self::Forms => &[
+                (
+                    "Fields",
+                    &[
+                        "form.add.text",
+                        "form.add.checkbox",
+                        "form.add.radio",
+                        "form.add.combo",
+                        "form.add.list",
+                        "form.add.date",
+                        "form.add.button",
+                        "form.add.image",
+                        "form.add.signature",
+                    ],
+                ),
+                ("Form", &["form.prepare", "form.detect", "form.field.properties", "form.fields"]),
+                ("Tab order", &["form.tab_order.row", "form.tab_order.column", "form.tab_order.structure"]),
+                ("Data", &["form.clear", "form.import_data", "form.export_data", "form.flatten"]),
+            ],
             Self::Symbols | Self::Draft => &[],
         }
     }
@@ -89,6 +112,8 @@ fn icon(id: &str, registry: &'static str) -> &'static str {
         "measure.snap" => "grid-3x3",
         "measure.info" => "info",
         "measure.export" => "file-spreadsheet",
+        "form.prepare" => "list-checks",
+        "form.fields" => "panel-right",
         _ => registry,
     }
 }
@@ -97,6 +122,9 @@ fn icon(id: &str, registry: &'static str) -> &'static str {
 fn tool_active(app: &PdfCraftApp, id: &str) -> bool {
     if let Some(tool) = crate::comments::CommentTool::from_command(id) {
         return app.quick_tool == QuickTool::Comment(tool);
+    }
+    if let Some(tool) = crate::prepare::FieldTool::from_command(id) {
+        return app.quick_tool == QuickTool::Field(tool);
     }
     match id.strip_prefix("measure.").and_then(crate::measure_ui::Tool::from_name) {
         Some(tool) => app.quick_tool == QuickTool::Measure(tool),

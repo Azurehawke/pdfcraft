@@ -638,6 +638,8 @@ fn comment_page(edit: &Edit) -> Option<usize> {
         | Edit::SetAnnotationStatus { page, .. }
         | Edit::MoveAnnotation { page, .. }
         | Edit::ResizeAnnotation { page, .. }
+        | Edit::SetVertices { page, .. }
+        | Edit::TransformAnnotation { page, .. }
         | Edit::StyleAnnotation { page, .. }
         | Edit::FillAnnotation { page, .. }
         | Edit::SetAnnotationInfo { page, .. } => Some(*page),

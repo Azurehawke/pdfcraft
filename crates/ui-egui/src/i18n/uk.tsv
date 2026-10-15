@@ -2324,3 +2324,34 @@ key	Space	Пробіл
 	ft	фт
 	in	дюйм
 	Draft	Креслення
+	Arc (start, a point on it, end)	Дуга (початок, точка на дузі, кінець)
+	Circle (centre, then radius)	Коло (центр, потім радіус)
+	Click near the end of a line to extend	Клацніть біля кінця лінії, щоб подовжити її
+	Click the base point	Клацніть базову точку
+	Click the centre to turn about	Клацніть центр повороту
+	Click the line on the drawing.	Клацніть лінію на кресленні.
+	Click the part of a line to cut away	Клацніть частину лінії, яку треба відрізати
+	Click the side to offset to	Клацніть бік, у який робити зміщення
+	Copy (pick, base point, then each copy)	Копіювати (вибір, базова точка, потім кожна копія)
+	Couldn't read “{text}” as a distance.	Не вдалося прочитати «{text}» як відстань.
+	Couldn't read “{text}” as an angle in degrees.	Не вдалося прочитати «{text}» як кут у градусах.
+	Data	Дані
+	Dimension	Розмір
+	Extend (click near an end to reach the next line)	Подовжити (клацніть біля кінця, щоб дотягнути до наступної лінії)
+	Form	Форма
+	Give coordinates for the base point.	Укажіть координати базової точки.
+	Modify	Змінити
+	Move (pick, base point, then where to)	Перемістити (вибір, базова точка, потім куди)
+	Nothing ahead of this end to extend to	Перед цим кінцем немає нічого, до чого можна подовжити
+	Nothing crosses this line to trim to	Цю лінію не перетинає нічого, по чому можна обрізати
+	Offset	Зміщення
+	Offset (a parallel copy at the offset distance)	Зміщення (паралельна копія на відстані зміщення)
+	Offset distance (or type it with the Offset tool, then Enter)	Відстань зміщення (або введіть її інструментом «Зміщення», потім Enter)
+	Pick the line or shape to offset	Виберіть лінію чи фігуру для зміщення
+	Pick the markup	Виберіть позначку
+	Pick the markup first.	Спершу виберіть позначку.
+	Rotate (pick, centre, then the angle)	Повернути (вибір, центр, потім кут)
+	Show the author and comment when pointing at a markup	Показувати автора й коментар при наведенні на позначку
+	Text (a text box on the drawing)	Текст (текстове поле на кресленні)
+	Tips	Підказки
+	Trim (click the part to cut away at crossing lines)	Обрізати (клацніть частину, що відрізається по лініях, які її перетинають)

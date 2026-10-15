@@ -2934,3 +2934,35 @@ fn layers_symbols_and_photos() {
         .is_err()
     );
 }
+
+#[test]
+fn drafting_edits_change_points_copy_and_rotate() {
+    let mut session = Session::default();
+    let id = session.open("plan.pdf", None, Arc::new(fixture(1)), None).unwrap();
+    let m = measure::NewMeasurement {
+        page: 0,
+        kind: measure::Kind::Distance,
+        points: vec![[10.0, 20.0], [40.0, 20.0]],
+        scale: measure::Scale::new(0.1, "m", 2).unwrap(),
+        style: Style::default(),
+        label: String::new(),
+        author: "Tester".into(),
+    };
+    session.apply(id, Edit::AddMeasurement(m)).unwrap();
+    // A grip moved: the measurement reads the new length.
+    session.apply(id, Edit::SetVertices { page: 0, index: 0, vertices: vec![[10.0, 20.0], [60.0, 20.0]], copy: false }).unwrap();
+    let doc = session.get(id).unwrap();
+    assert_eq!(doc.measurements().unwrap().measurements[0].reading.label, "5.00 m");
+    assert_eq!(doc.can_undo(), Some("Edit points"));
+    // A copy moved 30 points up, then the original turned a quarter about its start.
+    session.apply(id, Edit::TransformAnnotation { page: 0, index: 0, matrix: [1.0, 0.0, 0.0, 1.0, 0.0, 30.0], copy: true }).unwrap();
+    session.apply(id, Edit::TransformAnnotation { page: 0, index: 0, matrix: geometry::rotation([10.0, 20.0], 90.0), copy: false }).unwrap();
+    let doc = session.get(id).unwrap();
+    let g = doc.markup_geometry(0);
+    assert_eq!(g.len(), 2);
+    assert!((g[0].points[1][0] - 10.0).abs() < 1e-6 && (g[0].points[1][1] - 70.0).abs() < 1e-6, "{:?}", g[0].points);
+    assert!((g[1].points[0][1] - 50.0).abs() < 1e-6, "{:?}", g[1].points);
+    assert_eq!(doc.measurements().unwrap().measurements.len(), 2, "the copy is a measurement too");
+    assert_eq!(doc.can_undo(), Some("Rotate markup"));
+    assert!(session.apply(id, Edit::SetVertices { page: 0, index: 5, vertices: vec![[0.0, 0.0], [9.0, 9.0]], copy: false }).is_err());
+}

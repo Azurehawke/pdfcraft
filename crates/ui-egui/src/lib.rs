@@ -72,6 +72,7 @@ mod dialog;
 mod dialogs;
 mod dock;
 mod draft;
+mod draft_edit;
 mod edit_text_ui;
 mod editing;
 mod files;
@@ -1449,6 +1450,7 @@ impl PdfCraftApp {
             "date_language": self.session.date_language(),
             "author": self.comment_prefs.author,
             "draw_pen": self.comment_prefs.pen.name(),
+            "hover_tips": self.comment_prefs.hover_tips,
             // Per-tool comment defaults (colours, opacity, widths), so Make Current
             // Properties Default survives a restart (#340).
             "comment_styles": self
@@ -1544,6 +1546,9 @@ impl PdfCraftApp {
         // name is cut to a sane length.
         if let Some(author) = v["author"].as_str().map(str::trim).filter(|a| !a.is_empty()) {
             self.comment_prefs.author = author.chars().take(MAX_AUTHOR_CHARS).collect();
+        }
+        if let Some(tips) = v["hover_tips"].as_bool() {
+            self.comment_prefs.hover_tips = tips;
         }
         if let Some(pen) = v["draw_pen"].as_str().and_then(|p| pdfcraft_engine::PenKind::from_name(p.as_bytes())) {
             self.comment_prefs.pen = pen;
@@ -1849,6 +1854,13 @@ impl PdfCraftApp {
                 };
             }
             ("author", _) => self.comment_prefs.author = value.to_string(),
+            ("hover-tips", _) => {
+                self.comment_prefs.hover_tips = match value {
+                    "true" => true,
+                    "false" => false,
+                    _ => return Err("hover-tips must be true or false".into()),
+                };
+            }
             ("flatten-fill-sign", _) => {
                 self.flatten_fill_sign_on_save = match value {
                     "true" => true,

@@ -252,6 +252,9 @@ pub struct CommentPrefs {
     pub group_tool: [CommentTool; 3],
     /// The Draw tool's pen (fountain pen, calligraphy…).
     pub pen: PenKind,
+    /// Show the author and comment when the pointer rests on a markup. Never shown while a
+    /// draft or measure tool is placing points, where it would cover the lengths.
+    pub hover_tips: bool,
 }
 
 impl Default for CommentPrefs {
@@ -262,6 +265,7 @@ impl Default for CommentPrefs {
             pinned: false,
             group_tool: [CommentTool::Note, CommentTool::Highlight, CommentTool::Ink],
             pen: PenKind::default(),
+            hover_tips: true,
         }
     }
 }
@@ -497,7 +501,7 @@ impl PageCx<'_> {
     }
 
     /// The topmost comment under `p`.
-    fn hit(&self, p: Pos2) -> Option<&Annotation> {
+    pub(crate) fn hit(&self, p: Pos2) -> Option<&Annotation> {
         self.comments().filter(|a| self.screen_rects(a).iter().any(|r| r.expand(3.0).contains(p))).last()
     }
 

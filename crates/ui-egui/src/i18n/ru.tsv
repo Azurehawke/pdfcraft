@@ -2213,3 +2213,34 @@ key	Space	Пробел
 	ft	фт
 	in	дюйм
 	Draft	Черчение
+	Arc (start, a point on it, end)	Дуга (начало, точка на дуге, конец)
+	Circle (centre, then radius)	Окружность (центр, затем радиус)
+	Click near the end of a line to extend	Щёлкните у конца линии, чтобы удлинить её
+	Click the base point	Щёлкните базовую точку
+	Click the centre to turn about	Щёлкните центр поворота
+	Click the line on the drawing.	Щёлкните линию на чертеже.
+	Click the part of a line to cut away	Щёлкните часть линии, которую нужно отрезать
+	Click the side to offset to	Щёлкните сторону, в которую делать смещение
+	Copy (pick, base point, then each copy)	Копировать (выбор, базовая точка, затем каждая копия)
+	Couldn't read “{text}” as a distance.	Не удалось прочитать «{text}» как расстояние.
+	Couldn't read “{text}” as an angle in degrees.	Не удалось прочитать «{text}» как угол в градусах.
+	Data	Данные
+	Dimension	Размер
+	Extend (click near an end to reach the next line)	Удлинить (щёлкните у конца, чтобы дотянуть до следующей линии)
+	Form	Форма
+	Give coordinates for the base point.	Укажите координаты базовой точки.
+	Modify	Изменить
+	Move (pick, base point, then where to)	Переместить (выбор, базовая точка, затем куда)
+	Nothing ahead of this end to extend to	Перед этим концом нет ничего, до чего можно удлинить
+	Nothing crosses this line to trim to	Эту линию не пересекает ничего, по чему можно обрезать
+	Offset	Смещение
+	Offset (a parallel copy at the offset distance)	Смещение (параллельная копия на расстоянии смещения)
+	Offset distance (or type it with the Offset tool, then Enter)	Расстояние смещения (или введите его инструментом «Смещение», затем Enter)
+	Pick the line or shape to offset	Выберите линию или фигуру для смещения
+	Pick the markup	Выберите пометку
+	Pick the markup first.	Сначала выберите пометку.
+	Rotate (pick, centre, then the angle)	Повернуть (выбор, центр, затем угол)
+	Show the author and comment when pointing at a markup	Показывать автора и комментарий при наведении на пометку
+	Text (a text box on the drawing)	Текст (текстовое поле на чертеже)
+	Tips	Подсказки
+	Trim (click the part to cut away at crossing lines)	Обрезать (щёлкните часть, отрезаемую по пересекающим линиям)

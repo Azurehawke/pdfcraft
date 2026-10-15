@@ -1769,6 +1769,10 @@ pub fn document_area(app: &mut PdfCraftApp, index: usize, ui: &mut egui::Ui) {
     // Edit a PDF: added text and images can be selected, moved and edited.
     let editing_content = (app.left_open && app.left == crate::LeftPanel::Tool("edit")) || app.quick_tool == QuickTool::AddText;
     let text_style = app.text_style.clone();
+    // An offset distance typed with the Offset tool becomes the shared setting.
+    if let Some(v) = app.views.get_mut(index).and_then(|v| v.draft.typed_offset.take()) {
+        app.draft.offset_inches = v;
+    }
     let mut draft_settings = app.draft.clone();
     draft_settings.author = app.comment_prefs.author.clone();
     let draft_tool = match app.quick_tool {
@@ -2010,6 +2014,7 @@ pub fn document_area(app: &mut PdfCraftApp, index: usize, ui: &mut egui::Ui) {
     let initials = app.initials.clone();
     let mut open_initials = false;
     let author = app.comment_prefs.author.clone();
+    let hover_tips = app.comment_prefs.hover_tips;
     let today = app.session.today();
     // In Preferences ▸ Date format, or why it can't be stamped into the PDF.
     let date_text = crate::date_text_for_pdf(&app.session);
@@ -2410,7 +2415,13 @@ pub fn document_area(app: &mut PdfCraftApp, index: usize, ui: &mut egui::Ui) {
                 }
             };
             let on_link = tool == QuickTool::Link && can_modify && crate::link_ui::page_input(ui, &resp, &xf, i, info, &doc_links, view);
-            let consumed = on_edit_text || on_link || on_content || boxing || on_field || comments::page_input(ui, &resp, &pcx, view);
+            let consumed = on_edit_text
+                || on_link
+                || on_content
+                || boxing
+                || on_field
+                || (tool == QuickTool::Select && crate::draft_edit::grips(ui, doc, view, &pcx, draft_settings.ortho))
+                || comments::page_input(ui, &resp, &pcx, view);
 
             let preview_target =
                 (matches!(tool, QuickTool::Select | QuickTool::Fill(_)) && !comments_hidden).then_some(view.comments.selected).flatten();
@@ -2599,7 +2610,9 @@ pub fn document_area(app: &mut PdfCraftApp, index: usize, ui: &mut egui::Ui) {
                 // Annotation hover shows the comment, as Acrobat's popups do; not while drawing
                 // freehand, where it would cover the next stroke (#429).
                 let freehand = matches!(tool, QuickTool::Comment(comments::CommentTool::Ink | comments::CommentTool::Eraser));
-                let gesturing = view.comments.gesture.is_some() || freehand;
+                // Nor while drafting or measuring, where it covers the lengths, nor when turned off.
+                let placing = matches!(tool, QuickTool::Draft(_)) || view.measure.tool.is_some() || !view.draft.points.is_empty();
+                let gesturing = view.comments.gesture.is_some() || freehand || placing || !hover_tips;
                 for a in info.annotations.iter().filter(|a| a.page == i && a.in_reply_to.is_none() && !gesturing) {
                     let sr = xf.user_rect(info, i, a.rect);
                     if sr.contains(p) && hover_text.is_none() {

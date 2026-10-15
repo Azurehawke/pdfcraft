@@ -2265,3 +2265,34 @@ key	Space	空格
 	ft	英尺
 	in	英寸
 	Draft	绘图
+	Arc (start, a point on it, end)	圆弧（起点、弧上一点、终点）
+	Circle (centre, then radius)	圆（圆心，然后半径）
+	Click near the end of a line to extend	单击线条端点附近以延伸
+	Click the base point	单击基点
+	Click the centre to turn about	单击旋转中心
+	Click the line on the drawing.	请单击图纸上的线条。
+	Click the part of a line to cut away	单击要剪掉的线段部分
+	Click the side to offset to	单击要偏移到的一侧
+	Copy (pick, base point, then each copy)	复制（选择、基点，然后每个副本）
+	Couldn't read “{text}” as a distance.	无法将“{text}”读取为距离。
+	Couldn't read “{text}” as an angle in degrees.	无法将“{text}”读取为角度（度）。
+	Data	数据
+	Dimension	尺寸标注
+	Extend (click near an end to reach the next line)	延伸（单击端点附近以延伸到下一条线）
+	Form	表单
+	Give coordinates for the base point.	请输入基点坐标。
+	Modify	修改
+	Move (pick, base point, then where to)	移动（选择、基点，然后目标位置）
+	Nothing ahead of this end to extend to	此端点前方没有可延伸到的对象
+	Nothing crosses this line to trim to	没有线条与此线相交，无法修剪
+	Offset	偏移
+	Offset (a parallel copy at the offset distance)	偏移（按偏移距离生成平行副本）
+	Offset distance (or type it with the Offset tool, then Enter)	偏移距离（也可用偏移工具输入后按 Enter）
+	Pick the line or shape to offset	选择要偏移的线条或形状
+	Pick the markup	选择标记
+	Pick the markup first.	请先选择标记。
+	Rotate (pick, centre, then the angle)	旋转（选择、中心，然后角度）
+	Show the author and comment when pointing at a markup	指向标记时显示作者和注释
+	Text (a text box on the drawing)	文本（图纸上的文本框）
+	Tips	提示
+	Trim (click the part to cut away at crossing lines)	修剪（单击在相交线条处要剪掉的部分）

@@ -2309,3 +2309,34 @@ key	Space	Spazio
 	ft	ft
 	in	in
 	Draft	Disegno
+	Arc (start, a point on it, end)	Arco (inizio, un punto dell'arco, fine)
+	Circle (centre, then radius)	Cerchio (centro, poi raggio)
+	Click near the end of a line to extend	Fai clic vicino all'estremità di una linea per estenderla
+	Click the base point	Fai clic sul punto base
+	Click the centre to turn about	Fai clic sul centro di rotazione
+	Click the line on the drawing.	Fai clic sulla linea nel disegno.
+	Click the part of a line to cut away	Fai clic sulla parte di linea da eliminare
+	Click the side to offset to	Fai clic sul lato verso cui creare l'offset
+	Copy (pick, base point, then each copy)	Copia (scegli, punto base, poi ogni copia)
+	Couldn't read “{text}” as a distance.	Impossibile leggere «{text}» come distanza.
+	Couldn't read “{text}” as an angle in degrees.	Impossibile leggere «{text}» come angolo in gradi.
+	Data	Dati
+	Dimension	Quota
+	Extend (click near an end to reach the next line)	Estendi (fai clic vicino a un'estremità per raggiungere la linea successiva)
+	Form	Modulo
+	Give coordinates for the base point.	Indica le coordinate del punto base.
+	Modify	Modifica
+	Move (pick, base point, then where to)	Sposta (scegli, punto base, poi destinazione)
+	Nothing ahead of this end to extend to	Niente davanti a questa estremità a cui estenderla
+	Nothing crosses this line to trim to	Nessuna linea incrocia questa per tagliarla
+	Offset	Offset
+	Offset (a parallel copy at the offset distance)	Offset (una copia parallela alla distanza di offset)
+	Offset distance (or type it with the Offset tool, then Enter)	Distanza di offset (o digitala con lo strumento Offset, poi Invio)
+	Pick the line or shape to offset	Scegli la linea o la forma da copiare in offset
+	Pick the markup	Scegli l'annotazione
+	Pick the markup first.	Scegli prima l'annotazione.
+	Rotate (pick, centre, then the angle)	Ruota (scegli, centro, poi angolo)
+	Show the author and comment when pointing at a markup	Mostra autore e commento puntando un'annotazione
+	Text (a text box on the drawing)	Testo (una casella di testo sul disegno)
+	Tips	Suggerimenti
+	Trim (click the part to cut away at crossing lines)	Taglia (fai clic sulla parte da eliminare tra le linee che la incrociano)

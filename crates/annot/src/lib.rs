@@ -19,6 +19,7 @@ use pdfcraft_cos::{Dict, Document, ObjRef, Object, PdfString};
 pub mod appearance;
 pub mod pen;
 pub use pen::PenKind;
+pub mod geometry;
 pub mod layers;
 pub mod links;
 pub mod symbols;

@@ -2262,3 +2262,34 @@ key	Space	Интервал
 	ft	фт
 	in	инч
 	Draft	Чертане
+	Arc (start, a point on it, end)	Дъга (начало, точка от нея, край)
+	Circle (centre, then radius)	Окръжност (център, после радиус)
+	Click near the end of a line to extend	Щракнете близо до края на линия, за да я удължите
+	Click the base point	Щракнете базовата точка
+	Click the centre to turn about	Щракнете центъра на завъртане
+	Click the line on the drawing.	Щракнете линията в чертежа.
+	Click the part of a line to cut away	Щракнете частта от линията за изрязване
+	Click the side to offset to	Щракнете страната, към която да е отместването
+	Copy (pick, base point, then each copy)	Копиране (избор, базова точка, после всяко копие)
+	Couldn't read “{text}” as a distance.	„{text}“ не може да се разчете като разстояние.
+	Couldn't read “{text}” as an angle in degrees.	„{text}“ не може да се разчете като ъгъл в градуси.
+	Data	Данни
+	Dimension	Оразмеряване
+	Extend (click near an end to reach the next line)	Удължаване (щракнете близо до край, за да стигне до следващата линия)
+	Form	Формуляр
+	Give coordinates for the base point.	Задайте координати за базовата точка.
+	Modify	Промяна
+	Move (pick, base point, then where to)	Преместване (избор, базова точка, после къде)
+	Nothing ahead of this end to extend to	Пред този край няма нищо, до което да се удължи
+	Nothing crosses this line to trim to	Нищо не пресича тази линия, за да се изреже
+	Offset	Отместване
+	Offset (a parallel copy at the offset distance)	Отместване (успоредно копие на разстоянието за отместване)
+	Offset distance (or type it with the Offset tool, then Enter)	Разстояние за отместване (или го въведете с инструмента за отместване, после Enter)
+	Pick the line or shape to offset	Изберете линия или фигура за отместване
+	Pick the markup	Изберете маркировката
+	Pick the markup first.	Първо изберете маркировката.
+	Rotate (pick, centre, then the angle)	Завъртане (избор, център, после ъгъл)
+	Show the author and comment when pointing at a markup	Показване на автора и коментара при посочване на маркировка
+	Text (a text box on the drawing)	Текст (текстово поле в чертежа)
+	Tips	Подсказки
+	Trim (click the part to cut away at crossing lines)	Изрязване (щракнете частта за изрязване между пресичащите линии)

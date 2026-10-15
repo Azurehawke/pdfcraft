@@ -75,6 +75,9 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
                             .on_hover_text(tl!("Snap to ends, middles and crossings of the drawing"));
                     }
                     let _ = ui
+                        .toggle_value(&mut app.comment_prefs.hover_tips, egui::RichText::new(tl!("Tips")).font(font.clone()))
+                        .on_hover_text(tl!("Show the author and comment when pointing at a markup"));
+                    let _ = ui
                         .toggle_value(&mut app.draft.ortho, egui::RichText::new(tl!("Ortho")).font(font.clone()))
                         .on_hover_text(tl!("Draw only horizontal and vertical lines (hold Shift for the other way)"));
                 });

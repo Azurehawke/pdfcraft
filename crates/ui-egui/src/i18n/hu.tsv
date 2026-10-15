@@ -2298,3 +2298,34 @@ key	Space	Szóköz
 	ft	ft
 	in	in
 	Draft	Rajzolás
+	Arc (start, a point on it, end)	Ív (kezdet, egy pont rajta, vég)
+	Circle (centre, then radius)	Kör (középpont, majd sugár)
+	Click near the end of a line to extend	Kattintson egy vonal vége közelébe a meghosszabbításhoz
+	Click the base point	Kattintson a bázispontra
+	Click the centre to turn about	Kattintson a forgatás középpontjára
+	Click the line on the drawing.	Kattintson a vonalra a rajzon.
+	Click the part of a line to cut away	Kattintson a vonal levágandó részére
+	Click the side to offset to	Kattintson arra az oldalra, ahová eltol
+	Copy (pick, base point, then each copy)	Másolás (kijelölés, bázispont, majd minden másolat)
+	Couldn't read “{text}” as a distance.	„{text}” nem értelmezhető távolságként.
+	Couldn't read “{text}” as an angle in degrees.	„{text}” nem értelmezhető fokban megadott szögként.
+	Data	Adatok
+	Dimension	Méretvonal
+	Extend (click near an end to reach the next line)	Meghosszabbítás (kattintson egy vég közelébe a következő vonalig)
+	Form	Űrlap
+	Give coordinates for the base point.	Adja meg a bázispont koordinátáit.
+	Modify	Módosítás
+	Move (pick, base point, then where to)	Mozgatás (kijelölés, bázispont, majd cél)
+	Nothing ahead of this end to extend to	E vég előtt nincs semmi, ameddig meghosszabbítható
+	Nothing crosses this line to trim to	Semmi nem metszi ezt a vonalat a levágáshoz
+	Offset	Eltolás
+	Offset (a parallel copy at the offset distance)	Eltolás (párhuzamos másolat az eltolási távolságra)
+	Offset distance (or type it with the Offset tool, then Enter)	Eltolási távolság (vagy írja be az Eltolás eszközzel, majd Enter)
+	Pick the line or shape to offset	Válassza ki az eltolandó vonalat vagy alakzatot
+	Pick the markup	Válassza ki a jelölést
+	Pick the markup first.	Előbb válassza ki a jelölést.
+	Rotate (pick, centre, then the angle)	Forgatás (kijelölés, középpont, majd szög)
+	Show the author and comment when pointing at a markup	Szerző és megjegyzés mutatása, ha a mutató egy jelölésen áll
+	Text (a text box on the drawing)	Szöveg (szövegdoboz a rajzon)
+	Tips	Tippek
+	Trim (click the part to cut away at crossing lines)	Levágás (kattintson a metsző vonalak közti levágandó részre)

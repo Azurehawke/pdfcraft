@@ -101,7 +101,7 @@ pub use pdfcraft_annot::{
     AttachIcon, FillMark, LineEnding, Markup, NOTE_SIZE, NewAnnotation, NoteIcon, OverlayFont, OverlayLook, PenKind, Props as CommentProps,
     ReviewState, Rgb, Shape, StampGroup, StampKind, Style, rect_quad,
 };
-pub use pdfcraft_annot::{layers, symbols};
+pub use pdfcraft_annot::{geometry, layers, symbols};
 pub use pdfcraft_forms::detect;
 pub use pdfcraft_optimize as optimize;
 pub use pdfcraft_preflight as pdfa;
@@ -188,6 +188,8 @@ fn scope_of(edit: &Edit) -> Scope {
         | Edit::EraseInk { .. }
         | Edit::MoveAnnotation { .. }
         | Edit::ResizeAnnotation { .. }
+        | Edit::SetVertices { .. }
+        | Edit::TransformAnnotation { .. }
         | Edit::StyleAnnotation { .. }
         | Edit::FillAnnotation { .. }
         | Edit::SetAnnotationInfo { .. } => Scope::Comments,
@@ -314,6 +316,11 @@ impl Document {
     /// Points in the markup on `page` that drafting snaps to (line ends, vertices, corners).
     pub fn markup_vertices(&self, page: usize) -> Vec<[f64; 2]> {
         self.editor.as_ref().map(|e| pdfcraft_annot::symbols::markup_vertices(&e.cos, page)).unwrap_or_default()
+    }
+
+    /// The lines, polylines and polygons on `page`, for drafting's grips, trim, extend and offset.
+    pub fn markup_geometry(&self, page: usize) -> Vec<pdfcraft_annot::geometry::Geometry> {
+        self.editor.as_ref().map(|e| pdfcraft_annot::geometry::page_geometry(&e.cos, page)).unwrap_or_default()
     }
 
     /// RevuCraft's layers, with their colours and locks.
@@ -935,6 +942,23 @@ pub enum Edit {
         index: usize,
         rect: [f64; 4],
     },
+    /// RevuCraft drafting: replace the points of a line, polyline or polygon (grips, trim,
+    /// extend), or add a copy with these points (offset, the far piece of a trim). A measurement
+    /// gets its value recomputed.
+    SetVertices {
+        page: usize,
+        index: usize,
+        vertices: Vec<[f64; 2]>,
+        copy: bool,
+    },
+    /// RevuCraft drafting: move or rotate markup by an affine matrix `[a b c d e f]`, or add a
+    /// transformed copy.
+    TransformAnnotation {
+        page: usize,
+        index: usize,
+        matrix: [f64; 6],
+        copy: bool,
+    },
     StyleAnnotation {
         page: usize,
         index: usize,
@@ -1240,6 +1264,11 @@ impl Edit {
             Edit::LockAnnotation { .. } => "Unlock comment".into(),
             Edit::MoveAnnotation { .. } => "Move comment".into(),
             Edit::ResizeAnnotation { .. } => "Resize comment".into(),
+            Edit::SetVertices { copy: false, .. } => "Edit points".into(),
+            Edit::SetVertices { copy: true, .. } => "Offset".into(),
+            Edit::TransformAnnotation { copy: true, .. } => "Copy markup".into(),
+            Edit::TransformAnnotation { matrix, .. } if matrix[..4] == [1.0, 0.0, 0.0, 1.0] => "Move markup".into(),
+            Edit::TransformAnnotation { .. } => "Rotate markup".into(),
             Edit::StyleAnnotation { .. } | Edit::FillAnnotation { .. } | Edit::SetAnnotationInfo { .. } => "Change comment properties".into(),
             Edit::SetFieldValue { name, .. } => format!("Fill in {name}"),
             Edit::SetFieldImage { name, .. } => format!("Set the image of {name}"),
@@ -1386,6 +1415,8 @@ fn check_permission(edit: &Edit, p: &pdfcraft_cos::Permissions) -> Result<(), Ed
         | Edit::LockAnnotation { .. }
         | Edit::MoveAnnotation { .. }
         | Edit::ResizeAnnotation { .. }
+        | Edit::SetVertices { .. }
+        | Edit::TransformAnnotation { .. }
         | Edit::StyleAnnotation { .. }
         | Edit::FillAnnotation { .. }
         | Edit::SetAnnotationInfo { .. }
@@ -1673,6 +1704,14 @@ fn run_edit(doc: &mut pdfcraft_cos::Document, edit: &Edit, cx: &mut EditCtx) -> 
         Edit::LockAnnotation { page, index, locked } => pdfcraft_annot::set_locked(doc, *page, *index, *locked)?,
         Edit::MoveAnnotation { page, index, dx, dy } => pdfcraft_annot::move_annotation(doc, *page, *index, *dx, *dy, &cx.meta())?,
         Edit::ResizeAnnotation { page, index, rect } => pdfcraft_annot::set_rect(doc, *page, *index, *rect, &cx.meta())?,
+        Edit::SetVertices { page, index, vertices, copy } => {
+            let changed = pdfcraft_annot::geometry::set_vertices(doc, *page, *index, vertices, *copy, &cx.meta())?;
+            measure::refresh(doc, *page, changed)?;
+        }
+        Edit::TransformAnnotation { page, index, matrix, copy } => {
+            let changed = pdfcraft_annot::geometry::transform(doc, *page, *index, matrix, *copy, &cx.meta())?;
+            measure::refresh(doc, *page, changed)?;
+        }
         Edit::StyleAnnotation { page, index, color, opacity, width, endings } => {
             pdfcraft_annot::set_style(doc, *page, *index, *color, *opacity, *width, endings.as_deref(), &cx.meta())?;
         }

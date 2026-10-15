@@ -2300,3 +2300,34 @@ key	Space	Leertaste
 	ft	ft
 	in	in
 	Draft	Zeichnen
+	Arc (start, a point on it, end)	Bogen (Anfang, ein Punkt darauf, Ende)
+	Circle (centre, then radius)	Kreis (Mittelpunkt, dann Radius)
+	Click near the end of a line to extend	Nahe dem Ende einer Linie klicken, um sie zu verlängern
+	Click the base point	Basispunkt anklicken
+	Click the centre to turn about	Drehpunkt anklicken
+	Click the line on the drawing.	Klicken Sie auf die Linie in der Zeichnung.
+	Click the part of a line to cut away	Den Teil einer Linie anklicken, der wegfallen soll
+	Click the side to offset to	Die Seite anklicken, zu der versetzt wird
+	Copy (pick, base point, then each copy)	Kopieren (wählen, Basispunkt, dann jede Kopie)
+	Couldn't read “{text}” as a distance.	„{text}“ ist als Abstand unverständlich.
+	Couldn't read “{text}” as an angle in degrees.	„{text}“ ist als Winkel in Grad unverständlich.
+	Data	Daten
+	Dimension	Bemaßung
+	Extend (click near an end to reach the next line)	Verlängern (nahe einem Ende klicken, um die nächste Linie zu erreichen)
+	Form	Formular
+	Give coordinates for the base point.	Geben Sie Koordinaten für den Basispunkt ein.
+	Modify	Ändern
+	Move (pick, base point, then where to)	Verschieben (wählen, Basispunkt, dann Ziel)
+	Nothing ahead of this end to extend to	Vor diesem Ende liegt nichts, bis wohin verlängert werden kann
+	Nothing crosses this line to trim to	Keine Linie kreuzt diese, um daran zu stutzen
+	Offset	Versatz
+	Offset (a parallel copy at the offset distance)	Versatz (eine parallele Kopie im Versatzabstand)
+	Offset distance (or type it with the Offset tool, then Enter)	Versatzabstand (oder mit dem Versatz-Werkzeug eingeben, dann Eingabe)
+	Pick the line or shape to offset	Linie oder Form zum Versetzen wählen
+	Pick the markup	Markierung wählen
+	Pick the markup first.	Wählen Sie zuerst die Markierung.
+	Rotate (pick, centre, then the angle)	Drehen (wählen, Drehpunkt, dann Winkel)
+	Show the author and comment when pointing at a markup	Autor und Kommentar beim Zeigen auf eine Markierung anzeigen
+	Text (a text box on the drawing)	Text (ein Textfeld auf der Zeichnung)
+	Tips	Hinweise
+	Trim (click the part to cut away at crossing lines)	Stutzen (den Teil anklicken, der an kreuzenden Linien wegfällt)

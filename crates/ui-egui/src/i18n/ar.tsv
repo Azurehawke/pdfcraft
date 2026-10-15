@@ -2322,3 +2322,34 @@ key	Space	مسافة
 	ft	قدم
 	in	بوصة
 	Draft	الرسم
+	Arc (start, a point on it, end)	قوس (البداية، نقطة عليه، النهاية)
+	Circle (centre, then radius)	دائرة (المركز، ثم نصف القطر)
+	Click near the end of a line to extend	انقر قرب طرف خط لتمديده
+	Click the base point	انقر نقطة الأساس
+	Click the centre to turn about	انقر مركز الدوران
+	Click the line on the drawing.	انقر الخط على الرسم.
+	Click the part of a line to cut away	انقر جزء الخط المراد قصّه
+	Click the side to offset to	انقر الجهة المراد الإزاحة إليها
+	Copy (pick, base point, then each copy)	نسخ (اختيار، نقطة الأساس، ثم كل نسخة)
+	Couldn't read “{text}” as a distance.	تعذّرت قراءة «{text}» كمسافة.
+	Couldn't read “{text}” as an angle in degrees.	تعذّرت قراءة «{text}» كزاوية بالدرجات.
+	Data	البيانات
+	Dimension	بُعد
+	Extend (click near an end to reach the next line)	تمديد (انقر قرب طرف للوصول إلى الخط التالي)
+	Form	النموذج
+	Give coordinates for the base point.	أدخل إحداثيات نقطة الأساس.
+	Modify	تعديل
+	Move (pick, base point, then where to)	نقل (اختيار، نقطة الأساس، ثم الوجهة)
+	Nothing ahead of this end to extend to	لا شيء أمام هذا الطرف للتمديد إليه
+	Nothing crosses this line to trim to	لا شيء يقطع هذا الخط للقص عنده
+	Offset	إزاحة
+	Offset (a parallel copy at the offset distance)	إزاحة (نسخة موازية على مسافة الإزاحة)
+	Offset distance (or type it with the Offset tool, then Enter)	مسافة الإزاحة (أو اكتبها بأداة الإزاحة ثم Enter)
+	Pick the line or shape to offset	اختر الخط أو الشكل المراد إزاحته
+	Pick the markup	اختر العلامة
+	Pick the markup first.	اختر العلامة أولًا.
+	Rotate (pick, centre, then the angle)	تدوير (اختيار، المركز، ثم الزاوية)
+	Show the author and comment when pointing at a markup	إظهار المؤلف والتعليق عند الإشارة إلى علامة
+	Text (a text box on the drawing)	نص (مربع نص على الرسم)
+	Tips	تلميحات
+	Trim (click the part to cut away at crossing lines)	قص (انقر الجزء المراد قطعه عند الخطوط المتقاطعة)
