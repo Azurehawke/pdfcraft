@@ -64,12 +64,14 @@ Panels and layout
 - [x] Status bar: cursor position in feet-inches, page scale, snapping on/off, current layer.
 
 Markup and measuring
-- [ ] **(Steve)** Form tools on the ribbon: a Forms tab (or group) with PdfCraft's field tools
+- [x] **(Steve)** Form tools on the ribbon: a Forms tab (or group) with PdfCraft's field tools
       (text, checkbox, radio, drop-down, list, button, image, date), Detect fields, Preview,
-      tab order and Field properties. They exist today only under All tools ▸ Prepare a form.
-- [ ] **(Steve)** Option to turn off the hover tooltip with the author's name on markup: it
+      tab order and Field properties. Done: a Forms tab (Fields, Form, Tab order, Data); Preview
+      is in the Prepare a form box.
+- [x] **(Steve)** Option to turn off the hover tooltip with the author's name on markup: it
       covers the live measurement label when drawing over other lines. Also: never show it while a
-      drawing or measuring tool is placing points.
+      drawing or measuring tool is placing points. Done: the Tips switch on the status bar (also in
+      Preferences), and never while drafting or measuring.
 - [ ] Tool chest box: saved tools with their settings (a red cloud on "Revisions", a 6" data jack
       labelled "PC"), recently used tools (roadmap R5).
 - [ ] Rectangle area (two taps), angle and radius tools.
@@ -95,11 +97,13 @@ than rewritten.
 - [x] Drawing by numbers: lengths in feet-inches (`15'`, `12'6"`), relative `@0,15`, polar
       `@15<90`, ortho and polar angles, a big keypad on the tablet; later fed by the laser
       meter and the LiDAR scan.
-- [ ] Tools (line, polyline, rectangle and walls done; circle, arc, doors and windows to come): line, polyline, rectangle, circle and arc, walls with a thickness, doors and windows
+- [ ] Tools (line, polyline, rectangle, walls, circle, arc and dimension done; doors and windows to come): line, polyline, rectangle, circle and arc, walls with a thickness, doors and windows
       from the symbol library; object snaps (end, mid, intersection, perpendicular) shared with
       measuring.
-- [ ] Editing: grips, move, copy, rotate, offset, trim and extend; dimensions (from the
-      measuring tools); text.
+- [x] Editing: grips, move, copy, rotate, offset, trim and extend; dimensions (from the
+      measuring tools); text. Trim and extend work on lines and polylines against other markup
+      (not yet against the PDF's own drawing); boxes and symbols rotate about the centre point
+      but stay upright.
 - [x] Cursor coordinates in feet-inches in the status bar; a page origin to measure from.
 - [ ] Everything drawn stays editable, on layers, and saved in the PDF (annotations with their
       geometry in drawing units).
