@@ -2215,3 +2215,57 @@ key	Space	Spazio
 	Use this folder	Usa questa cartella
 	Waiting for the document… (Google Drive downloads it first when it isn't on the tablet yet)	In attesa del documento… (Google Drive lo scarica prima se non è ancora sul tablet)
 	already exists. Replace it?	esiste già. Sostituirlo?
+	Add layer	Aggiungi livello
+	Caption	Didascalia
+	Counts	Conteggi
+	Export symbol counts as CSV	Esporta i conteggi dei simboli in CSV
+	Layer	Livello
+	Layer colour	Colore del livello
+	Lock layer	Blocca livello
+	Make this the current layer	Rendi questo il livello corrente
+	Manage layers	Gestisci livelli
+	Networking	Rete
+	New layer name	Nome del nuovo livello
+	No layer	Nessun livello
+	No layers yet. Add one, then choose it as the current layer: new markups, symbols and photos go on it.	Ancora nessun livello. Aggiungine uno, poi sceglilo come livello corrente: nuove annotazioni, simboli e foto vanno lì.
+	Number each symbol, counting up	Numera ogni simbolo, in sequenza
+	Opens the tablet's camera app; the photo is also kept in the gallery.	Apre l’app fotocamera del tablet; la foto resta anche nella galleria.
+	PC, VoIP…	PC, telefono…
+	Paper	Carta
+	Photo	Foto
+	Photos	Foto
+	Pin a photo	Fissa una foto
+	Pin a photo: tap the drawing where it goes	Fissa una foto: tocca il disegno dove va
+	Rack A, ceiling above room 104…	Rack A, soffitto sopra la stanza 104…
+	Real	Reale
+	Rename layer	Rinomina livello
+	Saved symbol counts.	Conteggi dei simboli salvati.
+	Selected markup	Annotazione selezionata
+	Symbol	Simbolo
+	Take a photo with the camera…	Scatta una foto con la fotocamera…
+	Tap the drawing to place this symbol	Tocca il disegno per inserire questo simbolo
+	Tap the pin on the drawing to see this photo again.	Tocca la puntina sul disegno per rivedere questa foto.
+	The photo couldn't be found.	Impossibile trovare la foto.
+	There are no symbols to count yet.	Non ci sono ancora simboli da contare.
+	Unlock layer	Sblocca livello
+	Real: the symbol's width in the real world, at the page's measurement scale (pages without a scale use 1/4 inch on paper). Paper: its width on the printed sheet.	Reale: la larghezza del simbolo nel mondo reale, alla scala di misura della pagina (senza scala, 1/4 di pollice su carta). Carta: la sua larghezza sul foglio stampato.
+	Symbols	Simboli
+	Data jack (RJ-45)	Presa dati (RJ-45)
+	Dual data jack	Presa dati doppia
+	Quad data jack	Presa dati quadrupla
+	Voice jack	Presa telefonica
+	Wireless access point	Access point wireless
+	Camera (dome)	Telecamera (dome)
+	Camera (bullet)	Telecamera (bullet)
+	PoE device	Dispositivo PoE
+	Floor box	Scatola a pavimento
+	Equipment rack	Armadio rack
+	Patch panel	Patch panel
+	Network switch	Switch di rete
+	Fiber termination	Terminazione in fibra
+	Demarc	Punto di demarcazione
+	Display / TV	Display / TV
+	Card reader	Lettore di badge
+	Speaker	Altoparlante
+	J-hook	Gancio a J
+	Conduit stub-up	Uscita del tubo

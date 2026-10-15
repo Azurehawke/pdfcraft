@@ -383,13 +383,49 @@ pub(crate) enum Nav {
     Flash(usize, [f32; 4]),
 }
 
+/// The Layers panel: RevuCraft's layer manager ([`crate::revu::layers_panel`]).
+fn layers_right_panel(app: &mut PdfCraftApp, ui: &mut egui::Ui, index: usize, id: pdfcraft_engine::DocId) {
+    let t = Tokens::get(ui.ctx());
+    let count = app.session.get(id).map_or(0, |d| d.info.layers.len());
+    let mut close = false;
+    egui::Panel::right("right_panel")
+        .resizable(true)
+        .default_size(330.0)
+        .size_range(260.0..=520.0)
+        .frame(
+            egui::Frame::NONE
+                .fill(t.panel)
+                .inner_margin(egui::Margin { left: 14, right: 12, top: 12, bottom: 8 })
+                .stroke(Stroke::new(1.0, t.divider)),
+        )
+        .show(ui, |ui| {
+            ui.horizontal(|ui| {
+                ui.label(egui::RichText::new(tl!("Layers")).font(theme::semibold(15.5)));
+                ui.label(egui::RichText::new(count.to_string()).font(theme::medium(13.0)).color(t.text_faint));
+                ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
+                    if icons::button(ui, "x", 26.0, false, tl!("Close")).clicked() {
+                        close = true;
+                    }
+                });
+            });
+            ui.add_space(8.0);
+            egui::ScrollArea::vertical().id_salt("layers-panel").show(ui, |ui| crate::revu::layers_panel(app, ui, index, id));
+        });
+    if close {
+        app.choose_right_panel(None);
+    }
+}
+
 pub fn right_panel(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
     let t = Tokens::get(ui.ctx());
     let Some((index, id)) = app.active_ids() else { return };
     let Some(panel) = app.right else { return };
+    if panel == RightPanel::Layers {
+        layers_right_panel(app, ui, index, id);
+        return;
+    }
     let mut nav: Option<Nav> = None;
     let mut close = false;
-    let mut toggle_layer: Option<(usize, bool)> = None;
     let mut attachment_action: Option<(usize, bool)> = None; // (index, open instead of save)
     let mut bm_action: Option<BmAction> = None;
     let mut bm_expand: Option<usize> = None;
@@ -556,30 +592,8 @@ pub fn right_panel(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
                     }
                     RightPanel::Pages => pages(ui, &t, info, view, modal, bm_editable, &mut nav),
                     RightPanel::Fields => field_properties = fields(ui, &t, info, &doc.form, preparing, &mut view.prepare, &mut nav, &mut panel_edit),
-                    RightPanel::Layers => {
-                        if info.layers.is_empty() {
-                            empty(ui, &t, "layers", "This document has no layers.");
-                        }
-                        for (li, l) in info.layers.iter().enumerate() {
-                            let (rect, resp) = ui.allocate_exact_size(vec2(ui.available_width(), 32.0), Sense::click());
-                            resp.widget_info(|| egui::WidgetInfo::selected(egui::WidgetType::Checkbox, true, l.visible, &l.name));
-                            if resp.hovered() {
-                                ui.painter().rect_filled(rect, CornerRadius::same(6), t.hover);
-                            }
-                            icons::paint(
-                                ui,
-                                Rect::from_min_size(rect.min + vec2(4.0, 7.0), vec2(18.0, 18.0)),
-                                if l.visible { "eye" } else { "eye-off" },
-                                16.0,
-                                t.icon,
-                            );
-                            let fg = if l.visible { t.text } else { t.text_faint };
-                            ui.painter().text(rect.left_center() + vec2(32.0, 0.0), Align2::LEFT_CENTER, &l.name, theme::regular(13.0), fg);
-                            if resp.on_hover_text(if l.visible { tl!("Hide layer") } else { tl!("Show layer") }).clicked() {
-                                toggle_layer = Some((li, !l.visible));
-                            }
-                        }
-                    }
+                    // Drawn by `layers_right_panel`.
+                    RightPanel::Layers => {}
                     RightPanel::Signatures => {
                         sig_action = crate::sign_ui::panel(ui, &t, &doc.signatures, sig_expanded);
                     }
@@ -678,11 +692,6 @@ pub fn right_panel(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
     }
     if let Some((ai, open)) = attachment_action {
         app.attachment_action(id, ai, open);
-    }
-    if let Some((layer, visible)) = toggle_layer
-        && app.session.set_layer_visible(id, layer, visible)
-    {
-        app.views[index].invalidate_content();
     }
     match nav {
         Some(Nav::Page(p)) => app.views[index].go_to_page(p),

@@ -1977,7 +1977,9 @@ pub fn document_area(app: &mut PdfCraftApp, index: usize, ui: &mut egui::Ui) {
         | QuickTool::Link
         | QuickTool::SignArea { .. }
         | QuickTool::MarqueeZoom
-        | QuickTool::Snapshot => false,
+        | QuickTool::Snapshot
+        | QuickTool::Symbol
+        | QuickTool::PhotoPin => false,
     };
     let prefs = &app.comment_prefs;
     let allowed = doc.allows_annotation();
@@ -2001,6 +2003,9 @@ pub fn document_area(app: &mut PdfCraftApp, index: usize, ui: &mut egui::Ui) {
         QuickTool::CustomStamp(i) => app.custom_stamps.get(i).cloned(),
         _ => None,
     };
+    let symbols = app.symbols.clone();
+    let mut symbol_placed = false;
+    let mut photo_at: Option<(usize, [f64; 2])> = None;
     let mut open_signature = false;
     let mut hover_text: Option<(Pos2, String)> = None;
     let mut clicked_link: Option<LinkTarget> = None;
@@ -2251,6 +2256,24 @@ pub fn document_area(app: &mut PdfCraftApp, index: usize, ui: &mut egui::Ui) {
                         author: author.clone(),
                     });
                     stamp_placed = true;
+                }
+            }
+            // RevuCraft: the Symbols tab's symbol, again at every tap; a photo pin.
+            if matches!(tool, QuickTool::Symbol | QuickTool::PhotoPin)
+                && allowed
+                && let Some(p) = ui.input(|inp| inp.pointer.hover_pos()).filter(|p| xf.rect.contains(*p))
+            {
+                ui.ctx().set_cursor_icon(egui::CursorIcon::Crosshair);
+                if resp.clicked() {
+                    let (vx, vy) = xf.screen_to_view(p);
+                    let u = info.pages[i].view_to_user(vx, vy);
+                    let at = [f64::from(u[0]), f64::from(u[1])];
+                    if tool == QuickTool::Symbol {
+                        view.pending_edit = Some(crate::revu::symbol_edit(&symbols, doc, i, at, &author));
+                        symbol_placed = true;
+                    } else {
+                        photo_at = Some((i, at));
+                    }
                 }
             }
             // Over a mark already placed, the Fill & Sign tool picks it up (comments, below).
@@ -2794,6 +2817,16 @@ pub fn document_area(app: &mut PdfCraftApp, index: usize, ui: &mut egui::Ui) {
     app.quick_tool = tool;
     if let Some((page, at)) = app.views[index].comments.attach_at.take() {
         app.attach_file_comment(page, at);
+    }
+    if symbol_placed && app.symbols.auto_number {
+        app.symbols.next = app.symbols.next.saturating_add(1);
+    }
+    if let Some((page, at)) = photo_at {
+        app.quick_tool = QuickTool::Select;
+        app.pick_photo(page, at);
+    }
+    if let Some((page, i)) = app.views[index].comments.open_photo.take() {
+        app.open_photo(page, i);
     }
     if let Some((p, i)) = open_props {
         app.open_comment_props(p, i);

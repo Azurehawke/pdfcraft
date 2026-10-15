@@ -115,6 +115,7 @@ pub(crate) const MAX_AUTHOR_CHARS: usize = 200;
 pub mod portable;
 mod protect;
 mod recovery;
+mod revu;
 mod ribbon;
 #[cfg(not(target_arch = "wasm32"))]
 mod system_fonts;
@@ -218,6 +219,10 @@ pub enum QuickTool {
     /// Edit ▸ Column Select: drag a rectangle to select only the text inside it (#740). The
     /// Select tool does the same while Alt/Option is held at the start of a drag.
     ColumnSelect,
+    /// RevuCraft: tap to place the symbol chosen on the Symbols tab.
+    Symbol,
+    /// RevuCraft: tap to pin a photo.
+    PhotoPin,
 }
 
 /// Files dropped on a document's page grid.
@@ -418,6 +423,10 @@ pub struct PdfCraftApp {
     pub accent: theme::Accent,
     /// The ribbon's workflow tab.
     pub workflow: ribbon::Workflow,
+    /// The Symbols tab's settings.
+    pub symbols: revu::SymbolSettings,
+    pub(crate) layer_panel: revu::LayerPanel,
+    pub(crate) photo_viewer: Option<revu::PhotoViewer>,
     /// RevuCraft's tool ribbon under the mode bar (on in the apps; see [`Self::revucraft_shell`]).
     pub show_ribbon: bool,
     /// The desktop's light/dark choice, watched while the app runs (Linux has no winit answer).
@@ -722,6 +731,9 @@ impl PdfCraftApp {
             theme_preference: ThemePreference::Dark,
             accent: theme::Accent::default(),
             workflow: ribbon::Workflow::default(),
+            symbols: Default::default(),
+            layer_panel: Default::default(),
+            photo_viewer: None,
             show_ribbon: false,
             desktop_theme: pdfcraft_platform::desktop_theme::DesktopTheme::start(),
             desktop_dark: None,
@@ -1580,7 +1592,7 @@ impl PdfCraftApp {
                 _ => return Err("shell must be revucraft".into()),
             },
             ("workflow", _) => {
-                self.workflow = ribbon::Workflow::parse(value).ok_or("workflow must be markup, measure, review or document")?;
+                self.workflow = ribbon::Workflow::parse(value).ok_or("workflow must be markup, symbols, measure, review or document")?;
             }
             ("accent", _) => {
                 let accent = theme::Accent::from_code(value).ok_or_else(|| {
@@ -1758,6 +1770,8 @@ impl PdfCraftApp {
                     "marquee-zoom" => QuickTool::MarqueeZoom,
                     "snapshot" => QuickTool::Snapshot,
                     "column-select" => QuickTool::ColumnSelect,
+                    "symbol" => QuickTool::Symbol,
+                    "photo-pin" => QuickTool::PhotoPin,
                     "certify" => QuickTool::SignArea { certify: true },
                     custom if custom.starts_with("custom-stamp-") => {
                         let i: usize = custom[13..].parse().map_err(|_| format!("bad stamp {custom}"))?;
@@ -2091,6 +2105,7 @@ impl eframe::App for PdfCraftApp {
                 },
             );
             dialogs::show(self, &ctx);
+            revu::photo_window(self, &ctx);
             #[cfg(target_os = "android")]
             pickers::show_browser(self, &ctx);
             // Notices too: a refused field value or a failed save must be seen in full screen.
@@ -2122,6 +2137,7 @@ impl eframe::App for PdfCraftApp {
         self.process_pending_edits();
         palette::show(self, &ctx);
         dialogs::show(self, &ctx);
+        revu::photo_window(self, &ctx);
         #[cfg(target_os = "android")]
         pickers::show_browser(self, &ctx);
         self.show_progress(&ctx);

@@ -2206,3 +2206,57 @@ key	Space	Leertaste
 	Use this folder	Diesen Ordner verwenden
 	Waiting for the document… (Google Drive downloads it first when it isn't on the tablet yet)	Warte auf das Dokument… (Google Drive lädt es zuerst herunter, wenn es noch nicht auf dem Tablet ist)
 	already exists. Replace it?	ist bereits vorhanden. Ersetzen?
+	Add layer	Ebene hinzufügen
+	Caption	Beschriftung
+	Counts	Anzahl
+	Export symbol counts as CSV	Symbolanzahl als CSV exportieren
+	Layer	Ebene
+	Layer colour	Ebenenfarbe
+	Lock layer	Ebene sperren
+	Make this the current layer	Als aktuelle Ebene verwenden
+	Manage layers	Ebenen verwalten
+	Networking	Netzwerk
+	New layer name	Name der neuen Ebene
+	No layer	Keine Ebene
+	No layers yet. Add one, then choose it as the current layer: new markups, symbols and photos go on it.	Noch keine Ebenen. Fügen Sie eine hinzu und wählen Sie sie als aktuelle Ebene: Neue Markierungen, Symbole und Fotos landen darauf.
+	Number each symbol, counting up	Jedes Symbol fortlaufend nummerieren
+	Opens the tablet's camera app; the photo is also kept in the gallery.	Öffnet die Kamera-App des Tablets; das Foto bleibt auch in der Galerie.
+	PC, VoIP…	PC, Telefon…
+	Paper	Papier
+	Photo	Foto
+	Photos	Fotos
+	Pin a photo	Foto anheften
+	Pin a photo: tap the drawing where it goes	Foto anheften: auf die Zeichnung tippen, wo es hin soll
+	Rack A, ceiling above room 104…	Rack A, Decke über Raum 104…
+	Real	Real
+	Rename layer	Ebene umbenennen
+	Saved symbol counts.	Symbolanzahl gespeichert.
+	Selected markup	Ausgewählte Markierung
+	Symbol	Symbol
+	Take a photo with the camera…	Foto mit der Kamera aufnehmen…
+	Tap the drawing to place this symbol	Auf die Zeichnung tippen, um dieses Symbol zu setzen
+	Tap the pin on the drawing to see this photo again.	Auf die Nadel in der Zeichnung tippen, um dieses Foto wieder zu sehen.
+	The photo couldn't be found.	Das Foto wurde nicht gefunden.
+	There are no symbols to count yet.	Es gibt noch keine Symbole zum Zählen.
+	Unlock layer	Ebene entsperren
+	Real: the symbol's width in the real world, at the page's measurement scale (pages without a scale use 1/4 inch on paper). Paper: its width on the printed sheet.	Real: die Breite des Symbols in der Wirklichkeit, im Messmaßstab der Seite (Seiten ohne Maßstab: 1/4 Zoll auf Papier). Papier: seine Breite auf dem gedruckten Blatt.
+	Symbols	Symbole
+	Data jack (RJ-45)	Datendose (RJ-45)
+	Dual data jack	Doppelte Datendose
+	Quad data jack	Vierfache Datendose
+	Voice jack	Telefondose
+	Wireless access point	WLAN-Zugangspunkt
+	Camera (dome)	Kamera (Kuppel)
+	Camera (bullet)	Kamera (Bullet)
+	PoE device	PoE-Gerät
+	Floor box	Bodendose
+	Equipment rack	Geräteschrank
+	Patch panel	Patchfeld
+	Network switch	Netzwerk-Switch
+	Fiber termination	Glasfaserabschluss
+	Demarc	Übergabepunkt
+	Display / TV	Bildschirm / TV
+	Card reader	Kartenleser
+	Speaker	Lautsprecher
+	J-hook	J-Haken
+	Conduit stub-up	Leerrohrauslass

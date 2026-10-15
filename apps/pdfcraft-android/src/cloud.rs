@@ -142,7 +142,7 @@ fn save_index(mirrors: &[Mirror]) {
 /// Show Android's document picker (`AndroidDocuments::start`).
 pub fn start(pick: SystemPick) -> Result<(), String> {
     let kind = match &pick {
-        SystemPick::Open { .. } => Kind::Open,
+        SystemPick::Open { .. } | SystemPick::TakePhoto => Kind::Open,
         SystemPick::Save { .. } => Kind::Save,
     };
     with_activity("Opening Android's document picker", |env, activity| match &pick {
@@ -164,6 +164,10 @@ pub fn start(pick: SystemPick) -> Result<(), String> {
                 "(Ljava/lang/String;Ljava/lang/String;)V",
                 &[JValue::Object(&name), JValue::Object(&mime)],
             )?;
+            Ok(())
+        }
+        SystemPick::TakePhoto => {
+            env.call_method(activity, "pcTakePhoto", "()V", &[])?;
             Ok(())
         }
     })?;

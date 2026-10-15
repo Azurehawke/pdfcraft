@@ -267,6 +267,11 @@ pub struct Annotation {
     /// A Fill & Sign mark: typed text, a check, cross, dot or line, or a typed, drawn or picture
     /// signature or initials (the rules of `pdfcraft_annot::is_fill_sign`).
     pub fill_sign: bool,
+    /// RevuCraft: a pinned photo (`/PCPhoto`), the library symbol (`/PCSymbol`), and the layer
+    /// (`/OC`) it is on.
+    pub photo: bool,
+    pub symbol: Option<String>,
+    pub layer: Option<(u32, u16)>,
 }
 
 impl Annotation {
@@ -910,6 +915,9 @@ impl<'a> Inspector<'a> {
                     locked: d.get(b"F").ok().and_then(|f| self.resolve(f).as_i64().ok()).unwrap_or(0) & 128 != 0,
                     intent: self.name(d, b"IT"),
                     fill_sign,
+                    photo: matches!(d.get(b"PCPhoto").map(|o| self.resolve(o)), Ok(Object::Boolean(true))),
+                    symbol: self.text(d, b"PCSymbol"),
+                    layer: d.get(b"OC").ok().and_then(|o| o.as_reference().ok()),
                 });
             }
         }

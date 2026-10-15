@@ -2206,3 +2206,57 @@ key	Space	Espace
 	Use this folder	Utiliser ce dossier
 	Waiting for the document… (Google Drive downloads it first when it isn't on the tablet yet)	En attente du document… (Google Drive le télécharge d’abord s’il n’est pas encore sur la tablette)
 	already exists. Replace it?	existe déjà. Le remplacer ?
+	Add layer	Ajouter un calque
+	Caption	Légende
+	Counts	Nombres
+	Export symbol counts as CSV	Exporter le décompte des symboles en CSV
+	Layer	Calque
+	Layer colour	Couleur du calque
+	Lock layer	Verrouiller le calque
+	Make this the current layer	En faire le calque actif
+	Manage layers	Gérer les calques
+	Networking	Réseau
+	New layer name	Nom du nouveau calque
+	No layer	Aucun calque
+	No layers yet. Add one, then choose it as the current layer: new markups, symbols and photos go on it.	Aucun calque pour l’instant. Ajoutez-en un, puis choisissez-le comme calque actif : les nouvelles annotations, les symboles et les photos y sont placés.
+	Number each symbol, counting up	Numéroter chaque symbole, en comptant
+	Opens the tablet's camera app; the photo is also kept in the gallery.	Ouvre l’appareil photo de la tablette ; la photo est aussi conservée dans la galerie.
+	PC, VoIP…	Poste, VoIP…
+	Paper	Papier
+	Photo	Photo
+	Photos	Photos
+	Pin a photo	Épingler une photo
+	Pin a photo: tap the drawing where it goes	Épingler une photo : touchez le dessin à l’endroit voulu
+	Rack A, ceiling above room 104…	Baie A, plafond au-dessus de la salle 104…
+	Real	Réel
+	Rename layer	Renommer le calque
+	Saved symbol counts.	Décompte des symboles enregistré.
+	Selected markup	Annotation sélectionnée
+	Symbol	Symbole
+	Take a photo with the camera…	Prendre une photo avec l’appareil photo…
+	Tap the drawing to place this symbol	Touchez le dessin pour placer ce symbole
+	Tap the pin on the drawing to see this photo again.	Touchez l’épingle sur le dessin pour revoir cette photo.
+	The photo couldn't be found.	La photo est introuvable.
+	There are no symbols to count yet.	Il n’y a encore aucun symbole à compter.
+	Unlock layer	Déverrouiller le calque
+	Real: the symbol's width in the real world, at the page's measurement scale (pages without a scale use 1/4 inch on paper). Paper: its width on the printed sheet.	Réel : la largeur du symbole dans la réalité, à l’échelle de mesure de la page (sans échelle, 1/4 de pouce sur papier). Papier : sa largeur sur la feuille imprimée.
+	Symbols	Symboles
+	Data jack (RJ-45)	Prise réseau (RJ-45)
+	Dual data jack	Double prise réseau
+	Quad data jack	Quadruple prise réseau
+	Voice jack	Prise téléphonique
+	Wireless access point	Point d’accès sans fil
+	Camera (dome)	Caméra (dôme)
+	Camera (bullet)	Caméra (tube)
+	PoE device	Appareil PoE
+	Floor box	Boîte de sol
+	Equipment rack	Baie d’équipement
+	Patch panel	Panneau de brassage
+	Network switch	Commutateur réseau
+	Fiber termination	Terminaison fibre
+	Demarc	Point de démarcation
+	Display / TV	Écran / TV
+	Card reader	Lecteur de badge
+	Speaker	Haut-parleur
+	J-hook	Crochet J
+	Conduit stub-up	Sortie de conduit

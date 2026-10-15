@@ -19,7 +19,9 @@ use pdfcraft_cos::{Dict, Document, ObjRef, Object, PdfString};
 pub mod appearance;
 pub mod pen;
 pub use pen::PenKind;
+pub mod layers;
 pub mod links;
+pub mod symbols;
 
 #[cfg(test)]
 mod tests;
@@ -1251,6 +1253,22 @@ pub fn add_annotation(doc: &mut Document, new: &NewAnnotation, meta: &Meta) -> R
     Ok(index)
 }
 
+/// Mark the file attachment at (page, index) as a pinned photo (RevuCraft's photo callouts):
+/// tapping it shows the picture instead of offering to save a file.
+pub fn mark_photo(doc: &mut Document, page: usize, index: usize) -> Result<(), AnnotError> {
+    let (_, r) = annot_ref(doc, page, index)?;
+    doc.update_dict(r, |d| {
+        d.set(b"PCPhoto".to_vec(), Object::Bool(true));
+        d.set(b"Subj".to_vec(), PdfString::text("Photo"));
+    })?;
+    Ok(())
+}
+
+/// Whether the annotation dictionary is a pinned photo.
+pub fn is_photo(d: &Dict) -> bool {
+    matches!(d.get(b"PCPhoto"), Some(Object::Bool(true)))
+}
+
 /// Counterrotate a newly placed image stamp's appearance into displayed-page axes.
 /// The normal appearance's transformed bounding box is fitted to `/Rect` by PDF viewers.
 pub fn orient_image_stamp(doc: &mut Document, page: usize, index: usize, rotation: i64) -> Result<(), AnnotError> {
@@ -1875,6 +1893,11 @@ pub struct Summary {
     pub intent: Option<String>,
     /// A Fill & Sign mark ([`is_fill_sign`]).
     pub fill_sign: bool,
+    /// RevuCraft: a pinned photo (`/PCPhoto`), the library symbol (`/PCSymbol`), and the layer
+    /// (`/OC`) it is on.
+    pub photo: bool,
+    pub symbol: Option<String>,
+    pub layer: Option<(u32, u16)>,
 }
 
 fn text_value(doc: &Document, d: &Dict, key: &[u8]) -> Option<String> {
@@ -1946,6 +1969,9 @@ pub fn summaries(doc: &Document) -> Vec<Summary> {
                 locked: annotation_flags(doc, d) & FLAG_LOCKED != 0,
                 intent: d.get(b"IT").and_then(|o| doc.resolve(o).as_name().map(|n| String::from_utf8_lossy(n).into_owned())),
                 fill_sign: is_fill_sign(doc, d),
+                photo: is_photo(d),
+                symbol: text_value(doc, d, b"PCSymbol"),
+                layer: layers::layer_of(d).map(|r| (r.num, r.generation)),
             });
         }
     }

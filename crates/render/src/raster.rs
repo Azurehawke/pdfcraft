@@ -3027,6 +3027,35 @@ trailer << /Root 1 0 R >>
         assert_eq!(px(off), vec![255, 255, 255, 255], "toggled-off layer must not draw");
     }
 
+    /// Vendored hayro-interpret patch (23): annotations on a layer (`/OC`) hide with it.
+    #[test]
+    fn annotations_on_a_hidden_layer_are_not_drawn() {
+        let pdf = |state: &str| {
+            format!(
+                "%PDF-1.7
+1 0 obj << /Type /Catalog /Pages 2 0 R /OCProperties << /OCGs [5 0 R] /D << /Order [5 0 R] {state} >> >> >> endobj
+2 0 obj << /Type /Pages /Kids [3 0 R] /Count 1 >> endobj
+3 0 obj << /Type /Page /Parent 2 0 R /MediaBox [0 0 100 100] /Annots [6 0 R] >> endobj
+5 0 obj << /Type /OCG /Name (Markup) >> endobj
+6 0 obj << /Type /Annot /Subtype /Square /Rect [0 0 100 100] /F 4 /OC 5 0 R /AP << /N 7 0 R >> >> endobj
+7 0 obj << /Type /XObject /Subtype /Form /BBox [0 0 100 100] /Length 26 >> stream
+1 0 0 rg 0 0 100 100 re f
+endstream endobj
+trailer << /Root 1 0 R >>
+%%EOF"
+            )
+        };
+        let px = |doc: String, cfg: RenderConfig| {
+            let mut r = PageRenderer::new(Arc::new(doc.into_bytes()), cfg);
+            let p = r.render(RenderRequest { page: 0, kind: RequestKind::Pixels, tile: None, scale: 0.5, tag: 0 });
+            p.rgba.get(..4).map(<[u8]>::to_vec)
+        };
+        assert_eq!(px(pdf(""), RenderConfig::default()), Some(vec![255, 0, 0, 255]), "a visible layer's markup draws");
+        assert_eq!(px(pdf("/OFF [5 0 R]"), RenderConfig::default()), Some(vec![255, 255, 255, 255]), "off in the file");
+        let off = RenderConfig { layers: Arc::new(vec![(5, 0, false)]), ..Default::default() };
+        assert_eq!(px(pdf(""), off), Some(vec![255, 255, 255, 255]), "toggled off in the viewer");
+    }
+
     /// From `cargo xtask fuzz`: a tiling pattern with no /Resources inherits the page's, where
     /// its own name points back at it. It painted itself until the stack overflowed (vendored
     /// hayro-interpret patch: `MAX_PAINT_NESTING`). Ordinary patterns must still paint.

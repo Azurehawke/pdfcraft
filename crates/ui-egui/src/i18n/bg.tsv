@@ -2168,3 +2168,57 @@ key	Space	Интервал
 	Use this folder	Използване на тази папка
 	Waiting for the document… (Google Drive downloads it first when it isn't on the tablet yet)	Изчакване на документа… (Google Диск първо го изтегля, ако още не е на таблета)
 	already exists. Replace it?	вече съществува. Да се замени ли?
+	Add layer	Добавяне на слой
+	Caption	Надпис
+	Counts	Брой
+	Export symbol counts as CSV	Експортиране на броя символи в CSV
+	Layer	Слой
+	Layer colour	Цвят на слоя
+	Lock layer	Заключване на слоя
+	Make this the current layer	Направи го текущ слой
+	Manage layers	Управление на слоевете
+	Networking	Мрежи
+	New layer name	Име на новия слой
+	No layer	Без слой
+	No layers yet. Add one, then choose it as the current layer: new markups, symbols and photos go on it.	Още няма слоеве. Добавете слой и го изберете за текущ: новите маркировки, символи и снимки отиват в него.
+	Number each symbol, counting up	Номериране на всеки символ подред
+	Opens the tablet's camera app; the photo is also kept in the gallery.	Отваря приложението за камера на таблета; снимката остава и в галерията.
+	PC, VoIP…	Компютър, телефон…
+	Paper	Хартия
+	Photo	Снимка
+	Photos	Снимки
+	Pin a photo	Закачане на снимка
+	Pin a photo: tap the drawing where it goes	Закачане на снимка: докоснете чертежа там, където трябва
+	Rack A, ceiling above room 104…	Шкаф A, таван над стая 104…
+	Real	Реален
+	Rename layer	Преименуване на слоя
+	Saved symbol counts.	Броят символи е запазен.
+	Selected markup	Избрана маркировка
+	Symbol	Символ
+	Take a photo with the camera…	Снимане с камерата…
+	Tap the drawing to place this symbol	Докоснете чертежа, за да поставите този символ
+	Tap the pin on the drawing to see this photo again.	Докоснете кабърчето на чертежа, за да видите снимката отново.
+	The photo couldn't be found.	Снимката не е намерена.
+	There are no symbols to count yet.	Все още няма символи за преброяване.
+	Unlock layer	Отключване на слоя
+	Real: the symbol's width in the real world, at the page's measurement scale (pages without a scale use 1/4 inch on paper). Paper: its width on the printed sheet.	Реален: ширината на символа в действителност, в мащаба на измерване на страницата (без мащаб: 1/4 инч на хартия). Хартия: ширината му на отпечатания лист.
+	Symbols	Символи
+	Data jack (RJ-45)	Розетка за данни (RJ-45)
+	Dual data jack	Двойна розетка за данни
+	Quad data jack	Четворна розетка за данни
+	Voice jack	Телефонна розетка
+	Wireless access point	Безжична точка за достъп
+	Camera (dome)	Камера (куполна)
+	Camera (bullet)	Камера (цилиндрична)
+	PoE device	PoE устройство
+	Floor box	Подова кутия
+	Equipment rack	Шкаф за оборудване
+	Patch panel	Пач панел
+	Network switch	Мрежов комутатор
+	Fiber termination	Оптично окончание
+	Demarc	Точка на разграничение
+	Display / TV	Екран / ТВ
+	Card reader	Четец на карти
+	Speaker	Високоговорител
+	J-hook	J-кука
+	Conduit stub-up	Изход на тръба

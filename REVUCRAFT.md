@@ -43,8 +43,12 @@ Ordered by value for construction work. Each item is one or more commits with te
 | # | Item | Status |
 |---|------|--------|
 | R1 | Feet and fractional inches (`12'-6 1/2"`) for lengths: format, compound `/Measure` write and read, automation `fractions` option | Done, tested |
-| R2 | Calibration panel: format picker (decimal or feet-inches, 1/2 to 1/64) and common architectural and engineering presets (1/8" = 1'-0", 1:100…) | Written, needs Windows test run |
-| R3 | Count tool (symbols counted per page, grouped by subject) and angle tool | Planned |
+| R2 | Calibration panel: format picker (decimal or feet-inches, 1/2 to 1/64) and common architectural and engineering presets (1/8" = 1'-0", 1:100…) | Done, tested on Windows |
+| R2b | Revu-like shell: dark charcoal theme, accent colours, workflow tabs and ribbon, RevuCraft branding, update checks against this fork's releases | Done (build 2) |
+| R3a | Layers you manage, as in CAD: make, rename, colour, lock, show and hide layers (standard optional content groups, so other viewers honour them); a current layer that new markups, measurements, symbols and photos go on; move a markup to another layer. Markup on a hidden layer is hidden (vendored hayro patch 23) | Written (build 3) |
+| R3b | Symbol library (networking first: data, voice, dual and quad jacks, wireless AP, cameras, PoE, floor box, rack, patch panel, switch, fiber, demarc, display, card reader, speaker, J-hook, conduit stub-up). Symbols tab: pick a symbol, layer, real-world or paper size and a label (optionally auto-numbered), then tap to stamp repeatedly. Counts per symbol, label and layer exported as CSV | Written (build 3); electrical, fire alarm and security libraries next |
+| R3c | Photo callouts: pin a photo (from the gallery, Drive or, on Android, the camera app) to the drawing; tapping the pin shows it with its caption. Photos are turned upright and scaled to 2048 px before they are stored | Written (build 3) |
+| R3d | Angle tool | Planned |
 | R4 | Markups list: a sortable, filterable table of every annotation and measurement, with status, author, page, subject, value, and custom columns stored on the annotation | Planned |
 | R5 | Tool chest: saved markup and measurement presets (style, subject, scale-aware), stored as a RevuCraft file format | Planned |
 | R6 | Overlay compare: two revisions drawn in contrasting colours with alignment by two points, building on the visual compare | Planned |

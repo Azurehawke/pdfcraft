@@ -18,10 +18,12 @@ pub enum Workflow {
     Measure,
     Review,
     Document,
+    /// RevuCraft's symbols, layers and photos ([`crate::revu::ribbon`]).
+    Symbols,
 }
 
 impl Workflow {
-    pub const ALL: [Workflow; 4] = [Workflow::Markup, Workflow::Measure, Workflow::Review, Workflow::Document];
+    pub const ALL: [Workflow; 5] = [Workflow::Markup, Workflow::Symbols, Workflow::Measure, Workflow::Review, Workflow::Document];
 
     /// The English tab name, translated where it is shown.
     pub fn label(self) -> &'static str {
@@ -30,6 +32,7 @@ impl Workflow {
             Self::Measure => "Measure",
             Self::Review => "Review",
             Self::Document => "Document",
+            Self::Symbols => "Symbols",
         }
     }
 
@@ -67,6 +70,7 @@ impl Workflow {
                 ("Edit", &["edit.edit_text", "edit.text", "edit.image", "edit.link"]),
                 ("Secure", &["redact.mark", "protect.password", "sign.digital"]),
             ],
+            Self::Symbols => &[],
         }
     }
 }
@@ -118,6 +122,10 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
         .exact_size(62.0)
         .frame(egui::Frame::NONE.fill(t.card).inner_margin(egui::Margin::symmetric(10, 4)).stroke(Stroke::new(1.0, t.divider)))
         .show(ui, |ui| {
+            if app.workflow == Workflow::Symbols {
+                crate::revu::ribbon(app, ui);
+                return;
+            }
             ui.add_enabled_ui(app.active.is_some(), |ui| {
                 ui.horizontal(|ui| {
                     ui.spacing_mut().item_spacing.x = 2.0;

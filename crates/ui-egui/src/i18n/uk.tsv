@@ -2230,3 +2230,57 @@ key	Space	Пробіл
 	Waiting for the document… (Google Drive downloads it first when it isn't on the tablet yet)	Очікування документа… (Google Диск спочатку завантажує його, якщо його ще немає на планшеті)
 	already exists. Replace it?	уже існує. Замінити?
 	To open and save PDFs anywhere on this device, turn on All files access for RevuCraft. Settings opens on the switch; come back here afterwards.	Щоб відкривати й зберігати PDF будь-де на цьому пристрої, увімкніть для RevuCraft доступ до всіх файлів. Налаштування відкриються на цьому перемикачі; потім поверніться сюди.
+	Add layer	Додати шар
+	Caption	Підпис
+	Counts	Кількість
+	Export symbol counts as CSV	Експортувати кількість символів у CSV
+	Layer	Шар
+	Layer colour	Колір шару
+	Lock layer	Заблокувати шар
+	Make this the current layer	Зробити поточним шаром
+	Manage layers	Керування шарами
+	Networking	Мережі
+	New layer name	Назва нового шару
+	No layer	Без шару
+	No layers yet. Add one, then choose it as the current layer: new markups, symbols and photos go on it.	Шарів поки немає. Додайте шар і виберіть його поточним: нові позначки, символи й фото будуть на ньому.
+	Number each symbol, counting up	Нумерувати кожен символ по порядку
+	Opens the tablet's camera app; the photo is also kept in the gallery.	Відкриває застосунок камери планшета; фото також зберігається в галереї.
+	PC, VoIP…	ПК, телефон…
+	Paper	Папір
+	Photo	Фото
+	Photos	Фотографії
+	Pin a photo	Прикріпити фото
+	Pin a photo: tap the drawing where it goes	Прикріпити фото: торкніться креслення там, де воно потрібне
+	Rack A, ceiling above room 104…	Стійка A, стеля над кімнатою 104…
+	Real	Реальний
+	Rename layer	Перейменувати шар
+	Saved symbol counts.	Кількість символів збережено.
+	Selected markup	Вибрана позначка
+	Symbol	Символ
+	Take a photo with the camera…	Зробити фото камерою…
+	Tap the drawing to place this symbol	Торкніться креслення, щоб поставити цей символ
+	Tap the pin on the drawing to see this photo again.	Торкніться шпильки на кресленні, щоб знову побачити це фото.
+	The photo couldn't be found.	Фото не знайдено.
+	There are no symbols to count yet.	Поки немає символів для підрахунку.
+	Unlock layer	Розблокувати шар
+	Real: the symbol's width in the real world, at the page's measurement scale (pages without a scale use 1/4 inch on paper). Paper: its width on the printed sheet.	Реальний: ширина символу в натурі, у масштабі вимірювань сторінки (без масштабу: 1/4 дюйма на папері). Папір: його ширина на надрукованому аркуші.
+	Symbols	Символи
+	Data jack (RJ-45)	Розетка даних (RJ-45)
+	Dual data jack	Подвійна розетка даних
+	Quad data jack	Четверна розетка даних
+	Voice jack	Телефонна розетка
+	Wireless access point	Точка бездротового доступу
+	Camera (dome)	Камера (купольна)
+	Camera (bullet)	Камера (циліндрична)
+	PoE device	Пристрій PoE
+	Floor box	Підлогова коробка
+	Equipment rack	Шафа обладнання
+	Patch panel	Патч-панель
+	Network switch	Мережевий комутатор
+	Fiber termination	Оптичне закінчення
+	Demarc	Точка розмежування
+	Display / TV	Екран / ТБ
+	Card reader	Зчитувач карток
+	Speaker	Гучномовець
+	J-hook	J-гак
+	Conduit stub-up	Вихід труби

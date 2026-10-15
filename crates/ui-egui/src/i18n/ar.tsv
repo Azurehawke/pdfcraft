@@ -2228,3 +2228,57 @@ key	Space	مسافة
 	Use this folder	استخدام هذا المجلد
 	Waiting for the document… (Google Drive downloads it first when it isn't on the tablet yet)	في انتظار المستند… (يُنزّله Google Drive أولًا إن لم يكن على الجهاز اللوحي بعد)
 	already exists. Replace it?	موجود بالفعل. هل تريد استبداله؟
+	Add layer	إضافة طبقة
+	Caption	تعليق
+	Counts	الأعداد
+	Export symbol counts as CSV	تصدير أعداد الرموز بصيغة CSV
+	Layer	الطبقة
+	Layer colour	لون الطبقة
+	Lock layer	قفل الطبقة
+	Make this the current layer	جعلها الطبقة الحالية
+	Manage layers	إدارة الطبقات
+	Networking	الشبكات
+	New layer name	اسم الطبقة الجديدة
+	No layer	بلا طبقة
+	No layers yet. Add one, then choose it as the current layer: new markups, symbols and photos go on it.	لا توجد طبقات بعد. أضف طبقة ثم اخترها طبقةً حالية: تُوضع عليها العلامات والرموز والصور الجديدة.
+	Number each symbol, counting up	ترقيم كل رمز تصاعديًا
+	Opens the tablet's camera app; the photo is also kept in the gallery.	يفتح تطبيق الكاميرا في الجهاز اللوحي؛ وتبقى الصورة في المعرض أيضًا.
+	PC, VoIP…	حاسوب، هاتف…
+	Paper	الورق
+	Photo	صورة
+	Photos	الصور
+	Pin a photo	تثبيت صورة
+	Pin a photo: tap the drawing where it goes	تثبيت صورة: انقر على الرسم حيث توضع
+	Rack A, ceiling above room 104…	الخزانة A، السقف فوق الغرفة 104…
+	Real	حقيقي
+	Rename layer	إعادة تسمية الطبقة
+	Saved symbol counts.	تم حفظ أعداد الرموز.
+	Selected markup	العلامة المحددة
+	Symbol	الرمز
+	Take a photo with the camera…	التقاط صورة بالكاميرا…
+	Tap the drawing to place this symbol	انقر على الرسم لوضع هذا الرمز
+	Tap the pin on the drawing to see this photo again.	انقر على الدبوس في الرسم لرؤية هذه الصورة مرة أخرى.
+	The photo couldn't be found.	تعذّر العثور على الصورة.
+	There are no symbols to count yet.	لا توجد رموز لعدّها بعد.
+	Unlock layer	إلغاء قفل الطبقة
+	Real: the symbol's width in the real world, at the page's measurement scale (pages without a scale use 1/4 inch on paper). Paper: its width on the printed sheet.	حقيقي: عرض الرمز في الواقع بمقياس القياس للصفحة (الصفحات بلا مقياس تستخدم 1/4 بوصة على الورق). الورق: عرضه على الورقة المطبوعة.
+	Symbols	الرموز
+	Data jack (RJ-45)	مقبس بيانات (RJ-45)
+	Dual data jack	مقبس بيانات مزدوج
+	Quad data jack	مقبس بيانات رباعي
+	Voice jack	مقبس هاتف
+	Wireless access point	نقطة وصول لاسلكية
+	Camera (dome)	كاميرا (قبة)
+	Camera (bullet)	كاميرا (أسطوانية)
+	PoE device	جهاز PoE
+	Floor box	علبة أرضية
+	Equipment rack	خزانة معدات
+	Patch panel	لوحة توصيل
+	Network switch	مبدّل شبكة
+	Fiber termination	نهاية ألياف ضوئية
+	Demarc	نقطة الفصل
+	Display / TV	شاشة / تلفاز
+	Card reader	قارئ بطاقات
+	Speaker	مكبّر صوت
+	J-hook	خطاف J
+	Conduit stub-up	مخرج أنبوب

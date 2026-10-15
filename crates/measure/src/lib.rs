@@ -582,6 +582,15 @@ pub fn list(doc: &Document) -> Listing {
 }
 /// Last containing viewport wins, using the first point of the measurement (ISO 32000-2 §12.9).
 pub fn scale_at(doc: &Document, page_index: usize, at: Point) -> Result<Scale> {
+    if let Some(scale) = viewport_scale_at(doc, page_index, at)? {
+        return Ok(scale);
+    }
+    let p = page(doc, page_index)?;
+    Scale::new(p.user_unit(doc) / 72.0, "in", 2)
+}
+/// The scale of the measurement viewport containing `at`, or `None` when no viewport covers it
+/// (the page is not calibrated there).
+pub fn viewport_scale_at(doc: &Document, page_index: usize, at: Point) -> Result<Option<Scale>> {
     check_points(&[at])?;
     let p = page(doc, page_index)?;
     if let Some(o) = p.dict.get(b"VP") {
@@ -599,12 +608,35 @@ pub fn scale_at(doc: &Document, page_index: usize, at: Point) -> Result<Scale> {
                     && at[1] >= b[1].min(b[3])
                     && at[1] <= b[1].max(b[3])
                 {
-                    return Scale::read(doc, d.get(b"Measure").ok_or_else(|| invalid("viewport has no measurement scale"))?);
+                    return Scale::read(doc, d.get(b"Measure").ok_or_else(|| invalid("viewport has no measurement scale"))?).map(Some);
                 }
             }
         }
     }
-    Scale::new(p.user_unit(doc) / 72.0, "in", 2)
+    Ok(None)
+}
+/// Inches in one of a scale's length units (`in`, `ft`, `yd`, `mi`, `mm`, `cm`, `m`, `km`).
+pub fn unit_inches(unit: &str) -> Option<f64> {
+    Some(match unit.trim() {
+        "in" | "\"" | "inch" | "inches" => 1.0,
+        "ft" | "'" | "feet" | "foot" => 12.0,
+        "yd" => 36.0,
+        "mi" => 63_360.0,
+        "mm" => 1.0 / 25.4,
+        "cm" => 1.0 / 2.54,
+        "m" => 1000.0 / 25.4,
+        "km" => 1_000_000.0 / 25.4,
+        _ => return None,
+    })
+}
+impl Scale {
+    /// User-space units spanning `inches` of real-world length along X, when the scale's unit
+    /// is a known length unit.
+    pub fn points_for_inches(&self, inches: f64) -> Option<f64> {
+        let per_point = self.x * self.distance_factor * unit_inches(&self.unit)?;
+        let points = inches / per_point;
+        (points.is_finite() && points > 0.0).then_some(points)
+    }
 }
 /// Add a named rectangular viewport. Existing viewports are preserved in drawing order.
 pub fn set_scale(doc: &mut Document, page_index: usize, bbox: [f64; 4], name: &str, scale: &Scale) -> Result<()> {

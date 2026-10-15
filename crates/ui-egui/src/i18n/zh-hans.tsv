@@ -2171,3 +2171,57 @@ key	Space	空格
 	Waiting for the document… (Google Drive downloads it first when it isn't on the tablet yet)	正在等待文档…（如果平板上还没有，Google 云端硬盘会先下载它）
 	already exists. Replace it?	已存在。要替换吗？
 	To open and save PDFs anywhere on this device, turn on All files access for RevuCraft. Settings opens on the switch; come back here afterwards.	要在此设备上的任意位置打开和保存 PDF，请为 RevuCraft 打开“所有文件访问权限”。设置会直接打开该开关；完成后返回这里。
+	Add layer	添加图层
+	Caption	说明
+	Counts	数量
+	Export symbol counts as CSV	将符号数量导出为 CSV
+	Layer	图层
+	Layer colour	图层颜色
+	Lock layer	锁定图层
+	Make this the current layer	设为当前图层
+	Manage layers	管理图层
+	Networking	网络
+	New layer name	新图层名称
+	No layer	无图层
+	No layers yet. Add one, then choose it as the current layer: new markups, symbols and photos go on it.	还没有图层。添加一个并选为当前图层：新的标记、符号和照片都会放在上面。
+	Number each symbol, counting up	为每个符号依次编号
+	Opens the tablet's camera app; the photo is also kept in the gallery.	打开平板电脑的相机应用；照片也会保留在图库中。
+	PC, VoIP…	电脑、电话…
+	Paper	纸面
+	Photo	照片
+	Photos	照片
+	Pin a photo	钉住照片
+	Pin a photo: tap the drawing where it goes	钉住照片：在图纸上点按要放的位置
+	Rack A, ceiling above room 104…	机柜 A，104 室上方天花板…
+	Real	实际
+	Rename layer	重命名图层
+	Saved symbol counts.	已保存符号数量。
+	Selected markup	所选标记
+	Symbol	符号
+	Take a photo with the camera…	用相机拍照…
+	Tap the drawing to place this symbol	点按图纸以放置此符号
+	Tap the pin on the drawing to see this photo again.	点按图纸上的图钉可再次查看此照片。
+	The photo couldn't be found.	找不到照片。
+	There are no symbols to count yet.	还没有可计数的符号。
+	Unlock layer	解锁图层
+	Real: the symbol's width in the real world, at the page's measurement scale (pages without a scale use 1/4 inch on paper). Paper: its width on the printed sheet.	实际：符号在现实中的宽度，按页面的测量比例（没有比例的页面在纸面上为 1/4 英寸）。纸面：在打印纸上的宽度。
+	Symbols	符号
+	Data jack (RJ-45)	数据插座 (RJ-45)
+	Dual data jack	双口数据插座
+	Quad data jack	四口数据插座
+	Voice jack	语音插座
+	Wireless access point	无线接入点
+	Camera (dome)	摄像机（半球）
+	Camera (bullet)	摄像机（枪式）
+	PoE device	PoE 设备
+	Floor box	地插盒
+	Equipment rack	设备机柜
+	Patch panel	配线架
+	Network switch	网络交换机
+	Fiber termination	光纤终端
+	Demarc	分界点
+	Display / TV	显示器 / 电视
+	Card reader	读卡器
+	Speaker	扬声器
+	J-hook	J 型钩
+	Conduit stub-up	线管出口

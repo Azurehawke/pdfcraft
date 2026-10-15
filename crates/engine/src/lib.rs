@@ -22,6 +22,7 @@ pub mod js;
 pub mod links;
 pub mod ocr;
 pub mod optimizer;
+pub mod photos;
 pub mod signature_image;
 mod upright_image;
 pub mod xfa;
@@ -100,6 +101,7 @@ pub use pdfcraft_annot::{
     AttachIcon, FillMark, LineEnding, Markup, NOTE_SIZE, NewAnnotation, NoteIcon, OverlayFont, OverlayLook, PenKind, Props as CommentProps,
     ReviewState, Rgb, Shape, StampGroup, StampKind, Style, rect_quad,
 };
+pub use pdfcraft_annot::{layers, symbols};
 pub use pdfcraft_forms::detect;
 pub use pdfcraft_optimize as optimize;
 pub use pdfcraft_preflight as pdfa;
@@ -171,6 +173,8 @@ fn scope_of(edit: &Edit) -> Scope {
         Edit::SetInfo { .. } => Scope::Metadata,
         // A file attachment also changes the Attachments list.
         Edit::AddAnnotation(a) if matches!(a.shape, Shape::Attachment { .. }) => Scope::Full,
+        Edit::AddPhoto { .. } => Scope::Full,
+        Edit::SetAnnotationLayer { .. } | Edit::AddSymbol(_) | Edit::SetLayerColor { .. } | Edit::SetLayerLocked { .. } => Scope::Comments,
         Edit::AddMeasurement(_)
         | Edit::AddAnnotation(_)
         | Edit::AddCustomStamp { .. }
@@ -254,6 +258,8 @@ pub struct Document {
     /// XFA forms: what was approximated, rewritten or could not be written to the XFA data
     /// (also in `info.warnings`, kept there when the document is re-read).
     pub xfa_warnings: Vec<String>,
+    /// RevuCraft: the layer new comments, measurements, symbols and photos go on.
+    pub current_layer: Option<(u32, u16)>,
 }
 
 impl Document {
@@ -304,6 +310,17 @@ impl Document {
     pub fn measurement_scale(&self, page: usize, at: measure::Point) -> Result<measure::Scale, String> {
         let e = self.editor.as_ref().ok_or("the document can't be read")?;
         measure::scale_at(&e.cos, page, at).map_err(|e| e.to_string())
+    }
+    /// RevuCraft's layers, with their colours and locks.
+    pub fn layer_list(&self) -> Vec<pdfcraft_annot::layers::LayerInfo> {
+        self.editor.as_ref().map(|e| pdfcraft_annot::layers::list(&e.cos)).unwrap_or_default()
+    }
+
+    /// User units spanning `inches` of real-world length at `at`, from the measurement viewport
+    /// there; `None` when the page isn't calibrated at that point (or its unit isn't a length).
+    pub fn real_size_points(&self, page: usize, at: measure::Point, inches: f64) -> Option<f64> {
+        let e = self.editor.as_ref()?;
+        measure::viewport_scale_at(&e.cos, page, at).ok().flatten()?.points_for_inches(inches)
     }
     pub fn measurement_to_user(&self, page: usize, point: measure::Point) -> Result<measure::Point, String> {
         let e = self.editor.as_ref().ok_or("the document can't be read")?;
@@ -814,6 +831,41 @@ pub enum Edit {
         file: MarkFile,
         author: String,
     },
+    /// RevuCraft: add a layer you manage (an optional content group with a colour).
+    AddLayer {
+        name: String,
+        color: [f64; 3],
+    },
+    RenameLayer {
+        layer: (u32, u16),
+        name: String,
+    },
+    SetLayerColor {
+        layer: (u32, u16),
+        color: [f64; 3],
+    },
+    /// Lock or unlock a layer and everything on it.
+    SetLayerLocked {
+        layer: (u32, u16),
+        locked: bool,
+    },
+    /// Put the comment at `index` on a layer, or on none.
+    SetAnnotationLayer {
+        page: usize,
+        index: usize,
+        layer: Option<(u32, u16)>,
+    },
+    /// Place a symbol from the symbol library.
+    AddSymbol(pdfcraft_annot::symbols::NewSymbol),
+    /// Pin a photo at `at` (a JPEG from [`photos::prepare`]), with a caption.
+    AddPhoto {
+        page: usize,
+        at: [f64; 2],
+        name: String,
+        data: Vec<u8>,
+        caption: String,
+        author: String,
+    },
     /// Delete the comment at `index` in the page's `/Annots`, with its pop-up and replies.
     DeleteAnnotation {
         page: usize,
@@ -1163,6 +1215,14 @@ impl Edit {
             Edit::SetMeasurementScale { .. } => "Set measurement scale".into(),
             Edit::AddAnnotation(a) => format!("Add {}", annotation_noun(&a.shape)),
             Edit::AddCustomStamp { .. } => "Add stamp".into(),
+            Edit::AddLayer { .. } => "New layer".into(),
+            Edit::RenameLayer { .. } => "Rename layer".into(),
+            Edit::SetLayerColor { .. } => "Change layer colour".into(),
+            Edit::SetLayerLocked { locked: true, .. } => "Lock layer".into(),
+            Edit::SetLayerLocked { .. } => "Unlock layer".into(),
+            Edit::SetAnnotationLayer { .. } => "Move to layer".into(),
+            Edit::AddSymbol(s) => format!("Add {}", s.symbol.name()),
+            Edit::AddPhoto { .. } => "Pin photo".into(),
             Edit::DeleteAnnotation { .. } => "Delete comment".into(),
             Edit::SetAnnotationContents { .. } => "Edit comment".into(),
             Edit::ReplyToAnnotation { .. } => "Reply".into(),
@@ -1304,6 +1364,13 @@ fn check_permission(edit: &Edit, p: &pdfcraft_cos::Permissions) -> Result<(), Ed
         Edit::AddMeasurement(_)
         | Edit::AddAnnotation(_)
         | Edit::AddCustomStamp { .. }
+        | Edit::AddLayer { .. }
+        | Edit::RenameLayer { .. }
+        | Edit::SetLayerColor { .. }
+        | Edit::SetLayerLocked { .. }
+        | Edit::SetAnnotationLayer { .. }
+        | Edit::AddSymbol(_)
+        | Edit::AddPhoto { .. }
         | Edit::DeleteAnnotation { .. }
         | Edit::SetAnnotationContents { .. }
         | Edit::ReplyToAnnotation { .. }
@@ -1406,6 +1473,9 @@ struct EditCtx {
     today: (i64, u32, u32),
     seed: u64,
     count: u64,
+    /// The layer new comments, measurements, symbols and photos go on (RevuCraft's current
+    /// layer), if any.
+    layer: Option<(u32, u16)>,
 }
 
 impl EditCtx {
@@ -1430,6 +1500,7 @@ impl EditCtx {
             today: (1970, 1, 1),
             seed,
             count: 0,
+            layer: None,
         }
     }
 
@@ -1449,6 +1520,18 @@ impl EditCtx {
     }
 
     /// A fresh `/NM`: a random-looking UUID (version 4 layout) from a splitmix64 stream.
+    /// Put the comment just added at (page, index) on the current layer. A current layer that
+    /// no longer exists (deleted elsewhere) is ignored rather than failing the edit.
+    fn place_on_layer(&self, doc: &mut pdfcraft_cos::Document, page: usize, index: usize) -> Result<(), EditError> {
+        let Some(layer) = self.layer else { return Ok(()) };
+        let id = layer_ref(layer);
+        if !pdfcraft_annot::layers::list(doc).iter().any(|l| l.id == id) {
+            return Ok(());
+        }
+        pdfcraft_annot::layers::assign(doc, page, index, Some(id))?;
+        Ok(())
+    }
+
     fn meta(&mut self) -> pdfcraft_annot::Meta {
         let mut next = || {
             self.count += 1;
@@ -1471,6 +1554,10 @@ impl EditCtx {
 }
 
 /// Perform an edit on a working copy (the caller discards it on error).
+fn layer_ref(id: (u32, u16)) -> pdfcraft_cos::ObjRef {
+    pdfcraft_cos::ObjRef::new(id.0, id.1)
+}
+
 fn run_edit(doc: &mut pdfcraft_cos::Document, edit: &Edit, cx: &mut EditCtx) -> Result<(), EditError> {
     match edit {
         Edit::RotatePages { pages, degrees } => pdfcraft_organize::rotate_pages(doc, pages, *degrees)?,
@@ -1512,11 +1599,35 @@ fn run_edit(doc: &mut pdfcraft_cos::Document, edit: &Edit, cx: &mut EditCtx) -> 
         }
         Edit::NumberPages { from, to, style, prefix, first } => pdfcraft_organize::number_pages(doc, *from, *to, *style, prefix, *first)?,
         Edit::AddMeasurement(m) => {
-            measure::add(doc, m, &cx.meta())?;
+            let index = measure::add(doc, m, &cx.meta())?;
+            cx.place_on_layer(doc, m.page, index)?;
         }
         Edit::SetMeasurementScale { page, bbox, name, scale } => measure::set_scale(doc, *page, *bbox, name, scale)?,
         Edit::AddAnnotation(a) => {
-            pdfcraft_annot::add_annotation(doc, a, &cx.meta())?;
+            let index = pdfcraft_annot::add_annotation(doc, a, &cx.meta())?;
+            cx.place_on_layer(doc, a.page, index)?;
+        }
+        Edit::AddLayer { name, color } => {
+            pdfcraft_annot::layers::add(doc, name, *color)?;
+        }
+        Edit::RenameLayer { layer, name } => pdfcraft_annot::layers::rename(doc, layer_ref(*layer), name)?,
+        Edit::SetLayerColor { layer, color } => pdfcraft_annot::layers::set_color(doc, layer_ref(*layer), *color)?,
+        Edit::SetLayerLocked { layer, locked } => pdfcraft_annot::layers::set_locked(doc, layer_ref(*layer), *locked)?,
+        Edit::SetAnnotationLayer { page, index, layer } => pdfcraft_annot::layers::assign(doc, *page, *index, layer.map(layer_ref))?,
+        Edit::AddSymbol(new) => {
+            let index = pdfcraft_annot::symbols::add_symbol(doc, new, &cx.meta())?;
+            cx.place_on_layer(doc, new.page, index)?;
+        }
+        Edit::AddPhoto { page, at, name, data, caption, author } => {
+            if data.is_empty() {
+                return Err(EditError::Invalid("the photo is empty".into()));
+            }
+            let shape = Shape::Attachment { at: *at, icon: pdfcraft_annot::AttachIcon::PushPin, file: name.clone(), data: data.clone() };
+            let style = pdfcraft_annot::Style { color: [0.96, 0.62, 0.04], ..pdfcraft_annot::Style::default_for(&shape) };
+            let new = NewAnnotation { page: *page, shape, style, contents: caption.clone(), author: author.clone() };
+            let index = pdfcraft_annot::add_annotation(doc, &new, &cx.meta())?;
+            pdfcraft_annot::mark_photo(doc, *page, index)?;
+            cx.place_on_layer(doc, *page, index)?;
         }
         Edit::AddCustomStamp { page, rect, name, file, author } => {
             let src = mark_source(doc, file)?;
@@ -1535,6 +1646,7 @@ fn run_edit(doc: &mut pdfcraft_cos::Document, edit: &Edit, cx: &mut EditCtx) -> 
             let new = NewAnnotation { page: *page, shape, style, contents: name.clone(), author: author.clone() };
             let index = pdfcraft_annot::add_annotation(doc, &new, &cx.meta())?;
             pdfcraft_annot::orient_image_stamp(doc, *page, index, rotation)?;
+            cx.place_on_layer(doc, *page, index)?;
         }
         Edit::DeleteAnnotation { page, index } => pdfcraft_annot::delete_annotation(doc, *page, *index)?,
         Edit::SetAnnotationContents { page, index, text } => pdfcraft_annot::set_contents(doc, *page, *index, text, &cx.meta())?,
@@ -1799,6 +1911,9 @@ fn comment_list(doc: &pdfcraft_cos::Document) -> Vec<pdfcraft_render::Annotation
             locked: s.locked,
             intent: s.intent,
             fill_sign: s.fill_sign,
+            photo: s.photo,
+            symbol: s.symbol,
+            layer: s.layer,
         })
         .collect()
 }
@@ -2364,8 +2479,40 @@ impl Session {
             xfa,
             xfa_template: None,
             xfa_warnings: Vec::new(),
+            current_layer: None,
         });
         Ok(id)
+    }
+
+    /// RevuCraft's layers of a document, with their colours and locks (visibility is in
+    /// `info.layers`).
+    pub fn layer_details(&self, id: DocId) -> Vec<pdfcraft_annot::layers::LayerInfo> {
+        self.get(id).map(Document::layer_list).unwrap_or_default()
+    }
+
+    /// Set the layer new markups go on (`None`: no layer).
+    pub fn set_current_layer(&mut self, id: DocId, layer: Option<(u32, u16)>) -> Result<(), EditError> {
+        self.doc_mut(id)?.current_layer = layer;
+        Ok(())
+    }
+
+    /// The layer the comment at (page, index) is on.
+    pub fn annotation_layer(&self, id: DocId, page: usize, index: usize) -> Option<(u32, u16)> {
+        let editor = self.get(id)?.editor.as_ref()?;
+        pdfcraft_annot::symbols::layer_at(&editor.cos, page, index).map(|r| (r.num, r.generation))
+    }
+
+    /// Every placed symbol, page by page.
+    pub fn placed_symbols(&self, id: DocId) -> Vec<pdfcraft_annot::symbols::Placed> {
+        self.get(id).and_then(|d| d.editor.as_ref()).map(|e| pdfcraft_annot::symbols::placed(&e.cos)).unwrap_or_default()
+    }
+
+    /// Symbol counts as a spreadsheet (CSV): one row per symbol, label and layer, with the
+    /// pages they are on, then the placements one by one.
+    pub fn symbol_counts_csv(&self, id: DocId) -> String {
+        let layers = self.layer_details(id);
+        let placed = self.placed_symbols(id);
+        pdfcraft_annot::symbols::counts_csv(&placed, &layers)
     }
 
     fn doc_mut(&mut self, id: DocId) -> Result<&mut Document, EditError> {
@@ -2386,6 +2533,7 @@ impl Session {
         }
         cx.pages = doc.info.pages.len();
         cx.today = today;
+        cx.layer = doc.current_layer;
         let reason = doc.read_only_reason.clone().unwrap_or_default();
         let signed = doc.is_signed();
         let editor = doc.editor.as_mut().ok_or(EditError::ReadOnly(reason))?;

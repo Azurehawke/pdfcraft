@@ -2853,3 +2853,84 @@ fn recovered_user_passwords_reach_the_renderer_byte_for_byte() {
     assert_eq!(crate::renderer_password(&[0x9A, b'l', 0x9A, b'k', 0xA0]), "ılık€");
     assert_eq!(crate::renderer_password(&[0xC7, b'o', b'k']), "Çok");
 }
+
+/// RevuCraft: layers made in the app, markup placed on the current layer, symbols counted, and
+/// hiding a layer hides what is on it.
+#[test]
+fn layers_symbols_and_photos() {
+    use pdfcraft_annot::symbols::{NewSymbol, Symbol};
+    let (mut s, id) = session_with(1);
+    s.apply(id, Edit::AddLayer { name: "Data".into(), color: [0.0, 0.4, 0.9] }).unwrap();
+    s.apply(id, Edit::AddLayer { name: "Photos".into(), color: [0.9, 0.5, 0.0] }).unwrap();
+    let layers = s.layer_details(id);
+    assert_eq!(layers.iter().map(|l| l.name.as_str()).collect::<Vec<_>>(), ["Data", "Photos"]);
+    let data = (layers[0].id.num, layers[0].id.generation);
+    let photos = (layers[1].id.num, layers[1].id.generation);
+    assert_eq!(s.get(id).unwrap().info.layers.len(), 2, "the viewer's layer list knows them");
+
+    s.set_current_layer(id, Some(data)).unwrap();
+    let jack = |label: &str, x: f64| {
+        Edit::AddSymbol(NewSymbol {
+            page: 0,
+            symbol: Symbol::DataJack,
+            center: [x, 100.0],
+            size: 12.0,
+            label: label.into(),
+            color: [0.0, 0.4, 0.9],
+            author: "Steve".into(),
+        })
+    };
+    s.apply(id, jack("PC", 50.0)).unwrap();
+    s.apply(id, jack("PC", 80.0)).unwrap();
+    s.apply(id, jack("VoIP", 110.0)).unwrap();
+    s.set_current_layer(id, Some(photos)).unwrap();
+    let jpeg = photos::prepare(&{
+        let img = image::RgbImage::from_pixel(64, 48, image::Rgb([200, 30, 30]));
+        let mut out = Vec::new();
+        image::DynamicImage::ImageRgb8(img).write_to(&mut std::io::Cursor::new(&mut out), image::ImageFormat::Png).unwrap();
+        out
+    })
+    .unwrap();
+    s.apply(
+        id,
+        Edit::AddPhoto { page: 0, at: [150.0, 200.0], name: photos::file_name(1), data: jpeg, caption: "Rack A".into(), author: "Steve".into() },
+    )
+    .unwrap();
+
+    let doc = s.get(id).unwrap();
+    let photo = doc.info.annotations.iter().find(|a| a.photo).expect("the photo is listed");
+    assert_eq!((photo.layer, photo.contents.as_deref()), (Some(photos), Some("Rack A")));
+    let symbols: Vec<_> = doc.info.annotations.iter().filter(|a| a.symbol.is_some()).collect();
+    assert_eq!(symbols.len(), 3);
+    assert!(symbols.iter().all(|a| a.layer == Some(data)));
+    let csv = s.symbol_counts_csv(id);
+    assert!(csv.contains("Data jack (RJ-45),PC,Data,2,1"), "{csv}");
+    assert!(csv.contains("Data jack (RJ-45),VoIP,Data,1,1"), "{csv}");
+    assert!(csv.contains("Total,,,3,"), "{csv}");
+
+    // Moving a symbol to no layer, then locking the data layer.
+    let first = symbols[0].index;
+    s.apply(id, Edit::SetAnnotationLayer { page: 0, index: first, layer: None }).unwrap();
+    assert_eq!(s.annotation_layer(id, 0, first), None);
+    s.apply(id, Edit::SetLayerLocked { layer: data, locked: true }).unwrap();
+    let locked: Vec<bool> =
+        s.get(id).unwrap().info.annotations.iter().filter(|a| a.symbol.is_some()).map(|a| a.layer.is_some() && a.locked).collect();
+    assert_eq!(locked.iter().filter(|l| **l).count(), 2);
+    assert!(s.layer_details(id)[0].locked);
+    s.apply(id, Edit::RenameLayer { layer: data, name: "Data drops".into() }).unwrap();
+    s.apply(id, Edit::SetLayerColor { layer: data, color: [1.0, 0.0, 0.0] }).unwrap();
+    assert_eq!((s.layer_details(id)[0].name.as_str(), s.layer_details(id)[0].color), ("Data drops", [1.0, 0.0, 0.0]));
+    // A current layer deleted elsewhere is ignored rather than failing new markup.
+    s.set_current_layer(id, Some((9999, 0))).unwrap();
+    s.apply(id, jack("AP", 20.0)).unwrap();
+    // Bad input is refused, not a crash.
+    assert!(s.apply(id, Edit::AddLayer { name: " ".into(), color: [0.0; 3] }).is_err());
+    assert!(s.apply(id, Edit::SetLayerLocked { layer: (9999, 0), locked: true }).is_err());
+    assert!(
+        s.apply(
+            id,
+            Edit::AddPhoto { page: 0, at: [1.0, 1.0], name: "x.jpg".into(), data: Vec::new(), caption: String::new(), author: String::new() }
+        )
+        .is_err()
+    );
+}

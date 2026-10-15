@@ -174,6 +174,17 @@ pub fn interpret_page<'a>(
             if flags & (2 | 32) != 0 {
                 continue;
             }
+            // PdfCraft patch (23): an annotation in a hidden optional content group or
+            // membership dictionary (`/OC`, §12.5.2) is not drawn, so layers hide markup too.
+            if let Some(oc_ref) = annot.get_ref(OC) {
+                let oc = annot.get::<Dict<'_>>(OC).unwrap_or_default();
+                context.ocg_state.begin_ocg(&oc, oc_ref.into());
+                let visible = context.ocg_state.is_visible();
+                context.ocg_state.end_marked_content();
+                if !visible {
+                    continue;
+                }
+            }
             // PdfCraft patch: "Hide all comments" keeps widgets and links.
             if context.settings.hide_comments
                 && !matches!(annot.get::<hayro_syntax::object::Name<'_>>(SUBTYPE).as_deref(), Some(b"Widget" | b"Link"))

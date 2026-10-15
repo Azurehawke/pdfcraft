@@ -2206,3 +2206,57 @@ key	Space	スペース
 	Use this folder	このフォルダーを使用
 	Waiting for the document… (Google Drive downloads it first when it isn't on the tablet yet)	ドキュメントを待っています…（タブレットにまだない場合、Google ドライブが先にダウンロードします）
 	already exists. Replace it?	は既に存在します。置き換えますか？
+	Add layer	レイヤーを追加
+	Caption	キャプション
+	Counts	数量
+	Export symbol counts as CSV	シンボルの数量を CSV で書き出す
+	Layer	レイヤー
+	Layer colour	レイヤーの色
+	Lock layer	レイヤーをロック
+	Make this the current layer	現在のレイヤーにする
+	Manage layers	レイヤーを管理
+	Networking	ネットワーク
+	New layer name	新しいレイヤー名
+	No layer	レイヤーなし
+	No layers yet. Add one, then choose it as the current layer: new markups, symbols and photos go on it.	まだレイヤーがありません。追加して現在のレイヤーに選ぶと、新しいマークアップ、シンボル、写真がそこに置かれます。
+	Number each symbol, counting up	シンボルごとに連番を付ける
+	Opens the tablet's camera app; the photo is also kept in the gallery.	タブレットのカメラアプリを開きます。写真はギャラリーにも残ります。
+	PC, VoIP…	PC、電話…
+	Paper	用紙
+	Photo	写真
+	Photos	写真
+	Pin a photo	写真をピン留め
+	Pin a photo: tap the drawing where it goes	写真をピン留め：置きたい場所の図面をタップ
+	Rack A, ceiling above room 104…	ラック A、104 号室の天井…
+	Real	実寸
+	Rename layer	レイヤー名を変更
+	Saved symbol counts.	シンボルの数量を保存しました。
+	Selected markup	選択中のマークアップ
+	Symbol	シンボル
+	Take a photo with the camera…	カメラで写真を撮る…
+	Tap the drawing to place this symbol	図面をタップしてこのシンボルを配置
+	Tap the pin on the drawing to see this photo again.	図面のピンをタップすると、この写真をもう一度表示できます。
+	The photo couldn't be found.	写真が見つかりません。
+	There are no symbols to count yet.	数えるシンボルがまだありません。
+	Unlock layer	レイヤーのロックを解除
+	Real: the symbol's width in the real world, at the page's measurement scale (pages without a scale use 1/4 inch on paper). Paper: its width on the printed sheet.	実寸：ページの計測スケールでの実際の幅（スケールのないページは用紙上で 1/4 インチ）。用紙：印刷した用紙上での幅。
+	Symbols	シンボル
+	Data jack (RJ-45)	データジャック (RJ-45)
+	Dual data jack	デュアルデータジャック
+	Quad data jack	クアッドデータジャック
+	Voice jack	電話ジャック
+	Wireless access point	無線アクセスポイント
+	Camera (dome)	カメラ（ドーム）
+	Camera (bullet)	カメラ（バレット）
+	PoE device	PoE 機器
+	Floor box	フロアボックス
+	Equipment rack	機器ラック
+	Patch panel	パッチパネル
+	Network switch	ネットワークスイッチ
+	Fiber termination	光ファイバー終端
+	Demarc	責任分界点
+	Display / TV	ディスプレイ / テレビ
+	Card reader	カードリーダー
+	Speaker	スピーカー
+	J-hook	J フック
+	Conduit stub-up	電線管立ち上げ

@@ -2119,3 +2119,57 @@ key	Space	Пробел
 	Use this folder	Использовать эту папку
 	Waiting for the document… (Google Drive downloads it first when it isn't on the tablet yet)	Ожидание документа… (Google Диск сначала скачивает его, если его ещё нет на планшете)
 	already exists. Replace it?	уже существует. Заменить?
+	Add layer	Добавить слой
+	Caption	Подпись
+	Counts	Количество
+	Export symbol counts as CSV	Экспортировать количество символов в CSV
+	Layer	Слой
+	Layer colour	Цвет слоя
+	Lock layer	Заблокировать слой
+	Make this the current layer	Сделать текущим слоем
+	Manage layers	Управление слоями
+	Networking	Сети
+	New layer name	Имя нового слоя
+	No layer	Без слоя
+	No layers yet. Add one, then choose it as the current layer: new markups, symbols and photos go on it.	Слоёв пока нет. Добавьте слой и выберите его текущим: новые пометки, символы и фото будут на нём.
+	Number each symbol, counting up	Нумеровать каждый символ по порядку
+	Opens the tablet's camera app; the photo is also kept in the gallery.	Открывает приложение камеры планшета; фото также сохраняется в галерее.
+	PC, VoIP…	ПК, телефон…
+	Paper	Бумага
+	Photo	Фото
+	Photos	Фото
+	Pin a photo	Прикрепить фото
+	Pin a photo: tap the drawing where it goes	Прикрепить фото: коснитесь чертежа там, где оно нужно
+	Rack A, ceiling above room 104…	Стойка A, потолок над комнатой 104…
+	Real	Реальный
+	Rename layer	Переименовать слой
+	Saved symbol counts.	Количество символов сохранено.
+	Selected markup	Выбранная пометка
+	Symbol	Символ
+	Take a photo with the camera…	Сделать фото камерой…
+	Tap the drawing to place this symbol	Коснитесь чертежа, чтобы поставить этот символ
+	Tap the pin on the drawing to see this photo again.	Коснитесь булавки на чертеже, чтобы снова увидеть это фото.
+	The photo couldn't be found.	Фото не найдено.
+	There are no symbols to count yet.	Пока нет символов для подсчёта.
+	Unlock layer	Разблокировать слой
+	Real: the symbol's width in the real world, at the page's measurement scale (pages without a scale use 1/4 inch on paper). Paper: its width on the printed sheet.	Реальный: ширина символа в натуре, в масштабе измерений страницы (без масштаба: 1/4 дюйма на бумаге). Бумага: его ширина на отпечатанном листе.
+	Symbols	Символы
+	Data jack (RJ-45)	Розетка данных (RJ-45)
+	Dual data jack	Двойная розетка данных
+	Quad data jack	Четверная розетка данных
+	Voice jack	Телефонная розетка
+	Wireless access point	Точка беспроводного доступа
+	Camera (dome)	Камера (купольная)
+	Camera (bullet)	Камера (цилиндрическая)
+	PoE device	Устройство PoE
+	Floor box	Напольная коробка
+	Equipment rack	Шкаф оборудования
+	Patch panel	Патч-панель
+	Network switch	Сетевой коммутатор
+	Fiber termination	Оптическое окончание
+	Demarc	Точка разграничения
+	Display / TV	Экран / ТВ
+	Card reader	Считыватель карт
+	Speaker	Громкоговоритель
+	J-hook	J-крюк
+	Conduit stub-up	Выход трубы

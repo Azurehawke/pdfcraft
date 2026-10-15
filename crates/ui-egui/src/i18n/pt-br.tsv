@@ -2208,3 +2208,57 @@ key	Space	Espaço
 	Waiting for the document… (Google Drive downloads it first when it isn't on the tablet yet)	Aguardando o documento… (o Google Drive baixa primeiro quando ele ainda não está no tablet)
 	already exists. Replace it?	já existe. Substituir?
 	To open and save PDFs anywhere on this device, turn on All files access for RevuCraft. Settings opens on the switch; come back here afterwards.	Para abrir e salvar PDFs em qualquer lugar deste dispositivo, ative o acesso a todos os arquivos para o RevuCraft. As Configurações abrem na opção; depois volte aqui.
+	Add layer	Adicionar camada
+	Caption	Legenda
+	Counts	Contagens
+	Export symbol counts as CSV	Exportar contagem de símbolos em CSV
+	Layer	Camada
+	Layer colour	Cor da camada
+	Lock layer	Bloquear camada
+	Make this the current layer	Tornar esta a camada atual
+	Manage layers	Gerenciar camadas
+	Networking	Rede
+	New layer name	Nome da nova camada
+	No layer	Nenhuma camada
+	No layers yet. Add one, then choose it as the current layer: new markups, symbols and photos go on it.	Ainda não há camadas. Adicione uma e escolha-a como camada atual: novas marcações, símbolos e fotos vão para ela.
+	Number each symbol, counting up	Numerar cada símbolo em sequência
+	Opens the tablet's camera app; the photo is also kept in the gallery.	Abre o app de câmera do tablet; a foto também fica na galeria.
+	PC, VoIP…	PC, telefone…
+	Paper	Papel
+	Photo	Foto
+	Photos	Fotos
+	Pin a photo	Fixar uma foto
+	Pin a photo: tap the drawing where it goes	Fixar uma foto: toque no desenho onde ela fica
+	Rack A, ceiling above room 104…	Rack A, teto acima da sala 104…
+	Real	Real
+	Rename layer	Renomear camada
+	Saved symbol counts.	Contagem de símbolos salva.
+	Selected markup	Marcação selecionada
+	Symbol	Símbolo
+	Take a photo with the camera…	Tirar uma foto com a câmera…
+	Tap the drawing to place this symbol	Toque no desenho para colocar este símbolo
+	Tap the pin on the drawing to see this photo again.	Toque no alfinete no desenho para ver esta foto de novo.
+	The photo couldn't be found.	A foto não foi encontrada.
+	There are no symbols to count yet.	Ainda não há símbolos para contar.
+	Unlock layer	Desbloquear camada
+	Real: the symbol's width in the real world, at the page's measurement scale (pages without a scale use 1/4 inch on paper). Paper: its width on the printed sheet.	Real: a largura do símbolo no mundo real, na escala de medição da página (páginas sem escala usam 1/4 de polegada no papel). Papel: a largura na folha impressa.
+	Symbols	Símbolos
+	Data jack (RJ-45)	Tomada de dados (RJ-45)
+	Dual data jack	Tomada de dados dupla
+	Quad data jack	Tomada de dados quádrupla
+	Voice jack	Tomada de voz
+	Wireless access point	Ponto de acesso sem fio
+	Camera (dome)	Câmera (dome)
+	Camera (bullet)	Câmera (bullet)
+	PoE device	Dispositivo PoE
+	Floor box	Caixa de piso
+	Equipment rack	Rack de equipamentos
+	Patch panel	Patch panel
+	Network switch	Switch de rede
+	Fiber termination	Terminação de fibra
+	Demarc	Ponto de demarcação
+	Display / TV	Tela / TV
+	Card reader	Leitor de cartão
+	Speaker	Alto-falante
+	J-hook	Gancho J
+	Conduit stub-up	Saída de eletroduto

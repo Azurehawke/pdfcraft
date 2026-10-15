@@ -414,3 +414,16 @@ fn feet_inch_scale_writes_compound_formats_and_roundtrips() {
     other.set(b"D".to_vec(), Object::Array(parts));
     assert!(Scale::read(&d, &Object::Dict(other)).unwrap_err().to_string().contains("compound"));
 }
+
+#[test]
+fn real_world_sizes_convert_to_points() {
+    // 1/8" = 1'-0": 1/8" of paper (9 points) is one foot.
+    let scale = Scale::new(1.0 / 9.0, "ft", 2).unwrap();
+    let points = scale.points_for_inches(12.0).unwrap();
+    assert!((points - 9.0).abs() < 1e-9, "{points}");
+    let metric = Scale::new(0.1, "m", 2).unwrap();
+    assert!((metric.points_for_inches(1000.0 / 25.4).unwrap() - 10.0).abs() < 1e-9);
+    let odd = Scale { unit: "furlong".into(), ..Scale::default() };
+    assert_eq!(odd.points_for_inches(12.0), None);
+    assert_eq!(Scale::default().points_for_inches(-1.0), None);
+}

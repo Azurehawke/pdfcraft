@@ -2204,3 +2204,57 @@ key	Space	Szóköz
 	Use this folder	Ennek a mappának a használata
 	Waiting for the document… (Google Drive downloads it first when it isn't on the tablet yet)	Várakozás a dokumentumra… (a Google Drive előbb letölti, ha még nincs a táblagépen)
 	already exists. Replace it?	már létezik. Lecseréled?
+	Add layer	Réteg hozzáadása
+	Caption	Képaláírás
+	Counts	Darabszám
+	Export symbol counts as CSV	Szimbólumok darabszámának exportálása CSV-be
+	Layer	Réteg
+	Layer colour	Réteg színe
+	Lock layer	Réteg zárolása
+	Make this the current layer	Legyen ez az aktuális réteg
+	Manage layers	Rétegek kezelése
+	Networking	Hálózat
+	New layer name	Új réteg neve
+	No layer	Nincs réteg
+	No layers yet. Add one, then choose it as the current layer: new markups, symbols and photos go on it.	Még nincsenek rétegek. Adjon hozzá egyet, és válassza aktuális rétegnek: az új jelölések, szimbólumok és fotók arra kerülnek.
+	Number each symbol, counting up	Minden szimbólum sorszámozása
+	Opens the tablet's camera app; the photo is also kept in the gallery.	Megnyitja a táblagép kameraalkalmazását; a fotó a galériában is megmarad.
+	PC, VoIP…	PC, telefon…
+	Paper	Papír
+	Photo	Fotó
+	Photos	Fotók
+	Pin a photo	Fotó rögzítése
+	Pin a photo: tap the drawing where it goes	Fotó rögzítése: koppintson a rajzra, ahová kerül
+	Rack A, ceiling above room 104…	A rack, a 104-es szoba feletti mennyezet…
+	Real	Valós
+	Rename layer	Réteg átnevezése
+	Saved symbol counts.	A szimbólumok darabszáma mentve.
+	Selected markup	Kijelölt jelölés
+	Symbol	Szimbólum
+	Take a photo with the camera…	Fotó készítése a kamerával…
+	Tap the drawing to place this symbol	Koppintson a rajzra a szimbólum elhelyezéséhez
+	Tap the pin on the drawing to see this photo again.	Koppintson a tűre a rajzon, hogy újra lássa ezt a fotót.
+	The photo couldn't be found.	A fotó nem található.
+	There are no symbols to count yet.	Még nincsenek megszámolható szimbólumok.
+	Unlock layer	Réteg zárolásának feloldása
+	Real: the symbol's width in the real world, at the page's measurement scale (pages without a scale use 1/4 inch on paper). Paper: its width on the printed sheet.	Valós: a szimbólum valós szélessége az oldal mérési léptékében (lépték nélküli oldalakon 1/4 hüvelyk papíron). Papír: szélessége a nyomtatott lapon.
+	Symbols	Szimbólumok
+	Data jack (RJ-45)	Adatcsatlakozó (RJ-45)
+	Dual data jack	Kettős adatcsatlakozó
+	Quad data jack	Négyes adatcsatlakozó
+	Voice jack	Telefoncsatlakozó
+	Wireless access point	Vezeték nélküli hozzáférési pont
+	Camera (dome)	Kamera (dóm)
+	Camera (bullet)	Kamera (csőkamera)
+	PoE device	PoE-eszköz
+	Floor box	Padlódoboz
+	Equipment rack	Berendezésszekrény
+	Patch panel	Patch panel
+	Network switch	Hálózati switch
+	Fiber termination	Optikai végződés
+	Demarc	Átadási pont
+	Display / TV	Kijelző / TV
+	Card reader	Kártyaolvasó
+	Speaker	Hangszóró
+	J-hook	J-horog
+	Conduit stub-up	Védőcső-kivezetés

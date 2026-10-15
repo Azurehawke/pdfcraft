@@ -47,6 +47,8 @@ pub enum SystemPick {
     Open { multiple: bool, mime_types: Vec<String> },
     /// A new document, with a suggested name.
     Save { name: String, mime_type: String },
+    /// A photo taken now with the tablet's camera app (RevuCraft's photo pins).
+    TakePhoto,
 }
 
 /// Android's document picker, from the Android shell. The shell keeps a copy of each chosen
@@ -293,6 +295,26 @@ impl Browser {
             tl!("Open from Google Drive, Dropbox, OneDrive and other apps with Android's picker. Saving updates the file there.")
         };
         let clicked = ui.add_enabled(pick.is_some(), button).on_hover_text(hint).on_disabled_hover_text(tl!("Type a name first")).clicked();
+        // Choosing a photo: the camera app can take one now instead.
+        let photos = self.mode == Mode::File
+            && self
+                .filters
+                .get(self.filter)
+                .is_some_and(|(_, exts)| !exts.is_empty() && exts.iter().all(|e| matches!(e.as_str(), "jpg" | "jpeg" | "png" | "tif" | "tiff")));
+        let camera = photos
+            && ui
+                .add(egui::Button::new(egui::RichText::new(tl!("Take a photo with the camera…")).strong()).min_size(egui::vec2(0.0, ROW_HEIGHT)))
+                .on_hover_text(tl!("Opens the tablet's camera app; the photo is also kept in the gallery."))
+                .clicked();
+        if camera {
+            match (documents.start)(SystemPick::TakePhoto) {
+                Ok(()) => {
+                    self.system_waiting = true;
+                    self.system_note = None;
+                }
+                Err(e) => self.system_note = Some(e),
+            }
+        }
         if clicked && let Some(pick) = pick {
             match (documents.start)(pick) {
                 Ok(()) => {

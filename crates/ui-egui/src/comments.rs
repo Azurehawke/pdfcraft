@@ -424,6 +424,8 @@ pub struct CommentView {
     pub replace: Option<Vec<[f64; 8]>>,
     /// Attach file: where the icon goes (page, top-left in user space), for the app to pick a file.
     pub attach_at: Option<(usize, [f64; 2])>,
+    /// A photo pin was tapped: (page, index) of the photo to show.
+    pub open_photo: Option<(usize, usize)>,
     pub search_focus: bool,
     /// Where the canvas context menu was opened: (page, user-space point).
     pub context_at: Option<(usize, [f64; 2])>,
@@ -912,6 +914,10 @@ fn select_input(
                 cv.selected = Some((cx.page, a.index));
                 cv.reveal = true;
                 consumed = true;
+                // RevuCraft: tapping a photo pin shows the photo.
+                if a.photo {
+                    cv.open_photo = Some((cx.page, a.index));
+                }
             }
             None => cv.selected = None,
         }

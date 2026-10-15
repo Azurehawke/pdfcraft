@@ -51,11 +51,11 @@ jobs:
           set -o pipefail
           cargo clippy --workspace --all-targets -- -D warnings 2>&1 | tee "$RUNNER_TEMP/clippy.log"
 
-      - name: Tests (measure, automation, engine, UI)
+      - name: Tests (annotations, render, measure, automation, engine, UI)
         if: always()
         run: |
           set -o pipefail
-          cargo test --no-fail-fast -p pdfcraft-measure -p pdfcraft-automation -p pdfcraft-engine -p pdfcraft-ui-egui 2>&1 | tee "$RUNNER_TEMP/test.log"
+          cargo test --no-fail-fast -p pdfcraft-annot -p pdfcraft-render -p pdfcraft-measure -p pdfcraft-automation -p pdfcraft-engine -p pdfcraft-ui-egui 2>&1 | tee "$RUNNER_TEMP/test.log"
 
       - name: Screenshots
         if: always()
@@ -90,6 +90,8 @@ jobs:
           shot plan-light "$plan" --theme light
           shot plan-comments "$plan" --panel comments
           shot plan-measure "$plan" --workflow measure
+          shot plan-symbols "$plan" --workflow symbols
+          shot plan-layers "$plan" --workflow symbols --panel layers
           shot plan-review "$plan" --workflow review
           shot plan-document "$plan" --workflow document
           shot plan-teal "$plan" --accent teal
