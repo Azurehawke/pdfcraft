@@ -216,8 +216,11 @@ pub fn parse_length(s: &str, bare: BareUnit) -> Option<f64> {
     }
     let value = match s.split_once('\'') {
         Some((feet, rest)) => {
-            let feet = if feet.trim().is_empty() { 0.0 } else { parse_number(feet)? };
             let rest = rest.trim().trim_start_matches('-').trim().trim_end_matches('"').trim();
+            if feet.trim().is_empty() && rest.is_empty() {
+                return None;
+            }
+            let feet = if feet.trim().is_empty() { 0.0 } else { parse_number(feet)? };
             let inches = if rest.is_empty() { 0.0 } else { parse_number(rest)? };
             feet * 12.0 + inches
         }
