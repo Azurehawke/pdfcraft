@@ -284,10 +284,11 @@ pub fn ribbon(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
 
 /// A ribbon group: its controls, with the caption underneath.
 fn group(ui: &mut egui::Ui, t: &Tokens, caption: &str, body: impl FnOnce(&mut egui::Ui)) {
-    ui.allocate_ui_with_layout(vec2(0.0, ui.available_height()), egui::Layout::top_down(egui::Align::Min), |ui| {
+    // A vertical stack as wide as its controls (a zero-width box would squeeze text fields).
+    ui.vertical(|ui| {
         ui.spacing_mut().item_spacing.y = 2.0;
         body(ui);
-        ui.label(egui::RichText::new(caption).font(theme::regular(11.0)).color(t.text_faint));
+        ui.add(egui::Label::new(egui::RichText::new(caption).font(theme::regular(11.0)).color(t.text_faint)).wrap_mode(egui::TextWrapMode::Extend));
     });
 }
 
