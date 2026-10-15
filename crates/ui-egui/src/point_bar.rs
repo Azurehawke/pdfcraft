@@ -26,7 +26,14 @@ pub enum PointAction {
 
 /// Draw the bar near `anchor` (the last point on screen), inside `bounds`. `can_finish`: there
 /// are enough points to keep; `closes`: the shape can be closed (a "Close" button is shown).
-pub fn show(ctx: &egui::Context, id: impl std::hash::Hash, anchor: Pos2, bounds: Rect, can_finish: bool, closes: bool) -> Option<PointAction> {
+pub fn show(
+    ctx: &egui::Context,
+    id: impl std::hash::Hash + std::fmt::Debug,
+    anchor: Pos2,
+    bounds: Rect,
+    can_finish: bool,
+    closes: bool,
+) -> Option<PointAction> {
     let t = Tokens::get(ctx);
     let buttons = if closes { 4.0 } else { 3.0 };
     let size = vec2(buttons * 40.0 + 12.0, 48.0);
