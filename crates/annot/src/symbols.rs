@@ -499,11 +499,15 @@ pub fn display_name(id: &str) -> String {
     Symbol::from_id(id).map_or_else(|| id.to_string(), |s| s.name().to_string())
 }
 
+/// What counts are grouped by: symbol id, label and layer.
+type GroupKey = (String, String, Option<ObjRef>);
+
 /// Symbol counts as CSV: a summary (symbol, label, layer, count, pages), then every placement.
 pub fn counts_csv(placed: &[Placed], layers: &[crate::layers::LayerInfo]) -> String {
     let layer_name = |l: Option<ObjRef>| l.and_then(|id| layers.iter().find(|x| x.id == id)).map(|x| x.name.clone()).unwrap_or_default();
     // Groups in the order they first appear.
-    let mut groups: Vec<((String, String, Option<ObjRef>), usize, Vec<usize>)> = Vec::new();
+    // (symbol, label, layer), how many, and the pages they are on.
+    let mut groups: Vec<(GroupKey, usize, Vec<usize>)> = Vec::new();
     for p in placed {
         let key = (p.symbol.clone(), p.label.clone(), p.layer);
         match groups.iter_mut().find(|g| g.0 == key) {
@@ -578,6 +582,8 @@ mod tests {
         let bytes = write_full(&doc, &SaveOptions::default()).unwrap();
         let doc = Document::open(Arc::new(bytes)).unwrap();
         let list = placed(&doc);
+        // Saving renumbers objects: the layer is found again by its place in the list.
+        let layer = crate::layers::list(&doc)[0].id;
         assert_eq!(list.len(), 2);
         assert_eq!((list[0].symbol.as_str(), list[0].label.as_str(), list[0].layer), ("data-jack", "PC (desk)", Some(layer)));
         assert_eq!((list[1].index, list[1].symbol.as_str(), list[1].layer), (ap, "wireless-ap", None));
