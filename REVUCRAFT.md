@@ -64,6 +64,9 @@ Panels and layout
 - [x] Status bar: cursor position in feet-inches, page scale, snapping on/off, current layer.
 
 Markup and measuring
+- [ ] **(Steve)** Option to turn off the hover tooltip with the author's name on markup: it
+      covers the live measurement label when drawing over other lines. Also: never show it while a
+      drawing or measuring tool is placing points.
 - [ ] Tool chest box: saved tools with their settings (a red cloud on "Revisions", a 6" data jack
       labelled "PC"), recently used tools (roadmap R5).
 - [ ] Rectangle area (two taps), angle and radius tools.
