@@ -2265,3 +2265,6 @@ key	Space	スペース
 	Undo last point	最後の点を取り消す
 	Click vertices, then finish with the check button beside the last point, Enter, a double-click or Escape. Tap the first point to close the shape.	頂点をクリックし、最後の点の横のチェックボタン、Enter、ダブルクリック、または Esc で終了します。最初の点をタップすると図形が閉じます。
 	Shift constrains to 45 degrees. Backspace or the undo button removes a vertex; the cross button cancels.	Shift で 45 度単位に制限します。Backspace または取り消しボタンで頂点を削除し、× ボタンで中止します。
+	Options panel	オプションパネル
+	Expand panel	パネルを展開
+	Collapse panel	パネルを折りたたむ

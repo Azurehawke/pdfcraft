@@ -307,7 +307,12 @@ pub fn mode_bar(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
                 ui.add_space(10.0);
                 ui.painter().vline(ui.cursor().left(), ui.max_rect().y_range().shrink(12.0), Stroke::new(1.0, t.divider));
                 ui.add_space(6.0);
-                if widgets::ghost_button(ui, "layout-grid", tl!("All tools")).clicked() {
+                let all = widgets::ghost_button(ui, "layout-grid", tl!("All tools"));
+                if app.show_ribbon {
+                    // RevuCraft: every tool in a drop-down menu, grouped as in the catalogue;
+                    // a group's options open in the dock.
+                    egui::Popup::menu(&all).show(|ui| all_tools_menu(app, ui));
+                } else if all.clicked() {
                     app.select_mode(Mode::AllTools);
                 }
                 if widgets::ghost_button(ui, "book-open", tl!("Read")).clicked() {
@@ -422,6 +427,41 @@ fn main_menu(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
     });
 }
 
+/// The All tools drop-down: each tool group as a submenu of its commands, plus its options panel.
+fn all_tools_menu(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
+    use pdfcraft_engine::catalog::{Availability, TOOL_GROUPS};
+    ui.set_min_width(220.0);
+    let mut run: Option<&'static str> = None;
+    let mut options: Option<&'static str> = None;
+    for g in TOOL_GROUPS {
+        let _ = ui.menu_button(crate::i18n::t(g.label), |ui| {
+            ui.set_min_width(240.0);
+            if ui.button(tl!("Options panel")).clicked() {
+                options = Some(g.id);
+                ui.close();
+            }
+            for s in g.sections {
+                ui.separator();
+                ui.label(egui::RichText::new(crate::i18n::t(s.title)).small().color(ui.visuals().weak_text_color()));
+                for item in s.items {
+                    let ready = item.availability == Availability::Ready;
+                    if ui.add_enabled(ready, egui::Button::new(crate::i18n::t(item.label))).clicked() {
+                        run = Some(item.command);
+                        ui.close();
+                    }
+                }
+            }
+        });
+    }
+    if let Some(id) = options {
+        app.left = crate::LeftPanel::Tool(id);
+        app.left_open = true;
+    }
+    if let Some(cmd) = run {
+        app.execute(cmd);
+    }
+}
+
 pub fn right_rail(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
     let t = Tokens::get(ui.ctx());
     let Some((index, id)) = app.active_ids() else { return };
@@ -443,15 +483,21 @@ pub fn right_rail(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
         .frame(egui::Frame::NONE.fill(t.chrome).inner_margin(egui::Margin::symmetric(6, 8)).stroke(Stroke::new(1.0, t.divider)))
         .show(ui, |ui| {
             ui.spacing_mut().item_spacing.y = 4.0;
+            let docks = app.show_ribbon;
             let mut rail_button = |ui: &mut egui::Ui, panel: RightPanel, icon: &str, tip: &str, has: bool| {
-                let selected = app.right == Some(panel);
+                // RevuCraft: the rail opens and closes boxes in the dock, several at once.
+                let selected = if docks { app.is_docked(panel) } else { app.right == Some(panel) };
                 let r = icons::button(ui, icon, 34.0, selected, tl!(tip));
                 if has && !selected {
                     let c = r.rect.right_top() + vec2(-8.0, 8.0);
                     ui.painter().circle_filled(c, 3.0, t.accent);
                 }
                 if r.clicked() {
-                    app.choose_right_panel(if selected { None } else { Some(panel) });
+                    if docks {
+                        app.toggle_docked(panel);
+                    } else {
+                        app.choose_right_panel(if selected { None } else { Some(panel) });
+                    }
                 }
             };
             rail_button(ui, RightPanel::Comments, "message-square-text", "Comments", has_comments);

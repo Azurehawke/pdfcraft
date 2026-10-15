@@ -2287,3 +2287,6 @@ key	Space	مسافة
 	Undo last point	التراجع عن آخر نقطة
 	Click vertices, then finish with the check button beside the last point, Enter, a double-click or Escape. Tap the first point to close the shape.	انقر على الرؤوس، ثم أنهِ بزر العلامة بجانب آخر نقطة أو Enter أو نقرة مزدوجة أو Esc. انقر على النقطة الأولى لإغلاق الشكل.
 	Shift constrains to 45 degrees. Backspace or the undo button removes a vertex; the cross button cancels.	يقيّد Shift الزوايا بمضاعفات 45 درجة. يزيل Backspace أو زر التراجع رأسًا؛ ويلغي زر X.
+	Options panel	لوحة الخيارات
+	Expand panel	توسيع اللوحة
+	Collapse panel	طي اللوحة

@@ -2274,3 +2274,6 @@ key	Space	Spazio
 	Undo last point	Annulla ultimo punto
 	Click vertices, then finish with the check button beside the last point, Enter, a double-click or Escape. Tap the first point to close the shape.	Fai clic sui vertici, poi termina con il pulsante di spunta accanto all’ultimo punto, Invio, un doppio clic o Esc. Tocca il primo punto per chiudere la forma.
 	Shift constrains to 45 degrees. Backspace or the undo button removes a vertex; the cross button cancels.	Maiusc vincola a 45 gradi. Backspace o il pulsante annulla rimuove un vertice; la croce annulla.
+	Options panel	Pannello opzioni
+	Expand panel	Espandi pannello
+	Collapse panel	Comprimi pannello

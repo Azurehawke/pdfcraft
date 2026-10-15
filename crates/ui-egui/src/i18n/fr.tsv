@@ -2265,3 +2265,6 @@ key	Space	Espace
 	Undo last point	Annuler le dernier point
 	Click vertices, then finish with the check button beside the last point, Enter, a double-click or Escape. Tap the first point to close the shape.	Cliquez les sommets, puis terminez avec le bouton de validation à côté du dernier point, Entrée, un double-clic ou Échap. Touchez le premier point pour fermer la forme.
 	Shift constrains to 45 degrees. Backspace or the undo button removes a vertex; the cross button cancels.	Maj limite aux angles de 45 degrés. Retour arrière ou le bouton d’annulation retire un sommet ; la croix annule.
+	Options panel	Panneau d’options
+	Expand panel	Déplier le panneau
+	Collapse panel	Replier le panneau

@@ -2230,3 +2230,6 @@ key	Space	空格
 	Undo last point	撤销最后一个点
 	Click vertices, then finish with the check button beside the last point, Enter, a double-click or Escape. Tap the first point to close the shape.	单击各顶点，然后用最后一个点旁的对勾按钮、Enter、双击或 Esc 结束。点按第一个点可闭合形状。
 	Shift constrains to 45 degrees. Backspace or the undo button removes a vertex; the cross button cancels.	按住 Shift 限制为 45 度。Backspace 或撤销按钮删除一个顶点；叉号按钮取消。
+	Options panel	选项面板
+	Expand panel	展开面板
+	Collapse panel	折叠面板

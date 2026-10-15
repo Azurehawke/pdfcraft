@@ -2178,3 +2178,6 @@ key	Space	Пробел
 	Undo last point	Отменить последнюю точку
 	Click vertices, then finish with the check button beside the last point, Enter, a double-click or Escape. Tap the first point to close the shape.	Щёлкайте вершины, затем завершите кнопкой с галочкой рядом с последней точкой, клавишей Enter, двойным щелчком или Esc. Коснитесь первой точки, чтобы замкнуть фигуру.
 	Shift constrains to 45 degrees. Backspace or the undo button removes a vertex; the cross button cancels.	Shift ограничивает углы шагом 45 градусов. Backspace или кнопка отмены удаляет вершину; крестик отменяет.
+	Options panel	Панель параметров
+	Expand panel	Развернуть панель
+	Collapse panel	Свернуть панель

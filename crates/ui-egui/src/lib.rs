@@ -70,6 +70,7 @@ pub mod bulk_fields;
 /// rfd, or on Android the builder `android_picker` reads.
 mod dialog;
 mod dialogs;
+mod dock;
 mod edit_text_ui;
 mod editing;
 mod files;
@@ -428,6 +429,10 @@ pub struct PdfCraftApp {
     pub symbols: revu::SymbolSettings,
     pub(crate) layer_panel: revu::LayerPanel,
     pub(crate) photo_viewer: Option<revu::PhotoViewer>,
+    /// RevuCraft: the side panels open in the dock, in the order opened.
+    pub(crate) dock: Vec<RightPanel>,
+    /// Dock boxes collapsed to their title bar.
+    pub(crate) dock_collapsed: Vec<String>,
     /// RevuCraft's tool ribbon under the mode bar (on in the apps; see [`Self::revucraft_shell`]).
     pub show_ribbon: bool,
     /// The desktop's light/dark choice, watched while the app runs (Linux has no winit answer).
@@ -735,6 +740,8 @@ impl PdfCraftApp {
             symbols: Default::default(),
             layer_panel: Default::default(),
             photo_viewer: None,
+            dock: Vec::new(),
+            dock_collapsed: Vec::new(),
             show_ribbon: false,
             desktop_theme: pdfcraft_platform::desktop_theme::DesktopTheme::start(),
             desktop_dark: None,
@@ -1637,6 +1644,17 @@ impl PdfCraftApp {
             }
             ("date-format", _) => self.session.set_date_format(value)?,
             ("date-language", _) => self.session.set_date_language(Some(value).filter(|v| *v != "auto"))?,
+            ("dock", _) => {
+                // `--dock layers,comments`: open these panels in RevuCraft's dock.
+                for name in value.split(',').map(str::trim).filter(|n| !n.is_empty()) {
+                    self.set_option("panel", name)?;
+                    if let Some(p) = self.right
+                        && !self.dock.contains(&p)
+                    {
+                        self.dock.push(p);
+                    }
+                }
+            }
             ("tool", _) => {
                 let g = pdfcraft_engine::catalog::group(value).ok_or_else(|| format!("unknown tool {value}"))?;
                 self.left = LeftPanel::Tool(g.id);
@@ -2120,14 +2138,24 @@ impl eframe::App for PdfCraftApp {
         if self.show_ribbon && self.mode != Mode::Read {
             ribbon::show(self, ui);
         }
-        if self.active.is_some() {
-            chrome::right_rail(self, ui);
-            if self.right.is_some() && self.mode != Mode::Read {
-                panels::right_panel(self, ui);
+        if self.show_ribbon {
+            // RevuCraft: no left tool panel; tool options and side panels are boxes in the dock.
+            if self.active.is_some() {
+                chrome::right_rail(self, ui);
+                if self.mode != Mode::Read {
+                    dock::show(self, ui);
+                }
             }
-        }
-        if self.left_open && self.mode != Mode::Read {
-            panels::left_panel(self, ui);
+        } else {
+            if self.active.is_some() {
+                chrome::right_rail(self, ui);
+                if self.right.is_some() && self.mode != Mode::Read {
+                    panels::right_panel(self, ui);
+                }
+            }
+            if self.left_open && self.mode != Mode::Read {
+                panels::left_panel(self, ui);
+            }
         }
         let t = theme::Tokens::get(&ctx);
         egui::CentralPanel::default().frame(egui::Frame::NONE.fill(t.pasteboard)).show(ui, |ui| match self.active {

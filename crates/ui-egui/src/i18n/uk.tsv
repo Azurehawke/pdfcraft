@@ -2289,3 +2289,6 @@ key	Space	Пробіл
 	Undo last point	Скасувати останню точку
 	Click vertices, then finish with the check button beside the last point, Enter, a double-click or Escape. Tap the first point to close the shape.	Клацайте вершини, потім завершіть кнопкою з позначкою біля останньої точки, клавішею Enter, подвійним клацанням або Esc. Торкніться першої точки, щоб замкнути фігуру.
 	Shift constrains to 45 degrees. Backspace or the undo button removes a vertex; the cross button cancels.	Shift обмежує кути кроком 45 градусів. Backspace або кнопка скасування видаляє вершину; хрестик скасовує.
+	Options panel	Панель параметрів
+	Expand panel	Розгорнути панель
+	Collapse panel	Згорнути панель
