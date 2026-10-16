@@ -30,6 +30,15 @@ jobs:
     timeout-minutes: 120
     steps:
       - uses: actions/checkout@v4
+        with:
+          # The whole history, for the build number below.
+          fetch-depth: 0
+
+      # One build number for Android, Windows and Linux: commits on the branch since the
+      # numbering began (after Android build 28), so the same commit gets the same number.
+      - name: Build number
+        shell: bash
+        run: echo "REVUCRAFT_BUILD=$((29 + $(git rev-list --count 30c135dbb2eda2b9abd9509c34b0f3846c127839..HEAD)))" >> "$GITHUB_ENV"
 
       - name: Linux dependencies
         run: |
@@ -45,9 +54,6 @@ jobs:
           key: revucraft-linux-x64
 
       - name: Build and package
-        env:
-          # The build's own number, for the update check (pdfcraft_ui_egui::updates).
-          REVUCRAFT_BUILD: ${{ github.run_number }}
         run: |
           set -o pipefail
           ./packaging/linux/revucraft-package.sh 2>&1 | tee "$RUNNER_TEMP/build.log"
@@ -62,7 +68,7 @@ jobs:
           cp "$log" "$dir/"
           grep -E "^error(\[E[0-9]+\])?:" -A12 "$log" | head -c 60000 > "$dir/errors.txt" || true
           cd "$dir" && git init -q -b ci-logs-revucraft-linux && git add -A \
-            && git -c user.name=github-actions -c user.email=github-actions@users.noreply.github.com commit -qm "RevuCraft Linux build ${{ github.run_number }} (${GITHUB_SHA::7}): ${{ job.status }}" \
+            && git -c user.name=github-actions -c user.email=github-actions@users.noreply.github.com commit -qm "RevuCraft Linux build ${{ env.REVUCRAFT_BUILD }} (${GITHUB_SHA::7}): ${{ job.status }}" \
             && git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" ci-logs-revucraft-linux
 
       - uses: actions/upload-artifact@v4
@@ -79,5 +85,5 @@ jobs:
           gh release create revucraft-linux-latest \
             dist/revucraft/RevuCraft-x86_64.AppImage dist/revucraft/revucraft_amd64.deb dist/revucraft/RevuCraft-linux-x86_64.tar.gz \
             --prerelease --target "$GITHUB_SHA" \
-            --title "RevuCraft for Linux (build ${{ github.run_number }})" \
+            --title "RevuCraft for Linux (build ${{ env.REVUCRAFT_BUILD }})" \
             --notes "Built from ${GITHUB_SHA::7} on the revucraft branch, for 64-bit PCs with glibc 2.35 or newer (Ubuntu 22.04+, Debian 12+, Fedora 36+, Mint 21+). revucraft_amd64.deb installs RevuCraft with a menu entry on Debian, Ubuntu and Mint (sudo apt install ./revucraft_amd64.deb); later builds upgrade it the same way. RevuCraft-x86_64.AppImage is one file for any distro: chmod +x it and run it. RevuCraft-linux-x86_64.tar.gz is the same as a plain folder: run RevuCraft/bin/revucraft. See REVUCRAFT.md."

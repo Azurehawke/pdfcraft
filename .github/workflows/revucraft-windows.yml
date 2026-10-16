@@ -29,6 +29,15 @@ jobs:
     timeout-minutes: 150
     steps:
       - uses: actions/checkout@v4
+        with:
+          # The whole history, for the build number below.
+          fetch-depth: 0
+
+      # One build number for Android, Windows and Linux: commits on the branch since the
+      # numbering began (after Android build 28), so the same commit gets the same number.
+      - name: Build number
+        shell: bash
+        run: echo "REVUCRAFT_BUILD=$((29 + $(git rev-list --count 30c135dbb2eda2b9abd9509c34b0f3846c127839..HEAD)))" >> "$GITHUB_ENV"
 
       - uses: dtolnay/rust-toolchain@stable
         with:
@@ -44,9 +53,6 @@ jobs:
 
       - name: Build and package
         shell: pwsh
-        env:
-          # The build's own number, for the update check (pdfcraft_ui_egui::updates).
-          REVUCRAFT_BUILD: ${{ github.run_number }}
         run: |
           ./packaging/windows/revucraft-package.ps1 *>&1 | Tee-Object -FilePath "$env:RUNNER_TEMP\build.log"
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
@@ -62,7 +68,7 @@ jobs:
           cp "$log" "$dir/"
           grep -E "^error(\[E[0-9]+\])?:" -A12 "$log" | head -c 60000 > "$dir/errors.txt" || true
           cd "$dir" && git init -q -b ci-logs-revucraft-windows && git add -A \
-            && git -c user.name=github-actions -c user.email=github-actions@users.noreply.github.com commit -qm "RevuCraft Windows build ${{ github.run_number }} (${GITHUB_SHA::7}): ${{ job.status }}" \
+            && git -c user.name=github-actions -c user.email=github-actions@users.noreply.github.com commit -qm "RevuCraft Windows build ${{ env.REVUCRAFT_BUILD }} (${GITHUB_SHA::7}): ${{ job.status }}" \
             && git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" ci-logs-revucraft-windows
 
       - uses: actions/upload-artifact@v4
@@ -79,5 +85,5 @@ jobs:
           gh release delete revucraft-windows-latest --yes --cleanup-tag || true
           gh release create revucraft-windows-latest dist/revucraft/RevuCraft-setup.msi dist/revucraft/RevuCraft-portable.zip \
             --prerelease --target "$GITHUB_SHA" \
-            --title "RevuCraft for Windows (build ${{ github.run_number }})" \
+            --title "RevuCraft for Windows (build ${{ env.REVUCRAFT_BUILD }})" \
             --notes "Built from ${GITHUB_SHA::7} on the revucraft branch. RevuCraft-setup.msi installs RevuCraft for all users (Start menu and desktop shortcuts); RevuCraft-portable.zip runs from any folder without installing. The files aren't code-signed, so Windows SmartScreen may ask: choose More info, then Run anyway. See REVUCRAFT.md."

@@ -33,6 +33,15 @@ jobs:
     timeout-minutes: 120
     steps:
       - uses: actions/checkout@v4
+        with:
+          # The whole history, for the build number below.
+          fetch-depth: 0
+
+      # One build number for Android, Windows and Linux: commits on the branch since the
+      # numbering began (after Android build 28), so the same commit gets the same number.
+      - name: Build number
+        shell: bash
+        run: echo "REVUCRAFT_BUILD=$((29 + $(git rev-list --count 30c135dbb2eda2b9abd9509c34b0f3846c127839..HEAD)))" >> "$GITHUB_ENV"
 
       - uses: dtolnay/rust-toolchain@stable
         with:
@@ -82,9 +91,7 @@ jobs:
 
       - name: Build the APK
         env:
-          VERSION_CODE: ${{ github.run_number }}
-          # The build's own number, for the update check (pdfcraft_ui_egui::updates).
-          REVUCRAFT_BUILD: ${{ github.run_number }}
+          VERSION_CODE: ${{ env.REVUCRAFT_BUILD }}
         run: |
           set -o pipefail
           bash packaging/android/build-apk.sh 2>&1 | tee "$RUNNER_TEMP/build.log"
@@ -104,7 +111,7 @@ jobs:
           cp "$log" "$RUNNER_TEMP/errors.txt" "$dir/"
           cp "$RUNNER_TEMP/pen-sample.pdf" "$RUNNER_TEMP/pen-test.log" "$RUNNER_TEMP"/unpack-*.pdf "$dir/" 2>/dev/null || true
           cd "$dir" && git init -q -b ci-logs-revucraft && git add -A \
-            && git -c user.name=github-actions -c user.email=github-actions@users.noreply.github.com commit -qm "RevuCraft Android build ${{ github.run_number }} (${GITHUB_SHA::7}): ${{ job.status }}" \
+            && git -c user.name=github-actions -c user.email=github-actions@users.noreply.github.com commit -qm "RevuCraft Android build ${{ env.REVUCRAFT_BUILD }} (${GITHUB_SHA::7}): ${{ job.status }}" \
             && git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" ci-logs-revucraft
 
       - uses: actions/upload-artifact@v4
@@ -119,5 +126,5 @@ jobs:
           gh release delete revucraft-latest --yes --cleanup-tag || true
           gh release create revucraft-latest target/android-apk/revucraft.apk \
             --prerelease --target "$GITHUB_SHA" \
-            --title "RevuCraft for Android (build ${{ github.run_number }})" \
+            --title "RevuCraft for Android (build ${{ env.REVUCRAFT_BUILD }})" \
             --notes "Built from ${GITHUB_SHA::7} on the revucraft branch. Install revucraft.apk on the tablet; it installs beside PdfCraft. See docs/android.md and REVUCRAFT.md."
