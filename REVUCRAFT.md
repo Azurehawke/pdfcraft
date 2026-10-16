@@ -113,6 +113,13 @@ Markup and measuring
       selection.
 - [ ] Symbols: electrical and security libraries; make a symbol from your own drawing.
 
+- [x] **(Steve)** Calibrate on the Measure tab: click two ends of a known length, type it in the
+      value box beside the point (12'6", 150, 3.5m), on this page or every page.
+- [ ] **(Steve, next session)** One way to type values everywhere: click on the drawing, the value
+      box opens at the pointer, type, Enter (as Calibrate does). For Scale (factor), Rotate (angle),
+      Move/Copy (distance or @x,y), Offset (distance), line/polyline/wall lengths while drawing,
+      photo pin and callout captions, and a symbol's label after placing. The ribbon entry stays.
+
 Tablet
 - [ ] **(Steve, later update)** Touch mode: bigger buttons and handles, long-press for the context menu, two-finger tap to
       undo.
