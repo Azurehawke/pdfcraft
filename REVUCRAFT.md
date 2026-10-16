@@ -66,7 +66,8 @@ Panels and layout
 - [x] **(Steve)** Draggable dock boxes: reorder by dragging the title bar, drag a box out to float it
       as its own window over the drawing, drag it back to dock it.
 - [x] Remember the dock (which boxes, order, collapsed, width, floating positions) between sessions.
-- [ ] **(Steve, next build)** Workspaces: save and switch dock layouts ("Office", "Field"), as Adobe apps do.
+- [x] **(Steve)** Workspaces: save and switch dock layouts ("Office", "Field"), as Adobe apps do.
+      Done: View ▸ Workspaces and the rail's Workspaces button; Markup, Drafting and Review to start.
 - [x] Properties box: the selected markup's colour, line width, opacity, layer, subject, label and
       measurement scale, edited in place (Revu's Properties panel).
 - [x] Markups list box: every markup and measurement in a sortable, filterable table (type, label,
@@ -78,15 +79,17 @@ Markup and measuring
       (text, checkbox, radio, drop-down, list, button, image, date), Detect fields, Preview,
       tab order and Field properties. Done: a Forms tab (Fields, Form, Tab order, Data); Preview
       is in the Prepare a form box.
-- [ ] **(Steve)** Dimension tools (aligned, linear, radius, diameter) on the Markup tab as well,
+- [x] **(Steve)** Dimension tools (aligned, linear, radius, diameter) on the Markup tab as well,
       since dimensions are mostly added to existing PDFs; they stay in the Draft tools panel too.
-- [ ] **(Steve)** Photo pins drawn as a camera icon (not a plain pin), so anyone reading the
-      PDF can tell what they are.
-- [ ] **(Steve)** Photo callout: a box on the sheet with the photo scaled down to fit and a
+- [x] **(Steve)** Photo pins drawn as a camera icon (not a plain pin), so anyone reading the
+      PDF can tell what they are. Done: a camera on a disc in the layer's colour.
+- [x] **(Steve)** Photo callout: a box on the sheet with the photo scaled down to fit and a
       description beside it, on the side the user chooses (left or right of the photo), with a
       leader line to the spot. Placed like a callout (the spot, then the box); pick or take the
       photo, type the description; an existing photo pin can become one. Prints with the drawing.
-- [ ] **(Steve)** Scaled line width for Draft lines: a Width option on the ribbon for the
+      Done: Symbols tab ▸ Photos (side and photo height); Properties flips the side, views the
+      photo and turns a pin into a callout.
+- [x] **(Steve)** Scaled line width for Draft lines: a Width option on the ribbon for the
       drawing tools in real-world units (presets 4 1/2" interior wall, 6" exterior wall, thin
       linework; or plain paper points), converted with the page's scale (e.g. 6" at 2" = 15'
       is about 4.8 pt); square ends and mitred corners for wide lines; the width stays with the
@@ -95,25 +98,28 @@ Markup and measuring
       own lines as cutting and boundary edges; Explode turns PDF linework into editable markup
       lines (taking the originals out of the page, recorded and undoable), which can then be
       trimmed and extended like any other line.
-- [ ] **(Steve)** Scale by dragging: after the base point, the pointer sets the factor (with a
+- [x] **(Steve)** Scale by dragging: after the base point, the pointer sets the factor (with a
       live preview and the factor shown), as well as typing it.
 - Kept as is (Steve): the Measure tab's ruler (two clicks, plain measuring line).
 - [x] **(Steve)** Option to turn off the hover tooltip with the author's name on markup: it
       covers the live measurement label when drawing over other lines. Also: never show it while a
       drawing or measuring tool is placing points. Done: the Tips switch on the status bar (also in
       Preferences), and never while drafting or measuring.
-- [ ] **(Steve, next build)** Tool chest box: saved tools with their settings (a red cloud on "Revisions", a 6" data jack
-      labelled "PC"), recently used tools (roadmap R5).
-- [ ] **(Steve, next build)** Rectangle area (two taps), angle and radius tools.
-- [ ] Symbols: rotate (and snap to the nearest wall), edit the label after placing, renumber a
-      selection; electrical and security libraries; make a symbol from your own drawing.
+- [x] **(Steve)** Tool chest box: saved tools with their settings (a red cloud on "Revisions", a 6" data jack
+      labelled "PC"), recently used tools (roadmap R5). Done: the Tool chest box (rail and View ▸
+      Side panels): Save current tool, then click it to use it with those settings.
+- [x] **(Steve)** Rectangle area (two taps), angle and radius tools.
+- [x] **(Steve)** Symbols: rotate (and snap to the nearest wall), edit the label after placing, renumber a
+      selection.
+- [ ] Symbols: electrical and security libraries; make a symbol from your own drawing.
 
 Tablet
 - [ ] **(Steve, later update)** Touch mode: bigger buttons and handles, long-press for the context menu, two-finger tap to
       undo.
 
 Builds
-- [ ] **(Steve, next build)** One build number shared by Android, Windows and Linux.
+- [x] **(Steve)** One build number shared by Android, Windows and Linux (from build 36: commits
+      on the branch, so one commit has one number everywhere).
 
 Draft tab: CAD-style drawing on the PDF (direction decided 2026-10-15)
 
@@ -127,7 +133,7 @@ than rewritten.
 - [x] Drawing by numbers: lengths in feet-inches (`15'`, `12'6"`), relative `@0,15`, polar
       `@15<90`, ortho and polar angles, a big keypad on the tablet; later fed by the laser
       meter and the LiDAR scan.
-- [ ] Tools (line, polyline, spline, rectangle, circle, arc, ellipse, polygon, revision cloud, walls and aligned, linear, radius and diameter dimensions done; doors and windows to come): line, polyline, rectangle, circle and arc, walls with a thickness, doors and windows
+- [ ] Tools (line, polyline, spline, rectangle, circle, arc, ellipse, polygon, revision cloud, walls, doors and windows (cut into the wall at its thickness) and aligned, linear, radius and diameter dimensions done): line, polyline, rectangle, circle and arc, walls with a thickness, doors and windows
       from the symbol library; object snaps (end, mid, intersection, perpendicular) shared with
       measuring.
 - [x] Editing: grips, move, copy, rotate, offset, trim and extend; dimensions (from the

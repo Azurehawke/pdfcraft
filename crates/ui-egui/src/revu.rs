@@ -328,18 +328,12 @@ pub fn ribbon(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
                         app.quick_tool = if calling { QuickTool::Select } else { QuickTool::PhotoCallout };
                         app.symbols.callout_spot = None;
                     }
-                    ui.vertical(|ui| {
-                        use pdfcraft_engine::photo_callout::TextSide;
-                        let s = &mut app.symbols;
-                        ui.horizontal(|ui| {
-                            ui.selectable_value(&mut s.callout_side, TextSide::Left, tl!("Text left"));
-                            ui.selectable_value(&mut s.callout_side, TextSide::Right, tl!("Text right"));
-                        });
-                        ui.horizontal(|ui| {
-                            ui.add(egui::DragValue::new(&mut s.callout_inches).range(0.5..=8.0).speed(0.05).max_decimals(2).suffix(" in"))
-                                .on_hover_text(tl!("The photo's height on the sheet"));
-                        });
-                    });
+                    use pdfcraft_engine::photo_callout::TextSide;
+                    let s = &mut app.symbols;
+                    ui.selectable_value(&mut s.callout_side, TextSide::Left, tl!("Text left"));
+                    ui.selectable_value(&mut s.callout_side, TextSide::Right, tl!("Text right"));
+                    ui.add(egui::DragValue::new(&mut s.callout_inches).range(0.5..=8.0).speed(0.05).max_decimals(2).suffix(" in"))
+                        .on_hover_text(tl!("The photo's height on the sheet"));
                 });
             });
             separator(ui);
