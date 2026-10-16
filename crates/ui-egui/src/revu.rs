@@ -49,6 +49,11 @@ pub struct SymbolSettings {
     pub renumber_prefix: String,
     pub renumber_start: u32,
     pub renumber_all_pages: bool,
+    /// Photo callouts: the side the description goes, the photo's height (inches), and the
+    /// spot chosen while placing one (page, user space).
+    pub callout_side: pdfcraft_engine::photo_callout::TextSide,
+    pub callout_inches: f64,
+    pub callout_spot: Option<(usize, [f64; 2])>,
 }
 
 impl Default for SymbolSettings {
@@ -66,6 +71,9 @@ impl Default for SymbolSettings {
             renumber_prefix: String::new(),
             renumber_start: 1,
             renumber_all_pages: false,
+            callout_side: pdfcraft_engine::photo_callout::TextSide::Right,
+            callout_inches: 1.5,
+            callout_spot: None,
         }
     }
 }
@@ -97,11 +105,33 @@ pub struct PhotoViewer {
     pub index: usize,
     pub caption: String,
     pub texture: Result<egui::TextureHandle, String>,
+    /// A photo callout (the caption is its description, several lines) rather than a pin.
+    pub callout: bool,
 }
 
 pub(crate) fn color32(c: [f64; 3]) -> Color32 {
     let v = |x: f64| (x.clamp(0.0, 1.0) * 255.0).round() as u8;
     Color32::from_rgb(v(c[0]), v(c[1]), v(c[2]))
+}
+
+/// The colour of the document's current layer (blue without one).
+pub(crate) fn doc_layer_color(doc: &pdfcraft_engine::Document) -> [f64; 3] {
+    let current = doc.current_layer;
+    current.and_then(|c| doc.layer_list().into_iter().find(|l| (l.id.num, l.id.generation) == c)).map_or(NO_LAYER_COLOR, |l| l.color)
+}
+
+/// The size of a photo callout's box on the sheet (points), for the placement preview: a 4:3
+/// photo at the chosen height beside the description.
+pub(crate) fn callout_box_size(s: &SymbolSettings) -> (f64, f64) {
+    use pdfcraft_engine::photo_callout::{GAP, PAD, TEXT_W};
+    let h = callout_height(s);
+    (h * 4.0 / 3.0 + GAP + TEXT_W + 2.0 * PAD, h + 2.0 * PAD)
+}
+
+/// The photo's height on the sheet in points.
+pub(crate) fn callout_height(s: &SymbolSettings) -> f64 {
+    let inches = if s.callout_inches.is_finite() { s.callout_inches.clamp(0.5, 8.0) } else { 1.5 };
+    inches * 72.0
 }
 
 fn layer_color(app: &PdfCraftApp, id: DocId) -> [f64; 3] {
@@ -287,9 +317,30 @@ pub fn ribbon(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
             separator(ui);
             group(ui, &t, tl!("Photos"), |ui| {
                 let pinning = app.quick_tool == QuickTool::PhotoPin;
-                if icons::button(ui, "camera", 34.0, pinning, tl!("Pin a photo: tap the drawing where it goes")).clicked() {
-                    app.quick_tool = if pinning { QuickTool::Select } else { QuickTool::PhotoPin };
-                }
+                ui.horizontal(|ui| {
+                    if icons::button(ui, "camera", 34.0, pinning, tl!("Pin a photo: tap the drawing where it goes")).clicked() {
+                        app.quick_tool = if pinning { QuickTool::Select } else { QuickTool::PhotoPin };
+                    }
+                    let calling = app.quick_tool == QuickTool::PhotoCallout;
+                    if icons::button(ui, "message-square-text", 34.0, calling, tl!("Photo callout: tap the spot, then where the box goes"))
+                        .clicked()
+                    {
+                        app.quick_tool = if calling { QuickTool::Select } else { QuickTool::PhotoCallout };
+                        app.symbols.callout_spot = None;
+                    }
+                    ui.vertical(|ui| {
+                        use pdfcraft_engine::photo_callout::TextSide;
+                        let s = &mut app.symbols;
+                        ui.horizontal(|ui| {
+                            ui.selectable_value(&mut s.callout_side, TextSide::Left, tl!("Text left"));
+                            ui.selectable_value(&mut s.callout_side, TextSide::Right, tl!("Text right"));
+                        });
+                        ui.horizontal(|ui| {
+                            ui.add(egui::DragValue::new(&mut s.callout_inches).range(0.5..=8.0).speed(0.05).max_decimals(2).suffix(" in"))
+                                .on_hover_text(tl!("The photo's height on the sheet"));
+                        });
+                    });
+                });
             });
             separator(ui);
             group(ui, &t, tl!("Renumber"), |ui| {
@@ -383,8 +434,7 @@ fn layer_combo(app: &mut PdfCraftApp, ui: &mut egui::Ui, id: DocId) {
 /// The edit that places the chosen symbol at `at` on `page`.
 pub fn symbol_edit(s: &SymbolSettings, doc: &pdfcraft_engine::Document, page: usize, at: [f64; 2], author: &str) -> Edit {
     let size = if s.real_size { doc.real_size_points(page, at, s.real_inches).unwrap_or(PAPER_FALLBACK_PT) } else { s.paper_inches * 72.0 };
-    let current = doc.current_layer;
-    let color = current.and_then(|c| doc.layer_list().into_iter().find(|l| (l.id.num, l.id.generation) == c)).map_or(NO_LAYER_COLOR, |l| l.color);
+    let color = doc_layer_color(doc);
     Edit::AddSymbol(NewSymbol {
         page,
         symbol: s.symbol,
@@ -647,6 +697,59 @@ impl PdfCraftApp {
         }
     }
 
+    /// Place a photo callout pointing at `point` with its box at `center`: choose a photo (or,
+    /// on Android, take one), then type the description.
+    pub(crate) fn pick_callout_photo(&mut self, page: usize, point: [f64; 2], center: [f64; 2]) {
+        if let Some((_, data)) = self.attach_override.take() {
+            self.place_callout(page, point, center, data);
+            return;
+        }
+        #[cfg(not(target_arch = "wasm32"))]
+        {
+            let target = self.active_ids().map(|(_, id)| id);
+            let dialog = crate::dialog::AsyncFileDialog::new()
+                .set_title(tl!("Photo for the callout"))
+                .add_filter(tl!("Photos"), &["jpg", "jpeg", "png", "tif", "tiff"]);
+            self.ask_one(crate::pickers::Ask::File(dialog), target, move |app, path| match std::fs::read(&path) {
+                Ok(data) => app.place_callout(page, point, center, data),
+                Err(e) => app.notify_fmt("Couldn't read {name}: {e}", &[("name", &path.display().to_string()), ("e", &e.to_string())]),
+            });
+        }
+        #[cfg(target_arch = "wasm32")]
+        let _ = (page, point, center);
+    }
+
+    fn place_callout(&mut self, page: usize, point: [f64; 2], center: [f64; 2], data: Vec<u8>) {
+        let Some((index, id)) = self.active_ids() else { return };
+        let before = self.session.get(id).map_or(0, |d| d.info.annotations.iter().filter(|a| a.page == page).count());
+        let edit = Edit::AddPhotoCallout {
+            page,
+            point,
+            center,
+            data,
+            text: String::new(),
+            side: self.symbols.callout_side,
+            photo_height: callout_height(&self.symbols),
+            author: self.comment_prefs.author.clone(),
+        };
+        self.views[index].comments.tool_done = true;
+        if self.apply_edit(edit) {
+            // The new callout is the last annotation on its page.
+            let new = self.session.get(id).and_then(|d| {
+                d.info
+                    .annotations
+                    .iter()
+                    .filter(|a| a.page == page)
+                    .map(|a| a.index)
+                    .max()
+                    .filter(|_| d.info.annotations.iter().filter(|a| a.page == page).count() > before)
+            });
+            if let Some(i) = new {
+                self.open_photo(page, i);
+            }
+        }
+    }
+
     /// Show the photo pinned at (page, index) of the active document.
     pub(crate) fn open_photo(&mut self, page: usize, index: usize) {
         let Some((_, id)) = self.active_ids() else { return };
@@ -654,13 +757,18 @@ impl PdfCraftApp {
         let Some(d) = self.session.get(id) else { return };
         let caption = d.info.annotations.iter().find(|a| a.page == page && a.index == index).and_then(|a| a.contents.clone()).unwrap_or_default();
         let source = pdfcraft_render::AttachmentSource::Annotation { page, index };
-        let texture = d
-            .info
-            .attachments
-            .iter()
-            .find(|a| a.source == source)
-            .ok_or_else(|| tl!("The photo couldn't be found.").to_string())
-            .and_then(|att| pdfcraft_render::attachment_data(&d.bytes, d.password.as_deref(), att))
+        let callout = d.callout_side(page, index).is_some();
+        let bytes = match d.callout_photo(page, index) {
+            Some(jpeg) => Ok(jpeg),
+            None => d
+                .info
+                .attachments
+                .iter()
+                .find(|a| a.source == source)
+                .ok_or_else(|| tl!("The photo couldn't be found.").to_string())
+                .and_then(|att| pdfcraft_render::attachment_data(&d.bytes, d.password.as_deref(), att)),
+        };
+        let texture = bytes
             .and_then(|bytes| {
                 let side = ctx.input(|i| i.max_texture_side).min(4096) as u32;
                 pdfcraft_engine::photos::decode_rgba(&bytes, side)
@@ -669,7 +777,7 @@ impl PdfCraftApp {
                 let image = egui::ColorImage::from_rgba_unmultiplied([w as usize, h as usize], &px);
                 ctx.load_texture(format!("photo-{page}-{index}"), image, egui::TextureOptions::LINEAR)
             });
-        self.photo_viewer = Some(PhotoViewer { doc: id, page, index, caption, texture });
+        self.photo_viewer = Some(PhotoViewer { doc: id, page, index, caption, texture, callout });
     }
 }
 
@@ -707,21 +815,41 @@ pub fn photo_window(app: &mut PdfCraftApp, ctx: &egui::Context) {
             }
         }
         ui.add_space(8.0);
-        ui.horizontal(|ui| {
-            ui.label(tl!("Caption"));
+        if viewer.callout {
+            ui.label(tl!("Description (the first line is the title)"));
             let field = ui.add_enabled(
                 editable,
-                egui::TextEdit::singleline(&mut viewer.caption).desired_width(width - 160.0).hint_text(tl!("Rack A, ceiling above room 104…")),
+                egui::TextEdit::multiline(&mut viewer.caption)
+                    .desired_width(width - 16.0)
+                    .desired_rows(3)
+                    .hint_text(tl!("Rack A\n24-port switch and patch panel 1…")),
             );
             if field.lost_focus() {
                 save_caption = true;
             }
-            if ui.add_enabled(editable, egui::Button::new(tl!("Save"))).clicked() {
-                save_caption = true;
-                close = true;
-            }
-        });
-        ui.label(egui::RichText::new(tl!("Tap the pin on the drawing to see this photo again.")).color(t.text_faint).small());
+            ui.horizontal(|ui| {
+                if ui.add_enabled(editable, egui::Button::new(tl!("Save"))).clicked() {
+                    save_caption = true;
+                    close = true;
+                }
+            });
+        } else {
+            ui.horizontal(|ui| {
+                ui.label(tl!("Caption"));
+                let field = ui.add_enabled(
+                    editable,
+                    egui::TextEdit::singleline(&mut viewer.caption).desired_width(width - 160.0).hint_text(tl!("Rack A, ceiling above room 104…")),
+                );
+                if field.lost_focus() {
+                    save_caption = true;
+                }
+                if ui.add_enabled(editable, egui::Button::new(tl!("Save"))).clicked() {
+                    save_caption = true;
+                    close = true;
+                }
+            });
+            ui.label(egui::RichText::new(tl!("Tap the pin on the drawing to see this photo again.")).color(t.text_faint).small());
+        }
     });
     if modal.should_close() {
         close = true;

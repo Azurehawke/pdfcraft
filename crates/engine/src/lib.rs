@@ -101,7 +101,7 @@ pub use pdfcraft_annot::{
     AttachIcon, FillMark, LineEnding, Markup, NOTE_SIZE, NewAnnotation, NoteIcon, OverlayFont, OverlayLook, PenKind, Props as CommentProps,
     ReviewState, Rgb, Shape, StampGroup, StampKind, Style, rect_quad,
 };
-pub use pdfcraft_annot::{geometry, layers, symbols};
+pub use pdfcraft_annot::{geometry, layers, photo_callout, symbols};
 pub use pdfcraft_forms::detect;
 pub use pdfcraft_optimize as optimize;
 pub use pdfcraft_preflight as pdfa;
@@ -192,9 +192,11 @@ fn scope_of(edit: &Edit) -> Scope {
         | Edit::SetVertices { .. }
         | Edit::TransformAnnotation { .. }
         | Edit::EditSymbol { .. }
+        | Edit::SetCalloutSide { .. }
         | Edit::StyleAnnotation { .. }
         | Edit::FillAnnotation { .. }
         | Edit::SetAnnotationInfo { .. } => Scope::Comments,
+        Edit::AddPhotoCallout { .. } | Edit::PinToCallout { .. } => Scope::Full,
         Edit::SetFieldValue { .. } | Edit::ResetForm { .. } | Edit::SetFieldImage { .. } | Edit::ApplyScriptChanges { .. } => Scope::Form,
         Edit::Batch { edits, .. } => {
             let mut scopes = edits.iter().map(scope_of);
@@ -323,6 +325,19 @@ impl Document {
     /// The turn of the symbol at `(page, index)` in degrees.
     pub fn symbol_rotation(&self, page: usize, index: usize) -> f64 {
         self.editor.as_ref().map_or(0.0, |e| pdfcraft_annot::symbols::rotation_at(&e.cos, page, index))
+    }
+
+    /// The photo in the photo callout at `(page, index)` (JPEG bytes), if it is one.
+    pub fn callout_photo(&self, page: usize, index: usize) -> Option<Vec<u8>> {
+        self.editor.as_ref().and_then(|e| pdfcraft_annot::photo_callout::photo_jpeg(&e.cos, page, index))
+    }
+
+    /// The side the description of the photo callout at `(page, index)` is on, or `None` when
+    /// that annotation isn't a photo callout.
+    pub fn callout_side(&self, page: usize, index: usize) -> Option<pdfcraft_annot::photo_callout::TextSide> {
+        let e = self.editor.as_ref()?;
+        let d = pdfcraft_annot::photo_callout::dict_at(&e.cos, page, index)?;
+        pdfcraft_annot::photo_callout::is_photo_callout(&d).then(|| pdfcraft_annot::photo_callout::side_of(&d))
     }
 
     /// The lines, polylines and polygons on `page`, for drafting's grips, trim, extend and offset.
@@ -966,6 +981,32 @@ pub enum Edit {
         vertices: Vec<[f64; 2]>,
         copy: bool,
     },
+    /// RevuCraft: a photo callout. `point` is the spot the leader points at, `center` the box's
+    /// centre; `data` is the photo (any JPEG, PNG or TIFF; it is turned upright and scaled down);
+    /// `photo_height` its height on the sheet in points.
+    AddPhotoCallout {
+        page: usize,
+        point: [f64; 2],
+        center: [f64; 2],
+        data: Vec<u8>,
+        text: String,
+        side: pdfcraft_annot::photo_callout::TextSide,
+        photo_height: f64,
+        author: String,
+    },
+    /// RevuCraft: turn a photo pin into a photo callout pointing where the pin was.
+    PinToCallout {
+        page: usize,
+        index: usize,
+        side: pdfcraft_annot::photo_callout::TextSide,
+        photo_height: f64,
+    },
+    /// RevuCraft: put a photo callout's description on the given side of the photo.
+    SetCalloutSide {
+        page: usize,
+        index: usize,
+        side: pdfcraft_annot::photo_callout::TextSide,
+    },
     /// RevuCraft: change a placed symbol's label and/or turn (degrees anticlockwise, absolute).
     EditSymbol {
         page: usize,
@@ -1291,6 +1332,9 @@ impl Edit {
             Edit::SetVertices { copy: false, .. } => "Edit points".into(),
             Edit::EditSymbol { rotation: Some(_), label: None, .. } => "Rotate symbol".into(),
             Edit::EditSymbol { .. } => "Edit symbol".into(),
+            Edit::AddPhotoCallout { .. } => "Add photo callout".into(),
+            Edit::PinToCallout { .. } => "Make photo callout".into(),
+            Edit::SetCalloutSide { .. } => "Move description".into(),
             Edit::SetVertices { copy: true, .. } => "Offset".into(),
             Edit::TransformAnnotation { copy: true, .. } => "Copy markup".into(),
             Edit::TransformAnnotation { matrix, .. } if matrix[..4] == [1.0, 0.0, 0.0, 1.0] => "Move markup".into(),
@@ -1445,6 +1489,9 @@ fn check_permission(edit: &Edit, p: &pdfcraft_cos::Permissions) -> Result<(), Ed
         | Edit::SetVertices { .. }
         | Edit::TransformAnnotation { .. }
         | Edit::EditSymbol { .. }
+        | Edit::AddPhotoCallout { .. }
+        | Edit::PinToCallout { .. }
+        | Edit::SetCalloutSide { .. }
         | Edit::StyleAnnotation { .. }
         | Edit::FillAnnotation { .. }
         | Edit::SetAnnotationInfo { .. }
@@ -1584,6 +1631,11 @@ impl EditCtx {
     }
 
     /// A fresh `/NM`: a random-looking UUID (version 4 layout) from a splitmix64 stream.
+    /// The current layer's colour, or a strong blue without one.
+    fn layer_color(&self, doc: &pdfcraft_cos::Document) -> [f64; 3] {
+        self.layer.and_then(|l| pdfcraft_annot::layers::list(doc).into_iter().find(|x| x.id == layer_ref(l))).map_or([0.18, 0.44, 0.69], |l| l.color)
+    }
+
     /// Put the comment just added at (page, index) on the current layer. A current layer that
     /// no longer exists (deleted elsewhere) is ignored rather than failing the edit.
     fn place_on_layer(&self, doc: &mut pdfcraft_cos::Document, page: usize, index: usize) -> Result<(), EditError> {
@@ -1698,10 +1750,7 @@ fn run_edit(doc: &mut pdfcraft_cos::Document, edit: &Edit, cx: &mut EditCtx) -> 
             }
             let shape = Shape::Attachment { at: *at, icon: pdfcraft_annot::AttachIcon::PushPin, file: name.clone(), data: data.clone() };
             // In the colour of the layer it goes on (a strong blue without one).
-            let color = cx
-                .layer
-                .and_then(|l| pdfcraft_annot::layers::list(doc).into_iter().find(|x| x.id == layer_ref(l)))
-                .map_or([0.18, 0.44, 0.69], |l| l.color);
+            let color = cx.layer_color(doc);
             let style = pdfcraft_annot::Style { color, ..pdfcraft_annot::Style::default_for(&shape) };
             let new = NewAnnotation { page: *page, shape, style, contents: caption.clone(), author: author.clone() };
             let index = pdfcraft_annot::add_annotation(doc, &new, &cx.meta())?;
@@ -1751,6 +1800,56 @@ fn run_edit(doc: &mut pdfcraft_cos::Document, edit: &Edit, cx: &mut EditCtx) -> 
             let changed = pdfcraft_annot::geometry::set_vertices(doc, *page, *index, vertices, *copy, &cx.meta())?;
             measure::refresh(doc, *page, changed)?;
         }
+        Edit::AddPhotoCallout { page, point, center, data, text, side, photo_height, author } => {
+            let jpeg = photos::prepare(data).map_err(EditError::Invalid)?;
+            let pixels = photos::dimensions(&jpeg).map_err(EditError::Invalid)?;
+            let color = cx.layer_color(doc);
+            let new = pdfcraft_annot::photo_callout::NewPhotoCallout {
+                page: *page,
+                point: *point,
+                center: *center,
+                jpeg,
+                pixels,
+                photo_height: *photo_height,
+                text: text.clone(),
+                side: *side,
+                color,
+                author: author.clone(),
+            };
+            let index = pdfcraft_annot::photo_callout::add(doc, &new, &cx.meta())?;
+            cx.place_on_layer(doc, *page, index)?;
+        }
+        Edit::PinToCallout { page, index, side, photo_height } => {
+            let pin = pdfcraft_annot::summaries(doc)
+                .into_iter()
+                .find(|s| s.page == *page && s.index == *index && s.photo)
+                .ok_or_else(|| EditError::Invalid("that is not a photo pin".into()))?;
+            let data = pdfcraft_annot::photo_callout::attachment_bytes(doc, *page, *index)
+                .ok_or_else(|| EditError::Invalid("the photo couldn't be read".into()))?;
+            let jpeg = photos::prepare(&data).map_err(EditError::Invalid)?;
+            let pixels = photos::dimensions(&jpeg).map_err(EditError::Invalid)?;
+            let [x0, y0, x1, y1] = pin.rect.map(f64::from);
+            let point = [(x0 + x1) / 2.0, y0.min(y1)];
+            let color = pin.color.map_or_else(|| cx.layer_color(doc), |c| c.map(f64::from));
+            let new = pdfcraft_annot::photo_callout::NewPhotoCallout {
+                page: *page,
+                point,
+                center: [point[0] + 150.0, point[1] + 70.0],
+                jpeg,
+                pixels,
+                photo_height: *photo_height,
+                text: pin.contents.clone().unwrap_or_default(),
+                side: *side,
+                color,
+                author: pin.author.clone().unwrap_or_default(),
+            };
+            let new_index = pdfcraft_annot::photo_callout::add(doc, &new, &cx.meta())?;
+            if let Some(layer) = pin.layer {
+                pdfcraft_annot::layers::assign(doc, *page, new_index, Some(layer_ref(layer)))?;
+            }
+            pdfcraft_annot::delete_annotation(doc, *page, *index)?;
+        }
+        Edit::SetCalloutSide { page, index, side } => pdfcraft_annot::photo_callout::set_side(doc, *page, *index, *side, &cx.meta())?,
         Edit::EditSymbol { page, index, label, rotation } => {
             pdfcraft_annot::symbols::edit_symbol(doc, *page, *index, label.as_deref(), *rotation, &cx.meta())?;
         }

@@ -234,6 +234,8 @@ pub enum QuickTool {
     Symbol,
     /// RevuCraft: tap to pin a photo.
     PhotoPin,
+    /// RevuCraft: a photo callout: tap the spot, then where the box goes.
+    PhotoCallout,
     /// RevuCraft: draw at scale (the Draft tab).
     Draft(draft::DraftTool),
 }
@@ -1836,6 +1838,7 @@ impl PdfCraftApp {
                     "column-select" => QuickTool::ColumnSelect,
                     "symbol" => QuickTool::Symbol,
                     "photo-pin" => QuickTool::PhotoPin,
+                    "photo-callout" => QuickTool::PhotoCallout,
                     d if d.starts_with("draft-") => {
                         QuickTool::Draft(draft::DraftTool::from_name(&d[6..]).ok_or_else(|| format!("unknown draft tool {d}"))?)
                     }

@@ -680,6 +680,7 @@ pub fn build(d: &Dict) -> Option<Stream> {
                 }
             }
         }
+        b"FreeText" if crate::photo_callout::is_photo_callout(d) => return photo_callout(d, rect, res),
         b"FreeText" => {
             let (text_color, size) = parse_da(d);
             let bg = stroke;
@@ -990,6 +991,85 @@ fn attach_icon(name: &str, col: Rgb) -> String {
         }
     }
     s
+}
+
+/// A photo callout (`crate::photo_callout`): the leader with a dot at the spot, the framed box,
+/// the photo scaled to fit, and the description (its first line bold) on the chosen side.
+fn photo_callout(d: &Dict, full: [f64; 4], mut res: Dict) -> Option<Stream> {
+    use crate::photo_callout::{LINE, SIZE, layout};
+    let rd = nums(d, b"RD").filter(|r| r.len() == 4 && r.iter().all(|x| x.is_finite() && *x >= 0.0))?;
+    let tb = [full[0] + rd[0], full[1] + rd[1], full[2] - rd[2], full[3] - rd[3]];
+    if tb[2] - tb[0] < 4.0 || tb[3] - tb[1] < 4.0 {
+        return None;
+    }
+    let frame = nums(d, b"PCFrame")
+        .filter(|c| c.len() == 3)
+        .map_or([0.18, 0.44, 0.69], |c| [c[0], c[1], c[2]].map(|v| if v.is_finite() { v.clamp(0.0, 1.0) } else { 0.0 }));
+    let mut c = String::new();
+    // The leader, and a dot where it points.
+    if let Some(cl) = nums(d, b"CL").filter(|l| (l.len() == 4 || l.len() == 6) && l.iter().all(|x| x.is_finite())) {
+        let pts: Vec<(f64, f64)> = cl.as_chunks::<2>().0.iter().map(|p| (p[0], p[1])).collect();
+        c.push_str(&format!("{}{}1.2 w 1 J 1 j\n", rg_stroke(frame), rg(frame)));
+        for (i, p) in pts.iter().enumerate() {
+            c.push_str(&format!("{} {} {}\n", n(p.0), n(p.1), if i == 0 { "m" } else { "l" }));
+        }
+        c.push_str("S\n");
+        if let Some(&(x, y)) = pts.first() {
+            c.push_str(&ellipse(x - 2.5, y - 2.5, x + 2.5, y + 2.5));
+            c.push_str("f\n");
+        }
+    }
+    // The box.
+    c.push_str(&format!(
+        "1 1 1 rg {}1.5 w {} {} {} {} re B\n",
+        rg_stroke(frame),
+        n(tb[0] + 0.75),
+        n(tb[1] + 0.75),
+        n(tb[2] - tb[0] - 1.5),
+        n(tb[3] - tb[1] - 1.5)
+    ));
+    // The photo.
+    let (photo, text_x, text_w) = layout(d, tb)?;
+    if let Some(Object::Ref(img)) = d.get(b"PCPhotoImage") {
+        let mut xo = Dict::new();
+        xo.set(b"Ph".to_vec(), Object::Ref(*img));
+        res.set(b"XObject".to_vec(), Object::Dict(xo));
+        c.push_str(&format!("q {} 0 0 {} {} {} cm /Ph Do Q\n", n(photo[2] - photo[0]), n(photo[3] - photo[1]), n(photo[0]), n(photo[1])));
+    }
+    // The description: the title in bold, then the notes.
+    let text = d.get(b"Contents").and_then(|o| o.as_string()).map(PdfString::to_text).unwrap_or_default();
+    let (title, rest) = match text.split_once('\n') {
+        Some((t, r)) => (t.trim().to_string(), r.trim().to_string()),
+        None => (text.trim().to_string(), String::new()),
+    };
+    c.push_str(&format!("{} {} {} {} re W n\nBT\n0.11 0.11 0.11 rg\n", n(tb[0]), n(tb[1]), n(tb[2] - tb[0]), n(tb[3] - tb[1])));
+    let mut out = c.into_bytes();
+    let mut y = tb[3] - crate::photo_callout::PAD - SIZE * 0.9;
+    let mut lines: Vec<(bool, String)> = wrap(&title, SIZE * 1.06, text_w).into_iter().map(|l| (true, l)).collect();
+    lines.extend(wrap(&rest, SIZE, text_w).into_iter().map(|l| (false, l)));
+    for (bold, line) in lines {
+        if y < tb[1] {
+            break;
+        }
+        out.extend(format!("/{} {} Tf 1 0 0 1 {} {} Tm ", if bold { "HelvB" } else { "Helv" }, n(SIZE), n(text_x), n(y)).bytes());
+        out.extend(literal(&win_ansi(&line)));
+        out.extend_from_slice(b" Tj\n");
+        y -= LINE;
+    }
+    out.extend_from_slice(b"ET\n");
+    let font = |base: &str| {
+        let mut f = Dict::new();
+        f.set(b"Type".to_vec(), Object::name("Font"));
+        f.set(b"Subtype".to_vec(), Object::name("Type1"));
+        f.set(b"BaseFont".to_vec(), Object::name(base));
+        f.set(b"Encoding".to_vec(), Object::name("WinAnsiEncoding"));
+        Object::Dict(f)
+    };
+    let mut fonts = Dict::new();
+    fonts.set(b"Helv".to_vec(), font("Helvetica"));
+    fonts.set(b"HelvB".to_vec(), font("Helvetica-Bold"));
+    res.set(b"Font".to_vec(), Object::Dict(fonts));
+    Some(form(full, &out, res))
 }
 
 /// A white camera on a disc of `col`, in the 20×20 icon box.

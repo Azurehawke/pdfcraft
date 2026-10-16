@@ -65,6 +65,15 @@ pub fn decode_rgba(bytes: &[u8], side: u32) -> Result<(u32, u32, Vec<u8>), Strin
     Ok((rgba.width(), rgba.height(), rgba.into_raw()))
 }
 
+/// A prepared photo's size in pixels (width, height).
+pub fn dimensions(bytes: &[u8]) -> Result<(u32, u32), String> {
+    ImageReader::new(Cursor::new(bytes))
+        .with_guessed_format()
+        .map_err(|e| e.to_string())?
+        .into_dimensions()
+        .map_err(|e| format!("the photo can't be read ({e})"))
+}
+
 /// A file name for a photo pinned now: `photo-<n>.jpg`.
 pub fn file_name(n: usize) -> String {
     format!("photo-{n}.jpg")

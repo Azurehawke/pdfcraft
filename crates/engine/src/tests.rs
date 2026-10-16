@@ -2938,6 +2938,69 @@ fn layers_symbols_and_photos() {
 }
 
 #[test]
+fn photo_callouts_place_flip_and_come_from_pins() {
+    use pdfcraft_annot::photo_callout::TextSide;
+    let (mut s, id) = session_with(1);
+    let png = {
+        let img = image::RgbImage::from_pixel(80, 60, image::Rgb([30, 120, 200]));
+        let mut out = Vec::new();
+        image::DynamicImage::ImageRgb8(img).write_to(&mut std::io::Cursor::new(&mut out), image::ImageFormat::Png).unwrap();
+        out
+    };
+    s.apply(
+        id,
+        Edit::AddPhotoCallout {
+            page: 0,
+            point: [100.0, 100.0],
+            center: [300.0, 200.0],
+            data: png.clone(),
+            text: "Rack A\nPatch panel 1".into(),
+            side: TextSide::Right,
+            photo_height: 108.0,
+            author: "Steve".into(),
+        },
+    )
+    .unwrap();
+    let doc = s.get(id).unwrap();
+    let callout = doc.info.annotations.iter().find(|a| a.subtype == "FreeText").expect("the callout is listed");
+    let index = callout.index;
+    assert_eq!(doc.callout_side(0, index), Some(TextSide::Right));
+    let jpeg = doc.callout_photo(0, index).expect("the photo is kept");
+    assert_eq!(photos::dimensions(&jpeg).unwrap(), (80, 60));
+    s.apply(id, Edit::SetCalloutSide { page: 0, index, side: TextSide::Left }).unwrap();
+    assert_eq!(s.get(id).unwrap().callout_side(0, index), Some(TextSide::Left));
+
+    // A pin becomes a callout pointing where it was, keeping its caption.
+    let pin_jpeg = photos::prepare(&png).unwrap();
+    s.apply(
+        id,
+        Edit::AddPhoto { page: 0, at: [400.0, 500.0], name: photos::file_name(1), data: pin_jpeg, caption: "Ceiling".into(), author: "Steve".into() },
+    )
+    .unwrap();
+    let pin = s.get(id).unwrap().info.annotations.iter().find(|a| a.photo).map(|a| a.index).unwrap();
+    s.apply(id, Edit::PinToCallout { page: 0, index: pin, side: TextSide::Right, photo_height: 72.0 }).unwrap();
+    let doc = s.get(id).unwrap();
+    assert!(!doc.info.annotations.iter().any(|a| a.photo), "the pin is gone");
+    let made: Vec<_> = doc.info.annotations.iter().filter(|a| doc.callout_side(0, a.index).is_some()).collect();
+    assert_eq!(made.len(), 2);
+    assert!(made.iter().any(|a| a.contents.as_deref() == Some("Ceiling")));
+    // Bad input is refused, not a crash.
+    let bad = Edit::AddPhotoCallout {
+        page: 0,
+        point: [0.0, 0.0],
+        center: [10.0, 10.0],
+        data: b"not a photo".to_vec(),
+        text: String::new(),
+        side: TextSide::Left,
+        photo_height: 72.0,
+        author: String::new(),
+    };
+    assert!(s.apply(id, bad).is_err());
+    assert!(s.apply(id, Edit::PinToCallout { page: 0, index: 99, side: TextSide::Left, photo_height: 72.0 }).is_err());
+    assert!(s.apply(id, Edit::SetCalloutSide { page: 3, index: 0, side: TextSide::Left }).is_err());
+}
+
+#[test]
 fn drafting_edits_change_points_copy_and_rotate() {
     let mut session = Session::default();
     let id = session.open("plan.pdf", None, Arc::new(fixture(1)), None).unwrap();

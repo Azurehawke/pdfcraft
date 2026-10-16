@@ -2005,6 +2005,7 @@ pub fn document_area(app: &mut PdfCraftApp, index: usize, ui: &mut egui::Ui) {
         | QuickTool::Snapshot
         | QuickTool::Symbol
         | QuickTool::PhotoPin
+        | QuickTool::PhotoCallout
         | QuickTool::Draft(_) => false,
     };
     let prefs = &app.comment_prefs;
@@ -2033,6 +2034,12 @@ pub fn document_area(app: &mut PdfCraftApp, index: usize, ui: &mut egui::Ui) {
     let symbols = app.symbols.clone();
     let mut symbol_placed = false;
     let mut photo_at: Option<(usize, [f64; 2])> = None;
+    let mut callout_spot = if tool == QuickTool::PhotoCallout { app.symbols.callout_spot } else { None };
+    if callout_spot.is_some() && ui.input(|inp| inp.key_pressed(egui::Key::Escape)) {
+        callout_spot = None;
+    }
+    let callout_color = crate::revu::color32(crate::revu::doc_layer_color(doc));
+    let mut callout_at: Option<(usize, [f64; 2], [f64; 2])> = None;
     let mut open_signature = false;
     let mut hover_text: Option<(Pos2, String)> = None;
     let mut clicked_link: Option<LinkTarget> = None;
@@ -2311,6 +2318,47 @@ pub fn document_area(app: &mut PdfCraftApp, index: usize, ui: &mut egui::Ui) {
                     } else {
                         photo_at = Some((i, at));
                     }
+                }
+            }
+            // RevuCraft: a photo callout: the spot, then the box (a preview follows the pointer).
+            if tool == QuickTool::PhotoCallout && allowed {
+                let pg = &info.pages[i];
+                let to_screen = |u: [f64; 2]| {
+                    let q = pg.user_to_view(u[0] as f32, u[1] as f32);
+                    xf.norm_to_screen(q[0] / xf.pw, q[1] / xf.ph)
+                };
+                let hover = ui.input(|inp| inp.pointer.hover_pos()).filter(|p| xf.rect.contains(*p));
+                if let Some(p) = hover {
+                    ui.ctx().set_cursor_icon(egui::CursorIcon::Crosshair);
+                    let (vx, vy) = xf.screen_to_view(p);
+                    let u = pg.view_to_user(vx, vy);
+                    let at = [f64::from(u[0]), f64::from(u[1])];
+                    let spot = callout_spot.filter(|(pi, _)| *pi == i).map(|(_, s)| s);
+                    if let Some(spot) = spot {
+                        let color = callout_color;
+                        let (w, h) = crate::revu::callout_box_size(&symbols);
+                        let corner = to_screen([at[0] + w / 2.0, at[1] + h / 2.0]);
+                        let other = to_screen([at[0] - w / 2.0, at[1] - h / 2.0]);
+                        let frame = egui::Rect::from_two_pos(corner, other);
+                        let s = to_screen(spot);
+                        let knee = frame.clamp(s);
+                        let painter = ui.painter_at(xf.rect);
+                        painter.line_segment([s, knee], egui::Stroke::new(1.6, color));
+                        painter.circle_filled(s, 4.0, color);
+                        painter.rect(frame, 0.0, Color32::from_white_alpha(200), egui::Stroke::new(2.0, color), egui::StrokeKind::Middle);
+                    }
+                    if resp.clicked() {
+                        match spot {
+                            None => callout_spot = Some((i, at)),
+                            Some(spot) => {
+                                callout_at = Some((i, spot, at));
+                                callout_spot = None;
+                            }
+                        }
+                    }
+                }
+                if let Some((_, s)) = callout_spot.filter(|(pi, _)| *pi == i) {
+                    ui.painter_at(xf.rect).circle_filled(to_screen(s), 4.0, callout_color);
                 }
             }
             // Over a mark already placed, the Fill & Sign tool picks it up (comments, below).
@@ -2865,6 +2913,13 @@ pub fn document_area(app: &mut PdfCraftApp, index: usize, ui: &mut egui::Ui) {
     }
     if symbol_placed && app.symbols.auto_number {
         app.symbols.next = app.symbols.next.saturating_add(1);
+    }
+    if tool == QuickTool::PhotoCallout || app.quick_tool != QuickTool::PhotoCallout {
+        app.symbols.callout_spot = callout_spot;
+    }
+    if let Some((page, point, center)) = callout_at {
+        app.quick_tool = QuickTool::Select;
+        app.pick_callout_photo(page, point, center);
     }
     if let Some((page, at)) = photo_at {
         app.quick_tool = QuickTool::Select;

@@ -593,6 +593,7 @@ impl Host for crate::PdfCraftApp {
                 crate::QuickTool::ColumnSelect => "column-select".to_string(),
                 crate::QuickTool::Symbol => "symbol".to_string(),
                 crate::QuickTool::PhotoPin => "photo-pin".to_string(),
+                crate::QuickTool::PhotoCallout => "photo-callout".to_string(),
                 crate::QuickTool::Draft(t) => format!("draft-{}", t.name()),
                 crate::QuickTool::Stamp(k) => format!("stamp-{}", k.name().trim_start_matches("PC").to_ascii_lowercase()),
                 crate::QuickTool::CustomStamp(i) => format!("custom-stamp-{i}"),

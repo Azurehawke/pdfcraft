@@ -26,6 +26,8 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
     let editable = doc.allows_annotation() && doc.read_only_reason.is_none();
     let layers = app.session.layer_details(id);
     let rotation = doc.symbol_rotation(page, ai);
+    let callout_side = doc.callout_side(page, ai);
+    let (new_side, new_height) = (app.symbols.callout_side, crate::revu::callout_height(&app.symbols));
     // The direction of the line or wall nearest the symbol, for lining it up.
     let wall_angle = annotation.as_ref().filter(|a| a.symbol.is_some()).and_then(|a| {
         let [x0, y0, x1, y1] = a.rect.map(f64::from);
@@ -40,6 +42,7 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
     let mut commit = false;
     let mut extra: Vec<Edit> = Vec::new();
     let mut more = false;
+    let mut view_photo = false;
     let kind = annotation
         .as_ref()
         .and_then(|a| a.symbol.as_deref().map(pdfcraft_engine::symbols::display_name))
@@ -137,6 +140,31 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
                         });
                         ui.end_row();
                     }
+                    // A photo callout: the side its description is on.
+                    if let Some(side) = callout_side {
+                        use pdfcraft_engine::photo_callout::TextSide;
+                        ui.label(tl!("Description"));
+                        ui.horizontal(|ui| {
+                            let mut choice = side;
+                            ui.selectable_value(&mut choice, TextSide::Left, tl!("Text left"));
+                            ui.selectable_value(&mut choice, TextSide::Right, tl!("Text right"));
+                            if choice != side {
+                                extra.push(Edit::SetCalloutSide { page, index: ai, side: choice });
+                            }
+                        });
+                        ui.end_row();
+                    }
+                    // A photo pin can become a photo callout.
+                    if a.photo {
+                        ui.label(tl!("Photo"));
+                        if widgets::pill_button(ui, tl!("Make a callout"), false)
+                            .on_hover_text(tl!("Show the photo in a box with its description, pointing at this spot"))
+                            .clicked()
+                        {
+                            extra.push(Edit::PinToCallout { page, index: ai, side: new_side, photo_height: new_height });
+                        }
+                        ui.end_row();
+                    }
                 }
                 ui.label(tl!("Subject"));
                 let r = ui.add(egui::TextEdit::singleline(&mut d.edited.subject).desired_width(170.0));
@@ -155,9 +183,16 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
             }
         });
         ui.add_space(6.0);
-        if widgets::pill_button(ui, tl!("More properties…"), false).clicked() {
-            more = true;
-        }
+        ui.horizontal(|ui| {
+            if widgets::pill_button(ui, tl!("More properties…"), false).clicked() {
+                more = true;
+            }
+            if (callout_side.is_some() || annotation.as_ref().is_some_and(|a| a.photo))
+                && widgets::pill_button(ui, tl!("View photo"), false).clicked()
+            {
+                view_photo = true;
+            }
+        });
     });
     let mut edits = if commit { crate::comment_props::edits(d) } else { Vec::new() };
     if commit {
@@ -177,6 +212,9 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
     }
     if more {
         app.open_comment_props(page, ai);
+    }
+    if view_photo {
+        app.open_photo(page, ai);
     }
 }
 

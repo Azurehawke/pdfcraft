@@ -22,6 +22,7 @@ pub use pen::PenKind;
 pub mod geometry;
 pub mod layers;
 pub mod links;
+pub mod photo_callout;
 pub mod symbols;
 
 #[cfg(test)]
@@ -1495,6 +1496,13 @@ pub fn set_contents(doc: &mut Document, page: usize, index: usize, text: &str, m
 /// rectangle (the box can't be measured, so only the appearance is redrawn).
 fn fitted_box(doc: &Document, r: ObjRef, text: &str) -> Option<[f64; 4]> {
     let d = annot_dict(doc, r);
+    if photo_callout::is_photo_callout(&d) {
+        let nums = |key: &[u8]| -> Option<Vec<f64>> { d.get(key)?.as_array()?.iter().map(|o| o.as_f64()).collect() };
+        let rect = nums(b"Rect").filter(|v| v.len() == 4 && v.iter().all(|x| x.is_finite()))?;
+        let rd = nums(b"RD").filter(|v| v.len() == 4 && v.iter().all(|x| *x >= 0.0))?;
+        let tb = [rect[0] + rd[0], rect[1] + rd[1], rect[2] - rd[2], rect[3] - rd[3]];
+        return photo_callout::fitted(&d, tb, text);
+    }
     let nums = |key: &[u8]| -> Option<Vec<f64>> { d.get(key)?.as_array()?.iter().map(|o| o.as_f64()).collect() };
     let (_, size) = appearance::parse_da(&d);
     let pad = 2.0 + border_width_of(&d);
