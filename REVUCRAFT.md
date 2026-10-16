@@ -91,7 +91,7 @@ Markup and measuring
       linework; or plain paper points), converted with the page's scale (e.g. 6" at 2" = 15'
       is about 4.8 pt); square ends and mitred corners for wide lines; the width stays with the
       line through edits and scales with Scale. The Wall tool stays as it is.
-- [ ] **(Steve)** Existing PDF linework in the drafting tools: Trim and Extend use the PDF's
+- [ ] **(Steve, later update)** Existing PDF linework in the drafting tools: Trim and Extend use the PDF's
       own lines as cutting and boundary edges; Explode turns PDF linework into editable markup
       lines (taking the originals out of the page, recorded and undoable), which can then be
       trimmed and extended like any other line.
