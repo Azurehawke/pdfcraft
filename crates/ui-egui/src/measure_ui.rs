@@ -617,6 +617,12 @@ fn finish(state: &mut MeasureView, pending: &mut Option<Edit>, doc: &Document, p
             [a, b] => Some((*a, *b)),
             _ => None,
         };
+        // The options box shows the picked length too.
+        if let Some((a, b)) = picked
+            && let (Ok(a), Ok(b)) = (doc.measurement_to_view(page, a), doc.measurement_to_view(page, b))
+        {
+            state.drawing_points = measure::distance(a, b);
+        }
         state.cancel();
         // The value box asks for the line's real length next.
         if let Some((a, b)) = picked {

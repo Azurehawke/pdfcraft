@@ -1023,5 +1023,7 @@ fn measurement_tools_draw_live_calibrate_save_and_export() {
     click(&mut h, &c, 30.0, 50.0);
     click(&mut h, &c, 130.0, 50.0);
     assert!((h.state().views[0].measure.drawing_points - 100.0).abs() < 0.01);
+    // The value box now asks for the line's real length.
+    assert!(h.state().views[0].measure.calibration.is_some(), "the value box is open");
     let _ = std::fs::remove_dir_all(dir);
 }
