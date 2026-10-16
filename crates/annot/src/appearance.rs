@@ -781,11 +781,7 @@ pub fn build(d: &Dict) -> Option<Stream> {
             match caption_at {
                 // Along the dimension line, reading left to right or upward, just clear of it.
                 Some(((mx, my), angle)) => {
-                    let angle = if angle > std::f64::consts::FRAC_PI_2 + 1e-9 || angle <= -std::f64::consts::FRAC_PI_2 + 1e-9 {
-                        angle + std::f64::consts::PI
-                    } else {
-                        angle
-                    };
+                    let angle = readable(angle, d.get(b"PCRotate").and_then(Object::as_int).unwrap_or(0));
                     let (cos, sin) = (angle.cos(), angle.sin());
                     let half = text_width(&value, size) / 2.0;
                     let lift = 2.0 + w;
@@ -814,6 +810,16 @@ pub fn build(d: &Dict) -> Option<Stream> {
         }
     }
     Some(form(rect, &out, res))
+}
+
+/// The angle (radians, anticlockwise in page space) to write text along a line at `angle` so it
+/// reads left to right, or upward, on a page shown turned `turn` degrees clockwise (`/Rotate`).
+pub(crate) fn readable(angle: f64, turn: i64) -> f64 {
+    use std::f64::consts::{FRAC_PI_2, PI, TAU};
+    let turn = (turn.rem_euclid(360) / 90 * 90) as f64;
+    // The line's direction as shown, in (-π, π].
+    let shown = (angle - turn.to_radians() + PI).rem_euclid(TAU) - PI;
+    if shown > FRAC_PI_2 + 1e-9 || shown <= -FRAC_PI_2 + 1e-9 { angle + PI } else { angle }
 }
 
 /// A rubber stamp: a rounded frame (a pointed tag for sign-here stamps) with the label in bold
@@ -985,4 +991,26 @@ fn note_icon(name: &str, col: Rgb) -> String {
         s.push_str("5.5 12 m 14.5 12 l 5.5 9 m 14.5 9 l 5.5 6 m 11.5 6 l S\n");
     }
     s
+}
+
+#[cfg(test)]
+mod readable_tests {
+    use super::readable;
+    use std::f64::consts::PI;
+
+    fn shown_upright(angle: f64, turn: i64) -> bool {
+        let a = readable(angle, turn) - (turn as f64).to_radians();
+        a.cos() > 0.0 || (a.cos().abs() < 1e-6 && a.sin() > 0.0)
+    }
+
+    #[test]
+    fn dimension_text_reads_upright_on_turned_pages() {
+        for turn in [0, 90, 180, 270] {
+            for deg in [0.0, 45.0, 90.0, 135.0, 180.0, -45.0, -90.0, -135.0] {
+                let angle = f64::to_radians(deg);
+                assert!(shown_upright(angle, turn), "{deg}° on a page turned {turn}°");
+            }
+        }
+        assert!((readable(0.0, 180) - PI).abs() < 1e-9, "upside-down page: the text turns over");
+    }
 }

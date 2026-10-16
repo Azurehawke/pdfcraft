@@ -522,6 +522,11 @@ pub fn add(doc: &mut Document, new: &NewMeasurement, meta: &Meta) -> Result<usiz
         d.set(b"LLE".to_vec(), Object::Real(dim.extension));
         d.set(b"LLO".to_vec(), Object::Real(dim.gap));
         d.set(b"CP".to_vec(), Object::name("Inline"));
+        // The page's turn, so the text reads upright as the page is shown.
+        let turn = page(doc, new.page)?.rotation(doc);
+        if turn != 0 {
+            d.set(b"PCRotate".to_vec(), Object::Int(turn));
+        }
         if let Some(from) = dim.from {
             check_points(&from)?;
             d.set(b"PCDimPoints".to_vec(), nums(from.concat()));
@@ -536,7 +541,8 @@ pub fn add(doc: &mut Document, new: &NewMeasurement, meta: &Meta) -> Result<usiz
             pts.extend(from);
         }
         let pad = (info.label.chars().count() as f64 * 3.2 + 6.0).max(16.0);
-        let (x0, y0, x1, y1) = pts.iter().fold((f64::MAX, f64::MAX, f64::MIN, f64::MIN), |(x0, y0, x1, y1), p| (x0.min(p[0]), y0.min(p[1]), x1.max(p[0]), y1.max(p[1])));
+        let (x0, y0, x1, y1) =
+            pts.iter().fold((f64::MAX, f64::MAX, f64::MIN, f64::MIN), |(x0, y0, x1, y1), p| (x0.min(p[0]), y0.min(p[1]), x1.max(p[0]), y1.max(p[1])));
         d.set(b"Rect".to_vec(), nums([x0 - pad, y0 - pad, x1 + pad, y1 + pad]));
     } else if let Some(rect) = d.get(b"Rect").and_then(Object::as_array) {
         // Leave room for the readable numeric caption above the geometry.
