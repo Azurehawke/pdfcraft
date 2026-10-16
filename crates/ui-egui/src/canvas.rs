@@ -1769,9 +1769,13 @@ pub fn document_area(app: &mut PdfCraftApp, index: usize, ui: &mut egui::Ui) {
     // Edit a PDF: added text and images can be selected, moved and edited.
     let editing_content = (app.left_open && app.left == crate::LeftPanel::Tool("edit")) || app.quick_tool == QuickTool::AddText;
     let text_style = app.text_style.clone();
-    // An offset distance typed with the Offset tool becomes the shared setting.
-    if let Some(v) = app.views.get_mut(index).and_then(|v| v.draft.typed_offset.take()) {
-        app.draft.offset_inches = v;
+    // A distance typed with Offset, Fillet or Chamfer becomes the shared setting.
+    if let Some((tool, v)) = app.views.get_mut(index).and_then(|v| v.draft.typed_setting.take()) {
+        match tool {
+            crate::draft::DraftTool::Fillet => app.draft.fillet_inches = v,
+            crate::draft::DraftTool::Chamfer => app.draft.chamfer_inches = v,
+            _ => app.draft.offset_inches = v,
+        }
     }
     let mut draft_settings = app.draft.clone();
     draft_settings.author = app.comment_prefs.author.clone();

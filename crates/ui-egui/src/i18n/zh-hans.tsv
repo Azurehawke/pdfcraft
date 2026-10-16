@@ -2296,3 +2296,75 @@ key	Space	空格
 	Text (a text box on the drawing)	文本（图纸上的文本框）
 	Tips	提示
 	Trim (click the part to cut away at crossing lines)	修剪（单击在相交线条处要剪掉的部分）
+	Aligned dimension	对齐标注
+	All layers	所有图层
+	All types	所有类型
+	Annotate	注释
+	Arrays	阵列
+	Break (click a line where it splits)	打断（单击线条要分开的位置）
+	Break and join	打断与合并
+	Callout (text with a leader line)	标注框（带引线的文本）
+	Chamfer (two lines: a cut corner)	倒角（两条线：切去一个角）
+	Click a circle	单击一个圆
+	Click a line where it should split	单击线条要分开的位置
+	Click away from the ends	在远离端点处单击
+	Click the centre of the array	单击阵列中心
+	Click the first point of the mirror line	单击镜像线的第一点
+	Click the markup to delete	单击要删除的标记
+	Click the second point of the mirror line	单击镜像线的第二点
+	Collapse to icons	折叠为图标
+	Column spacing	列间距
+	Columns	列
+	Columns in the array	阵列列数
+	Couldn't read “{text}” as a scale factor.	无法将“{text}”读取为缩放比例。
+	Count	数量
+	Diameter dimension (click a circle)	直径标注（单击一个圆）
+	Dimensions	标注
+	Distance between columns (negative goes left)	列之间的距离（负值向左）
+	Distance between rows (negative goes down)	行之间的距离（负值向下）
+	Draft tools	绘图工具
+	Ellipse (centre, then a corner)	椭圆（中心，然后一个角）
+	Erase (click the markup to delete)	删除（单击要删除的标记）
+	Explode (a polyline or shape into separate lines)	分解（将多段线或形状分为单独的线）
+	Export the list as a spreadsheet (CSV)	将列表导出为电子表格（CSV）
+	Fillet (two lines: a clean or rounded corner)	圆角（两条线：清角或圆角）
+	Fillet radius (0 makes a sharp corner)	圆角半径（0 为尖角）
+	How far back from the corner each side is cut	从角向后切去的距离
+	How many in all, the original included	总数（含原对象）
+	How many sides a new polygon has	新多边形的边数
+	Join (two lines that meet become one)	合并（端点相接的两条线合为一条）
+	Keep the original	保留原对象
+	Linear dimension (horizontal or vertical)	线性标注（水平或垂直）
+	Lines	线条
+	Markups list	标记列表
+	Mirror (pick, then two points on the mirror line)	镜像（选择，然后镜像线上的两点）
+	No markups yet. Everything you draw, measure or place is listed here.	还没有标记。您绘制、测量或放置的所有内容都会列在这里。
+	Pick a polyline or shape to explode	选择要分解的多段线或形状
+	Pick a tool in the Draft tools panel on the left	在左侧绘图工具面板中选择工具
+	Pick the first line	选择第一条线
+	Pick the markup to repeat	选择要重复的标记
+	Pick the second line	选择第二条线
+	Polar array (pick, then the centre)	环形阵列（选择，然后中心）
+	Polygon (centre, then a corner; sides in the ribbon)	多边形（中心，然后一个角；边数在功能区设置）
+	Radius	半径
+	Radius dimension (click a circle)	半径标注（单击一个圆）
+	Rectangular array (rows and columns in the ribbon)	矩形阵列（行和列在功能区设置）
+	Revision cloud (click around the change)	修订云线（围绕更改处单击）
+	Row spacing	行间距
+	Rows in the array	阵列行数
+	Saved the markups list.	已保存标记列表。
+	Scale (pick, base point, then type the factor)	缩放（选择、基点，然后输入比例）
+	Search markups	搜索标记
+	Show tool names	显示工具名称
+	Sides	边数
+	Spline (a smooth curve through the points)	样条曲线（穿过各点的平滑曲线）
+	The angle they fill (360 goes all the way round)	填充的角度（360 为整圈）
+	These lines don't make a corner at their ends	这些线在端点处不构成角
+	These lines don't meet end to end	这些线的端点不相接
+	Tool options	工具选项
+	Transform	变换
+	Type the scale factor, then Enter (2 doubles, 0.5 halves)	输入缩放比例后按 Enter（2 为两倍，0.5 为一半）
+	Value	值
+	Walls	墙
+	Markups: {k} of {n}	标记：{k} / {n}
+	Markups: {n}	标记：{n}

@@ -94,7 +94,8 @@ jobs:
           shot plan-layers "$plan" --workflow symbols --panel layers
           shot plan-dock "$plan" --workflow measure --tool measure --dock layers,comments
           shot plan-draft "$plan" --workflow draft --quick draft-wall --dock layers
-          shot plan-draft-modify "$plan" --workflow draft --quick draft-trim --dock layers
+          shot plan-draft-modify "$plan" --workflow draft --quick draft-fillet --dock markups
+          shot plan-draft-collapsed "$plan" --workflow draft --quick draft-polygon --draft-panel collapsed
           shot plan-forms "$plan" --workflow forms
           shot plan-review "$plan" --workflow review
           shot plan-document "$plan" --workflow document

@@ -2355,3 +2355,75 @@ key	Space	Пробіл
 	Text (a text box on the drawing)	Текст (текстове поле на кресленні)
 	Tips	Підказки
 	Trim (click the part to cut away at crossing lines)	Обрізати (клацніть частину, що відрізається по лініях, які її перетинають)
+	Aligned dimension	Паралельний розмір
+	All layers	Усі шари
+	All types	Усі типи
+	Annotate	Анотації
+	Arrays	Масиви
+	Break (click a line where it splits)	Розірвати (клацніть лінію там, де її поділити)
+	Break and join	Розрив і з'єднання
+	Callout (text with a leader line)	Виноска (текст із лінією-вказівником)
+	Chamfer (two lines: a cut corner)	Фаска (дві лінії: зрізаний кут)
+	Click a circle	Клацніть коло
+	Click a line where it should split	Клацніть лінію там, де її поділити
+	Click away from the ends	Клацніть далі від кінців
+	Click the centre of the array	Клацніть центр масиву
+	Click the first point of the mirror line	Клацніть першу точку осі віддзеркалення
+	Click the markup to delete	Клацніть позначку, яку треба видалити
+	Click the second point of the mirror line	Клацніть другу точку осі віддзеркалення
+	Collapse to icons	Згорнути до значків
+	Column spacing	Крок стовпців
+	Columns	Стовпці
+	Columns in the array	Стовпці масиву
+	Couldn't read “{text}” as a scale factor.	Не вдалося прочитати «{text}» як коефіцієнт масштабу.
+	Count	Кількість
+	Diameter dimension (click a circle)	Діаметр (клацніть коло)
+	Dimensions	Розміри
+	Distance between columns (negative goes left)	Відстань між стовпцями (від'ємна — ліворуч)
+	Distance between rows (negative goes down)	Відстань між рядами (від'ємна — донизу)
+	Draft tools	Інструменти креслення
+	Ellipse (centre, then a corner)	Еліпс (центр, потім кут)
+	Erase (click the markup to delete)	Стерти (клацніть позначку, яку треба видалити)
+	Explode (a polyline or shape into separate lines)	Розчленувати (полілінію чи фігуру на окремі лінії)
+	Export the list as a spreadsheet (CSV)	Експорт списку в таблицю (CSV)
+	Fillet (two lines: a clean or rounded corner)	Спряження (дві лінії: чистий або заокруглений кут)
+	Fillet radius (0 makes a sharp corner)	Радіус спряження (0 дає гострий кут)
+	How far back from the corner each side is cut	Наскільки зрізається кожна сторона від кута
+	How many in all, the original included	Скільки всього, разом з оригіналом
+	How many sides a new polygon has	Скільки сторін має новий багатокутник
+	Join (two lines that meet become one)	З'єднати (дві лінії, що сходяться, стають однією)
+	Keep the original	Зберегти оригінал
+	Linear dimension (horizontal or vertical)	Лінійний розмір (горизонтальний або вертикальний)
+	Lines	Лінії
+	Markups list	Список позначок
+	Mirror (pick, then two points on the mirror line)	Віддзеркалити (вибір, потім дві точки осі)
+	No markups yet. Everything you draw, measure or place is listed here.	Позначок поки немає. Усе, що ви креслите, вимірюєте чи розміщуєте, з'явиться тут.
+	Pick a polyline or shape to explode	Виберіть полілінію чи фігуру для розчленування
+	Pick a tool in the Draft tools panel on the left	Виберіть інструмент на панелі «Інструменти креслення» ліворуч
+	Pick the first line	Виберіть першу лінію
+	Pick the markup to repeat	Виберіть позначку для повторення
+	Pick the second line	Виберіть другу лінію
+	Polar array (pick, then the centre)	Круговий масив (вибір, потім центр)
+	Polygon (centre, then a corner; sides in the ribbon)	Багатокутник (центр, потім кут; кількість сторін на стрічці)
+	Radius	Радіус
+	Radius dimension (click a circle)	Радіус (клацніть коло)
+	Rectangular array (rows and columns in the ribbon)	Прямокутний масив (ряди й стовпці на стрічці)
+	Revision cloud (click around the change)	Хмара змін (клацайте навколо зміни)
+	Row spacing	Крок рядів
+	Rows in the array	Ряди масиву
+	Saved the markups list.	Список позначок збережено.
+	Scale (pick, base point, then type the factor)	Масштаб (вибір, базова точка, потім введіть коефіцієнт)
+	Search markups	Пошук позначок
+	Show tool names	Показати назви інструментів
+	Sides	Сторони
+	Spline (a smooth curve through the points)	Сплайн (плавна крива через точки)
+	The angle they fill (360 goes all the way round)	Кут заповнення (360 — повне коло)
+	These lines don't make a corner at their ends	Ці лінії не утворюють кута на кінцях
+	These lines don't meet end to end	Ці лінії не сходяться кінцями
+	Tool options	Параметри інструмента
+	Transform	Перетворити
+	Type the scale factor, then Enter (2 doubles, 0.5 halves)	Введіть коефіцієнт масштабу, потім Enter (2 подвоює, 0,5 зменшує вдвічі)
+	Value	Значення
+	Walls	Стіни
+	Markups: {k} of {n}	Позначки: {k} з {n}
+	Markups: {n}	Позначки: {n}

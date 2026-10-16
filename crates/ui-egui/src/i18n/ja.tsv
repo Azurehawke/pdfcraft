@@ -2331,3 +2331,75 @@ key	Space	スペース
 	Text (a text box on the drawing)	テキスト（図面上のテキストボックス）
 	Tips	ヒント
 	Trim (click the part to cut away at crossing lines)	トリム（交差する線で切り取る部分をクリック）
+	Aligned dimension	平行寸法
+	All layers	すべてのレイヤー
+	All types	すべての種類
+	Annotate	注釈
+	Arrays	配列
+	Break (click a line where it splits)	分割（分割する位置で線をクリック）
+	Break and join	分割と結合
+	Callout (text with a leader line)	引出線テキスト（引出線付きのテキスト）
+	Chamfer (two lines: a cut corner)	面取り（2本の線：角を切る）
+	Click a circle	円をクリック
+	Click a line where it should split	分割する位置で線をクリック
+	Click away from the ends	端から離れた位置をクリック
+	Click the centre of the array	配列の中心をクリック
+	Click the first point of the mirror line	鏡像線の1点目をクリック
+	Click the markup to delete	削除するマークアップをクリック
+	Click the second point of the mirror line	鏡像線の2点目をクリック
+	Collapse to icons	アイコンに折りたたむ
+	Column spacing	列の間隔
+	Columns	列
+	Columns in the array	配列の列数
+	Couldn't read “{text}” as a scale factor.	「{text}」を尺度として読み取れません。
+	Count	個数
+	Diameter dimension (click a circle)	直径寸法（円をクリック）
+	Dimensions	寸法
+	Distance between columns (negative goes left)	列の間隔（負の値は左へ）
+	Distance between rows (negative goes down)	行の間隔（負の値は下へ）
+	Draft tools	製図ツール
+	Ellipse (centre, then a corner)	楕円（中心、次に角）
+	Erase (click the markup to delete)	削除（削除するマークアップをクリック）
+	Explode (a polyline or shape into separate lines)	分解（ポリラインや図形を個別の線に）
+	Export the list as a spreadsheet (CSV)	一覧を表計算として書き出す（CSV）
+	Fillet (two lines: a clean or rounded corner)	フィレット（2本の線：角を整えるか丸める）
+	Fillet radius (0 makes a sharp corner)	フィレット半径（0 で鋭い角）
+	How far back from the corner each side is cut	角から各辺を切り取る長さ
+	How many in all, the original included	元を含めた合計数
+	How many sides a new polygon has	新しい多角形の辺の数
+	Join (two lines that meet become one)	結合（端で接する2本の線を1本に）
+	Keep the original	元を残す
+	Linear dimension (horizontal or vertical)	長さ寸法（水平または垂直）
+	Lines	線
+	Markups list	マークアップ一覧
+	Mirror (pick, then two points on the mirror line)	鏡像（選択、次に鏡像線上の2点）
+	No markups yet. Everything you draw, measure or place is listed here.	マークアップはまだありません。描いたもの、測ったもの、配置したものがここに表示されます。
+	Pick a polyline or shape to explode	分解するポリラインまたは図形を選択
+	Pick a tool in the Draft tools panel on the left	左の製図ツールパネルでツールを選択
+	Pick the first line	1本目の線を選択
+	Pick the markup to repeat	繰り返すマークアップを選択
+	Pick the second line	2本目の線を選択
+	Polar array (pick, then the centre)	円形配列（選択、次に中心）
+	Polygon (centre, then a corner; sides in the ribbon)	多角形（中心、次に角。辺の数はリボンで）
+	Radius	半径
+	Radius dimension (click a circle)	半径寸法（円をクリック）
+	Rectangular array (rows and columns in the ribbon)	矩形配列（行と列はリボンで）
+	Revision cloud (click around the change)	雲マーク（変更箇所の周りをクリック）
+	Row spacing	行の間隔
+	Rows in the array	配列の行数
+	Saved the markups list.	マークアップ一覧を保存しました。
+	Scale (pick, base point, then type the factor)	尺度変更（選択、基点、次に倍率を入力）
+	Search markups	マークアップを検索
+	Show tool names	ツール名を表示
+	Sides	辺
+	Spline (a smooth curve through the points)	スプライン（点を通る滑らかな曲線）
+	The angle they fill (360 goes all the way round)	配置する角度（360 で一周）
+	These lines don't make a corner at their ends	これらの線は端で角を作りません
+	These lines don't meet end to end	これらの線は端同士で接していません
+	Tool options	ツールのオプション
+	Transform	変形
+	Type the scale factor, then Enter (2 doubles, 0.5 halves)	尺度を入力して Enter（2 で2倍、0.5 で半分）
+	Value	値
+	Walls	壁
+	Markups: {k} of {n}	マークアップ: {k} / {n}
+	Markups: {n}	マークアップ: {n}

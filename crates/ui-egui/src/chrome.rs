@@ -416,6 +416,7 @@ fn main_menu(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
                     (RightPanel::Accessibility, tl!("Accessibility Checker")),
                     (RightPanel::Search, tl!("Search")),
                     (RightPanel::Compare, tl!("Compare")),
+                    (RightPanel::Markups, tl!("Markups list")),
                 ] {
                     if ui.radio(app.right == Some(p), tl!(label)).clicked() {
                         app.choose_right_panel(Some(p));
@@ -505,6 +506,7 @@ pub fn right_rail(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
             rail_button(ui, RightPanel::Pages, "files", "Page thumbnails", false);
             rail_button(ui, RightPanel::Fields, "text-cursor-input", "Form fields", has_fields);
             rail_button(ui, RightPanel::Layers, "layers", "Layers", has_layers);
+            rail_button(ui, RightPanel::Markups, "list-checks", "Markups list", false);
             rail_button(ui, RightPanel::Attachments, "paperclip", "Attachments", has_files);
             rail_button(ui, RightPanel::Signatures, "signature", "Signatures", has_signatures);
             if has_check {

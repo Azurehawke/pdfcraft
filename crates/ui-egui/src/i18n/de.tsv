@@ -2331,3 +2331,75 @@ key	Space	Leertaste
 	Text (a text box on the drawing)	Text (ein Textfeld auf der Zeichnung)
 	Tips	Hinweise
 	Trim (click the part to cut away at crossing lines)	Stutzen (den Teil anklicken, der an kreuzenden Linien wegfällt)
+	Aligned dimension	Ausgerichtete Bemaßung
+	All layers	Alle Ebenen
+	All types	Alle Typen
+	Annotate	Beschriften
+	Arrays	Reihen
+	Break (click a line where it splits)	Brechen (Linie dort anklicken, wo sie geteilt wird)
+	Break and join	Brechen und verbinden
+	Callout (text with a leader line)	Legende (Text mit Hinweislinie)
+	Chamfer (two lines: a cut corner)	Fase (zwei Linien: eine abgeschnittene Ecke)
+	Click a circle	Einen Kreis anklicken
+	Click a line where it should split	Eine Linie dort anklicken, wo sie geteilt werden soll
+	Click away from the ends	Abseits der Enden klicken
+	Click the centre of the array	Mittelpunkt der Anordnung anklicken
+	Click the first point of the mirror line	Ersten Punkt der Spiegelachse anklicken
+	Click the markup to delete	Die zu löschende Markierung anklicken
+	Click the second point of the mirror line	Zweiten Punkt der Spiegelachse anklicken
+	Collapse to icons	Auf Symbole reduzieren
+	Column spacing	Spaltenabstand
+	Columns	Spalten
+	Columns in the array	Spalten der Anordnung
+	Couldn't read “{text}” as a scale factor.	„{text}“ ist als Skalierfaktor unverständlich.
+	Count	Anzahl
+	Diameter dimension (click a circle)	Durchmesserbemaßung (einen Kreis anklicken)
+	Dimensions	Bemaßungen
+	Distance between columns (negative goes left)	Abstand zwischen Spalten (negativ: nach links)
+	Distance between rows (negative goes down)	Abstand zwischen Zeilen (negativ: nach unten)
+	Draft tools	Zeichenwerkzeuge
+	Ellipse (centre, then a corner)	Ellipse (Mittelpunkt, dann eine Ecke)
+	Erase (click the markup to delete)	Löschen (die Markierung anklicken)
+	Explode (a polyline or shape into separate lines)	Auflösen (Polylinie oder Form in einzelne Linien)
+	Export the list as a spreadsheet (CSV)	Liste als Tabelle exportieren (CSV)
+	Fillet (two lines: a clean or rounded corner)	Abrunden (zwei Linien: saubere oder runde Ecke)
+	Fillet radius (0 makes a sharp corner)	Rundungsradius (0 ergibt eine scharfe Ecke)
+	How far back from the corner each side is cut	Wie weit jede Seite von der Ecke zurück abgeschnitten wird
+	How many in all, the original included	Anzahl insgesamt, das Original eingeschlossen
+	How many sides a new polygon has	Wie viele Seiten ein neues Vieleck hat
+	Join (two lines that meet become one)	Verbinden (zwei Linien, die sich treffen, werden eine)
+	Keep the original	Original behalten
+	Linear dimension (horizontal or vertical)	Lineare Bemaßung (waagrecht oder senkrecht)
+	Lines	Linien
+	Markups list	Markierungsliste
+	Mirror (pick, then two points on the mirror line)	Spiegeln (wählen, dann zwei Punkte der Spiegelachse)
+	No markups yet. Everything you draw, measure or place is listed here.	Noch keine Markierungen. Alles, was Sie zeichnen, messen oder platzieren, erscheint hier.
+	Pick a polyline or shape to explode	Polylinie oder Form zum Auflösen wählen
+	Pick a tool in the Draft tools panel on the left	Werkzeug im Bereich Zeichenwerkzeuge links wählen
+	Pick the first line	Erste Linie wählen
+	Pick the markup to repeat	Zu wiederholende Markierung wählen
+	Pick the second line	Zweite Linie wählen
+	Polar array (pick, then the centre)	Polare Anordnung (wählen, dann Mittelpunkt)
+	Polygon (centre, then a corner; sides in the ribbon)	Vieleck (Mittelpunkt, dann eine Ecke; Seiten im Menüband)
+	Radius	Radius
+	Radius dimension (click a circle)	Radiusbemaßung (einen Kreis anklicken)
+	Rectangular array (rows and columns in the ribbon)	Rechteckige Anordnung (Zeilen und Spalten im Menüband)
+	Revision cloud (click around the change)	Revisionswolke (um die Änderung herum klicken)
+	Row spacing	Zeilenabstand
+	Rows in the array	Zeilen der Anordnung
+	Saved the markups list.	Markierungsliste gespeichert.
+	Scale (pick, base point, then type the factor)	Skalieren (wählen, Basispunkt, dann Faktor eingeben)
+	Search markups	Markierungen suchen
+	Show tool names	Werkzeugnamen zeigen
+	Sides	Seiten
+	Spline (a smooth curve through the points)	Spline (eine glatte Kurve durch die Punkte)
+	The angle they fill (360 goes all the way round)	Der Winkel, den sie füllen (360 ist ein voller Kreis)
+	These lines don't make a corner at their ends	Diese Linien bilden an ihren Enden keine Ecke
+	These lines don't meet end to end	Diese Linien treffen sich nicht Ende an Ende
+	Tool options	Werkzeugoptionen
+	Transform	Transformieren
+	Type the scale factor, then Enter (2 doubles, 0.5 halves)	Skalierfaktor eingeben, dann Eingabe (2 verdoppelt, 0,5 halbiert)
+	Value	Wert
+	Walls	Wände
+	Markups: {k} of {n}	Markierungen: {k} von {n}
+	Markups: {n}	Markierungen: {n}

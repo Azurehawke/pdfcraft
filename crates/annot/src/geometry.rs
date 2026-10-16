@@ -116,13 +116,28 @@ fn write_points(d: &mut Dict, points: &[[f64; 2]], old: &[[f64; 2]], meta: &Meta
     if (b[2] - b[0]).max(b[3] - b[1]) < 1.0 {
         return Err(AnnotError::Invalid("the shape would be too small".into()));
     }
-    match d.name(b"Subtype") {
-        Some(b"Line") => match points {
-            [a, b] => d.set(b"L".to_vec(), num_array(&[a[0], a[1], b[0], b[1]])),
-            _ => return Err(AnnotError::Invalid("a line has two points".into())),
-        },
-        Some(b"PolyLine") if points.len() >= 2 => d.set(b"Vertices".to_vec(), num_array(&points.concat())),
-        Some(b"Polygon") if points.len() >= 3 => d.set(b"Vertices".to_vec(), num_array(&points.concat())),
+    // A line given more points becomes a polyline (join, a fillet's arc); a polygon given fewer
+    // than three, a two-point polyline (explode).
+    let subtype = d.name(b"Subtype").map(<[u8]>::to_vec);
+    match (subtype.as_deref(), points.len()) {
+        (Some(b"Line"), 2) => {
+            let (a, b) = (points.first().copied().unwrap_or_default(), points.get(1).copied().unwrap_or_default());
+            d.set(b"L".to_vec(), num_array(&[a[0], a[1], b[0], b[1]]));
+        }
+        (Some(b"Line"), n) if n > 2 => {
+            d.remove(b"L");
+            d.set(b"Subtype".to_vec(), Object::name("PolyLine"));
+            d.set(b"Vertices".to_vec(), num_array(&points.concat()));
+        }
+        (Some(b"PolyLine"), n) if n >= 2 => d.set(b"Vertices".to_vec(), num_array(&points.concat())),
+        (Some(b"Polygon"), n) if n >= 3 => d.set(b"Vertices".to_vec(), num_array(&points.concat())),
+        (Some(b"Polygon"), 2) => {
+            d.set(b"Subtype".to_vec(), Object::name("PolyLine"));
+            for k in [&b"IC"[..], b"BE", b"IT", b"Measure"] {
+                d.remove(k);
+            }
+            d.set(b"Vertices".to_vec(), num_array(&points.concat()));
+        }
         _ => return Err(AnnotError::Invalid("not enough points for this shape".into())),
     }
     d.set(b"Rect".to_vec(), num_array(&[b[0] - m, b[1] - m, b[2] + m, b[3] + m]));
@@ -239,9 +254,19 @@ pub fn transform(doc: &mut Document, page: usize, index: usize, m: &[f64; 6], co
         }
         return Ok(index);
     }
-    // Everything else moves with its centre.
     let rect = numbers(doc, &d, b"Rect");
     let [x0, y0, x1, y1] = rect[..] else { return Err(AnnotError::Invalid("the markup has no rectangle".into())) };
+    // Rectangles and ovals scale, mirror and turn by quarter turns with the matrix (they stay
+    // upright, so other turns only move them).
+    let upright = (m[1].abs() < 1e-9 && m[2].abs() < 1e-9) || (m[0].abs() < 1e-9 && m[3].abs() < 1e-9);
+    let moves_only = (m[0] - 1.0).abs() < 1e-12 && m[1] == 0.0 && m[2] == 0.0 && (m[3] - 1.0).abs() < 1e-12;
+    if upright && !moves_only && matches!(d.name(b"Subtype"), Some(b"Square" | b"Circle")) {
+        let a = apply(m, [x0, y0]);
+        let b = apply(m, [x1, y1]);
+        crate::set_rect(doc, page, index, [a[0].min(b[0]), a[1].min(b[1]), a[0].max(b[0]), a[1].max(b[1])], meta)?;
+        return Ok(index);
+    }
+    // Everything else moves with its centre.
     let c = [(x0 + x1) / 2.0, (y0 + y1) / 2.0];
     let to = apply(m, c);
     crate::move_annotation(doc, page, index, to[0] - c[0], to[1] - c[1], meta)?;
@@ -311,6 +336,26 @@ mod tests {
         assert_eq!(g[1].index, j);
         assert!((g[1].points[0][0] - 110.0).abs() < 1e-9);
         assert!(transform(&mut d, 0, i, &[f64::INFINITY, 0.0, 0.0, 1.0, 0.0, 0.0], false, &meta()).is_err());
+    }
+
+    #[test]
+    fn shapes_change_kind_with_their_points() {
+        let mut d = doc();
+        let i = add(&mut d, Shape::Line { from: [0.0, 0.0], to: [50.0, 0.0], start: LineEnding::None, end: LineEnding::None });
+        set_vertices(&mut d, 0, i, &[[0.0, 0.0], [50.0, 0.0], [50.0, 40.0]], false, &meta()).unwrap();
+        let g = page_geometry(&d, 0);
+        assert_eq!(g[0].kind, Kind::PolyLine);
+        let j = add(&mut d, Shape::Polygon { vertices: vec![[0.0, 0.0], [50.0, 0.0], [50.0, 40.0]], cloud: false });
+        let k = set_vertices(&mut d, 0, j, &[[0.0, 0.0], [50.0, 0.0]], true, &meta()).unwrap();
+        let g = page_geometry(&d, 0);
+        assert_eq!(g.iter().find(|g| g.index == k).map(|g| g.kind), Some(Kind::PolyLine));
+        // A rectangle scales with the matrix.
+        let r = add(&mut d, Shape::Rectangle { rect: [100.0, 100.0, 120.0, 110.0] });
+        transform(&mut d, 0, r, &[2.0, 0.0, 0.0, 2.0, -100.0, -100.0], false, &meta()).unwrap();
+        let p = page_ref(&d, 0).unwrap();
+        let entry = annots(&d, p)[r].clone();
+        let rect = numbers(&d, d.resolve(&entry).as_dict().unwrap(), b"Rect");
+        assert!((rect[2] - rect[0] - 40.0).abs() < 1e-6, "{rect:?}");
     }
 
     #[test]

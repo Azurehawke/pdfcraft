@@ -2329,3 +2329,75 @@ key	Space	Szóköz
 	Text (a text box on the drawing)	Szöveg (szövegdoboz a rajzon)
 	Tips	Tippek
 	Trim (click the part to cut away at crossing lines)	Levágás (kattintson a metsző vonalak közti levágandó részre)
+	Aligned dimension	Igazított méretvonal
+	All layers	Minden réteg
+	All types	Minden típus
+	Annotate	Feliratozás
+	Arrays	Kiosztások
+	Break (click a line where it splits)	Megszakítás (kattintson a vonalra, ahol kettéválik)
+	Break and join	Megszakítás és összekapcsolás
+	Callout (text with a leader line)	Kiemelés (szöveg mutatóvonallal)
+	Chamfer (two lines: a cut corner)	Letörés (két vonal: levágott sarok)
+	Click a circle	Kattintson egy körre
+	Click a line where it should split	Kattintson a vonalra ott, ahol ketté kell válnia
+	Click away from the ends	Kattintson a végektől távolabb
+	Click the centre of the array	Kattintson a kiosztás középpontjára
+	Click the first point of the mirror line	Kattintson a tükörtengely első pontjára
+	Click the markup to delete	Kattintson a törlendő jelölésre
+	Click the second point of the mirror line	Kattintson a tükörtengely második pontjára
+	Collapse to icons	Összecsukás ikonokká
+	Column spacing	Oszloptávolság
+	Columns	Oszlopok
+	Columns in the array	A kiosztás oszlopai
+	Couldn't read “{text}” as a scale factor.	„{text}” nem értelmezhető léptéktényezőként.
+	Count	Darabszám
+	Diameter dimension (click a circle)	Átmérő méretvonal (kattintson egy körre)
+	Dimensions	Méretvonalak
+	Distance between columns (negative goes left)	Oszlopok közti távolság (negatív: balra)
+	Distance between rows (negative goes down)	Sorok közti távolság (negatív: lefelé)
+	Draft tools	Rajzeszközök
+	Ellipse (centre, then a corner)	Ellipszis (középpont, majd egy sarok)
+	Erase (click the markup to delete)	Törlés (kattintson a törlendő jelölésre)
+	Explode (a polyline or shape into separate lines)	Szétbontás (vonallánc vagy alakzat külön vonalakra)
+	Export the list as a spreadsheet (CSV)	A lista exportálása táblázatként (CSV)
+	Fillet (two lines: a clean or rounded corner)	Lekerekítés (két vonal: éles vagy kerek sarok)
+	Fillet radius (0 makes a sharp corner)	Lekerekítési sugár (0 éles sarkot ad)
+	How far back from the corner each side is cut	Mennyit vág le a sarokból mindkét oldalon
+	How many in all, the original included	Hány darab összesen, az eredetivel együtt
+	How many sides a new polygon has	Hány oldala van egy új sokszögnek
+	Join (two lines that meet become one)	Összekapcsolás (két találkozó vonal eggyé válik)
+	Keep the original	Az eredeti megtartása
+	Linear dimension (horizontal or vertical)	Lineáris méretvonal (vízszintes vagy függőleges)
+	Lines	Vonalak
+	Markups list	Jelöléslista
+	Mirror (pick, then two points on the mirror line)	Tükrözés (kijelölés, majd a tükörtengely két pontja)
+	No markups yet. Everything you draw, measure or place is listed here.	Még nincsenek jelölések. Minden, amit rajzol, mér vagy elhelyez, itt jelenik meg.
+	Pick a polyline or shape to explode	Válasszon szétbontandó vonalláncot vagy alakzatot
+	Pick a tool in the Draft tools panel on the left	Válasszon eszközt a bal oldali Rajzeszközök panelen
+	Pick the first line	Válassza ki az első vonalat
+	Pick the markup to repeat	Válassza ki az ismétlendő jelölést
+	Pick the second line	Válassza ki a második vonalat
+	Polar array (pick, then the centre)	Poláris kiosztás (kijelölés, majd a középpont)
+	Polygon (centre, then a corner; sides in the ribbon)	Sokszög (középpont, majd egy sarok; oldalak a menüszalagon)
+	Radius	Sugár
+	Radius dimension (click a circle)	Sugár méretvonal (kattintson egy körre)
+	Rectangular array (rows and columns in the ribbon)	Téglalapos kiosztás (sorok és oszlopok a menüszalagon)
+	Revision cloud (click around the change)	Revíziós felhő (kattintson körbe a változás körül)
+	Row spacing	Sortávolság
+	Rows in the array	A kiosztás sorai
+	Saved the markups list.	A jelöléslista mentve.
+	Scale (pick, base point, then type the factor)	Léptékezés (kijelölés, bázispont, majd írja be a tényezőt)
+	Search markups	Jelölések keresése
+	Show tool names	Eszköznevek mutatása
+	Sides	Oldalak
+	Spline (a smooth curve through the points)	Spline (sima görbe a pontokon át)
+	The angle they fill (360 goes all the way round)	A kitöltött szög (360 a teljes kör)
+	These lines don't make a corner at their ends	Ezek a vonalak nem alkotnak sarkot a végeiknél
+	These lines don't meet end to end	Ezek a vonalak nem találkoznak végponttal
+	Tool options	Eszközbeállítások
+	Transform	Átalakítás
+	Type the scale factor, then Enter (2 doubles, 0.5 halves)	Írja be a léptéktényezőt, majd Enter (2 duplázza, 0,5 felezi)
+	Value	Érték
+	Walls	Falak
+	Markups: {k} of {n}	Jelölések: {k} / {n}
+	Markups: {n}	Jelölések: {n}

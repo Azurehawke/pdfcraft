@@ -30,18 +30,42 @@ pub enum DraftTool {
     Circle,
     /// Start, a point on the arc, end.
     Arc,
-    /// A dimension: a distance measurement at the page's scale.
+    /// An aligned dimension: a distance measurement at the page's scale.
     Dimension,
+    /// A smooth curve through the clicked points (as connected lines).
+    Spline,
+    /// Centre, then a corner of the box it fits in.
+    Ellipse,
+    /// A regular polygon: centre, then a corner.
+    Polygon,
+    /// A revision cloud around the clicked points.
+    Cloud,
+    /// A horizontal or vertical dimension.
+    DimLinear,
+    /// Click a circle: its radius.
+    DimRadius,
+    /// Click a circle: its diameter.
+    DimDiameter,
     Move,
     Copy,
     Rotate,
+    Mirror,
+    Scale,
+    ArrayRect,
+    ArrayPolar,
     Offset,
     Trim,
     Extend,
+    Fillet,
+    Chamfer,
+    Break,
+    Join,
+    Explode,
+    Erase,
 }
 
 impl DraftTool {
-    pub const ALL: [DraftTool; 13] = [
+    pub const ALL: [DraftTool; 30] = [
         DraftTool::Line,
         DraftTool::Polyline,
         DraftTool::Rectangle,
@@ -49,18 +73,30 @@ impl DraftTool {
         DraftTool::Circle,
         DraftTool::Arc,
         DraftTool::Dimension,
+        DraftTool::Spline,
+        DraftTool::Ellipse,
+        DraftTool::Polygon,
+        DraftTool::Cloud,
+        DraftTool::DimLinear,
+        DraftTool::DimRadius,
+        DraftTool::DimDiameter,
         DraftTool::Move,
         DraftTool::Copy,
         DraftTool::Rotate,
+        DraftTool::Mirror,
+        DraftTool::Scale,
+        DraftTool::ArrayRect,
+        DraftTool::ArrayPolar,
         DraftTool::Offset,
         DraftTool::Trim,
         DraftTool::Extend,
+        DraftTool::Fillet,
+        DraftTool::Chamfer,
+        DraftTool::Break,
+        DraftTool::Join,
+        DraftTool::Explode,
+        DraftTool::Erase,
     ];
-    /// The drawing tools, on the ribbon's Draw group.
-    pub const DRAW: [DraftTool; 7] =
-        [DraftTool::Line, DraftTool::Polyline, DraftTool::Rectangle, DraftTool::Wall, DraftTool::Circle, DraftTool::Arc, DraftTool::Dimension];
-    /// The tools that change what is drawn, on the Modify group.
-    pub const MODIFY: [DraftTool; 6] = [DraftTool::Move, DraftTool::Copy, DraftTool::Rotate, DraftTool::Offset, DraftTool::Trim, DraftTool::Extend];
 
     pub fn name(self) -> &'static str {
         match self {
@@ -71,25 +107,58 @@ impl DraftTool {
             Self::Circle => "circle",
             Self::Arc => "arc",
             Self::Dimension => "dimension",
+            Self::Spline => "spline",
+            Self::Ellipse => "ellipse",
+            Self::Polygon => "polygon",
+            Self::Cloud => "cloud",
+            Self::DimLinear => "dim-linear",
+            Self::DimRadius => "dim-radius",
+            Self::DimDiameter => "dim-diameter",
             Self::Move => "move",
             Self::Copy => "copy",
             Self::Rotate => "rotate",
+            Self::Mirror => "mirror",
+            Self::Scale => "scale",
+            Self::ArrayRect => "array",
+            Self::ArrayPolar => "polar-array",
             Self::Offset => "offset",
             Self::Trim => "trim",
             Self::Extend => "extend",
+            Self::Fillet => "fillet",
+            Self::Chamfer => "chamfer",
+            Self::Break => "break",
+            Self::Join => "join",
+            Self::Explode => "explode",
+            Self::Erase => "erase",
         }
     }
 
-    /// Changes markup that is already drawn rather than drawing more.
+    /// Picks markup that is already drawn (and changes or measures it) rather than drawing by
+    /// points.
     pub fn modifies(self) -> bool {
-        Self::MODIFY.contains(&self)
+        !matches!(
+            self,
+            Self::Line
+                | Self::Polyline
+                | Self::Rectangle
+                | Self::Wall
+                | Self::Circle
+                | Self::Arc
+                | Self::Dimension
+                | Self::Spline
+                | Self::Ellipse
+                | Self::Polygon
+                | Self::Cloud
+                | Self::DimLinear
+        )
     }
 
     pub fn from_name(s: &str) -> Option<Self> {
         Self::ALL.into_iter().find(|t| t.name() == s)
     }
 
-    fn label(self) -> &'static str {
+    /// The English name with how to use it, translated where it is shown.
+    pub fn label(self) -> &'static str {
         match self {
             Self::Line => "Line",
             Self::Polyline => "Polyline",
@@ -97,38 +166,74 @@ impl DraftTool {
             Self::Wall => "Wall",
             Self::Circle => "Circle (centre, then radius)",
             Self::Arc => "Arc (start, a point on it, end)",
-            Self::Dimension => "Dimension",
+            Self::Dimension => "Aligned dimension",
+            Self::Spline => "Spline (a smooth curve through the points)",
+            Self::Ellipse => "Ellipse (centre, then a corner)",
+            Self::Polygon => "Polygon (centre, then a corner; sides in the ribbon)",
+            Self::Cloud => "Revision cloud (click around the change)",
+            Self::DimLinear => "Linear dimension (horizontal or vertical)",
+            Self::DimRadius => "Radius dimension (click a circle)",
+            Self::DimDiameter => "Diameter dimension (click a circle)",
             Self::Move => "Move (pick, base point, then where to)",
             Self::Copy => "Copy (pick, base point, then each copy)",
             Self::Rotate => "Rotate (pick, centre, then the angle)",
+            Self::Mirror => "Mirror (pick, then two points on the mirror line)",
+            Self::Scale => "Scale (pick, base point, then type the factor)",
+            Self::ArrayRect => "Rectangular array (rows and columns in the ribbon)",
+            Self::ArrayPolar => "Polar array (pick, then the centre)",
             Self::Offset => "Offset (a parallel copy at the offset distance)",
             Self::Trim => "Trim (click the part to cut away at crossing lines)",
             Self::Extend => "Extend (click near an end to reach the next line)",
+            Self::Fillet => "Fillet (two lines: a clean or rounded corner)",
+            Self::Chamfer => "Chamfer (two lines: a cut corner)",
+            Self::Break => "Break (click a line where it splits)",
+            Self::Join => "Join (two lines that meet become one)",
+            Self::Explode => "Explode (a polyline or shape into separate lines)",
+            Self::Erase => "Erase (click the markup to delete)",
         }
     }
 
-    fn icon(self) -> &'static str {
+    /// The drafting icon.
+    pub fn icon(self) -> crate::cad_icons::CadIcon {
+        use crate::cad_icons::CadIcon as I;
         match self {
-            Self::Line => "minus",
-            Self::Polyline => "spline",
-            Self::Rectangle => "square",
-            Self::Wall => "rectangle-horizontal",
-            Self::Circle => "circle",
-            Self::Arc => "circle-dashed",
-            Self::Dimension => "ruler",
-            Self::Move => "move",
-            Self::Copy => "copy",
-            Self::Rotate => "rotate-ccw",
-            Self::Offset => "columns-2",
-            Self::Trim => "scissors",
-            Self::Extend => "move-right",
+            Self::Line => I::Line,
+            Self::Polyline => I::Polyline,
+            Self::Rectangle => I::Rectangle,
+            Self::Wall => I::Wall,
+            Self::Circle => I::Circle,
+            Self::Arc => I::Arc,
+            Self::Dimension => I::DimAligned,
+            Self::Spline => I::Spline,
+            Self::Ellipse => I::Ellipse,
+            Self::Polygon => I::Polygon,
+            Self::Cloud => I::RevCloud,
+            Self::DimLinear => I::DimLinear,
+            Self::DimRadius => I::DimRadius,
+            Self::DimDiameter => I::DimDiameter,
+            Self::Move => I::Move,
+            Self::Copy => I::Copy,
+            Self::Rotate => I::Rotate,
+            Self::Mirror => I::Mirror,
+            Self::Scale => I::Scale,
+            Self::ArrayRect => I::ArrayRect,
+            Self::ArrayPolar => I::ArrayPolar,
+            Self::Offset => I::Offset,
+            Self::Trim => I::Trim,
+            Self::Extend => I::Extend,
+            Self::Fillet => I::Fillet,
+            Self::Chamfer => I::Chamfer,
+            Self::Break => I::Break,
+            Self::Join => I::Join,
+            Self::Explode => I::Explode,
+            Self::Erase => I::Erase,
         }
     }
 
     /// How many points finish the shape (open-ended shapes finish when told).
     fn points_needed(self) -> Option<usize> {
         match self {
-            Self::Line | Self::Rectangle | Self::Circle | Self::Dimension => Some(2),
+            Self::Line | Self::Rectangle | Self::Circle | Self::Dimension | Self::Ellipse | Self::Polygon | Self::DimLinear => Some(2),
             Self::Arc => Some(3),
             _ => None,
         }
@@ -136,7 +241,7 @@ impl DraftTool {
 
     /// Placed point by point until finished (rather than ending at the second point).
     fn open_ended(self) -> bool {
-        matches!(self, Self::Polyline | Self::Wall)
+        matches!(self, Self::Polyline | Self::Wall | Self::Spline | Self::Cloud)
     }
 }
 
@@ -194,6 +299,26 @@ pub struct DraftSettings {
     pub author: String,
     /// Offset distance, inches.
     pub offset_inches: f64,
+    /// Sides of a new polygon.
+    pub polygon_sides: u32,
+    /// Fillet radius, inches (0: a clean corner).
+    pub fillet_inches: f64,
+    /// Chamfer distance from the corner, inches.
+    pub chamfer_inches: f64,
+    /// Rectangular array: rows, columns and their spacing (inches).
+    pub array_rows: u32,
+    pub array_columns: u32,
+    pub array_row_inches: f64,
+    pub array_column_inches: f64,
+    /// Polar array: how many in all, and the angle they fill (degrees).
+    pub polar_count: u32,
+    pub polar_angle: f64,
+    /// Mirror keeps the original (a mirrored copy) rather than flipping it.
+    pub mirror_keep: bool,
+    /// The Draft tools panel shows only icons.
+    pub panel_collapsed: bool,
+    /// The tool each fly-out group shows, by group.
+    pub group_tool: Vec<DraftTool>,
 }
 
 impl Default for DraftSettings {
@@ -207,6 +332,18 @@ impl Default for DraftSettings {
             sheet: SheetDraft { open: false, paper: 8, landscape: true, scale: 4, add_to_document: false },
             author: String::new(),
             offset_inches: 12.0,
+            polygon_sides: 6,
+            fillet_inches: 0.0,
+            chamfer_inches: 6.0,
+            array_rows: 2,
+            array_columns: 3,
+            array_row_inches: 48.0,
+            array_column_inches: 48.0,
+            polar_count: 6,
+            polar_angle: 360.0,
+            mirror_keep: true,
+            panel_collapsed: false,
+            group_tool: Vec::new(),
         }
     }
 }
@@ -232,8 +369,9 @@ pub struct DraftView {
     pub grip: Option<crate::draft_edit::Grip>,
     /// The markup's lines and shapes per (page, edit generation).
     pub(crate) geometry: Option<(usize, u64, Vec<pdfcraft_engine::geometry::Geometry>)>,
-    /// An offset distance typed with the Offset tool (inches), for the shared settings.
-    pub typed_offset: Option<f64>,
+    /// A distance or factor typed with a modify tool (inches, or the scale factor), for the shared
+    /// settings: Offset, Fillet and Chamfer keep theirs.
+    pub typed_setting: Option<(DraftTool, f64)>,
 }
 
 impl DraftView {
@@ -397,7 +535,7 @@ pub(crate) fn entry_point(entry: Entry, last: Option<[f64; 2]>, origin: [f64; 2]
 
 // ---- making markup -----------------------------------------------------------------------------
 
-fn layer_color(doc: &Document) -> [f64; 3] {
+pub(crate) fn layer_color(doc: &Document) -> [f64; 3] {
     doc.current_layer.and_then(|c| doc.layer_list().into_iter().find(|l| (l.id.num, l.id.generation) == c)).map_or([0.0; 3], |l| l.color)
 }
 
@@ -437,6 +575,20 @@ pub fn wall_quads(points: &[[f64; 2]], thickness: f64, closed: bool) -> Vec<[[f6
             [[a[0] + oa[0], a[1] + oa[1]], [b[0] + ob[0], b[1] + ob[1]], [b[0] - ob[0], b[1] - ob[1]], [a[0] - oa[0], a[1] - oa[1]]]
         })
         .collect()
+}
+
+/// A distance measurement from `a` to `b` at the page's scale, on the current layer's colour.
+pub(crate) fn dimension(page: usize, a: [f64; 2], b: [f64; 2], doc: &Document, color: [f64; 3], author: &str) -> Option<Edit> {
+    let scale = doc.measurement_scale(page, a).ok()?;
+    Some(Edit::AddMeasurement(measure::NewMeasurement {
+        page,
+        kind: measure::Kind::Distance,
+        points: vec![a, b],
+        scale,
+        style: Style { color, opacity: 1.0, width: 1.0, fill: None },
+        label: String::new(),
+        author: author.to_string(),
+    }))
 }
 
 /// The markup for a finished shape (none when it has too few points).
@@ -499,21 +651,46 @@ fn finish_edit(tool: DraftTool, page: usize, points: &[[f64; 2]], closed: bool, 
             _ => None,
         },
         DraftTool::Dimension => match points {
+            [a, b, ..] => dimension(page, *a, *b, doc, color, author),
+            _ => None,
+        },
+        DraftTool::DimLinear => match points {
             [a, b, ..] => {
-                let scale = doc.measurement_scale(page, *a).ok()?;
-                Some(Edit::AddMeasurement(measure::NewMeasurement {
-                    page,
-                    kind: measure::Kind::Distance,
-                    points: vec![*a, *b],
-                    scale,
-                    style: Style { color, opacity: 1.0, width: 1.0, fill: None },
-                    label: String::new(),
-                    author: author.to_string(),
-                }))
+                // Horizontal or vertical, whichever way the points are further apart.
+                let to = orthogonal(*a, *b);
+                dimension(page, *a, to, doc, color, author)
             }
             _ => None,
         },
-        DraftTool::Move | DraftTool::Copy | DraftTool::Rotate | DraftTool::Offset | DraftTool::Trim | DraftTool::Extend => None,
+        DraftTool::Spline => {
+            let vertices = crate::draft_edit::spline_points(points, closed);
+            if closed && vertices.len() >= 3 {
+                Some(annotation(page, Shape::Polygon { vertices, cloud: false }, color, 1.0, None, author))
+            } else if vertices.len() >= 2 {
+                Some(annotation(page, Shape::PolyLine { vertices, start: LineEnding::None, end: LineEnding::None }, color, 1.0, None, author))
+            } else {
+                None
+            }
+        }
+        DraftTool::Ellipse => match points {
+            [c, p, ..] => {
+                let (rx, ry) = ((p[0] - c[0]).abs(), (p[1] - c[1]).abs());
+                (rx >= 0.5 && ry >= 0.5)
+                    .then(|| annotation(page, Shape::Oval { rect: [c[0] - rx, c[1] - ry, c[0] + rx, c[1] + ry] }, color, 1.0, None, author))
+            }
+            _ => None,
+        },
+        DraftTool::Polygon => match points {
+            [c, p, ..] => {
+                let vertices = crate::draft_edit::regular_polygon(*c, *p, settings.polygon_sides);
+                (vertices.len() >= 3).then(|| annotation(page, Shape::Polygon { vertices, cloud: false }, color, 1.0, None, author))
+            }
+            _ => None,
+        },
+        DraftTool::Cloud => {
+            (points.len() >= 3).then(|| annotation(page, Shape::Polygon { vertices: points.to_vec(), cloud: true }, color, 1.0, None, author))
+        }
+        _ => None,
     }
 }
 
@@ -756,6 +933,30 @@ pub(crate) fn page_input(
                 painter.add(egui::Shape::line(screen.clone(), Stroke::new(1.0, accent.gamma_multiply(0.6))));
             }
         },
+        DraftTool::Ellipse | DraftTool::Polygon => {
+            if let [c, p, ..] = &pts[..] {
+                let outline = if tool == DraftTool::Polygon {
+                    crate::draft_edit::regular_polygon(*c, *p, settings.polygon_sides)
+                } else {
+                    crate::draft_edit::ellipse_points(*c, *p)
+                };
+                painter.add(egui::Shape::closed_line(outline.iter().map(|q| cx.to_screen(*q)).collect(), stroke));
+            }
+        }
+        DraftTool::Spline => {
+            let curve: Vec<Pos2> = crate::draft_edit::spline_points(&pts, false).iter().map(|p| cx.to_screen(*p)).collect();
+            painter.add(egui::Shape::line(curve, stroke));
+            painter.extend(egui::Shape::dashed_line(&screen, Stroke::new(1.0, accent.gamma_multiply(0.5)), 4.0, 4.0));
+        }
+        DraftTool::Cloud => {
+            painter.add(egui::Shape::closed_line(screen.clone(), stroke));
+        }
+        DraftTool::DimLinear => {
+            if let [a, b, ..] = &pts[..] {
+                let to = orthogonal(*a, *b);
+                painter.line_segment([cx.to_screen(*a), cx.to_screen(to)], stroke);
+            }
+        }
         DraftTool::Wall => {
             let at = pts.first().copied().unwrap_or([0.0, 0.0]);
             let thickness = settings.wall_inches * units_per_inch(doc, page, at);
@@ -834,7 +1035,6 @@ pub fn ribbon(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
     let t = Tokens::get(ui.ctx());
     let active = app.active_ids();
     let allowed = active.and_then(|(_, id)| app.session.get(id)).is_some_and(|d| d.allows_annotation() && d.read_only_reason.is_none());
-    let mut text_tool = false;
     egui::ScrollArea::horizontal().id_salt("draft-ribbon").scroll_bar_visibility(egui::scroll_area::ScrollBarVisibility::AlwaysHidden).show(
         ui,
         |ui| {
@@ -847,45 +1047,7 @@ pub fn ribbon(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
                     }
                 });
                 separator(ui, &t);
-                ui.add_enabled_ui(allowed, |ui| {
-                    group(ui, &t, tl!("Draw"), |ui| {
-                        ui.horizontal(|ui| {
-                            ui.spacing_mut().item_spacing.x = 2.0;
-                            for tool in DraftTool::DRAW {
-                                let selected = app.quick_tool == QuickTool::Draft(tool);
-                                if icons::button(ui, tool.icon(), 34.0, selected, tl!(tool.label())).clicked() {
-                                    app.quick_tool = if selected { QuickTool::Select } else { QuickTool::Draft(tool) };
-                                }
-                            }
-                            let typing = app.quick_tool == QuickTool::Comment(crate::comments::CommentTool::TextBox);
-                            if icons::button(ui, "type", 34.0, typing, tl!("Text (a text box on the drawing)")).clicked() {
-                                text_tool = true;
-                            }
-                        });
-                    });
-                    separator(ui, &t);
-                    group(ui, &t, tl!("Modify"), |ui| {
-                        ui.horizontal(|ui| {
-                            ui.spacing_mut().item_spacing.x = 2.0;
-                            for tool in DraftTool::MODIFY {
-                                let selected = app.quick_tool == QuickTool::Draft(tool);
-                                if icons::button(ui, tool.icon(), 34.0, selected, tl!(tool.label())).clicked() {
-                                    app.quick_tool = if selected { QuickTool::Select } else { QuickTool::Draft(tool) };
-                                }
-                            }
-                        });
-                    });
-                });
-                separator(ui, &t);
-                group(ui, &t, tl!("Wall"), |ui| {
-                    ui.add(egui::DragValue::new(&mut app.draft.wall_inches).range(0.5..=48.0).speed(0.25).suffix(" in"))
-                        .on_hover_text(tl!("Wall thickness"));
-                });
-                separator(ui, &t);
-                group(ui, &t, tl!("Offset"), |ui| {
-                    ui.add(egui::DragValue::new(&mut app.draft.offset_inches).range(0.125..=1200.0).speed(0.5).suffix(" in"))
-                        .on_hover_text(tl!("Offset distance (or type it with the Offset tool, then Enter)"));
-                });
+                ui.add_enabled_ui(allowed, |ui| tool_options(app, ui, &t));
                 separator(ui, &t);
                 group(ui, &t, tl!("Type a length or coordinates, then Enter"), |ui| {
                     ui.horizontal(|ui| {
@@ -938,15 +1100,83 @@ pub fn ribbon(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
             });
         },
     );
-    if text_tool {
-        app.execute("comment.freetext");
-    }
     if let Some((index, _)) = active
         && let Some(e) = app.views[index].draft.error.clone()
     {
         app.notify(e);
         app.views[index].draft.error = None;
     }
+}
+
+/// A labelled number in the ribbon.
+fn number<N: egui::emath::Numeric>(ui: &mut egui::Ui, label: &str, value: &mut N, range: std::ops::RangeInclusive<N>, suffix: &str, tip: &str) {
+    ui.label(egui::RichText::new(label).font(theme::regular(12.0)));
+    ui.add(egui::DragValue::new(value).range(range).speed(0.25).suffix(suffix)).on_hover_text(tip);
+}
+
+/// The ribbon's options for the tool in use: wall thickness, offset distance, polygon sides,
+/// fillet radius, array rows and columns…
+fn tool_options(app: &mut PdfCraftApp, ui: &mut egui::Ui, t: &Tokens) {
+    let tool = match app.quick_tool {
+        QuickTool::Draft(tool) => Some(tool),
+        _ => None,
+    };
+    let d = &mut app.draft;
+    group(ui, t, tl!("Tool options"), |ui| {
+        ui.horizontal(|ui| {
+            ui.spacing_mut().item_spacing.x = 6.0;
+            match tool {
+                Some(DraftTool::Wall) => number(ui, tl!("Thickness"), &mut d.wall_inches, 0.5..=48.0, " in", tl!("Wall thickness")),
+                Some(DraftTool::Offset) => number(
+                    ui,
+                    tl!("Distance"),
+                    &mut d.offset_inches,
+                    0.125..=1200.0,
+                    " in",
+                    tl!("Offset distance (or type it with the Offset tool, then Enter)"),
+                ),
+                Some(DraftTool::Polygon) => number(ui, tl!("Sides"), &mut d.polygon_sides, 3..=64, "", tl!("How many sides a new polygon has")),
+                Some(DraftTool::Fillet) => {
+                    number(ui, tl!("Radius"), &mut d.fillet_inches, 0.0..=1200.0, " in", tl!("Fillet radius (0 makes a sharp corner)"))
+                }
+                Some(DraftTool::Chamfer) => {
+                    number(ui, tl!("Distance"), &mut d.chamfer_inches, 0.125..=1200.0, " in", tl!("How far back from the corner each side is cut"))
+                }
+                Some(DraftTool::ArrayRect) => {
+                    number(ui, tl!("Rows"), &mut d.array_rows, 1..=50, "", tl!("Rows in the array"));
+                    number(ui, tl!("Columns"), &mut d.array_columns, 1..=50, "", tl!("Columns in the array"));
+                    number(
+                        ui,
+                        tl!("Row spacing"),
+                        &mut d.array_row_inches,
+                        -2400.0..=2400.0,
+                        " in",
+                        tl!("Distance between rows (negative goes down)"),
+                    );
+                    number(
+                        ui,
+                        tl!("Column spacing"),
+                        &mut d.array_column_inches,
+                        -2400.0..=2400.0,
+                        " in",
+                        tl!("Distance between columns (negative goes left)"),
+                    );
+                }
+                Some(DraftTool::ArrayPolar) => {
+                    number(ui, tl!("Count"), &mut d.polar_count, 2..=360, "", tl!("How many in all, the original included"));
+                    number(ui, tl!("Angle"), &mut d.polar_angle, -360.0..=360.0, "°", tl!("The angle they fill (360 goes all the way round)"));
+                }
+                Some(DraftTool::Mirror) => {
+                    ui.checkbox(&mut d.mirror_keep, tl!("Keep the original"));
+                }
+                _ => {
+                    ui.label(
+                        egui::RichText::new(tl!("Pick a tool in the Draft tools panel on the left")).font(theme::regular(12.0)).color(t.text_faint),
+                    );
+                }
+            }
+        });
+    });
 }
 
 /// The keypad for typing lengths and coordinates on a tablet.

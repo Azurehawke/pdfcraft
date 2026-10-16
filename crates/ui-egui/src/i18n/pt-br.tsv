@@ -2333,3 +2333,75 @@ key	Space	Espaço
 	Text (a text box on the drawing)	Texto (uma caixa de texto no desenho)
 	Tips	Dicas
 	Trim (click the part to cut away at crossing lines)	Aparar (clique na parte a cortar entre linhas que a cruzam)
+	Aligned dimension	Cota alinhada
+	All layers	Todas as camadas
+	All types	Todos os tipos
+	Annotate	Anotar
+	Arrays	Matrizes
+	Break (click a line where it splits)	Quebrar (clique na linha onde dividir)
+	Break and join	Quebrar e unir
+	Callout (text with a leader line)	Balão (texto com linha de chamada)
+	Chamfer (two lines: a cut corner)	Chanfro (duas linhas: um canto cortado)
+	Click a circle	Clique em um círculo
+	Click a line where it should split	Clique na linha onde ela deve se dividir
+	Click away from the ends	Clique longe das pontas
+	Click the centre of the array	Clique no centro da matriz
+	Click the first point of the mirror line	Clique no primeiro ponto da linha de espelho
+	Click the markup to delete	Clique na marcação a excluir
+	Click the second point of the mirror line	Clique no segundo ponto da linha de espelho
+	Collapse to icons	Recolher em ícones
+	Column spacing	Espaçamento das colunas
+	Columns	Colunas
+	Columns in the array	Colunas da matriz
+	Couldn't read “{text}” as a scale factor.	Não foi possível ler “{text}” como fator de escala.
+	Count	Quantidade
+	Diameter dimension (click a circle)	Cota de diâmetro (clique em um círculo)
+	Dimensions	Cotas
+	Distance between columns (negative goes left)	Distância entre colunas (negativa: para a esquerda)
+	Distance between rows (negative goes down)	Distância entre linhas (negativa: para baixo)
+	Draft tools	Ferramentas de desenho
+	Ellipse (centre, then a corner)	Elipse (centro, depois um canto)
+	Erase (click the markup to delete)	Apagar (clique na marcação a excluir)
+	Explode (a polyline or shape into separate lines)	Explodir (uma polilinha ou forma em linhas separadas)
+	Export the list as a spreadsheet (CSV)	Exportar a lista como planilha (CSV)
+	Fillet (two lines: a clean or rounded corner)	Concordância (duas linhas: canto vivo ou arredondado)
+	Fillet radius (0 makes a sharp corner)	Raio da concordância (0 faz um canto vivo)
+	How far back from the corner each side is cut	Quanto cada lado é cortado a partir do canto
+	How many in all, the original included	Quantos ao todo, contando o original
+	How many sides a new polygon has	Quantos lados um novo polígono tem
+	Join (two lines that meet become one)	Unir (duas linhas que se tocam viram uma)
+	Keep the original	Manter o original
+	Linear dimension (horizontal or vertical)	Cota linear (horizontal ou vertical)
+	Lines	Linhas
+	Markups list	Lista de marcações
+	Mirror (pick, then two points on the mirror line)	Espelhar (escolher, depois dois pontos da linha de espelho)
+	No markups yet. Everything you draw, measure or place is listed here.	Ainda não há marcações. Tudo o que você desenha, mede ou coloca aparece aqui.
+	Pick a polyline or shape to explode	Escolha uma polilinha ou forma para explodir
+	Pick a tool in the Draft tools panel on the left	Escolha uma ferramenta no painel Ferramentas de desenho à esquerda
+	Pick the first line	Escolha a primeira linha
+	Pick the markup to repeat	Escolha a marcação a repetir
+	Pick the second line	Escolha a segunda linha
+	Polar array (pick, then the centre)	Matriz polar (escolher, depois o centro)
+	Polygon (centre, then a corner; sides in the ribbon)	Polígono (centro, depois um canto; lados na faixa de opções)
+	Radius	Raio
+	Radius dimension (click a circle)	Cota de raio (clique em um círculo)
+	Rectangular array (rows and columns in the ribbon)	Matriz retangular (linhas e colunas na faixa de opções)
+	Revision cloud (click around the change)	Nuvem de revisão (clique em volta da alteração)
+	Row spacing	Espaçamento das linhas
+	Rows in the array	Linhas da matriz
+	Saved the markups list.	Lista de marcações salva.
+	Scale (pick, base point, then type the factor)	Escala (escolher, ponto base, depois digite o fator)
+	Search markups	Pesquisar marcações
+	Show tool names	Mostrar os nomes das ferramentas
+	Sides	Lados
+	Spline (a smooth curve through the points)	Spline (uma curva suave pelos pontos)
+	The angle they fill (360 goes all the way round)	O ângulo que ocupam (360 dá a volta completa)
+	These lines don't make a corner at their ends	Estas linhas não formam um canto nas pontas
+	These lines don't meet end to end	Estas linhas não se encontram ponta com ponta
+	Tool options	Opções da ferramenta
+	Transform	Transformar
+	Type the scale factor, then Enter (2 doubles, 0.5 halves)	Digite o fator de escala, depois Enter (2 dobra, 0,5 reduz à metade)
+	Value	Valor
+	Walls	Paredes
+	Markups: {k} of {n}	Marcações: {k} de {n}
+	Markups: {n}	Marcações: {n}

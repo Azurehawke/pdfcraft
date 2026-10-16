@@ -2331,3 +2331,75 @@ key	Space	Espace
 	Text (a text box on the drawing)	Texte (une zone de texte sur le dessin)
 	Tips	Infobulles
 	Trim (click the part to cut away at crossing lines)	Ajuster (cliquez sur la partie à couper aux lignes qui la croisent)
+	Aligned dimension	Cote alignée
+	All layers	Tous les calques
+	All types	Tous les types
+	Annotate	Annoter
+	Arrays	Réseaux
+	Break (click a line where it splits)	Couper (cliquez sur la ligne à l'endroit de la coupure)
+	Break and join	Couper et joindre
+	Callout (text with a leader line)	Légende (texte avec ligne de repère)
+	Chamfer (two lines: a cut corner)	Chanfrein (deux lignes : un coin coupé)
+	Click a circle	Cliquez sur un cercle
+	Click a line where it should split	Cliquez sur une ligne à l'endroit où la couper
+	Click away from the ends	Cliquez loin des extrémités
+	Click the centre of the array	Cliquez sur le centre du réseau
+	Click the first point of the mirror line	Cliquez sur le premier point de l'axe de symétrie
+	Click the markup to delete	Cliquez sur l'annotation à supprimer
+	Click the second point of the mirror line	Cliquez sur le second point de l'axe de symétrie
+	Collapse to icons	Réduire aux icônes
+	Column spacing	Espacement des colonnes
+	Columns	Colonnes
+	Columns in the array	Colonnes du réseau
+	Couldn't read “{text}” as a scale factor.	Impossible de lire « {text} » comme facteur d'échelle.
+	Count	Nombre
+	Diameter dimension (click a circle)	Cote de diamètre (cliquez sur un cercle)
+	Dimensions	Cotes
+	Distance between columns (negative goes left)	Distance entre colonnes (négative : vers la gauche)
+	Distance between rows (negative goes down)	Distance entre rangées (négative : vers le bas)
+	Draft tools	Outils de dessin
+	Ellipse (centre, then a corner)	Ellipse (centre, puis un coin)
+	Erase (click the markup to delete)	Effacer (cliquez sur l'annotation à supprimer)
+	Explode (a polyline or shape into separate lines)	Décomposer (une polyligne ou forme en lignes séparées)
+	Export the list as a spreadsheet (CSV)	Exporter la liste en tableur (CSV)
+	Fillet (two lines: a clean or rounded corner)	Raccord (deux lignes : un coin net ou arrondi)
+	Fillet radius (0 makes a sharp corner)	Rayon du raccord (0 donne un coin vif)
+	How far back from the corner each side is cut	Distance à couper de chaque côté depuis le coin
+	How many in all, the original included	Nombre total, original compris
+	How many sides a new polygon has	Nombre de côtés d'un nouveau polygone
+	Join (two lines that meet become one)	Joindre (deux lignes qui se touchent n'en font qu'une)
+	Keep the original	Garder l'original
+	Linear dimension (horizontal or vertical)	Cote linéaire (horizontale ou verticale)
+	Lines	Lignes
+	Markups list	Liste des annotations
+	Mirror (pick, then two points on the mirror line)	Symétrie (choisir, puis deux points de l'axe)
+	No markups yet. Everything you draw, measure or place is listed here.	Aucune annotation pour l'instant. Tout ce que vous dessinez, mesurez ou placez apparaît ici.
+	Pick a polyline or shape to explode	Choisissez une polyligne ou forme à décomposer
+	Pick a tool in the Draft tools panel on the left	Choisissez un outil dans le panneau Outils de dessin à gauche
+	Pick the first line	Choisissez la première ligne
+	Pick the markup to repeat	Choisissez l'annotation à répéter
+	Pick the second line	Choisissez la seconde ligne
+	Polar array (pick, then the centre)	Réseau polaire (choisir, puis le centre)
+	Polygon (centre, then a corner; sides in the ribbon)	Polygone (centre, puis un coin ; côtés dans le ruban)
+	Radius	Rayon
+	Radius dimension (click a circle)	Cote de rayon (cliquez sur un cercle)
+	Rectangular array (rows and columns in the ribbon)	Réseau rectangulaire (rangées et colonnes dans le ruban)
+	Revision cloud (click around the change)	Nuage de révision (cliquez autour de la modification)
+	Row spacing	Espacement des rangées
+	Rows in the array	Rangées du réseau
+	Saved the markups list.	Liste des annotations enregistrée.
+	Scale (pick, base point, then type the factor)	Échelle (choisir, point de base, puis saisir le facteur)
+	Search markups	Rechercher des annotations
+	Show tool names	Afficher le nom des outils
+	Sides	Côtés
+	Spline (a smooth curve through the points)	Spline (une courbe lisse passant par les points)
+	The angle they fill (360 goes all the way round)	L'angle qu'ils couvrent (360 fait le tour complet)
+	These lines don't make a corner at their ends	Ces lignes ne forment pas de coin à leurs extrémités
+	These lines don't meet end to end	Ces lignes ne se rejoignent pas bout à bout
+	Tool options	Options de l'outil
+	Transform	Transformer
+	Type the scale factor, then Enter (2 doubles, 0.5 halves)	Saisissez le facteur d'échelle, puis Entrée (2 double, 0,5 divise par deux)
+	Value	Valeur
+	Walls	Murs
+	Markups: {k} of {n}	Annotations : {k} sur {n}
+	Markups: {n}	Annotations : {n}

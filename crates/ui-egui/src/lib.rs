@@ -67,12 +67,14 @@ mod android_picker;
 mod autoscroll;
 mod bidi;
 pub mod bulk_fields;
+mod cad_icons;
 /// rfd, or on Android the builder `android_picker` reads.
 mod dialog;
 mod dialogs;
 mod dock;
 mod draft;
 mod draft_edit;
+mod draft_panel;
 mod edit_text_ui;
 mod editing;
 mod files;
@@ -83,6 +85,7 @@ mod home;
 mod icon_data;
 pub mod icons;
 pub mod last_session;
+mod markups_list;
 mod pageboxes;
 mod palette;
 mod panels;
@@ -186,6 +189,8 @@ pub enum RightPanel {
     Search,
     /// Compare files: the differences.
     Compare,
+    /// RevuCraft's Markups list ([`markups_list`]).
+    Markups,
 }
 
 /// Quick-action bar tools (the vertical floating strip).
@@ -437,6 +442,8 @@ pub struct PdfCraftApp {
     pub(crate) draft: draft::DraftSettings,
     pub(crate) layer_panel: revu::LayerPanel,
     pub(crate) photo_viewer: Option<revu::PhotoViewer>,
+    /// RevuCraft's Markups list: sort, filters and rows.
+    pub(crate) markups: markups_list::MarkupsState,
     /// RevuCraft: the side panels open in the dock, in the order opened.
     pub(crate) dock: Vec<RightPanel>,
     /// Dock boxes collapsed to their title bar.
@@ -759,6 +766,7 @@ impl PdfCraftApp {
             draft: Default::default(),
             layer_panel: Default::default(),
             photo_viewer: None,
+            markups: Default::default(),
             dock: Vec::new(),
             dock_collapsed: Vec::new(),
             dock_order: Vec::new(),
@@ -1451,6 +1459,7 @@ impl PdfCraftApp {
             "author": self.comment_prefs.author,
             "draw_pen": self.comment_prefs.pen.name(),
             "hover_tips": self.comment_prefs.hover_tips,
+            "draft_panel_collapsed": self.draft.panel_collapsed,
             // Per-tool comment defaults (colours, opacity, widths), so Make Current
             // Properties Default survives a restart (#340).
             "comment_styles": self
@@ -1549,6 +1558,9 @@ impl PdfCraftApp {
         }
         if let Some(tips) = v["hover_tips"].as_bool() {
             self.comment_prefs.hover_tips = tips;
+        }
+        if let Some(c) = v["draft_panel_collapsed"].as_bool() {
+            self.draft.panel_collapsed = c;
         }
         if let Some(pen) = v["draw_pen"].as_str().and_then(|p| pdfcraft_engine::PenKind::from_name(p.as_bytes())) {
             self.comment_prefs.pen = pen;
@@ -1662,6 +1674,7 @@ impl PdfCraftApp {
                     "accessibility" => Some(RightPanel::Accessibility),
                     "search" => Some(RightPanel::Search),
                     "compare" => Some(RightPanel::Compare),
+                    "markups" => Some(RightPanel::Markups),
                     "none" => None,
                     other => return Err(format!("unknown panel {other}")),
                 }
@@ -1854,6 +1867,13 @@ impl PdfCraftApp {
                 };
             }
             ("author", _) => self.comment_prefs.author = value.to_string(),
+            ("draft-panel", _) => {
+                self.draft.panel_collapsed = match value {
+                    "collapsed" => true,
+                    "expanded" => false,
+                    _ => return Err("draft-panel must be collapsed or expanded".into()),
+                };
+            }
             ("hover-tips", _) => {
                 self.comment_prefs.hover_tips = match value {
                     "true" => true,
@@ -2188,6 +2208,10 @@ impl eframe::App for PdfCraftApp {
                 chrome::right_rail(self, ui);
                 if self.mode != Mode::Read {
                     dock::show(self, ui);
+                    // The Draft tools panel, on the left while drafting.
+                    if self.workflow == ribbon::Workflow::Draft {
+                        draft_panel::show(self, ui);
+                    }
                 }
             }
         } else {

@@ -2353,3 +2353,75 @@ key	Space	مسافة
 	Text (a text box on the drawing)	نص (مربع نص على الرسم)
 	Tips	تلميحات
 	Trim (click the part to cut away at crossing lines)	قص (انقر الجزء المراد قطعه عند الخطوط المتقاطعة)
+	Aligned dimension	بُعد محاذٍ
+	All layers	كل الطبقات
+	All types	كل الأنواع
+	Annotate	تعليق توضيحي
+	Arrays	المصفوفات
+	Break (click a line where it splits)	كسر (انقر الخط حيث ينقسم)
+	Break and join	كسر ووصل
+	Callout (text with a leader line)	وسيلة شرح (نص بخط إشارة)
+	Chamfer (two lines: a cut corner)	شطف (خطان: زاوية مقطوعة)
+	Click a circle	انقر دائرة
+	Click a line where it should split	انقر الخط حيث يجب أن ينقسم
+	Click away from the ends	انقر بعيدًا عن الطرفين
+	Click the centre of the array	انقر مركز المصفوفة
+	Click the first point of the mirror line	انقر النقطة الأولى لخط الانعكاس
+	Click the markup to delete	انقر العلامة المراد حذفها
+	Click the second point of the mirror line	انقر النقطة الثانية لخط الانعكاس
+	Collapse to icons	طي إلى أيقونات
+	Column spacing	تباعد الأعمدة
+	Columns	الأعمدة
+	Columns in the array	أعمدة المصفوفة
+	Couldn't read “{text}” as a scale factor.	تعذّرت قراءة «{text}» كمعامل تحجيم.
+	Count	العدد
+	Diameter dimension (click a circle)	بُعد القطر (انقر دائرة)
+	Dimensions	الأبعاد
+	Distance between columns (negative goes left)	المسافة بين الأعمدة (السالبة نحو اليسار)
+	Distance between rows (negative goes down)	المسافة بين الصفوف (السالبة نحو الأسفل)
+	Draft tools	أدوات الرسم
+	Ellipse (centre, then a corner)	قطع ناقص (المركز، ثم زاوية)
+	Erase (click the markup to delete)	مسح (انقر العلامة المراد حذفها)
+	Explode (a polyline or shape into separate lines)	تفكيك (خط متعدد أو شكل إلى خطوط منفصلة)
+	Export the list as a spreadsheet (CSV)	تصدير القائمة كجدول بيانات (CSV)
+	Fillet (two lines: a clean or rounded corner)	تدوير الزاوية (خطان: زاوية حادة أو مستديرة)
+	Fillet radius (0 makes a sharp corner)	نصف قطر التدوير (0 يعطي زاوية حادة)
+	How far back from the corner each side is cut	مقدار ما يُقطع من كل جانب من الزاوية
+	How many in all, the original included	العدد الكلي مع الأصل
+	How many sides a new polygon has	عدد أضلاع المضلع الجديد
+	Join (two lines that meet become one)	وصل (خطان يلتقيان يصبحان خطًا واحدًا)
+	Keep the original	الإبقاء على الأصل
+	Linear dimension (horizontal or vertical)	بُعد خطي (أفقي أو رأسي)
+	Lines	الخطوط
+	Markups list	قائمة العلامات
+	Mirror (pick, then two points on the mirror line)	انعكاس (اختيار، ثم نقطتان على خط الانعكاس)
+	No markups yet. Everything you draw, measure or place is listed here.	لا توجد علامات بعد. كل ما ترسمه أو تقيسه أو تضعه يظهر هنا.
+	Pick a polyline or shape to explode	اختر خطًا متعددًا أو شكلًا لتفكيكه
+	Pick a tool in the Draft tools panel on the left	اختر أداة من لوحة أدوات الرسم على اليسار
+	Pick the first line	اختر الخط الأول
+	Pick the markup to repeat	اختر العلامة المراد تكرارها
+	Pick the second line	اختر الخط الثاني
+	Polar array (pick, then the centre)	مصفوفة قطبية (اختيار، ثم المركز)
+	Polygon (centre, then a corner; sides in the ribbon)	مضلع (المركز، ثم زاوية؛ الأضلاع في الشريط)
+	Radius	نصف القطر
+	Radius dimension (click a circle)	بُعد نصف القطر (انقر دائرة)
+	Rectangular array (rows and columns in the ribbon)	مصفوفة مستطيلة (الصفوف والأعمدة في الشريط)
+	Revision cloud (click around the change)	سحابة مراجعة (انقر حول التغيير)
+	Row spacing	تباعد الصفوف
+	Rows in the array	صفوف المصفوفة
+	Saved the markups list.	تم حفظ قائمة العلامات.
+	Scale (pick, base point, then type the factor)	تحجيم (اختيار، نقطة الأساس، ثم اكتب المعامل)
+	Search markups	البحث في العلامات
+	Show tool names	إظهار أسماء الأدوات
+	Sides	الأضلاع
+	Spline (a smooth curve through the points)	منحنى (منحنى ناعم عبر النقاط)
+	The angle they fill (360 goes all the way round)	الزاوية التي تملؤها (360 دورة كاملة)
+	These lines don't make a corner at their ends	هذه الخطوط لا تشكّل زاوية عند أطرافها
+	These lines don't meet end to end	هذه الخطوط لا تلتقي طرفًا بطرف
+	Tool options	خيارات الأداة
+	Transform	تحويل
+	Type the scale factor, then Enter (2 doubles, 0.5 halves)	اكتب معامل التحجيم ثم Enter (2 يضاعف، 0.5 ينصّف)
+	Value	القيمة
+	Walls	الجدران
+	Markups: {k} of {n}	العلامات: {k} من {n}
+	Markups: {n}	العلامات: {n}

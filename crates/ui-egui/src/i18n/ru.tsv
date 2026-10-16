@@ -2244,3 +2244,75 @@ key	Space	Пробел
 	Text (a text box on the drawing)	Текст (текстовое поле на чертеже)
 	Tips	Подсказки
 	Trim (click the part to cut away at crossing lines)	Обрезать (щёлкните часть, отрезаемую по пересекающим линиям)
+	Aligned dimension	Параллельный размер
+	All layers	Все слои
+	All types	Все типы
+	Annotate	Аннотации
+	Arrays	Массивы
+	Break (click a line where it splits)	Разорвать (щёлкните линию там, где её разделить)
+	Break and join	Разрыв и соединение
+	Callout (text with a leader line)	Выноска (текст с линией-указателем)
+	Chamfer (two lines: a cut corner)	Фаска (две линии: срезанный угол)
+	Click a circle	Щёлкните окружность
+	Click a line where it should split	Щёлкните линию там, где её разделить
+	Click away from the ends	Щёлкните подальше от концов
+	Click the centre of the array	Щёлкните центр массива
+	Click the first point of the mirror line	Щёлкните первую точку оси отражения
+	Click the markup to delete	Щёлкните пометку, которую нужно удалить
+	Click the second point of the mirror line	Щёлкните вторую точку оси отражения
+	Collapse to icons	Свернуть до значков
+	Column spacing	Шаг столбцов
+	Columns	Столбцы
+	Columns in the array	Столбцы массива
+	Couldn't read “{text}” as a scale factor.	Не удалось прочитать «{text}» как масштабный коэффициент.
+	Count	Количество
+	Diameter dimension (click a circle)	Диаметр (щёлкните окружность)
+	Dimensions	Размеры
+	Distance between columns (negative goes left)	Расстояние между столбцами (отрицательное — влево)
+	Distance between rows (negative goes down)	Расстояние между рядами (отрицательное — вниз)
+	Draft tools	Инструменты черчения
+	Ellipse (centre, then a corner)	Эллипс (центр, затем угол)
+	Erase (click the markup to delete)	Стереть (щёлкните пометку, которую нужно удалить)
+	Explode (a polyline or shape into separate lines)	Расчленить (полилинию или фигуру на отдельные линии)
+	Export the list as a spreadsheet (CSV)	Экспорт списка в таблицу (CSV)
+	Fillet (two lines: a clean or rounded corner)	Сопряжение (две линии: чистый или скруглённый угол)
+	Fillet radius (0 makes a sharp corner)	Радиус сопряжения (0 даёт острый угол)
+	How far back from the corner each side is cut	Насколько срезается каждая сторона от угла
+	How many in all, the original included	Сколько всего, включая оригинал
+	How many sides a new polygon has	Сколько сторон у нового многоугольника
+	Join (two lines that meet become one)	Соединить (две сходящиеся линии становятся одной)
+	Keep the original	Сохранить оригинал
+	Linear dimension (horizontal or vertical)	Линейный размер (горизонтальный или вертикальный)
+	Lines	Линии
+	Markups list	Список пометок
+	Mirror (pick, then two points on the mirror line)	Зеркало (выбор, затем две точки оси отражения)
+	No markups yet. Everything you draw, measure or place is listed here.	Пометок пока нет. Всё, что вы чертите, измеряете или размещаете, появится здесь.
+	Pick a polyline or shape to explode	Выберите полилинию или фигуру для расчленения
+	Pick a tool in the Draft tools panel on the left	Выберите инструмент на панели «Инструменты черчения» слева
+	Pick the first line	Выберите первую линию
+	Pick the markup to repeat	Выберите пометку для повторения
+	Pick the second line	Выберите вторую линию
+	Polar array (pick, then the centre)	Круговой массив (выбор, затем центр)
+	Polygon (centre, then a corner; sides in the ribbon)	Многоугольник (центр, затем угол; число сторон на ленте)
+	Radius	Радиус
+	Radius dimension (click a circle)	Радиус (щёлкните окружность)
+	Rectangular array (rows and columns in the ribbon)	Прямоугольный массив (ряды и столбцы на ленте)
+	Revision cloud (click around the change)	Облако изменений (щёлкайте вокруг изменения)
+	Row spacing	Шаг рядов
+	Rows in the array	Ряды массива
+	Saved the markups list.	Список пометок сохранён.
+	Scale (pick, base point, then type the factor)	Масштаб (выбор, базовая точка, затем введите коэффициент)
+	Search markups	Поиск пометок
+	Show tool names	Показать названия инструментов
+	Sides	Стороны
+	Spline (a smooth curve through the points)	Сплайн (плавная кривая через точки)
+	The angle they fill (360 goes all the way round)	Угол заполнения (360 — полный круг)
+	These lines don't make a corner at their ends	Эти линии не образуют угол на концах
+	These lines don't meet end to end	Эти линии не сходятся концами
+	Tool options	Параметры инструмента
+	Transform	Преобразовать
+	Type the scale factor, then Enter (2 doubles, 0.5 halves)	Введите масштабный коэффициент, затем Enter (2 удваивает, 0,5 уменьшает вдвое)
+	Value	Значение
+	Walls	Стены
+	Markups: {k} of {n}	Пометки: {k} из {n}
+	Markups: {n}	Пометки: {n}

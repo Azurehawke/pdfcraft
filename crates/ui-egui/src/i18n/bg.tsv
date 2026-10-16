@@ -2293,3 +2293,75 @@ key	Space	Интервал
 	Text (a text box on the drawing)	Текст (текстово поле в чертежа)
 	Tips	Подсказки
 	Trim (click the part to cut away at crossing lines)	Изрязване (щракнете частта за изрязване между пресичащите линии)
+	Aligned dimension	Подравнено оразмеряване
+	All layers	Всички слоеве
+	All types	Всички типове
+	Annotate	Анотиране
+	Arrays	Масиви
+	Break (click a line where it splits)	Прекъсване (щракнете линията, където да се раздели)
+	Break and join	Прекъсване и свързване
+	Callout (text with a leader line)	Изнесен надпис (текст с водеща линия)
+	Chamfer (two lines: a cut corner)	Скосяване (две линии: отрязан ъгъл)
+	Click a circle	Щракнете окръжност
+	Click a line where it should split	Щракнете линията там, където да се раздели
+	Click away from the ends	Щракнете по-далеч от краищата
+	Click the centre of the array	Щракнете центъра на масива
+	Click the first point of the mirror line	Щракнете първата точка на огледалната ос
+	Click the markup to delete	Щракнете маркировката за изтриване
+	Click the second point of the mirror line	Щракнете втората точка на огледалната ос
+	Collapse to icons	Свиване до икони
+	Column spacing	Разстояние между колоните
+	Columns	Колони
+	Columns in the array	Колони на масива
+	Couldn't read “{text}” as a scale factor.	„{text}“ не може да се разчете като мащабен коефициент.
+	Count	Брой
+	Diameter dimension (click a circle)	Оразмеряване на диаметър (щракнете окръжност)
+	Dimensions	Оразмерявания
+	Distance between columns (negative goes left)	Разстояние между колоните (отрицателно: наляво)
+	Distance between rows (negative goes down)	Разстояние между редовете (отрицателно: надолу)
+	Draft tools	Инструменти за чертане
+	Ellipse (centre, then a corner)	Елипса (център, после ъгъл)
+	Erase (click the markup to delete)	Изтриване (щракнете маркировката)
+	Explode (a polyline or shape into separate lines)	Разпадане (полилиния или фигура на отделни линии)
+	Export the list as a spreadsheet (CSV)	Експорт на списъка като таблица (CSV)
+	Fillet (two lines: a clean or rounded corner)	Закръгляне (две линии: чист или заоблен ъгъл)
+	Fillet radius (0 makes a sharp corner)	Радиус на закръгляне (0 дава остър ъгъл)
+	How far back from the corner each side is cut	Колко назад от ъгъла се отрязва всяка страна
+	How many in all, the original included	Колко общо, заедно с оригинала
+	How many sides a new polygon has	Колко страни има новият многоъгълник
+	Join (two lines that meet become one)	Свързване (две срещащи се линии стават една)
+	Keep the original	Запазване на оригинала
+	Linear dimension (horizontal or vertical)	Линейно оразмеряване (хоризонтално или вертикално)
+	Lines	Линии
+	Markups list	Списък с маркировки
+	Mirror (pick, then two points on the mirror line)	Огледално (избор, после две точки на оста)
+	No markups yet. Everything you draw, measure or place is listed here.	Още няма маркировки. Всичко, което чертаете, измервате или поставяте, се показва тук.
+	Pick a polyline or shape to explode	Изберете полилиния или фигура за разпадане
+	Pick a tool in the Draft tools panel on the left	Изберете инструмент от панела Инструменти за чертане вляво
+	Pick the first line	Изберете първата линия
+	Pick the markup to repeat	Изберете маркировката за повтаряне
+	Pick the second line	Изберете втората линия
+	Polar array (pick, then the centre)	Кръгов масив (избор, после центъра)
+	Polygon (centre, then a corner; sides in the ribbon)	Многоъгълник (център, после ъгъл; страните са в лентата)
+	Radius	Радиус
+	Radius dimension (click a circle)	Оразмеряване на радиус (щракнете окръжност)
+	Rectangular array (rows and columns in the ribbon)	Правоъгълен масив (редове и колони в лентата)
+	Revision cloud (click around the change)	Облак за ревизия (щракнете около промяната)
+	Row spacing	Разстояние между редовете
+	Rows in the array	Редове на масива
+	Saved the markups list.	Списъкът с маркировки е запазен.
+	Scale (pick, base point, then type the factor)	Мащабиране (избор, базова точка, после въведете коефициента)
+	Search markups	Търсене на маркировки
+	Show tool names	Показване на имената на инструментите
+	Sides	Страни
+	Spline (a smooth curve through the points)	Сплайн (гладка крива през точките)
+	The angle they fill (360 goes all the way round)	Ъгълът, който запълват (360 е пълен кръг)
+	These lines don't make a corner at their ends	Тези линии не образуват ъгъл в краищата си
+	These lines don't meet end to end	Тези линии не се срещат край в край
+	Tool options	Настройки на инструмента
+	Transform	Трансформиране
+	Type the scale factor, then Enter (2 doubles, 0.5 halves)	Въведете мащабния коефициент, после Enter (2 удвоява, 0,5 намалява наполовина)
+	Value	Стойност
+	Walls	Стени
+	Markups: {k} of {n}	Маркировки: {k} от {n}
+	Markups: {n}	Маркировки: {n}

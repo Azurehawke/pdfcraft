@@ -269,6 +269,215 @@ pub fn arc_points(a: Pt, m: Pt, b: Pt) -> Vec<Pt> {
         .collect()
 }
 
+/// A smooth curve through `points` (Catmull-Rom), as points about 8 per span; closed, it runs
+/// back to the first point.
+pub fn spline_points(points: &[Pt], closed: bool) -> Vec<Pt> {
+    let pts = dedup(points, closed);
+    let n = pts.len();
+    if n < 3 {
+        return pts;
+    }
+    let get = |i: isize| -> Pt {
+        if closed {
+            pts.get(i.rem_euclid(n as isize) as usize).copied().unwrap_or_default()
+        } else {
+            pts.get(i.clamp(0, n as isize - 1) as usize).copied().unwrap_or_default()
+        }
+    };
+    let spans = if closed { n } else { n - 1 };
+    let steps = 8;
+    let mut out = Vec::with_capacity(spans * steps + 1);
+    for i in 0..spans as isize {
+        let (p0, p1, p2, p3) = (get(i - 1), get(i), get(i + 1), get(i + 2));
+        for k in 0..steps {
+            let t = k as f64 / steps as f64;
+            let (t2, t3) = (t * t, t * t * t);
+            let f = |a: f64, b: f64, c: f64, d: f64| {
+                0.5 * (2.0 * b + (-a + c) * t + (2.0 * a - 5.0 * b + 4.0 * c - d) * t2 + (-a + 3.0 * b - 3.0 * c + d) * t3)
+            };
+            out.push([f(p0[0], p1[0], p2[0], p3[0]), f(p0[1], p1[1], p2[1], p3[1])]);
+        }
+    }
+    if !closed && let Some(last) = pts.last() {
+        out.push(*last);
+    }
+    out.truncate(geometry::MAX_VERTICES);
+    out
+}
+
+/// A regular polygon with `sides` corners (3–64), centred on `c`, one corner at `corner`.
+pub fn regular_polygon(c: Pt, corner: Pt, sides: u32) -> Vec<Pt> {
+    let n = sides.clamp(3, 64);
+    let r = dist(c, corner);
+    if r < 0.5 || !r.is_finite() {
+        return Vec::new();
+    }
+    let a0 = (corner[1] - c[1]).atan2(corner[0] - c[0]);
+    (0..n)
+        .map(|i| {
+            let a = a0 + std::f64::consts::TAU * f64::from(i) / f64::from(n);
+            [c[0] + r * a.cos(), c[1] + r * a.sin()]
+        })
+        .collect()
+}
+
+/// An ellipse centred on `c` fitting the box with a corner at `corner`, as points (for previews).
+pub fn ellipse_points(c: Pt, corner: Pt) -> Vec<Pt> {
+    let (rx, ry) = ((corner[0] - c[0]).abs(), (corner[1] - c[1]).abs());
+    (0..48)
+        .map(|i| {
+            let a = std::f64::consts::TAU * f64::from(i) / 48.0;
+            [c[0] + rx * a.cos(), c[1] + ry * a.sin()]
+        })
+        .collect()
+}
+
+/// The matrix that mirrors points across the line through `a` and `b`.
+pub fn mirror(a: Pt, b: Pt) -> Option<[f64; 6]> {
+    let (dx, dy) = (b[0] - a[0], b[1] - a[1]);
+    let len2 = dx * dx + dy * dy;
+    if len2 < 1e-12 {
+        return None;
+    }
+    let (c, s) = ((dx * dx - dy * dy) / len2, 2.0 * dx * dy / len2);
+    // Reflection about a line through the origin, moved to pass through `a`.
+    Some([c, s, s, -c, a[0] - c * a[0] - s * a[1], a[1] - s * a[0] + c * a[1]])
+}
+
+/// The matrix that scales points by `f` about `base`.
+pub fn scaling(base: Pt, f: f64) -> [f64; 6] {
+    [f, 0.0, 0.0, f, base[0] - f * base[0], base[1] - f * base[1]]
+}
+
+/// A corner made where two open paths meet: their clicked segments are extended or cut to the
+/// corner, keeping the side each was clicked on.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum Corner {
+    /// Rounded with this radius (0: a sharp corner).
+    Fillet(f64),
+    /// Cut this far back from the corner on each side.
+    Chamfer(f64),
+}
+
+/// Which end of an open path a corner moves: the end of its clicked segment past the corner, and
+/// the direction from the corner back toward the click.
+fn corner_side(points: &[Pt], click: Pt, x: Pt) -> Option<(bool, Pt)> {
+    let lengths = running_lengths(points);
+    let (s_click, _) = project(points, click)?;
+    let n = points.len();
+    // The segment clicked.
+    let i = lengths.windows(2).position(|w| w.get(1).is_some_and(|l| s_click <= *l + 1e-9)).unwrap_or(0);
+    let (a, b) = (*points.get(i)?, *points.get(i + 1)?);
+    let along = |p: Pt| (p[0] - a[0]) * (b[0] - a[0]) + (p[1] - a[1]) * (b[1] - a[1]);
+    let at_end = along(x) > along(point_along(points, &lengths, s_click)?);
+    // Only a path's own end can move.
+    if (at_end && i + 2 != n) || (!at_end && i != 0) {
+        return None;
+    }
+    let keep = point_along(points, &lengths, s_click)?;
+    let d = dist(keep, x);
+    if d < 1e-9 {
+        return None;
+    }
+    Some((at_end, [(keep[0] - x[0]) / d, (keep[1] - x[1]) / d]))
+}
+
+fn set_end(points: &[Pt], at_end: bool, p: Pt) -> Vec<Pt> {
+    let mut out = points.to_vec();
+    if let Some(slot) = if at_end { out.last_mut() } else { out.first_mut() } {
+        *slot = p;
+    }
+    out
+}
+
+/// The two paths with their ends meeting at a corner, and the arc or chamfer between them.
+pub fn corner(p1: &[Pt], c1: Pt, p2: &[Pt], c2: Pt, kind: Corner) -> Option<(Vec<Pt>, Vec<Pt>, Option<Vec<Pt>>)> {
+    let seg = |p: &[Pt], c: Pt| -> Option<(Pt, Pt)> {
+        let lengths = running_lengths(p);
+        let (s, _) = project(p, c)?;
+        let i = lengths.windows(2).position(|w| w.get(1).is_some_and(|l| s <= *l + 1e-9)).unwrap_or(0);
+        Some((*p.get(i)?, *p.get(i + 1)?))
+    };
+    let (a0, a1) = seg(p1, c1)?;
+    let (b0, b1) = seg(p2, c2)?;
+    let (t, _) = intersect(a0, a1, b0, b1)?;
+    let x = lerp(a0, a1, t);
+    if !finite(x) {
+        return None;
+    }
+    let (end1, u1) = corner_side(p1, c1, x)?;
+    let (end2, u2) = corner_side(p2, c2, x)?;
+    let cos = (u1[0] * u2[0] + u1[1] * u2[1]).clamp(-1.0, 1.0);
+    let theta = cos.acos();
+    match kind {
+        Corner::Fillet(r) if r <= 1e-9 => Some((set_end(p1, end1, x), set_end(p2, end2, x), None)),
+        Corner::Fillet(r) => {
+            if !(1e-3..std::f64::consts::PI - 1e-3).contains(&theta) {
+                return None;
+            }
+            let d = r / (theta / 2.0).tan();
+            let t1 = [x[0] + u1[0] * d, x[1] + u1[1] * d];
+            let t2 = [x[0] + u2[0] * d, x[1] + u2[1] * d];
+            let bis = [u1[0] + u2[0], u1[1] + u2[1]];
+            let bl = bis[0].hypot(bis[1]);
+            if bl < 1e-9 {
+                return None;
+            }
+            let h = r / (theta / 2.0).sin();
+            let c = [x[0] + bis[0] / bl * h, x[1] + bis[1] / bl * h];
+            let a_start = (t1[1] - c[1]).atan2(t1[0] - c[0]);
+            let a_end = (t2[1] - c[1]).atan2(t2[0] - c[0]);
+            let mut sweep = (a_end - a_start).rem_euclid(std::f64::consts::TAU);
+            if sweep > std::f64::consts::PI {
+                sweep -= std::f64::consts::TAU;
+            }
+            let steps = ((sweep.abs() / 5f64.to_radians()).ceil() as usize).clamp(2, 72);
+            let arc: Vec<Pt> = (0..=steps)
+                .map(|k| {
+                    let a = a_start + sweep * k as f64 / steps as f64;
+                    [c[0] + r * a.cos(), c[1] + r * a.sin()]
+                })
+                .collect();
+            let all = [t1, t2, c];
+            all.iter().all(|p| finite(*p)).then(|| (set_end(p1, end1, t1), set_end(p2, end2, t2), Some(arc)))
+        }
+        Corner::Chamfer(d) => {
+            let t1 = [x[0] + u1[0] * d, x[1] + u1[1] * d];
+            let t2 = [x[0] + u2[0] * d, x[1] + u2[1] * d];
+            (finite(t1) && finite(t2) && d > 0.0).then(|| (set_end(p1, end1, t1), set_end(p2, end2, t2), Some(vec![t1, t2])))
+        }
+    }
+}
+
+/// Two open paths that share an end, as one (`None` when no ends meet within `tolerance`).
+pub fn join(p1: &[Pt], p2: &[Pt], tolerance: f64) -> Option<Vec<Pt>> {
+    let (s1, e1) = (*p1.first()?, *p1.last()?);
+    let (s2, e2) = (*p2.first()?, *p2.last()?);
+    let rev = |p: &[Pt]| p.iter().rev().copied().collect::<Vec<_>>();
+    let joined = if dist(e1, s2) <= tolerance {
+        [p1.to_vec(), p2.get(1..)?.to_vec()].concat()
+    } else if dist(e1, e2) <= tolerance {
+        [p1.to_vec(), rev(p2).get(1..)?.to_vec()].concat()
+    } else if dist(s1, e2) <= tolerance {
+        [p2.to_vec(), p1.get(1..)?.to_vec()].concat()
+    } else if dist(s1, s2) <= tolerance {
+        [rev(p1), p2.get(1..)?.to_vec()].concat()
+    } else {
+        return None;
+    };
+    (joined.len() <= geometry::MAX_VERTICES).then_some(joined)
+}
+
+/// An open path split at `at` along it (`None` when that is at an end).
+pub fn split(points: &[Pt], at: f64) -> Option<(Vec<Pt>, Vec<Pt>)> {
+    let lengths = running_lengths(points);
+    let total = lengths.last().copied().unwrap_or(0.0);
+    if at < 1.0 || at > total - 1.0 {
+        return None;
+    }
+    Some((piece(points, &lengths, 0.0, at), piece(points, &lengths, at, total)))
+}
+
 /// Which side of an open or closed path `p` is on: 1 for the left, −1 for the right.
 fn side(points: &[Pt], closed: bool, p: Pt) -> f64 {
     let mut best: Option<(f64, f64)> = None;
@@ -366,6 +575,60 @@ fn place(tool: DraftTool, page: usize, index: usize, base: Pt, to: Pt) -> Option
     }
 }
 
+/// Mirror across the line `a`–`b`, keeping the original (a copy) or flipping it.
+fn mirrored(page: usize, index: usize, a: Pt, b: Pt, keep: bool) -> Option<Edit> {
+    mirror(a, b).map(|matrix| Edit::TransformAnnotation { page, index, matrix, copy: keep })
+}
+
+/// Copies of the markup at `index` for a rectangular array (the original is the first cell).
+fn rect_array(page: usize, index: usize, settings: &DraftSettings, k: f64) -> Vec<Edit> {
+    let (rows, cols) = (settings.array_rows.clamp(1, 50), settings.array_columns.clamp(1, 50));
+    let mut edits = Vec::new();
+    for r in 0..rows {
+        for c in 0..cols {
+            if (r, c) == (0, 0) || edits.len() >= 400 {
+                continue;
+            }
+            let d = [f64::from(c) * settings.array_column_inches * k, f64::from(r) * settings.array_row_inches * k];
+            edits.push(Edit::TransformAnnotation { page, index, matrix: translation(d), copy: true });
+        }
+    }
+    edits
+}
+
+/// Copies of the markup at `index` turned about `center` for a polar array.
+fn polar_array(page: usize, index: usize, center: Pt, settings: &DraftSettings) -> Vec<Edit> {
+    let n = settings.polar_count.clamp(2, 360);
+    let angle = settings.polar_angle.clamp(-360.0, 360.0);
+    let full = (angle.abs() - 360.0).abs() < 1e-9;
+    let step = if full { angle / f64::from(n) } else { angle / f64::from(n - 1) };
+    (1..n).map(|k| Edit::TransformAnnotation { page, index, matrix: geometry::rotation(center, step * f64::from(k)), copy: true }).collect()
+}
+
+/// A dimension across a circle or oval at `p`: its radius or diameter toward `p`.
+fn circle_dimension(cx: &PageCx<'_>, p: Pt, tolerance: f64, diameter: bool) -> Option<(usize, Pt, Pt)> {
+    let mut best: Option<(usize, Pt, Pt, f64)> = None;
+    for a in cx.info.annotations.iter().filter(|a| a.page == cx.page && a.subtype == "Circle" && a.in_reply_to.is_none()) {
+        let [x0, y0, x1, y1] = a.rect.map(f64::from);
+        let c = [(x0 + x1) / 2.0, (y0 + y1) / 2.0];
+        let (rx, ry) = ((x1 - x0).abs() / 2.0, (y1 - y0).abs() / 2.0);
+        if rx < 0.5 || ry < 0.5 {
+            continue;
+        }
+        let d = dist(p, c);
+        let dir = if d < 1e-9 { [1.0, 0.0] } else { [(p[0] - c[0]) / d, (p[1] - c[1]) / d] };
+        // The radius toward `p`.
+        let r = rx * ry / ((ry * dir[0]).hypot(rx * dir[1])).max(1e-9);
+        let off = (d - r).abs();
+        if (off <= tolerance * 2.0 || d < r) && best.as_ref().is_none_or(|b| off < b.3) {
+            let edge = [c[0] + dir[0] * r, c[1] + dir[1] * r];
+            let start = if diameter { [c[0] - dir[0] * r, c[1] - dir[1] * r] } else { c };
+            best = Some((a.index, start, edge, off));
+        }
+    }
+    best.map(|(i, a, b, _)| (i, a, b))
+}
+
 fn rotate(page: usize, index: usize, center: Pt, degrees: f64) -> Edit {
     Edit::TransformAnnotation { page, index, matrix: geometry::rotation(center, degrees), copy: false }
 }
@@ -409,11 +672,13 @@ pub(crate) fn modify_input(
     let hint_at = pos + vec2(14.0, 14.0);
     let clicked = resp.clicked();
     match tool {
-        DraftTool::Move | DraftTool::Copy | DraftTool::Rotate => {
+        DraftTool::Move | DraftTool::Copy | DraftTool::Rotate | DraftTool::Mirror | DraftTool::Scale | DraftTool::ArrayPolar => {
             let (index, base) = target(view, page);
             let shift = ui.input(|i| i.modifiers.shift);
             let point = match base {
-                Some(b) if settings.ortho != shift && tool != DraftTool::Rotate => crate::draft::orthogonal(b, point),
+                Some(b) if settings.ortho != shift && matches!(tool, DraftTool::Move | DraftTool::Copy | DraftTool::Mirror) => {
+                    crate::draft::orthogonal(b, point)
+                }
                 _ => point,
             };
             match (index, base) {
@@ -429,16 +694,63 @@ pub(crate) fn modify_input(
                     }
                     chip(painter, hint_at, tl!("Pick the markup"));
                 }
+                (Some(i), None) if tool == DraftTool::ArrayPolar => {
+                    if let Some((pts, closed)) = outline(cx, &all, i) {
+                        draw_path(painter, cx, &pts, closed, stroke);
+                        for e in polar_array(page, i, point, settings) {
+                            if let Edit::TransformAnnotation { matrix, .. } = e {
+                                let moved: Vec<Pt> = pts.iter().map(|p| geometry::apply(&matrix, *p)).collect();
+                                draw_path(painter, cx, &moved, closed, ghost);
+                            }
+                        }
+                    }
+                    painter.circle_stroke(cx.to_screen(point), 4.0, stroke);
+                    chip(painter, hint_at, tl!("Click the centre of the array"));
+                    if clicked {
+                        let edits = polar_array(page, i, point, settings);
+                        if !edits.is_empty() {
+                            view.pending_edit = Some(Edit::Batch { label: "Polar array".into(), edits });
+                        }
+                    }
+                }
                 (Some(i), None) => {
                     if let Some((pts, closed)) = outline(cx, &all, i) {
                         draw_path(painter, cx, &pts, closed, stroke);
                     }
                     painter.circle_stroke(cx.to_screen(point), 4.0, stroke);
-                    let hint = if tool == DraftTool::Rotate { tl!("Click the centre to turn about") } else { tl!("Click the base point") };
+                    let hint = match tool {
+                        DraftTool::Rotate => tl!("Click the centre to turn about"),
+                        DraftTool::Mirror => tl!("Click the first point of the mirror line"),
+                        _ => tl!("Click the base point"),
+                    };
                     chip(painter, hint_at, hint);
                     if clicked {
                         view.draft.base = Some(point);
                         view.draft.page = Some(page);
+                    }
+                }
+                (Some(i), Some(b)) if tool == DraftTool::Scale => {
+                    if let Some((pts, closed)) = outline(cx, &all, i) {
+                        draw_path(painter, cx, &pts, closed, stroke);
+                    }
+                    painter.circle_filled(cx.to_screen(b), 3.0, accent);
+                    chip(painter, hint_at, tl!("Type the scale factor, then Enter (2 doubles, 0.5 halves)"));
+                }
+                (Some(i), Some(b)) if tool == DraftTool::Mirror => {
+                    if let (Some((pts, closed)), Some(m)) = (outline(cx, &all, i), mirror(b, point)) {
+                        if settings.mirror_keep {
+                            draw_path(painter, cx, &pts, closed, stroke);
+                        } else {
+                            draw_path(painter, cx, &pts, closed, ghost);
+                        }
+                        let moved: Vec<Pt> = pts.iter().map(|p| geometry::apply(&m, *p)).collect();
+                        draw_path(painter, cx, &moved, closed, stroke);
+                    }
+                    painter.extend(egui::Shape::dashed_line(&[cx.to_screen(b), cx.to_screen(point)], Stroke::new(1.0, accent), 5.0, 4.0));
+                    chip(painter, hint_at, tl!("Click the second point of the mirror line"));
+                    if clicked && let Some(edit) = mirrored(page, i, b, point, settings.mirror_keep) {
+                        view.pending_edit = Some(edit);
+                        view.draft.base = None;
                     }
                 }
                 (Some(i), Some(b)) => {
@@ -547,6 +859,169 @@ pub(crate) fn modify_input(
                 }
             }
         }
+        DraftTool::ArrayRect => match pick(cx, &all, pos, raw, tolerance) {
+            Some(i) => {
+                let k = crate::draft::units_per_inch(doc, page, raw);
+                let edits = rect_array(page, i, settings, k);
+                if let Some((pts, closed)) = outline(cx, &all, i) {
+                    draw_path(painter, cx, &pts, closed, stroke);
+                    for e in &edits {
+                        if let Edit::TransformAnnotation { matrix, .. } = e {
+                            let moved: Vec<Pt> = pts.iter().map(|p| geometry::apply(matrix, *p)).collect();
+                            draw_path(painter, cx, &moved, closed, ghost);
+                        }
+                    }
+                }
+                if clicked && !edits.is_empty() {
+                    view.pending_edit = Some(Edit::Batch { label: "Rectangular array".into(), edits });
+                }
+            }
+            None => chip(painter, hint_at, tl!("Pick the markup to repeat")),
+        },
+        DraftTool::Fillet | DraftTool::Chamfer | DraftTool::Join => {
+            let open = all.iter().filter(|g| g.kind != Kind::Polygon).cloned().collect::<Vec<_>>();
+            let first = view
+                .comments
+                .selected
+                .filter(|(p, _)| *p == page)
+                .and_then(|(_, i)| open.iter().find(|g| g.index == i))
+                .zip(view.draft.base.filter(|_| view.draft.page == Some(page)));
+            let hover = nearest(&open, raw, tolerance).filter(|g| first.is_none_or(|(f, _)| f.index != g.index));
+            match (first, hover) {
+                (None, Some(g)) => {
+                    draw_path(painter, cx, &g.points, false, ghost);
+                    chip(painter, hint_at, tl!("Pick the first line"));
+                    if clicked {
+                        view.comments.selected = Some((page, g.index));
+                        view.draft.base = Some(raw);
+                        view.draft.page = Some(page);
+                    }
+                }
+                (None, None) => chip(painter, hint_at, tl!("Pick the first line")),
+                (Some((f, _)), None) => {
+                    draw_path(painter, cx, &f.points, false, stroke);
+                    chip(painter, hint_at, tl!("Pick the second line"));
+                }
+                (Some((f, c1)), Some(g)) => {
+                    draw_path(painter, cx, &f.points, false, stroke);
+                    let k = crate::draft::units_per_inch(doc, page, raw);
+                    let result = match tool {
+                        DraftTool::Join => join(&f.points, &g.points, tolerance.max(1e-3)).map(|merged| {
+                            draw_path(painter, cx, &merged, false, stroke);
+                            Edit::Batch {
+                                label: "Join".into(),
+                                edits: vec![
+                                    Edit::SetVertices { page, index: f.index, vertices: merged, copy: false },
+                                    Edit::DeleteAnnotation { page, index: g.index },
+                                ],
+                            }
+                        }),
+                        _ => {
+                            let kind = if tool == DraftTool::Fillet {
+                                Corner::Fillet(settings.fillet_inches * k)
+                            } else {
+                                Corner::Chamfer(settings.chamfer_inches * k)
+                            };
+                            corner(&f.points, c1, &g.points, raw, kind).map(|(p1, p2, extra)| {
+                                draw_path(painter, cx, &p1, false, stroke);
+                                draw_path(painter, cx, &p2, false, stroke);
+                                let mut edits = vec![
+                                    Edit::SetVertices { page, index: f.index, vertices: p1, copy: false },
+                                    Edit::SetVertices { page, index: g.index, vertices: p2, copy: false },
+                                ];
+                                if let Some(extra) = extra {
+                                    draw_path(painter, cx, &extra, false, stroke);
+                                    edits.push(Edit::SetVertices { page, index: f.index, vertices: extra, copy: true });
+                                }
+                                Edit::Batch { label: if tool == DraftTool::Fillet { "Fillet" } else { "Chamfer" }.into(), edits }
+                            })
+                        }
+                    };
+                    match result {
+                        Some(edit) => {
+                            if clicked {
+                                view.pending_edit = Some(edit);
+                                view.comments.selected = None;
+                                view.draft.base = None;
+                            }
+                        }
+                        None => {
+                            let why = if tool == DraftTool::Join {
+                                tl!("These lines don't meet end to end")
+                            } else {
+                                tl!("These lines don't make a corner at their ends")
+                            };
+                            chip(painter, hint_at, why);
+                        }
+                    }
+                }
+            }
+        }
+        DraftTool::Break => {
+            let open = all.iter().filter(|g| g.kind != Kind::Polygon).cloned().collect::<Vec<_>>();
+            let Some(g) = nearest(&open, raw, tolerance) else {
+                chip(painter, hint_at, tl!("Click a line where it should split"));
+                return;
+            };
+            let Some((at, _)) = project(&g.points, raw) else { return };
+            match split(&g.points, at) {
+                Some((a, b)) => {
+                    draw_path(painter, cx, &a, false, stroke);
+                    draw_path(painter, cx, &b, false, Stroke::new(1.5, Color32::from_rgb(60, 150, 230)));
+                    if let Some(p) = a.last() {
+                        painter.circle_filled(cx.to_screen(*p), 3.5, accent);
+                    }
+                    if clicked && !g.locked {
+                        view.pending_edit = Some(trim_edit(page, g.index, vec![a, b]));
+                    }
+                }
+                None => chip(painter, hint_at, tl!("Click away from the ends")),
+            }
+        }
+        DraftTool::Explode => {
+            let Some(g) = nearest(&all, raw, tolerance).filter(|g| g.kind != Kind::Line) else {
+                chip(painter, hint_at, tl!("Pick a polyline or shape to explode"));
+                return;
+            };
+            let segments: Vec<(Pt, Pt)> = g.segments().take(500).collect();
+            for (a, b) in &segments {
+                painter.line_segment([cx.to_screen(*a), cx.to_screen(*b)], stroke);
+                painter.circle_filled(cx.to_screen(*a), 2.5, accent);
+            }
+            if clicked && !g.locked && segments.len() >= 2 {
+                let mut edits: Vec<Edit> =
+                    segments.iter().map(|(a, b)| Edit::SetVertices { page, index: g.index, vertices: vec![*a, *b], copy: true }).collect();
+                edits.push(Edit::DeleteAnnotation { page, index: g.index });
+                view.pending_edit = Some(Edit::Batch { label: "Explode".into(), edits });
+            }
+        }
+        DraftTool::Erase => match pick(cx, &all, pos, raw, tolerance) {
+            Some(i) => {
+                if let Some((pts, closed)) = outline(cx, &all, i) {
+                    draw_path(painter, cx, &pts, closed, Stroke::new(2.5, Color32::from_rgb(220, 60, 60)));
+                }
+                if clicked {
+                    view.pending_edit = Some(Edit::DeleteAnnotation { page, index: i });
+                    if view.comments.selected == Some((page, i)) {
+                        view.comments.selected = None;
+                    }
+                }
+            }
+            None => chip(painter, hint_at, tl!("Click the markup to delete")),
+        },
+        DraftTool::DimRadius | DraftTool::DimDiameter => {
+            let diameter = tool == DraftTool::DimDiameter;
+            match circle_dimension(cx, raw, tolerance, diameter) {
+                Some((_, a, b)) => {
+                    painter.line_segment([cx.to_screen(a), cx.to_screen(b)], stroke);
+                    painter.circle_filled(cx.to_screen(b), 3.0, accent);
+                    if clicked && let Some(edit) = crate::draft::dimension(page, a, b, doc, crate::draft::layer_color(doc), &settings.author) {
+                        view.pending_edit = Some(edit);
+                    }
+                }
+                None => chip(painter, hint_at, tl!("Click a circle")),
+            }
+        }
         _ => {}
     }
 }
@@ -569,9 +1044,10 @@ fn trim_edit(page: usize, index: usize, pieces: Vec<Vec<Pt>>) -> Edit {
 pub(crate) fn submit(view: &mut DocView, doc: &Document, tool: DraftTool, settings: &DraftSettings, text: &str) -> Option<Edit> {
     let page = view.cursor.map(|c| c.0).or(view.draft.page).unwrap_or(view.current);
     let (index, base) = target(view, page);
-    if tool == DraftTool::Offset {
-        match crate::draft::parse_length(text, settings.bare).filter(|l| *l > 0.0 && *l < 1e6) {
-            Some(len) => view.draft.typed_offset = Some(len),
+    if matches!(tool, DraftTool::Offset | DraftTool::Fillet | DraftTool::Chamfer) {
+        let floor = if tool == DraftTool::Fillet { 0.0 } else { 1e-6 };
+        match crate::draft::parse_length(text, settings.bare).filter(|l| *l >= floor && *l < 1e6) {
+            Some(len) => view.draft.typed_setting = Some((tool, len)),
             None => view.draft.error = Some(crate::i18n::fmt(tl!("Couldn't read “{text}” as a distance."), &[("text", text)])),
         }
         return None;
@@ -580,7 +1056,20 @@ pub(crate) fn submit(view: &mut DocView, doc: &Document, tool: DraftTool, settin
         view.draft.error = Some(tl!("Pick the markup first.").to_string());
         return None;
     };
-    if !matches!(tool, DraftTool::Move | DraftTool::Copy | DraftTool::Rotate) {
+    if let (DraftTool::Scale, Some(b)) = (tool, base) {
+        let factor = text.trim().trim_start_matches(['x', '×']).trim().parse::<f64>().ok().filter(|f| f.is_finite() && *f > 1e-4 && *f < 1e4);
+        return match factor {
+            Some(f) => {
+                view.draft.base = None;
+                Some(Edit::TransformAnnotation { page, index, matrix: scaling(b, f), copy: false })
+            }
+            None => {
+                view.draft.error = Some(crate::i18n::fmt(tl!("Couldn't read “{text}” as a scale factor."), &[("text", text)]));
+                None
+            }
+        };
+    }
+    if !matches!(tool, DraftTool::Move | DraftTool::Copy | DraftTool::Rotate | DraftTool::Mirror | DraftTool::Scale) {
         view.draft.error = Some(tl!("Click the line on the drawing.").to_string());
         return None;
     }
@@ -614,6 +1103,10 @@ pub(crate) fn submit(view: &mut DocView, doc: &Document, tool: DraftTool, settin
             view.draft.base = Some(p);
             view.draft.page = Some(page);
             None
+        }
+        Some(b) if tool == DraftTool::Mirror => {
+            view.draft.base = None;
+            mirrored(page, index, b, p, settings.mirror_keep)
         }
         Some(b) => {
             let edit = place(tool, page, index, b, p);
@@ -762,6 +1255,44 @@ mod tests {
         let wall = [([50.0, -10.0], [50.0, 10.0]), ([80.0, -10.0], [80.0, 10.0])];
         assert_eq!(extend(&line, true, &wall), Some([50.0, 0.0]));
         assert_eq!(extend(&line, false, &wall), None, "nothing behind the start");
+    }
+
+    #[test]
+    fn corners_joins_and_splits() {
+        let h = [[0.0, 0.0], [8.0, 0.0]];
+        let v = [[10.0, 2.0], [10.0, 20.0]];
+        // A sharp corner: both lines reach (10, 0).
+        let (a, b, extra) = corner(&h, [2.0, 0.0], &v, [10.0, 15.0], Corner::Fillet(0.0)).unwrap();
+        assert!(dist(*a.last().unwrap(), [10.0, 0.0]) < 1e-9 && dist(b[0], [10.0, 0.0]) < 1e-9 && extra.is_none(), "{a:?} {b:?}");
+        // A rounded one of radius 2: tangent at (8, 0) and (10, 2).
+        let (a, b, arc) = corner(&h, [2.0, 0.0], &v, [10.0, 15.0], Corner::Fillet(2.0)).unwrap();
+        assert!(dist(*a.last().unwrap(), [8.0, 0.0]) < 1e-9 && dist(b[0], [10.0, 2.0]) < 1e-9);
+        assert!(arc.unwrap().iter().all(|p| (dist(*p, [8.0, 2.0]) - 2.0).abs() < 1e-9));
+        let (_, _, cut) = corner(&h, [2.0, 0.0], &v, [10.0, 15.0], Corner::Chamfer(1.0)).unwrap();
+        assert_eq!(cut.map(|c| c.len()), Some(2));
+        assert!(corner(&h, [2.0, 0.0], &[[0.0, 5.0], [8.0, 5.0]], [4.0, 5.0], Corner::Fillet(0.0)).is_none(), "parallel");
+        assert_eq!(join(&h, &[[8.0, 0.0], [8.0, 6.0]], 0.01), Some(vec![[0.0, 0.0], [8.0, 0.0], [8.0, 6.0]]));
+        assert_eq!(join(&h, &[[8.0, 6.0], [8.0, 0.0]], 0.01), Some(vec![[0.0, 0.0], [8.0, 0.0], [8.0, 6.0]]));
+        assert!(join(&h, &v, 0.01).is_none());
+        let (a, b) = split(&[[0.0, 0.0], [20.0, 0.0]], 5.0).unwrap();
+        assert!(dist(*a.last().unwrap(), [5.0, 0.0]) < 1e-9 && b.len() == 2);
+        assert!(split(&[[0.0, 0.0], [20.0, 0.0]], 0.2).is_none());
+    }
+
+    #[test]
+    fn shapes_and_matrices() {
+        let hex = regular_polygon([0.0, 0.0], [10.0, 0.0], 6);
+        assert_eq!(hex.len(), 6);
+        assert!(hex.iter().all(|p| (p[0].hypot(p[1]) - 10.0).abs() < 1e-9));
+        let s = spline_points(&[[0.0, 0.0], [10.0, 10.0], [20.0, 0.0]], false);
+        assert!(s.len() > 10 && dist(s[0], [0.0, 0.0]) < 1e-9 && dist(*s.last().unwrap(), [20.0, 0.0]) < 1e-9);
+        assert!(s.iter().any(|p| dist(*p, [10.0, 10.0]) < 1e-9), "passes through its points");
+        let m = mirror([0.0, 0.0], [0.0, 10.0]).unwrap();
+        let p = geometry::apply(&m, [3.0, 4.0]);
+        assert!(dist(p, [-3.0, 4.0]) < 1e-9, "{p:?}");
+        let m = mirror([0.0, 1.0], [10.0, 1.0]).unwrap();
+        assert!(dist(geometry::apply(&m, [3.0, 4.0]), [3.0, -2.0]) < 1e-9);
+        assert!(dist(geometry::apply(&scaling([1.0, 1.0], 2.0), [2.0, 3.0]), [3.0, 5.0]) < 1e-9);
     }
 
     #[test]

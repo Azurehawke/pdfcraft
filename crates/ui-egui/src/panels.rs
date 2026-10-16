@@ -391,6 +391,15 @@ pub(crate) enum Nav {
     Flash(usize, [f32; 4]),
 }
 
+/// The Markups list in its own side panel (outside RevuCraft's dock).
+fn markups_right_panel(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
+    let t = Tokens::get(ui.ctx());
+    egui::Panel::right("right_panel").default_size(420.0).frame(egui::Frame::NONE.fill(t.card).inner_margin(egui::Margin::same(10))).show(ui, |ui| {
+        ui.label(egui::RichText::new(tl!("Markups list")).font(theme::semibold(15.5)));
+        crate::markups_list::show(app, ui);
+    });
+}
+
 /// The Layers panel: RevuCraft's layer manager ([`crate::revu::layers_panel`]).
 fn layers_right_panel(app: &mut PdfCraftApp, ui: &mut egui::Ui, index: usize, id: pdfcraft_engine::DocId) {
     let t = Tokens::get(ui.ctx());
@@ -431,6 +440,10 @@ pub fn right_panel(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
         layers_right_panel(app, ui, index, id);
         return;
     }
+    if panel == RightPanel::Markups {
+        markups_right_panel(app, ui);
+        return;
+    }
     panel_contents(app, ui, panel, false);
 }
 
@@ -447,6 +460,7 @@ pub fn panel_title(panel: RightPanel) -> &'static str {
         RightPanel::Accessibility => "Accessibility Checker",
         RightPanel::Search => "Search",
         RightPanel::Compare => "Compare",
+        RightPanel::Markups => "Markups list",
     }
 }
 
@@ -457,6 +471,10 @@ pub fn docked_panel(app: &mut PdfCraftApp, ui: &mut egui::Ui, panel: RightPanel)
     let Some((index, id)) = app.active_ids() else { return };
     if panel == RightPanel::Layers {
         egui::ScrollArea::vertical().id_salt("layers-panel").auto_shrink([false, false]).show(ui, |ui| crate::revu::layers_panel(app, ui, index, id));
+        return;
+    }
+    if panel == RightPanel::Markups {
+        crate::markups_list::show(app, ui);
         return;
     }
     panel_contents(app, ui, panel, true);
@@ -504,6 +522,7 @@ fn panel_contents(app: &mut PdfCraftApp, ui: &mut egui::Ui, panel: RightPanel, d
                 RightPanel::Accessibility => ("Accessibility Checker", None),
                 RightPanel::Search => ("Search", None),
                 RightPanel::Compare => ("Compare", compare.as_ref().filter(|c| c.new == id).map(|c| c.result.changes.len())),
+                RightPanel::Markups => ("Markups list", None),
             };
             // Docked, the dock box shows the title and closes; only panels with header
             // controls keep a header row.
@@ -631,8 +650,8 @@ fn panel_contents(app: &mut PdfCraftApp, ui: &mut egui::Ui, panel: RightPanel, d
                 }
                 RightPanel::Pages => pages(ui, &t, info, view, modal, bm_editable, &mut nav),
                 RightPanel::Fields => field_properties = fields(ui, &t, info, &doc.form, preparing, &mut view.prepare, &mut nav, &mut panel_edit),
-                // Drawn by `layers_right_panel`.
-                RightPanel::Layers => {}
+                // Drawn by `layers_right_panel` and `markups_right_panel`.
+                RightPanel::Layers | RightPanel::Markups => {}
                 RightPanel::Signatures => {
                     sig_action = crate::sign_ui::panel(ui, &t, &doc.signatures, sig_expanded);
                 }
