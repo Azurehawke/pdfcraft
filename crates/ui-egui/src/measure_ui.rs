@@ -399,6 +399,7 @@ fn finish(state: &mut MeasureView, pending: &mut Option<Edit>, doc: &Document, p
             style: Style { color: [0.0, 0.47, 0.84], ..Style::default() },
             label: state.label.clone(),
             author: author.into(),
+            dimension: None,
         }));
         state.cancel();
     }

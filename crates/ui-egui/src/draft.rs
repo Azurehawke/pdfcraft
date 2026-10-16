@@ -233,8 +233,8 @@ impl DraftTool {
     /// How many points finish the shape (open-ended shapes finish when told).
     fn points_needed(self) -> Option<usize> {
         match self {
-            Self::Line | Self::Rectangle | Self::Circle | Self::Dimension | Self::Ellipse | Self::Polygon | Self::DimLinear => Some(2),
-            Self::Arc => Some(3),
+            Self::Line | Self::Rectangle | Self::Circle | Self::Ellipse | Self::Polygon => Some(2),
+            Self::Arc | Self::Dimension | Self::DimLinear => Some(3),
             _ => None,
         }
     }
@@ -315,6 +315,8 @@ pub struct DraftSettings {
     pub polar_angle: f64,
     /// Mirror keeps the original (a mirrored copy) rather than flipping it.
     pub mirror_keep: bool,
+    /// Dimensions end in architectural ticks rather than arrows.
+    pub dim_ticks: bool,
     /// The Draft tools panel shows only icons.
     pub panel_collapsed: bool,
     /// The tool each fly-out group shows, by group.
@@ -342,6 +344,7 @@ impl Default for DraftSettings {
             polar_count: 6,
             polar_angle: 360.0,
             mirror_keep: true,
+            dim_ticks: false,
             panel_collapsed: false,
             group_tool: Vec::new(),
         }
@@ -577,9 +580,86 @@ pub fn wall_quads(points: &[[f64; 2]], thickness: f64, closed: bool) -> Vec<[[f6
         .collect()
 }
 
-/// A distance measurement from `a` to `b` at the page's scale, on the current layer's colour.
+/// Extension lines run this far past the dimension line, and start this far from the measured
+/// points (paper points).
+const DIM_EXTENSION: f64 = 4.0;
+const DIM_GAP: f64 = 2.0;
+
+/// Where a dimension goes: the measured line (`L`), how far off its dimension line sits (`/LL`,
+/// clockwise positive), and the measured points when they are not the line's ends.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct DimLayout {
+    pub from: [f64; 2],
+    pub to: [f64; 2],
+    pub leader: f64,
+    pub points: Option<[[f64; 2]; 2]>,
+}
+
+impl DimLayout {
+    /// The dimension line's ends.
+    pub fn line(&self) -> ([f64; 2], [f64; 2]) {
+        let (a, b) = (self.from, self.to);
+        let len = (b[0] - a[0]).hypot(b[1] - a[1]).max(1e-12);
+        let n = [(b[1] - a[1]) / len, -(b[0] - a[0]) / len];
+        ([a[0] + n[0] * self.leader, a[1] + n[1] * self.leader], [b[0] + n[0] * self.leader, b[1] + n[1] * self.leader])
+    }
+
+    /// The measured points the extension lines start from.
+    pub fn origins(&self) -> [[f64; 2]; 2] {
+        self.points.unwrap_or([self.from, self.to])
+    }
+}
+
+/// The layout of an aligned (`linear` false) or horizontal/vertical dimension between `a` and `b`
+/// whose dimension line passes through `c`. A linear dimension is horizontal when `c` is above or
+/// below the points, vertical when it is beside them, as in CAD programs.
+pub fn dim_layout(a: [f64; 2], b: [f64; 2], c: [f64; 2], linear: bool) -> Option<DimLayout> {
+    let (from, to, points) = if linear {
+        let out = |v: f64, lo: f64, hi: f64| (lo - v).max(v - hi).max(0.0);
+        let dx = out(c[0], a[0].min(b[0]), a[0].max(b[0]));
+        let dy = out(c[1], a[1].min(b[1]), a[1].max(b[1]));
+        let horizontal = if dx == 0.0 && dy == 0.0 { (b[0] - a[0]).abs() >= (b[1] - a[1]).abs() } else { dy >= dx };
+        let to = if horizontal { [b[0], a[1]] } else { [a[0], b[1]] };
+        (a, to, Some([a, b]))
+    } else {
+        (a, b, None)
+    };
+    let len = (to[0] - from[0]).hypot(to[1] - from[1]);
+    if len < 0.5 {
+        return None;
+    }
+    let n = [(to[1] - from[1]) / len, -(to[0] - from[0]) / len];
+    let leader = (c[0] - from[0]) * n[0] + (c[1] - from[1]) * n[1];
+    leader.is_finite().then_some(DimLayout { from, to, leader, points })
+}
+
+/// A distance measurement from `a` to `b` at the page's scale, on the current layer's colour,
+/// drawn as a dimension when `layout` says where its dimension line goes.
 pub(crate) fn dimension(page: usize, a: [f64; 2], b: [f64; 2], doc: &Document, color: [f64; 3], author: &str) -> Option<Edit> {
+    dimension_with(page, a, b, None, doc, color, author, DIM_ARROWS)
+}
+
+const DIM_ARROWS: LineEnding = LineEnding::ClosedArrow;
+
+#[allow(clippy::too_many_arguments)]
+fn dimension_with(
+    page: usize,
+    a: [f64; 2],
+    b: [f64; 2],
+    layout: Option<&DimLayout>,
+    doc: &Document,
+    color: [f64; 3],
+    author: &str,
+    ends: LineEnding,
+) -> Option<Edit> {
     let scale = doc.measurement_scale(page, a).ok()?;
+    let dimension = layout.filter(|l| l.leader.abs() > 0.25).map(|l| measure::Dimension {
+        leader: l.leader,
+        extension: DIM_EXTENSION,
+        gap: DIM_GAP,
+        ends,
+        from: l.points,
+    });
     Some(Edit::AddMeasurement(measure::NewMeasurement {
         page,
         kind: measure::Kind::Distance,
@@ -588,6 +668,7 @@ pub(crate) fn dimension(page: usize, a: [f64; 2], b: [f64; 2], doc: &Document, c
         style: Style { color, opacity: 1.0, width: 1.0, fill: None },
         label: String::new(),
         author: author.to_string(),
+        dimension,
     }))
 }
 
@@ -650,15 +731,12 @@ fn finish_edit(tool: DraftTool, page: usize, points: &[[f64; 2]], closed: bool, 
             }
             _ => None,
         },
-        DraftTool::Dimension => match points {
-            [a, b, ..] => dimension(page, *a, *b, doc, color, author),
-            _ => None,
-        },
-        DraftTool::DimLinear => match points {
-            [a, b, ..] => {
-                // Horizontal or vertical, whichever way the points are further apart.
-                let to = orthogonal(*a, *b);
-                dimension(page, *a, to, doc, color, author)
+        DraftTool::Dimension | DraftTool::DimLinear => match points {
+            // The third point places the dimension line.
+            [a, b, c, ..] => {
+                let l = dim_layout(*a, *b, *c, tool == DraftTool::DimLinear)?;
+                let ends = if settings.dim_ticks { LineEnding::Slash } else { DIM_ARROWS };
+                dimension_with(page, l.from, l.to, Some(&l), doc, color, author, ends)
             }
             _ => None,
         },
@@ -756,6 +834,18 @@ pub fn submit(view: &mut DocView, doc: &Document, tool: DraftTool, settings: &Dr
     let last = if view.draft.page == Some(page) { view.draft.points.last().copied() } else { None };
     let toward = view.cursor.filter(|c| c.0 == page).map(|c| c.1);
     let k = units_per_inch(doc, page, last.unwrap_or(origin));
+    // A dimension's third entry is how far off its dimension line goes, on the pointer's side.
+    if matches!(tool, DraftTool::Dimension | DraftTool::DimLinear)
+        && view.draft.page == Some(page)
+        && let ([a, b], Entry::Distance(len)) = (&view.draft.points[..], entry)
+    {
+        let pointer = toward.unwrap_or([a[0], a[1] + 1.0]);
+        let l = dim_layout(*a, *b, pointer, tool == DraftTool::DimLinear)?;
+        let side = if l.leader < 0.0 { -1.0 } else { 1.0 };
+        let placed = DimLayout { leader: side * len * k, ..l };
+        let (q1, _) = placed.line();
+        return add_point(view, doc, page, tool, q1, settings);
+    }
     let Some(p) = entry_point(entry, last, origin, toward, k, settings.ortho) else {
         view.draft.error = Some(tl!("Type a length after placing the first point, or give coordinates.").to_string());
         return None;
@@ -951,12 +1041,27 @@ pub(crate) fn page_input(
         DraftTool::Cloud => {
             painter.add(egui::Shape::closed_line(screen.clone(), stroke));
         }
-        DraftTool::DimLinear => {
-            if let [a, b, ..] = &pts[..] {
-                let to = orthogonal(*a, *b);
-                painter.line_segment([cx.to_screen(*a), cx.to_screen(to)], stroke);
+        DraftTool::Dimension | DraftTool::DimLinear => match &pts[..] {
+            [a, b, c, ..] => {
+                if let Some(l) = dim_layout(*a, *b, *c, tool == DraftTool::DimLinear) {
+                    let (q1, q2) = l.line();
+                    for (o, q) in l.origins().iter().zip([q1, q2]) {
+                        painter.line_segment([cx.to_screen(*o), cx.to_screen(q)], Stroke::new(1.0, accent.gamma_multiply(0.8)));
+                    }
+                    painter.line_segment([cx.to_screen(q1), cx.to_screen(q2)], stroke);
+                    if let Ok(scale) = doc.measurement_scale(page, l.from) {
+                        let len = (l.to[0] - l.from[0]).hypot(l.to[1] - l.from[1]) * scale.x * scale.distance_factor;
+                        if let Ok(text) = scale.format_length(len) {
+                            let mid = cx.to_screen([(q1[0] + q2[0]) / 2.0, (q1[1] + q2[1]) / 2.0]);
+                            crate::draft_edit::chip(painter, mid + vec2(6.0, -22.0), &text);
+                        }
+                    }
+                }
             }
-        }
+            _ => {
+                painter.add(egui::Shape::line(screen.clone(), stroke));
+            }
+        },
         DraftTool::Wall => {
             let at = pts.first().copied().unwrap_or([0.0, 0.0]);
             let thickness = settings.wall_inches * units_per_inch(doc, page, at);
@@ -1168,6 +1273,15 @@ fn tool_options(app: &mut PdfCraftApp, ui: &mut egui::Ui, t: &Tokens) {
                 }
                 Some(DraftTool::Mirror) => {
                     ui.checkbox(&mut d.mirror_keep, tl!("Keep the original"));
+                }
+                Some(DraftTool::Dimension | DraftTool::DimLinear) => {
+                    ui.radio_value(&mut d.dim_ticks, false, tl!("Arrows"));
+                    ui.radio_value(&mut d.dim_ticks, true, tl!("Ticks"));
+                    ui.label(
+                        egui::RichText::new(tl!("Click both ends, then where the dimension line goes"))
+                            .font(theme::regular(12.0))
+                            .color(t.text_faint),
+                    );
                 }
                 _ => {
                     ui.label(

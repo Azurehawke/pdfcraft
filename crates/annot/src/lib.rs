@@ -1643,7 +1643,7 @@ pub fn move_annotation(doc: &mut Document, page: usize, index: usize, dx: f64, d
     };
     let popup = annot_dict(doc, r).reference(b"Popup");
     doc.update_dict(r, |d| {
-        for (k, every) in [(&b"Rect"[..], false), (b"QuadPoints", true), (b"L", false), (b"CL", true), (b"Vertices", true)] {
+        for (k, every) in [(&b"Rect"[..], false), (b"QuadPoints", true), (b"L", false), (b"CL", true), (b"Vertices", true), (b"PCDimPoints", true)] {
             if let Some(v) = d.get(k).and_then(|o| shift(o, every)) {
                 d.set(k.to_vec(), v);
             }

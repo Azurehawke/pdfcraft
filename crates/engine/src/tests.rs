@@ -2149,6 +2149,7 @@ fn measurement_edits_are_transactional_and_honour_annotation_permissions() {
         style: Style::default(),
         label: "Wall".into(),
         author: "Tester".into(),
+        dimension: None,
     };
     session.apply(id, Edit::AddMeasurement(m.clone())).unwrap();
     let before = session.get(id).unwrap().bytes.clone();
@@ -2947,6 +2948,7 @@ fn drafting_edits_change_points_copy_and_rotate() {
         style: Style::default(),
         label: String::new(),
         author: "Tester".into(),
+        dimension: None,
     };
     session.apply(id, Edit::AddMeasurement(m)).unwrap();
     // A grip moved: the measurement reads the new length.

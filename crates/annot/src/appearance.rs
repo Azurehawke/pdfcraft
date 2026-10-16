@@ -284,6 +284,8 @@ pub fn build(d: &Dict) -> Option<Stream> {
     let w = border_width(d);
     let mut res = Dict::new();
     let mut c = String::new();
+    // A dimension's text: where it sits (the middle of the dimension line) and its angle.
+    let mut caption_at: Option<((f64, f64), f64)> = None;
     let markup = matches!(subtype.as_slice(), b"Highlight" | b"Underline" | b"StrikeOut" | b"Squiggly");
     // A drawing made with one of PdfCraft's pens (`crate::pen`).
     let pen = if subtype == b"Ink" { d.name(b"PCPen").and_then(crate::pen::PenKind::from_name) } else { None };
@@ -411,8 +413,47 @@ pub fn build(d: &Dict) -> Option<Stream> {
             }
             let fill = interior_color(d, Some(col)).unwrap_or(col);
             c.push_str(&format!("{}{}{} w 1 J 1 j\n{}", rg_stroke(col), rg(fill), n(w), dash(d)));
-            c.push_str(&format!("{} {} m {} {} l S\n[] 0 d\n", n(l[0]), n(l[1]), n(l[2]), n(l[3])));
-            for (end, (tip, from)) in ends.iter().zip([((l[0], l[1]), (l[2], l[3])), ((l[2], l[3]), (l[0], l[1]))]) {
+            // A dimension (§12.5.6.7): extension lines from the measured points and the
+            // dimension line `/LL` away from the line, its text in the middle.
+            let leader = d.get(b"LL").and_then(Object::as_f64).filter(|v| v.is_finite() && v.abs() > 1e-9 && v.abs() < 1e7);
+            let (p1, p2) = match leader {
+                Some(ll) => {
+                    let len = (l[2] - l[0]).hypot(l[3] - l[1]);
+                    if len < 1e-9 {
+                        return None;
+                    }
+                    // Clockwise of the line's direction.
+                    let (nx, ny) = ((l[3] - l[1]) / len, -(l[2] - l[0]) / len);
+                    let ext = d.get(b"LLE").and_then(Object::as_f64).filter(|v| v.is_finite() && *v >= 0.0 && *v < 1e6).unwrap_or(0.0);
+                    let gap = d.get(b"LLO").and_then(Object::as_f64).filter(|v| v.is_finite() && *v >= 0.0 && *v < 1e6).unwrap_or(0.0);
+                    let q1 = (l[0] + nx * ll, l[1] + ny * ll);
+                    let q2 = (l[2] + nx * ll, l[3] + ny * ll);
+                    // Extension lines start at the measured points (which differ from the
+                    // line's ends in a horizontal or vertical dimension).
+                    let from = nums(d, b"PCDimPoints").filter(|v| v.len() == 4 && v.iter().all(|x| x.is_finite()));
+                    let origins = match &from {
+                        Some(v) => [(v[0], v[1]), (v[2], v[3])],
+                        None => [(l[0], l[1]), (l[2], l[3])],
+                    };
+                    for (o, q) in origins.iter().zip([q1, q2]) {
+                        let (dx, dy) = (q.0 - o.0, q.1 - o.1);
+                        let dl = dx.hypot(dy);
+                        if dl < 1e-9 {
+                            continue;
+                        }
+                        let (ux, uy) = (dx / dl, dy / dl);
+                        let start = (o.0 + ux * gap.min(dl), o.1 + uy * gap.min(dl));
+                        let end = (q.0 + ux * ext, q.1 + uy * ext);
+                        c.push_str(&format!("{} {} m {} {} l S\n", n(start.0), n(start.1), n(end.0), n(end.1)));
+                    }
+                    let mid = ((q1.0 + q2.0) / 2.0, (q1.1 + q2.1) / 2.0);
+                    caption_at = Some((mid, (q2.1 - q1.1).atan2(q2.0 - q1.0)));
+                    (q1, q2)
+                }
+                None => ((l[0], l[1]), (l[2], l[3])),
+            };
+            c.push_str(&format!("{} {} m {} {} l S\n[] 0 d\n", n(p1.0), n(p1.1), n(p2.0), n(p2.1)));
+            for (end, (tip, from)) in ends.iter().zip([(p1, p2), (p2, p1)]) {
                 if !line_end(&mut c, end, tip, from, w) {
                     return None;
                 }
@@ -736,10 +777,29 @@ pub fn build(d: &Dict) -> Option<Stream> {
         let value = value.to_text();
         if value.chars().count() <= 256 && matches!(subtype.as_slice(), b"Line" | b"PolyLine" | b"Polygon") {
             let size = 10.0;
-            let x = (rect[0] + rect[2] - text_width(&value, size)) * 0.5;
-            let y = rect[3] - 12.0;
             let col = stroke.unwrap_or([0.0, 0.47, 0.84]);
-            out.extend(format!("{}BT /Helv {} Tf {} {} Td ", rg(col), n(size), n(x), n(y)).bytes());
+            match caption_at {
+                // Along the dimension line, reading left to right or upward, just clear of it.
+                Some(((mx, my), angle)) => {
+                    let angle = if angle > std::f64::consts::FRAC_PI_2 + 1e-9 || angle <= -std::f64::consts::FRAC_PI_2 + 1e-9 {
+                        angle + std::f64::consts::PI
+                    } else {
+                        angle
+                    };
+                    let (cos, sin) = (angle.cos(), angle.sin());
+                    let half = text_width(&value, size) / 2.0;
+                    let lift = 2.0 + w;
+                    let (x, y) = (mx - cos * half - sin * lift, my - sin * half + cos * lift);
+                    out.extend(
+                        format!("{}BT /Helv {} Tf {} {} {} {} {} {} Tm ", rg(col), n(size), n(cos), n(sin), n(-sin), n(cos), n(x), n(y)).bytes(),
+                    );
+                }
+                None => {
+                    let x = (rect[0] + rect[2] - text_width(&value, size)) * 0.5;
+                    let y = rect[3] - 12.0;
+                    out.extend(format!("{}BT /Helv {} Tf {} {} Td ", rg(col), n(size), n(x), n(y)).bytes());
+                }
+            }
             // WinAnsi bytes (e.g. 0xB2 for "²") go into the stream as-is, not through UTF-8.
             out.extend(literal(&win_ansi(&value)));
             out.extend_from_slice(b" Tj ET\n");

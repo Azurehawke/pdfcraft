@@ -2403,3 +2403,6 @@ key	Space	スペース
 	Walls	壁
 	Markups: {k} of {n}	マークアップ: {k} / {n}
 	Markups: {n}	マークアップ: {n}
+	Arrows	矢印
+	Ticks	斜線
+	Click both ends, then where the dimension line goes	両端をクリックし、次に寸法線の位置をクリック

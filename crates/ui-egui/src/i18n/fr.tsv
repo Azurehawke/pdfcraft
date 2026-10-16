@@ -2403,3 +2403,6 @@ key	Space	Espace
 	Walls	Murs
 	Markups: {k} of {n}	Annotations : {k} sur {n}
 	Markups: {n}	Annotations : {n}
+	Arrows	Flèches
+	Ticks	Traits obliques
+	Click both ends, then where the dimension line goes	Cliquez les deux extrémités, puis l'emplacement de la ligne de cote

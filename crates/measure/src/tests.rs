@@ -38,6 +38,7 @@ fn new(kind: Kind, points: Vec<Point>) -> NewMeasurement {
         style: Style { color: [0.0, 0.47, 0.84], ..Style::default() },
         label: "Room 1".into(),
         author: "A".into(),
+        dimension: None,
     }
 }
 #[test]
@@ -426,4 +427,40 @@ fn real_world_sizes_convert_to_points() {
     let odd = Scale { unit: "furlong".into(), ..Scale::default() };
     assert_eq!(odd.points_for_inches(12.0), None);
     assert_eq!(Scale::default().points_for_inches(-1.0), None);
+}
+#[test]
+fn dimensions_have_extension_lines_and_an_offset_line() {
+    let mut d = fixture("", "", &[]);
+    let meta = Meta { date: None, id: String::new() };
+    let mut m = new(Kind::Distance, vec![[100.0, 100.0], [200.0, 100.0]]);
+    // A horizontal dimension of points at different heights, its line 30 points below.
+    m.dimension = Some(Dimension {
+        leader: 30.0,
+        extension: 4.0,
+        gap: 2.0,
+        ends: pdfcraft_annot::LineEnding::Slash,
+        from: Some([[100.0, 100.0], [200.0, 120.0]]),
+    });
+    add(&mut d, &m, &meta).unwrap();
+    close(list(&d).measurements[0].reading.value, 200.0);
+    let (_, dict) = annot(&d, 0, 0).unwrap();
+    assert_eq!(dict.get(b"LL").and_then(Object::as_f64), Some(30.0));
+    let rect: Vec<f64> = dict.get(b"Rect").unwrap().as_array().unwrap().iter().filter_map(Object::as_f64).collect();
+    assert!(rect[1] < 66.0 && rect[3] > 120.0, "room for the line below and the higher point: {rect:?}");
+    let ap = d.resolve(dict.get(b"AP").unwrap());
+    let normal = d.resolve(ap.as_dict().unwrap().get(b"N").unwrap());
+    let Object::Stream(stream) = normal.as_ref() else { panic!("no appearance") };
+    let text = String::from_utf8_lossy(&stream.decoded().unwrap()).into_owned();
+    // The dimension line at y = 70 and the extension line from the higher point down past it.
+    assert!(text.contains("100 70 m 200 70 l S"), "{text}");
+    assert!(text.contains("200 118 m 200 66 l S"), "{text}");
+    assert!(text.contains(" Tm "), "the text follows the line: {text}");
+    // Moved: the line and its extension lines go along.
+    pdfcraft_annot::geometry::transform(&mut d, 0, 0, &[1.0, 0.0, 0.0, 1.0, 10.0, 0.0], false, &meta).unwrap();
+    let (_, dict) = annot(&d, 0, 0).unwrap();
+    let from: Vec<f64> = dict.get(b"PCDimPoints").unwrap().as_array().unwrap().iter().filter_map(Object::as_f64).collect();
+    assert_eq!(from, vec![110.0, 100.0, 210.0, 120.0]);
+    // Invalid layouts are refused.
+    m.dimension = Some(Dimension { leader: f64::NAN, extension: 4.0, gap: 2.0, ends: pdfcraft_annot::LineEnding::Slash, from: None });
+    assert!(add(&mut d, &m, &meta).is_err());
 }

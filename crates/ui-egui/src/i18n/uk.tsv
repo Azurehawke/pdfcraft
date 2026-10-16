@@ -2427,3 +2427,6 @@ key	Space	Пробіл
 	Walls	Стіни
 	Markups: {k} of {n}	Позначки: {k} з {n}
 	Markups: {n}	Позначки: {n}
+	Arrows	Стрілки
+	Ticks	Засічки
+	Click both ends, then where the dimension line goes	Клацніть обидва кінці, потім місце розмірної лінії

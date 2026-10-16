@@ -37,6 +37,7 @@ impl Automation {
             style: Style { color: [0.0, 0.47, 0.84], ..Style::default() },
             label: a.opt_str("label")?.unwrap_or("").into(),
             author: a.opt_str("author")?.unwrap_or(super::comments::DEFAULT_AUTHOR).into(),
+            dimension: None,
         });
         self.apply(a, edit)
     }

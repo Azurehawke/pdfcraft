@@ -405,6 +405,22 @@ pub struct NewMeasurement {
     pub style: Style,
     pub label: String,
     pub author: String,
+    /// A distance drawn as a drafting dimension (extension lines and an offset dimension line)
+    /// rather than as a plain measuring line.
+    pub dimension: Option<Dimension>,
+}
+
+/// How a distance is drawn as a dimension (ISO 32000-2 §12.5.6.7): the dimension line sits
+/// `leader` points from the measured line (positive: clockwise of its direction), with extension
+/// lines from the measured points (`from`, when they are not the line's own ends, as in a
+/// horizontal or vertical dimension) that start `gap` from them and run `extension` past it.
+#[derive(Clone, Debug, PartialEq)]
+pub struct Dimension {
+    pub leader: f64,
+    pub extension: f64,
+    pub gap: f64,
+    pub ends: pdfcraft_annot::LineEnding,
+    pub from: Option<[Point; 2]>,
 }
 /// An area's vertices without a repeated closing vertex (last == first), which some
 /// writers include; the closing edge is implicit.
@@ -494,8 +510,36 @@ pub fn add(doc: &mut Document, new: &NewMeasurement, meta: &Meta) -> Result<usiz
         d.set(b"Cap".to_vec(), Object::Bool(true));
         d.set(b"CP".to_vec(), Object::name("Top"));
     }
-    // Leave room for the readable numeric caption above the geometry.
-    if let Some(rect) = d.get(b"Rect").and_then(Object::as_array) {
+    let dimension = new.dimension.as_ref().filter(|_| new.kind == Kind::Distance);
+    if let Some(dim) = dimension {
+        let values = [dim.leader, dim.extension, dim.gap];
+        if values.iter().any(|v| !v.is_finite() || v.abs() > MAX_COORD) || dim.extension < 0.0 || dim.gap < 0.0 {
+            return Err(invalid("invalid dimension layout"));
+        }
+        let ending = Object::name(dim.ends.name());
+        d.set(b"LE".to_vec(), Object::Array(vec![ending.clone(), ending]));
+        d.set(b"LL".to_vec(), Object::Real(dim.leader));
+        d.set(b"LLE".to_vec(), Object::Real(dim.extension));
+        d.set(b"LLO".to_vec(), Object::Real(dim.gap));
+        d.set(b"CP".to_vec(), Object::name("Inline"));
+        if let Some(from) = dim.from {
+            check_points(&from)?;
+            d.set(b"PCDimPoints".to_vec(), nums(from.concat()));
+        }
+        // Room for the extension lines, the dimension line and its text.
+        let (a, b) = (new.points.first().copied().unwrap_or_default(), new.points.last().copied().unwrap_or_default());
+        let len = distance(a, b).max(1e-9);
+        let n = [(b[1] - a[1]) / len, -(b[0] - a[0]) / len];
+        let reach = dim.leader + dim.leader.signum() * dim.extension;
+        let mut pts: Vec<Point> = vec![a, b, [a[0] + n[0] * reach, a[1] + n[1] * reach], [b[0] + n[0] * reach, b[1] + n[1] * reach]];
+        if let Some(from) = dim.from {
+            pts.extend(from);
+        }
+        let pad = (info.label.chars().count() as f64 * 3.2 + 6.0).max(16.0);
+        let (x0, y0, x1, y1) = pts.iter().fold((f64::MAX, f64::MAX, f64::MIN, f64::MIN), |(x0, y0, x1, y1), p| (x0.min(p[0]), y0.min(p[1]), x1.max(p[0]), y1.max(p[1])));
+        d.set(b"Rect".to_vec(), nums([x0 - pad, y0 - pad, x1 + pad, y1 + pad]));
+    } else if let Some(rect) = d.get(b"Rect").and_then(Object::as_array) {
+        // Leave room for the readable numeric caption above the geometry.
         let values: Option<Vec<f64>> = rect.iter().map(Object::as_f64).collect();
         if let Some(v) = values.filter(|v| v.len() == 4) {
             let width = (info.label.len() as f64 * 6.0).max(40.0);

@@ -141,8 +141,33 @@ fn write_points(d: &mut Dict, points: &[[f64; 2]], old: &[[f64; 2]], meta: &Meta
         _ => return Err(AnnotError::Invalid("not enough points for this shape".into())),
     }
     d.set(b"Rect".to_vec(), num_array(&[b[0] - m, b[1] - m, b[2] + m, b[3] + m]));
+    fit_dimension(d);
     touch(d, meta);
     Ok(())
+}
+
+/// A dimension line's `/Rect`: its extension lines, dimension line and text.
+fn fit_dimension(d: &mut Dict) {
+    let Some(ll) = d.get(b"LL").and_then(Object::as_f64).filter(|v| v.is_finite() && v.abs() > 1e-9) else { return };
+    let nums = |k: &[u8]| -> Vec<f64> {
+        d.get(k).and_then(|o| o.as_array()).map(|a| a.iter().filter_map(|x| x.as_f64()).filter(|v| v.is_finite()).collect()).unwrap_or_default()
+    };
+    let l = nums(b"L");
+    let [x1, y1, x2, y2] = l[..] else { return };
+    let len = (x2 - x1).hypot(y2 - y1);
+    if len < 1e-9 {
+        return;
+    }
+    let ext = d.get(b"LLE").and_then(Object::as_f64).filter(|v| v.is_finite() && *v >= 0.0).unwrap_or(0.0);
+    let reach = ll + ll.signum() * ext;
+    let (nx, ny) = ((y2 - y1) / len, -(x2 - x1) / len);
+    let mut pts = vec![[x1, y1], [x2, y2], [x1 + nx * reach, y1 + ny * reach], [x2 + nx * reach, y2 + ny * reach]];
+    pts.extend(points_of(&nums(b"PCDimPoints")));
+    let text = d.get(b"PCMeasureValue").and_then(|o| o.as_string()).map(|t| t.to_text().chars().count()).unwrap_or(0);
+    let pad = (text as f64 * 3.2 + 6.0).max(16.0);
+    if let Some(b) = bounds(pts.into_iter()) {
+        d.set(b"Rect".to_vec(), num_array(&[b[0] - pad, b[1] - pad, b[2] + pad, b[3] + pad]));
+    }
 }
 
 /// A copy of the annotation `r` on page `p`, added at the end of the page's list, without its
@@ -181,6 +206,8 @@ pub fn set_vertices(doc: &mut Document, page: usize, index: usize, points: &[[f6
     let old = points_of(&numbers(doc, &d, key));
     let mut changed = d;
     write_points(&mut changed, points, &old, meta)?;
+    // A dimension's extension lines then start at its (new) ends.
+    changed.remove(b"PCDimPoints");
     let (index, target) = if copy { duplicate(doc, p, r, meta)? } else { (index, r) };
     if copy {
         changed.remove(b"Popup");
@@ -225,8 +252,25 @@ pub fn transform(doc: &mut Document, page: usize, index: usize, m: &[f64; 6], co
         let old = points_of(&numbers(doc, &d, key));
         let new: Vec<[f64; 2]> = old.iter().map(|q| apply(m, *q)).collect();
         check(&new)?;
+        let dim_points: Vec<[f64; 2]> = points_of(&numbers(doc, &d, b"PCDimPoints")).iter().map(|q| apply(m, *q)).collect();
+        check(&dim_points)?;
         let mut changed = d;
         write_points(&mut changed, &new, &old, meta)?;
+        if dim_points.len() == 2 {
+            changed.set(b"PCDimPoints".to_vec(), num_array(&dim_points.concat()));
+        }
+        // The dimension line stays as far off in proportion, and on its side after a mirror
+        // (which turns clockwise into anticlockwise).
+        let det = m[0] * m[3] - m[1] * m[2];
+        if let Some(ll) = changed.get(b"LL").and_then(Object::as_f64)
+            && det.is_finite()
+        {
+            let scaled = ll * det.abs().sqrt() * det.signum();
+            if scaled.is_finite() {
+                changed.set(b"LL".to_vec(), Object::Real(scaled));
+                fit_dimension(&mut changed);
+            }
+        }
         doc.update_dict(target, |t| *t = changed)?;
         set_appearance(doc, target)?;
         return Ok(index);

@@ -2368,3 +2368,6 @@ key	Space	空格
 	Walls	墙
 	Markups: {k} of {n}	标记：{k} / {n}
 	Markups: {n}	标记：{n}
+	Arrows	箭头
+	Ticks	斜线
+	Click both ends, then where the dimension line goes	单击两端，然后单击尺寸线的位置
