@@ -66,7 +66,7 @@ Panels and layout
 - [x] **(Steve)** Draggable dock boxes: reorder by dragging the title bar, drag a box out to float it
       as its own window over the drawing, drag it back to dock it.
 - [x] Remember the dock (which boxes, order, collapsed, width, floating positions) between sessions.
-- [ ] Workspaces: save and switch dock layouts ("Office", "Field"), as Adobe apps do.
+- [ ] **(Steve, next build)** Workspaces: save and switch dock layouts ("Office", "Field"), as Adobe apps do.
 - [x] Properties box: the selected markup's colour, line width, opacity, layer, subject, label and
       measurement scale, edited in place (Revu's Properties panel).
 - [x] Markups list box: every markup and measurement in a sortable, filterable table (type, label,
@@ -91,22 +91,29 @@ Markup and measuring
       linework; or plain paper points), converted with the page's scale (e.g. 6" at 2" = 15'
       is about 4.8 pt); square ends and mitred corners for wide lines; the width stays with the
       line through edits and scales with Scale. The Wall tool stays as it is.
+- [ ] **(Steve)** Existing PDF linework in the drafting tools: Trim and Extend use the PDF's
+      own lines as cutting and boundary edges; Explode turns PDF linework into editable markup
+      lines (taking the originals out of the page, recorded and undoable), which can then be
+      trimmed and extended like any other line.
+- [ ] **(Steve)** Scale by dragging: after the base point, the pointer sets the factor (with a
+      live preview and the factor shown), as well as typing it.
+- Kept as is (Steve): the Measure tab's ruler (two clicks, plain measuring line).
 - [x] **(Steve)** Option to turn off the hover tooltip with the author's name on markup: it
       covers the live measurement label when drawing over other lines. Also: never show it while a
       drawing or measuring tool is placing points. Done: the Tips switch on the status bar (also in
       Preferences), and never while drafting or measuring.
-- [ ] Tool chest box: saved tools with their settings (a red cloud on "Revisions", a 6" data jack
+- [ ] **(Steve, next build)** Tool chest box: saved tools with their settings (a red cloud on "Revisions", a 6" data jack
       labelled "PC"), recently used tools (roadmap R5).
-- [ ] Rectangle area (two taps), angle and radius tools.
+- [ ] **(Steve, next build)** Rectangle area (two taps), angle and radius tools.
 - [ ] Symbols: rotate (and snap to the nearest wall), edit the label after placing, renumber a
       selection; electrical and security libraries; make a symbol from your own drawing.
 
 Tablet
-- [ ] Touch mode: bigger buttons and handles, long-press for the context menu, two-finger tap to
+- [ ] **(Steve, next build)** Touch mode: bigger buttons and handles, long-press for the context menu, two-finger tap to
       undo.
 
 Builds
-- [ ] One build number shared by Android, Windows and Linux.
+- [ ] **(Steve, next build)** One build number shared by Android, Windows and Linux.
 
 Draft tab: CAD-style drawing on the PDF (direction decided 2026-10-15)
 
