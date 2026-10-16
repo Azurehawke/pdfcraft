@@ -2408,3 +2408,69 @@ key	Space	Espaço
 	Arrows	Setas
 	Ticks	Traços
 	Click both ends, then where the dimension line goes	Clique nas duas pontas, depois onde fica a linha de cota
+	Align to nearest wall	Alinhar à parede mais próxima
+	Choose a tool first.	Escolha uma ferramenta primeiro.
+	Click a point to drag (a corner or an end), or type the factor	Clique em um ponto para arrastar (um canto ou uma ponta) ou digite o fator
+	Click a wall	Clique em uma parede
+	Delete this workspace	Excluir este espaço de trabalho
+	Description (the first line is the title)	Descrição (a primeira linha é o título)
+	Door width (the opening cut in the wall)	Largura da porta (a abertura cortada na parede)
+	Every page (otherwise this page)	Todas as páginas (senão esta página)
+	Flip hinge	Inverter dobradiça
+	Hinge the door at the other end of the opening	Colocar a dobradiça na outra ponta da abertura
+	Line up with walls	Alinhar às paredes
+	Line width	Espessura da linha
+	Make a callout	Criar balão de foto
+	My tools	Minhas ferramentas
+	Pen width on paper	Espessura da caneta no papel
+	Photo callout: tap the spot, then where the box goes	Balão de foto: toque no ponto e depois onde vai a caixa
+	Photo for the callout	Foto do balão
+	Pick a tool and set it up, then save it here to use it again with the same settings.	Escolha uma ferramenta e ajuste-a, depois salve-a aqui para usá-la de novo com os mesmos ajustes.
+	Rack A\n24-port switch and patch panel 1…	Rack A\nSwitch de 24 portas e patch panel 1…
+	Real-world width, drawn to the page's scale	Largura real, desenhada na escala da página
+	Recent tools	Ferramentas recentes
+	Remove from the tool chest	Remover da caixa de ferramentas
+	Renumber	Renumerar
+	Renumber symbols in order across the page	Renumerar os símbolos em ordem na página
+	Renumbered {n} symbols.	{n} símbolos renumerados.
+	Save current tool	Salvar a ferramenta atual
+	Save the current layout…	Salvar o layout atual…
+	Show the photo in a box with its description, pointing at this spot	Mostrar a foto em uma caixa com a descrição, apontando para este ponto
+	Start at	Começar em
+	Text left	Texto à esquerda
+	Text right	Texto à direita
+	That tool isn't available in this version.	Essa ferramenta não está disponível nesta versão.
+	That wall is locked	Essa parede está bloqueada
+	The first one becomes {label}	O primeiro vira {label}
+	The photo's height on the sheet	Altura da foto na folha
+	The wall is shorter than the opening	A parede é mais curta que a abertura
+	There are no symbols of that kind on this page.	Nenhum símbolo desse tipo nesta página.
+	There are no symbols to renumber yet.	Ainda não há símbolos para renumerar.
+	These three points are in a line; pick three points on the circle or arc.	Esses três pontos estão alinhados; escolha três pontos no círculo ou arco.
+	To scale	Em escala
+	Tool chest	Caixa de ferramentas
+	Tools you use show up here.	As ferramentas usadas aparecem aqui.
+	Turn new symbols to line up with the nearest wall or line	Girar novos símbolos para alinhar à parede ou linha mais próxima
+	Turn the symbol to line up with the nearest wall or line	Girar o símbolo para alinhar à parede ou linha mais próxima
+	View photo	Ver foto
+	Width in real-world inches, drawn to the page's scale (walls)	Largura em polegadas reais, desenhada na escala da página (paredes)
+	Window width (the opening cut in the wall)	Largura da janela (a abertura cortada na parede)
+	Workspace name	Nome do espaço de trabalho
+	Workspaces	Espaços de trabalho
+	Fine (1/2 pt)	Fina (1/2 pt)
+	Thin (1 pt)	Leve (1 pt)
+	Heavy (2 pt)	Grossa (2 pt)
+	Interior wall (4 1/2 in)	Parede interna (4 1/2 pol)
+	Exterior wall (6 in)	Parede externa (6 pol)
+	Measure rectangle area	Medir área de retângulo
+	Measure angle	Medir ângulo
+	Measure radius	Medir raio
+	Door (click a wall where it goes)	Porta (clique em uma parede onde ela vai)
+	Window (click a wall where it goes)	Janela (clique em uma parede onde ela vai)
+	Scale (pick, base point, then drag a point or type the factor)	Escala (escolha, ponto base, depois arraste um ponto ou digite o fator)
+	Photo pin	Alfinete de foto
+	Photo callout	Balão de foto
+	Rectangle area	Área do retângulo
+	Drafting	Desenho técnico
+	Crop	Recortar
+	Snapshot	Instantâneo

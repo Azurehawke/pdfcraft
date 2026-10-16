@@ -2428,3 +2428,69 @@ key	Space	مسافة
 	Arrows	أسهم
 	Ticks	شرطات
 	Click both ends, then where the dimension line goes	انقر الطرفين، ثم موضع خط البُعد
+	Align to nearest wall	محاذاة مع أقرب جدار
+	Choose a tool first.	اختر أداة أولًا.
+	Click a point to drag (a corner or an end), or type the factor	انقر نقطة لسحبها (زاوية أو طرف)، أو اكتب المعامل
+	Click a wall	انقر جدارًا
+	Delete this workspace	حذف مساحة العمل هذه
+	Description (the first line is the title)	الوصف (السطر الأول هو العنوان)
+	Door width (the opening cut in the wall)	عرض الباب (الفتحة المقطوعة في الجدار)
+	Every page (otherwise this page)	كل الصفحات (وإلا هذه الصفحة)
+	Flip hinge	قلب المفصلة
+	Hinge the door at the other end of the opening	تركيب مفصلة الباب في الطرف الآخر من الفتحة
+	Line up with walls	محاذاة مع الجدران
+	Line width	سماكة الخط
+	Make a callout	إنشاء تعليق بصورة
+	My tools	أدواتي
+	Pen width on paper	سماكة القلم على الورق
+	Photo callout: tap the spot, then where the box goes	تعليق بصورة: المس الموضع، ثم مكان المربع
+	Photo for the callout	صورة التعليق
+	Pick a tool and set it up, then save it here to use it again with the same settings.	اختر أداة واضبطها، ثم احفظها هنا لاستخدامها مجددًا بالإعدادات نفسها.
+	Rack A\n24-port switch and patch panel 1…	الخزانة A\nمحوّل 24 منفذًا ولوحة توصيل 1…
+	Real-world width, drawn to the page's scale	العرض الحقيقي، مرسوم بمقياس الصفحة
+	Recent tools	الأدوات الأخيرة
+	Remove from the tool chest	إزالة من صندوق الأدوات
+	Renumber	إعادة الترقيم
+	Renumber symbols in order across the page	إعادة ترقيم الرموز بالترتيب في الصفحة
+	Renumbered {n} symbols.	أُعيد ترقيم {n} من الرموز.
+	Save current tool	حفظ الأداة الحالية
+	Save the current layout…	حفظ التخطيط الحالي…
+	Show the photo in a box with its description, pointing at this spot	عرض الصورة في مربع مع وصفها، يشير إلى هذا الموضع
+	Start at	البدء من
+	Text left	النص يسارًا
+	Text right	النص يمينًا
+	That tool isn't available in this version.	هذه الأداة غير متاحة في هذا الإصدار.
+	That wall is locked	هذا الجدار مقفل
+	The first one becomes {label}	سيصبح الأول {label}
+	The photo's height on the sheet	ارتفاع الصورة على الورقة
+	The wall is shorter than the opening	الجدار أقصر من الفتحة
+	There are no symbols of that kind on this page.	لا توجد رموز من هذا النوع في هذه الصفحة.
+	There are no symbols to renumber yet.	لا توجد رموز لإعادة ترقيمها بعد.
+	These three points are in a line; pick three points on the circle or arc.	هذه النقاط الثلاث على خط واحد؛ اختر ثلاث نقاط على الدائرة أو القوس.
+	To scale	بالمقياس
+	Tool chest	صندوق الأدوات
+	Tools you use show up here.	تظهر هنا الأدوات التي تستخدمها.
+	Turn new symbols to line up with the nearest wall or line	تدوير الرموز الجديدة لمحاذاتها مع أقرب جدار أو خط
+	Turn the symbol to line up with the nearest wall or line	تدوير الرمز لمحاذاته مع أقرب جدار أو خط
+	View photo	عرض الصورة
+	Width in real-world inches, drawn to the page's scale (walls)	العرض بالبوصات الحقيقية، مرسوم بمقياس الصفحة (الجدران)
+	Window width (the opening cut in the wall)	عرض النافذة (الفتحة المقطوعة في الجدار)
+	Workspace name	اسم مساحة العمل
+	Workspaces	مساحات العمل
+	Fine (1/2 pt)	رفيع جدًا (1/2 pt)
+	Thin (1 pt)	رفيع (1 pt)
+	Heavy (2 pt)	سميك (2 pt)
+	Interior wall (4 1/2 in)	جدار داخلي (4 1/2 بوصة)
+	Exterior wall (6 in)	جدار خارجي (6 بوصات)
+	Measure rectangle area	قياس مساحة مستطيل
+	Measure angle	قياس زاوية
+	Measure radius	قياس نصف قطر
+	Door (click a wall where it goes)	باب (انقر الجدار حيث يوضع)
+	Window (click a wall where it goes)	نافذة (انقر الجدار حيث توضع)
+	Scale (pick, base point, then drag a point or type the factor)	تحجيم (اختر، نقطة الأساس، ثم اسحب نقطة أو اكتب المعامل)
+	Photo pin	دبوس صورة
+	Photo callout	تعليق بصورة
+	Rectangle area	مساحة المستطيل
+	Drafting	الرسم الهندسي
+	Crop	اقتصاص
+	Snapshot	لقطة

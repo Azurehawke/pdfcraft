@@ -2371,3 +2371,69 @@ key	Space	空格
 	Arrows	箭头
 	Ticks	斜线
 	Click both ends, then where the dimension line goes	单击两端，然后单击尺寸线的位置
+	Align to nearest wall	对齐到最近的墙
+	Choose a tool first.	请先选择一个工具。
+	Click a point to drag (a corner or an end), or type the factor	单击要拖动的点（角点或端点），或输入比例
+	Click a wall	单击一面墙
+	Delete this workspace	删除此工作区
+	Description (the first line is the title)	说明（第一行为标题）
+	Door width (the opening cut in the wall)	门宽（在墙上开的洞口）
+	Every page (otherwise this page)	所有页面（否则为此页）
+	Flip hinge	翻转门铰
+	Hinge the door at the other end of the opening	把门铰放在洞口另一端
+	Line up with walls	对齐到墙
+	Line width	线宽
+	Make a callout	生成照片标注
+	My tools	我的工具
+	Pen width on paper	纸上的笔宽
+	Photo callout: tap the spot, then where the box goes	照片标注：先点位置，再点方框放在哪里
+	Photo for the callout	标注的照片
+	Pick a tool and set it up, then save it here to use it again with the same settings.	选择工具并设置好，然后保存到这里，以相同设置再次使用。
+	Rack A\n24-port switch and patch panel 1…	机柜 A\n24 口交换机和配线架 1…
+	Real-world width, drawn to the page's scale	实际宽度，按页面比例绘制
+	Recent tools	最近使用的工具
+	Remove from the tool chest	从工具箱中移除
+	Renumber	重新编号
+	Renumber symbols in order across the page	按顺序重新编号页面上的符号
+	Renumbered {n} symbols.	已重新编号 {n} 个符号。
+	Save current tool	保存当前工具
+	Save the current layout…	保存当前布局…
+	Show the photo in a box with its description, pointing at this spot	在带说明的方框中显示照片，并指向此处
+	Start at	起始编号
+	Text left	文字在左
+	Text right	文字在右
+	That tool isn't available in this version.	此版本没有该工具。
+	That wall is locked	这面墙已锁定
+	The first one becomes {label}	第一个将为 {label}
+	The photo's height on the sheet	照片在图纸上的高度
+	The wall is shorter than the opening	墙比洞口短
+	There are no symbols of that kind on this page.	此页没有该类符号。
+	There are no symbols to renumber yet.	还没有可重新编号的符号。
+	These three points are in a line; pick three points on the circle or arc.	这三个点在一条直线上；请在圆或圆弧上选三个点。
+	To scale	按比例
+	Tool chest	工具箱
+	Tools you use show up here.	用过的工具会显示在这里。
+	Turn new symbols to line up with the nearest wall or line	将新符号旋转到与最近的墙或线对齐
+	Turn the symbol to line up with the nearest wall or line	将符号旋转到与最近的墙或线对齐
+	View photo	查看照片
+	Width in real-world inches, drawn to the page's scale (walls)	实际英寸宽度，按页面比例绘制（墙）
+	Window width (the opening cut in the wall)	窗宽（在墙上开的洞口）
+	Workspace name	工作区名称
+	Workspaces	工作区
+	Fine (1/2 pt)	极细（1/2 pt）
+	Thin (1 pt)	细（1 pt）
+	Heavy (2 pt)	粗（2 pt）
+	Interior wall (4 1/2 in)	内墙（4 1/2 英寸）
+	Exterior wall (6 in)	外墙（6 英寸）
+	Measure rectangle area	测量矩形面积
+	Measure angle	测量角度
+	Measure radius	测量半径
+	Door (click a wall where it goes)	门（单击要放置的墙）
+	Window (click a wall where it goes)	窗（单击要放置的墙）
+	Scale (pick, base point, then drag a point or type the factor)	缩放（选取、基点，然后拖动一点或输入比例）
+	Photo pin	照片图钉
+	Photo callout	照片标注
+	Rectangle area	矩形面积
+	Drafting	制图
+	Crop	裁剪
+	Snapshot	快照

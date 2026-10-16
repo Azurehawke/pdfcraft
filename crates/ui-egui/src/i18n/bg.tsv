@@ -2368,3 +2368,69 @@ key	Space	Интервал
 	Arrows	Стрелки
 	Ticks	Засечки
 	Click both ends, then where the dimension line goes	Щракнете двата края, после мястото на размерната линия
+	Align to nearest wall	Подравняване по най-близката стена
+	Choose a tool first.	Първо изберете инструмент.
+	Click a point to drag (a corner or an end), or type the factor	Щракнете точка за влачене (ъгъл или край) или въведете коефициента
+	Click a wall	Щракнете стена
+	Delete this workspace	Изтриване на това работно пространство
+	Description (the first line is the title)	Описание (първият ред е заглавието)
+	Door width (the opening cut in the wall)	Ширина на вратата (отворът, изрязан в стената)
+	Every page (otherwise this page)	Всички страници (иначе тази страница)
+	Flip hinge	Обръщане на пантите
+	Hinge the door at the other end of the opening	Пантите на вратата в другия край на отвора
+	Line up with walls	Подравняване по стените
+	Line width	Дебелина на линията
+	Make a callout	Създаване на фотоизноска
+	My tools	Моите инструменти
+	Pen width on paper	Дебелина на писалката върху хартия
+	Photo callout: tap the spot, then where the box goes	Фотоизноска: докоснете мястото, после къде отива полето
+	Photo for the callout	Снимка за износката
+	Pick a tool and set it up, then save it here to use it again with the same settings.	Изберете инструмент и го настройте, после го запазете тук, за да го ползвате пак със същите настройки.
+	Rack A\n24-port switch and patch panel 1…	Шкаф A\n24-портов комутатор и пач панел 1…
+	Real-world width, drawn to the page's scale	Реална ширина, начертана в мащаба на страницата
+	Recent tools	Скорошни инструменти
+	Remove from the tool chest	Премахване от кутията с инструменти
+	Renumber	Преномериране
+	Renumber symbols in order across the page	Преномериране на символите подред по страницата
+	Renumbered {n} symbols.	Преномерирани символи: {n}.
+	Save current tool	Запазване на текущия инструмент
+	Save the current layout…	Запазване на текущата подредба…
+	Show the photo in a box with its description, pointing at this spot	Показване на снимката в поле с описание, сочещо към това място
+	Start at	Начало от
+	Text left	Текст отляво
+	Text right	Текст отдясно
+	That tool isn't available in this version.	Този инструмент го няма в тази версия.
+	That wall is locked	Тази стена е заключена
+	The first one becomes {label}	Първият става {label}
+	The photo's height on the sheet	Височина на снимката върху листа
+	The wall is shorter than the opening	Стената е по-къса от отвора
+	There are no symbols of that kind on this page.	Няма символи от този вид на тази страница.
+	There are no symbols to renumber yet.	Все още няма символи за преномериране.
+	These three points are in a line; pick three points on the circle or arc.	Тези три точки са на една линия; изберете три точки от окръжността или дъгата.
+	To scale	В мащаб
+	Tool chest	Кутия с инструменти
+	Tools you use show up here.	Тук се появяват инструментите, които ползвате.
+	Turn new symbols to line up with the nearest wall or line	Завъртане на новите символи по най-близката стена или линия
+	Turn the symbol to line up with the nearest wall or line	Завъртане на символа по най-близката стена или линия
+	View photo	Преглед на снимката
+	Width in real-world inches, drawn to the page's scale (walls)	Ширина в реални инчове, начертана в мащаба на страницата (стени)
+	Window width (the opening cut in the wall)	Ширина на прозореца (отворът, изрязан в стената)
+	Workspace name	Име на работното пространство
+	Workspaces	Работни пространства
+	Fine (1/2 pt)	Тънка (1/2 pt)
+	Thin (1 pt)	Нормална (1 pt)
+	Heavy (2 pt)	Дебела (2 pt)
+	Interior wall (4 1/2 in)	Вътрешна стена (4 1/2 инча)
+	Exterior wall (6 in)	Външна стена (6 инча)
+	Measure rectangle area	Измерване на площ на правоъгълник
+	Measure angle	Измерване на ъгъл
+	Measure radius	Измерване на радиус
+	Door (click a wall where it goes)	Врата (щракнете стена на нужното място)
+	Window (click a wall where it goes)	Прозорец (щракнете стена на нужното място)
+	Scale (pick, base point, then drag a point or type the factor)	Мащабиране (избор, базова точка, после влачете точка или въведете коефициента)
+	Photo pin	Фотомаркер
+	Photo callout	Фотоизноска
+	Rectangle area	Площ на правоъгълник
+	Drafting	Чертане
+	Crop	Изрязване
+	Snapshot	Моментна снимка

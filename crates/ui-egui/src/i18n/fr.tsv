@@ -2406,3 +2406,69 @@ key	Space	Espace
 	Arrows	Flèches
 	Ticks	Traits obliques
 	Click both ends, then where the dimension line goes	Cliquez les deux extrémités, puis l'emplacement de la ligne de cote
+	Align to nearest wall	Aligner sur le mur le plus proche
+	Choose a tool first.	Choisissez d’abord un outil.
+	Click a point to drag (a corner or an end), or type the factor	Cliquez un point à faire glisser (un coin ou une extrémité), ou tapez le facteur
+	Click a wall	Cliquez un mur
+	Delete this workspace	Supprimer cet espace de travail
+	Description (the first line is the title)	Description (la première ligne est le titre)
+	Door width (the opening cut in the wall)	Largeur de porte (l’ouverture découpée dans le mur)
+	Every page (otherwise this page)	Toutes les pages (sinon cette page)
+	Flip hinge	Inverser la charnière
+	Hinge the door at the other end of the opening	Placer la charnière à l’autre bout de l’ouverture
+	Line up with walls	Aligner sur les murs
+	Line width	Épaisseur de trait
+	Make a callout	Faire une bulle photo
+	My tools	Mes outils
+	Pen width on paper	Épaisseur du stylo sur papier
+	Photo callout: tap the spot, then where the box goes	Bulle photo : touchez le point, puis l’emplacement de la boîte
+	Photo for the callout	Photo de la bulle
+	Pick a tool and set it up, then save it here to use it again with the same settings.	Choisissez un outil et réglez-le, puis enregistrez-le ici pour le réutiliser avec les mêmes réglages.
+	Rack A\n24-port switch and patch panel 1…	Baie A\nCommutateur 24 ports et panneau de brassage 1…
+	Real-world width, drawn to the page's scale	Largeur réelle, dessinée à l’échelle de la page
+	Recent tools	Outils récents
+	Remove from the tool chest	Retirer du coffre à outils
+	Renumber	Renuméroter
+	Renumber symbols in order across the page	Renuméroter les symboles dans l’ordre sur la page
+	Renumbered {n} symbols.	{n} symboles renumérotés.
+	Save current tool	Enregistrer l’outil actuel
+	Save the current layout…	Enregistrer la disposition actuelle…
+	Show the photo in a box with its description, pointing at this spot	Afficher la photo dans une boîte avec sa description, pointant vers cet endroit
+	Start at	Commencer à
+	Text left	Texte à gauche
+	Text right	Texte à droite
+	That tool isn't available in this version.	Cet outil n’est pas disponible dans cette version.
+	That wall is locked	Ce mur est verrouillé
+	The first one becomes {label}	Le premier devient {label}
+	The photo's height on the sheet	Hauteur de la photo sur la feuille
+	The wall is shorter than the opening	Le mur est plus court que l’ouverture
+	There are no symbols of that kind on this page.	Aucun symbole de ce type sur cette page.
+	There are no symbols to renumber yet.	Aucun symbole à renuméroter pour l’instant.
+	These three points are in a line; pick three points on the circle or arc.	Ces trois points sont alignés ; choisissez trois points sur le cercle ou l’arc.
+	To scale	À l’échelle
+	Tool chest	Coffre à outils
+	Tools you use show up here.	Les outils utilisés apparaissent ici.
+	Turn new symbols to line up with the nearest wall or line	Tourner les nouveaux symboles pour les aligner sur le mur ou la ligne le plus proche
+	Turn the symbol to line up with the nearest wall or line	Tourner le symbole pour l’aligner sur le mur ou la ligne le plus proche
+	View photo	Voir la photo
+	Width in real-world inches, drawn to the page's scale (walls)	Largeur en pouces réels, dessinée à l’échelle de la page (murs)
+	Window width (the opening cut in the wall)	Largeur de fenêtre (l’ouverture découpée dans le mur)
+	Workspace name	Nom de l’espace de travail
+	Workspaces	Espaces de travail
+	Fine (1/2 pt)	Fin (1/2 pt)
+	Thin (1 pt)	Mince (1 pt)
+	Heavy (2 pt)	Épais (2 pt)
+	Interior wall (4 1/2 in)	Mur intérieur (4 1/2 po)
+	Exterior wall (6 in)	Mur extérieur (6 po)
+	Measure rectangle area	Mesurer l’aire d’un rectangle
+	Measure angle	Mesurer un angle
+	Measure radius	Mesurer un rayon
+	Door (click a wall where it goes)	Porte (cliquez un mur à l’endroit voulu)
+	Window (click a wall where it goes)	Fenêtre (cliquez un mur à l’endroit voulu)
+	Scale (pick, base point, then drag a point or type the factor)	Échelle (sélection, point de base, puis faites glisser un point ou tapez le facteur)
+	Photo pin	Repère photo
+	Photo callout	Bulle photo
+	Rectangle area	Aire du rectangle
+	Drafting	Dessin technique
+	Crop	Recadrer
+	Snapshot	Instantané

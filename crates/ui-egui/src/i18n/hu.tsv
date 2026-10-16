@@ -2404,3 +2404,69 @@ key	Space	Szóköz
 	Arrows	Nyilak
 	Ticks	Ferde vonalkák
 	Click both ends, then where the dimension line goes	Kattintson a két végre, majd a méretvonal helyére
+	Align to nearest wall	Igazítás a legközelebbi falhoz
+	Choose a tool first.	Előbb válasszon eszközt.
+	Click a point to drag (a corner or an end), or type the factor	Kattintson a húzandó pontra (sarok vagy végpont), vagy írja be a szorzót
+	Click a wall	Kattintson egy falra
+	Delete this workspace	A munkaterület törlése
+	Description (the first line is the title)	Leírás (az első sor a cím)
+	Door width (the opening cut in the wall)	Ajtószélesség (a falba vágott nyílás)
+	Every page (otherwise this page)	Minden oldal (különben ez az oldal)
+	Flip hinge	Zsanér megfordítása
+	Hinge the door at the other end of the opening	Az ajtó zsanérja a nyílás másik végén legyen
+	Line up with walls	Igazítás a falakhoz
+	Line width	Vonalvastagság
+	Make a callout	Fotós feliratbuborék készítése
+	My tools	Saját eszközök
+	Pen width on paper	Tollvastagság papíron
+	Photo callout: tap the spot, then where the box goes	Fotós feliratbuborék: koppintson a helyre, majd oda, ahová a doboz kerül
+	Photo for the callout	Fotó a feliratbuborékhoz
+	Pick a tool and set it up, then save it here to use it again with the same settings.	Válasszon eszközt és állítsa be, majd mentse ide, hogy ugyanazokkal a beállításokkal használhassa újra.
+	Rack A\n24-port switch and patch panel 1…	A szekrény\n24 portos switch és 1. patch panel…
+	Real-world width, drawn to the page's scale	Valós szélesség, az oldal léptékében rajzolva
+	Recent tools	Legutóbbi eszközök
+	Remove from the tool chest	Eltávolítás az eszköztárból
+	Renumber	Újraszámozás
+	Renumber symbols in order across the page	A szimbólumok újraszámozása sorrendben az oldalon
+	Renumbered {n} symbols.	{n} szimbólum újraszámozva.
+	Save current tool	Az aktuális eszköz mentése
+	Save the current layout…	Az aktuális elrendezés mentése…
+	Show the photo in a box with its description, pointing at this spot	A fotó megjelenítése dobozban a leírással, erre a helyre mutatva
+	Start at	Kezdés ennél
+	Text left	Szöveg balra
+	Text right	Szöveg jobbra
+	That tool isn't available in this version.	Ez az eszköz nem érhető el ebben a verzióban.
+	That wall is locked	Ez a fal zárolva van
+	The first one becomes {label}	Az első ez lesz: {label}
+	The photo's height on the sheet	A fotó magassága a lapon
+	The wall is shorter than the opening	A fal rövidebb a nyílásnál
+	There are no symbols of that kind on this page.	Ezen az oldalon nincs ilyen fajta szimbólum.
+	There are no symbols to renumber yet.	Még nincs újraszámozható szimbólum.
+	These three points are in a line; pick three points on the circle or arc.	Ez a három pont egy vonalban van; válasszon három pontot a körön vagy íven.
+	To scale	Léptékhelyesen
+	Tool chest	Eszköztár
+	Tools you use show up here.	A használt eszközök itt jelennek meg.
+	Turn new symbols to line up with the nearest wall or line	Az új szimbólumok elforgatása a legközelebbi falhoz vagy vonalhoz
+	Turn the symbol to line up with the nearest wall or line	A szimbólum elforgatása a legközelebbi falhoz vagy vonalhoz
+	View photo	Fotó megtekintése
+	Width in real-world inches, drawn to the page's scale (walls)	Szélesség valós hüvelykben, az oldal léptékében rajzolva (falak)
+	Window width (the opening cut in the wall)	Ablakszélesség (a falba vágott nyílás)
+	Workspace name	A munkaterület neve
+	Workspaces	Munkaterületek
+	Fine (1/2 pt)	Finom (1/2 pt)
+	Thin (1 pt)	Vékony (1 pt)
+	Heavy (2 pt)	Vastag (2 pt)
+	Interior wall (4 1/2 in)	Belső fal (4 1/2 hüvelyk)
+	Exterior wall (6 in)	Külső fal (6 hüvelyk)
+	Measure rectangle area	Téglalap területének mérése
+	Measure angle	Szög mérése
+	Measure radius	Sugár mérése
+	Door (click a wall where it goes)	Ajtó (kattintson a falra, ahová kerül)
+	Window (click a wall where it goes)	Ablak (kattintson a falra, ahová kerül)
+	Scale (pick, base point, then drag a point or type the factor)	Méretezés (kijelölés, alappont, majd húzzon egy pontot vagy írja be a szorzót)
+	Photo pin	Fotótű
+	Photo callout	Fotós feliratbuborék
+	Rectangle area	Téglalap területe
+	Drafting	Műszaki rajz
+	Crop	Körbevágás
+	Snapshot	Pillanatkép

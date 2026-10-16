@@ -2406,3 +2406,69 @@ key	Space	スペース
 	Arrows	矢印
 	Ticks	斜線
 	Click both ends, then where the dimension line goes	両端をクリックし、次に寸法線の位置をクリック
+	Align to nearest wall	最も近い壁に合わせる
+	Choose a tool first.	先にツールを選んでください。
+	Click a point to drag (a corner or an end), or type the factor	ドラッグする点（角または端）をクリックするか、倍率を入力
+	Click a wall	壁をクリック
+	Delete this workspace	このワークスペースを削除
+	Description (the first line is the title)	説明（1行目がタイトル）
+	Door width (the opening cut in the wall)	ドアの幅（壁に開ける開口）
+	Every page (otherwise this page)	すべてのページ（オフのときはこのページ）
+	Flip hinge	丁番を反転
+	Hinge the door at the other end of the opening	ドアの丁番を開口の反対側にする
+	Line up with walls	壁に合わせる
+	Line width	線の太さ
+	Make a callout	写真吹き出しにする
+	My tools	マイツール
+	Pen width on paper	紙上のペンの太さ
+	Photo callout: tap the spot, then where the box goes	写真吹き出し：位置をタップしてから枠の位置をタップ
+	Photo for the callout	吹き出しの写真
+	Pick a tool and set it up, then save it here to use it again with the same settings.	ツールを選んで設定し、ここに保存すると同じ設定でまた使えます。
+	Rack A\n24-port switch and patch panel 1…	ラック A\n24ポートスイッチとパッチパネル 1…
+	Real-world width, drawn to the page's scale	実寸の幅（ページの縮尺で描画）
+	Recent tools	最近使ったツール
+	Remove from the tool chest	ツールチェストから削除
+	Renumber	番号を振り直す
+	Renumber symbols in order across the page	ページ上の記号を順に番号を振り直す
+	Renumbered {n} symbols.	{n} 個の記号の番号を振り直しました。
+	Save current tool	現在のツールを保存
+	Save the current layout…	現在のレイアウトを保存…
+	Show the photo in a box with its description, pointing at this spot	説明付きの枠に写真を表示し、この位置を指す
+	Start at	開始番号
+	Text left	テキストを左に
+	Text right	テキストを右に
+	That tool isn't available in this version.	このツールはこのバージョンでは使えません。
+	That wall is locked	この壁はロックされています
+	The first one becomes {label}	最初は {label} になります
+	The photo's height on the sheet	シート上の写真の高さ
+	The wall is shorter than the opening	壁が開口より短すぎます
+	There are no symbols of that kind on this page.	このページにはその種類の記号がありません。
+	There are no symbols to renumber yet.	番号を振り直す記号はまだありません。
+	These three points are in a line; pick three points on the circle or arc.	3点が一直線上にあります。円または円弧上の3点を選んでください。
+	To scale	縮尺どおり
+	Tool chest	ツールチェスト
+	Tools you use show up here.	使ったツールがここに表示されます。
+	Turn new symbols to line up with the nearest wall or line	新しい記号を最も近い壁や線に合わせて回転
+	Turn the symbol to line up with the nearest wall or line	記号を最も近い壁や線に合わせて回転
+	View photo	写真を表示
+	Width in real-world inches, drawn to the page's scale (walls)	実寸のインチ幅（ページの縮尺で描画、壁用）
+	Window width (the opening cut in the wall)	窓の幅（壁に開ける開口）
+	Workspace name	ワークスペース名
+	Workspaces	ワークスペース
+	Fine (1/2 pt)	極細（1/2 pt）
+	Thin (1 pt)	細（1 pt）
+	Heavy (2 pt)	太（2 pt）
+	Interior wall (4 1/2 in)	内壁（4 1/2 in）
+	Exterior wall (6 in)	外壁（6 in）
+	Measure rectangle area	長方形の面積を測定
+	Measure angle	角度を測定
+	Measure radius	半径を測定
+	Door (click a wall where it goes)	ドア（置く位置の壁をクリック）
+	Window (click a wall where it goes)	窓（置く位置の壁をクリック）
+	Scale (pick, base point, then drag a point or type the factor)	尺度（選択、基点、次に点をドラッグするか倍率を入力）
+	Photo pin	写真ピン
+	Photo callout	写真吹き出し
+	Rectangle area	長方形の面積
+	Drafting	製図
+	Crop	トリミング
+	Snapshot	スナップショット

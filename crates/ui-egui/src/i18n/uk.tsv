@@ -2430,3 +2430,69 @@ key	Space	Пробіл
 	Arrows	Стрілки
 	Ticks	Засічки
 	Click both ends, then where the dimension line goes	Клацніть обидва кінці, потім місце розмірної лінії
+	Align to nearest wall	Вирівняти за найближчою стіною
+	Choose a tool first.	Спершу виберіть інструмент.
+	Click a point to drag (a corner or an end), or type the factor	Клацніть точку, яку тягнути (кут або кінець), або введіть коефіцієнт
+	Click a wall	Клацніть стіну
+	Delete this workspace	Видалити це робоче середовище
+	Description (the first line is the title)	Опис (перший рядок — заголовок)
+	Door width (the opening cut in the wall)	Ширина дверей (проріз, вирізаний у стіні)
+	Every page (otherwise this page)	Усі сторінки (інакше ця сторінка)
+	Flip hinge	Перевісити завіси
+	Hinge the door at the other end of the opening	Навісити двері на іншому кінці прорізу
+	Line up with walls	Вирівнювати за стінами
+	Line width	Товщина лінії
+	Make a callout	Зробити фотовиноску
+	My tools	Мої інструменти
+	Pen width on paper	Товщина пера на папері
+	Photo callout: tap the spot, then where the box goes	Фотовиноска: торкніться точки, потім місця для рамки
+	Photo for the callout	Фото для виноски
+	Pick a tool and set it up, then save it here to use it again with the same settings.	Виберіть інструмент і налаштуйте його, потім збережіть тут, щоб знову використовувати з тими самими налаштуваннями.
+	Rack A\n24-port switch and patch panel 1…	Шафа A\n24-портовий комутатор і патч-панель 1…
+	Real-world width, drawn to the page's scale	Реальна ширина в масштабі сторінки
+	Recent tools	Нещодавні інструменти
+	Remove from the tool chest	Прибрати з набору інструментів
+	Renumber	Перенумерувати
+	Renumber symbols in order across the page	Перенумерувати символи по порядку на сторінці
+	Renumbered {n} symbols.	Перенумеровано символів: {n}.
+	Save current tool	Зберегти поточний інструмент
+	Save the current layout…	Зберегти поточне розташування…
+	Show the photo in a box with its description, pointing at this spot	Показати фото в рамці з описом, що вказує на це місце
+	Start at	Почати з
+	Text left	Текст ліворуч
+	Text right	Текст праворуч
+	That tool isn't available in this version.	Цього інструмента немає в цій версії.
+	That wall is locked	Ця стіна заблокована
+	The first one becomes {label}	Перший стане {label}
+	The photo's height on the sheet	Висота фото на аркуші
+	The wall is shorter than the opening	Стіна коротша за проріз
+	There are no symbols of that kind on this page.	На цій сторінці немає символів такого виду.
+	There are no symbols to renumber yet.	Поки немає символів для перенумерації.
+	These three points are in a line; pick three points on the circle or arc.	Ці три точки лежать на одній прямій; виберіть три точки на колі або дузі.
+	To scale	У масштабі
+	Tool chest	Набір інструментів
+	Tools you use show up here.	Тут з’являться інструменти, якими ви користуєтеся.
+	Turn new symbols to line up with the nearest wall or line	Повертати нові символи за найближчою стіною або лінією
+	Turn the symbol to line up with the nearest wall or line	Повернути символ за найближчою стіною або лінією
+	View photo	Переглянути фото
+	Width in real-world inches, drawn to the page's scale (walls)	Ширина в реальних дюймах у масштабі сторінки (стіни)
+	Window width (the opening cut in the wall)	Ширина вікна (проріз, вирізаний у стіні)
+	Workspace name	Назва робочого середовища
+	Workspaces	Робочі середовища
+	Fine (1/2 pt)	Тонка (1/2 pt)
+	Thin (1 pt)	Звичайна (1 pt)
+	Heavy (2 pt)	Груба (2 pt)
+	Interior wall (4 1/2 in)	Внутрішня стіна (4 1/2 дюйма)
+	Exterior wall (6 in)	Зовнішня стіна (6 дюймів)
+	Measure rectangle area	Виміряти площу прямокутника
+	Measure angle	Виміряти кут
+	Measure radius	Виміряти радіус
+	Door (click a wall where it goes)	Двері (клацніть стіну в потрібному місці)
+	Window (click a wall where it goes)	Вікно (клацніть стіну в потрібному місці)
+	Scale (pick, base point, then drag a point or type the factor)	Масштаб (вибір, базова точка, потім потягніть точку або введіть коефіцієнт)
+	Photo pin	Фотопозначка
+	Photo callout	Фотовиноска
+	Rectangle area	Площа прямокутника
+	Drafting	Креслення
+	Crop	Обрізати
+	Snapshot	Знімок

@@ -2319,3 +2319,69 @@ key	Space	Пробел
 	Arrows	Стрелки
 	Ticks	Засечки
 	Click both ends, then where the dimension line goes	Щёлкните оба конца, затем место размерной линии
+	Align to nearest wall	Выровнять по ближайшей стене
+	Choose a tool first.	Сначала выберите инструмент.
+	Click a point to drag (a corner or an end), or type the factor	Щёлкните точку, которую тянуть (угол или конец), или введите коэффициент
+	Click a wall	Щёлкните стену
+	Delete this workspace	Удалить эту рабочую среду
+	Description (the first line is the title)	Описание (первая строка — заголовок)
+	Door width (the opening cut in the wall)	Ширина двери (проём, вырезанный в стене)
+	Every page (otherwise this page)	Все страницы (иначе эта страница)
+	Flip hinge	Перевесить петли
+	Hinge the door at the other end of the opening	Навесить дверь на другом конце проёма
+	Line up with walls	Выравнивать по стенам
+	Line width	Толщина линии
+	Make a callout	Сделать фотовыноску
+	My tools	Мои инструменты
+	Pen width on paper	Толщина пера на бумаге
+	Photo callout: tap the spot, then where the box goes	Фотовыноска: коснитесь точки, затем места для рамки
+	Photo for the callout	Фото для выноски
+	Pick a tool and set it up, then save it here to use it again with the same settings.	Выберите инструмент и настройте его, затем сохраните здесь, чтобы снова использовать с теми же настройками.
+	Rack A\n24-port switch and patch panel 1…	Стойка A\n24-портовый коммутатор и патч-панель 1…
+	Real-world width, drawn to the page's scale	Реальная ширина в масштабе страницы
+	Recent tools	Недавние инструменты
+	Remove from the tool chest	Убрать из набора инструментов
+	Renumber	Перенумеровать
+	Renumber symbols in order across the page	Перенумеровать символы по порядку на странице
+	Renumbered {n} symbols.	Перенумеровано символов: {n}.
+	Save current tool	Сохранить текущий инструмент
+	Save the current layout…	Сохранить текущую раскладку…
+	Show the photo in a box with its description, pointing at this spot	Показать фото в рамке с описанием, указывающей на это место
+	Start at	Начать с
+	Text left	Текст слева
+	Text right	Текст справа
+	That tool isn't available in this version.	Этого инструмента нет в этой версии.
+	That wall is locked	Эта стена заблокирована
+	The first one becomes {label}	Первый станет {label}
+	The photo's height on the sheet	Высота фото на листе
+	The wall is shorter than the opening	Стена короче проёма
+	There are no symbols of that kind on this page.	На этой странице нет символов такого вида.
+	There are no symbols to renumber yet.	Пока нет символов для перенумерации.
+	These three points are in a line; pick three points on the circle or arc.	Эти три точки лежат на одной прямой; выберите три точки на окружности или дуге.
+	To scale	В масштабе
+	Tool chest	Набор инструментов
+	Tools you use show up here.	Здесь появятся инструменты, которыми вы пользуетесь.
+	Turn new symbols to line up with the nearest wall or line	Поворачивать новые символы по ближайшей стене или линии
+	Turn the symbol to line up with the nearest wall or line	Повернуть символ по ближайшей стене или линии
+	View photo	Посмотреть фото
+	Width in real-world inches, drawn to the page's scale (walls)	Ширина в реальных дюймах в масштабе страницы (стены)
+	Window width (the opening cut in the wall)	Ширина окна (проём, вырезанный в стене)
+	Workspace name	Название рабочей среды
+	Workspaces	Рабочие среды
+	Fine (1/2 pt)	Тонкая (1/2 pt)
+	Thin (1 pt)	Обычная (1 pt)
+	Heavy (2 pt)	Жирная (2 pt)
+	Interior wall (4 1/2 in)	Внутренняя стена (4 1/2 дюйма)
+	Exterior wall (6 in)	Наружная стена (6 дюймов)
+	Measure rectangle area	Измерить площадь прямоугольника
+	Measure angle	Измерить угол
+	Measure radius	Измерить радиус
+	Door (click a wall where it goes)	Дверь (щёлкните стену в нужном месте)
+	Window (click a wall where it goes)	Окно (щёлкните стену в нужном месте)
+	Scale (pick, base point, then drag a point or type the factor)	Масштаб (выбор, базовая точка, затем потяните точку или введите коэффициент)
+	Photo pin	Фотометка
+	Photo callout	Фотовыноска
+	Rectangle area	Площадь прямоугольника
+	Drafting	Черчение
+	Crop	Обрезать
+	Snapshot	Снимок

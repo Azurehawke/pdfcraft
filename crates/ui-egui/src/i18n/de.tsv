@@ -2406,3 +2406,69 @@ key	Space	Leertaste
 	Arrows	Pfeile
 	Ticks	Schrägstriche
 	Click both ends, then where the dimension line goes	Beide Enden anklicken, dann die Lage der Maßlinie
+	Align to nearest wall	An nächster Wand ausrichten
+	Choose a tool first.	Wählen Sie zuerst ein Werkzeug.
+	Click a point to drag (a corner or an end), or type the factor	Einen Punkt zum Ziehen anklicken (eine Ecke oder ein Ende) oder den Faktor eingeben
+	Click a wall	Eine Wand anklicken
+	Delete this workspace	Diesen Arbeitsbereich löschen
+	Description (the first line is the title)	Beschreibung (die erste Zeile ist der Titel)
+	Door width (the opening cut in the wall)	Türbreite (die in die Wand geschnittene Öffnung)
+	Every page (otherwise this page)	Alle Seiten (sonst diese Seite)
+	Flip hinge	Anschlag wechseln
+	Hinge the door at the other end of the opening	Die Tür am anderen Ende der Öffnung anschlagen
+	Line up with walls	An Wänden ausrichten
+	Line width	Linienstärke
+	Make a callout	Fotolegende erstellen
+	My tools	Meine Werkzeuge
+	Pen width on paper	Stiftbreite auf Papier
+	Photo callout: tap the spot, then where the box goes	Fotolegende: die Stelle antippen, dann den Ort des Kastens
+	Photo for the callout	Foto für die Legende
+	Pick a tool and set it up, then save it here to use it again with the same settings.	Werkzeug wählen und einstellen, dann hier speichern, um es mit denselben Einstellungen wiederzuverwenden.
+	Rack A\n24-port switch and patch panel 1…	Schrank A\n24-Port-Switch und Patchfeld 1…
+	Real-world width, drawn to the page's scale	Echte Breite, im Maßstab der Seite gezeichnet
+	Recent tools	Zuletzt verwendet
+	Remove from the tool chest	Aus dem Werkzeugkasten entfernen
+	Renumber	Neu nummerieren
+	Renumber symbols in order across the page	Symbole auf der Seite der Reihe nach neu nummerieren
+	Renumbered {n} symbols.	{n} Symbole neu nummeriert.
+	Save current tool	Aktuelles Werkzeug speichern
+	Save the current layout…	Aktuelles Layout speichern…
+	Show the photo in a box with its description, pointing at this spot	Das Foto in einem Kasten mit Beschreibung zeigen, der auf diese Stelle weist
+	Start at	Beginnen bei
+	Text left	Text links
+	Text right	Text rechts
+	That tool isn't available in this version.	Dieses Werkzeug gibt es in dieser Version nicht.
+	That wall is locked	Diese Wand ist gesperrt
+	The first one becomes {label}	Das erste wird {label}
+	The photo's height on the sheet	Höhe des Fotos auf dem Blatt
+	The wall is shorter than the opening	Die Wand ist kürzer als die Öffnung
+	There are no symbols of that kind on this page.	Keine Symbole dieser Art auf dieser Seite.
+	There are no symbols to renumber yet.	Noch keine Symbole zum Nummerieren.
+	These three points are in a line; pick three points on the circle or arc.	Diese drei Punkte liegen auf einer Linie; wählen Sie drei Punkte auf dem Kreis oder Bogen.
+	To scale	Maßstäblich
+	Tool chest	Werkzeugkasten
+	Tools you use show up here.	Verwendete Werkzeuge erscheinen hier.
+	Turn new symbols to line up with the nearest wall or line	Neue Symbole an der nächsten Wand oder Linie ausrichten
+	Turn the symbol to line up with the nearest wall or line	Das Symbol an der nächsten Wand oder Linie ausrichten
+	View photo	Foto ansehen
+	Width in real-world inches, drawn to the page's scale (walls)	Breite in echten Zoll, im Maßstab der Seite gezeichnet (Wände)
+	Window width (the opening cut in the wall)	Fensterbreite (die in die Wand geschnittene Öffnung)
+	Workspace name	Name des Arbeitsbereichs
+	Workspaces	Arbeitsbereiche
+	Fine (1/2 pt)	Fein (1/2 pt)
+	Thin (1 pt)	Dünn (1 pt)
+	Heavy (2 pt)	Kräftig (2 pt)
+	Interior wall (4 1/2 in)	Innenwand (4 1/2 in)
+	Exterior wall (6 in)	Außenwand (6 in)
+	Measure rectangle area	Rechteckfläche messen
+	Measure angle	Winkel messen
+	Measure radius	Radius messen
+	Door (click a wall where it goes)	Tür (eine Wand an der Stelle anklicken)
+	Window (click a wall where it goes)	Fenster (eine Wand an der Stelle anklicken)
+	Scale (pick, base point, then drag a point or type the factor)	Skalieren (wählen, Basispunkt, dann einen Punkt ziehen oder den Faktor eingeben)
+	Photo pin	Foto-Pin
+	Photo callout	Fotolegende
+	Rectangle area	Rechteckfläche
+	Drafting	Konstruktion
+	Crop	Zuschneiden
+	Snapshot	Schnappschuss
