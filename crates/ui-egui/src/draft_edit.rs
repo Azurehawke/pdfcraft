@@ -733,11 +733,37 @@ pub(crate) fn modify_input(
                     }
                 }
                 (Some(i), Some(b)) if tool == DraftTool::Scale => {
-                    if let Some((pts, closed)) = outline(cx, &all, i) {
-                        draw_path(painter, cx, &pts, closed, stroke);
-                    }
                     painter.circle_filled(cx.to_screen(b), 3.0, accent);
-                    chip(painter, hint_at, tl!("Type the scale factor, then Enter (2 doubles, 0.5 halves)"));
+                    match view.draft.scale_ref.filter(|r| *r > 1e-6) {
+                        // The second click grabs a point (a corner, an end); the pointer then
+                        // drags it, scaling about the base point.
+                        None => {
+                            if let Some((pts, closed)) = outline(cx, &all, i) {
+                                draw_path(painter, cx, &pts, closed, stroke);
+                            }
+                            painter.circle_stroke(cx.to_screen(point), 4.0, stroke);
+                            chip(painter, hint_at, tl!("Click a point to drag (a corner or an end), or type the factor"));
+                            if clicked && dist(b, point) > 1e-6 {
+                                view.draft.scale_ref = Some(dist(b, point));
+                            }
+                        }
+                        Some(reference) => {
+                            let f = (dist(b, point) / reference).clamp(1e-3, 1e3);
+                            let m = scaling(b, f);
+                            if let Some((pts, closed)) = outline(cx, &all, i) {
+                                draw_path(painter, cx, &pts, closed, ghost);
+                                let moved: Vec<Pt> = pts.iter().map(|p| geometry::apply(&m, *p)).collect();
+                                draw_path(painter, cx, &moved, closed, stroke);
+                            }
+                            painter.line_segment([cx.to_screen(b), cx.to_screen(point)], Stroke::new(1.0, accent.gamma_multiply(0.7)));
+                            chip(painter, hint_at, &format!("× {f:.3}"));
+                            if clicked {
+                                view.pending_edit = Some(Edit::TransformAnnotation { page, index: i, matrix: m, copy: false });
+                                view.draft.base = None;
+                                view.draft.scale_ref = None;
+                            }
+                        }
+                    }
                 }
                 (Some(i), Some(b)) if tool == DraftTool::Mirror => {
                     if let (Some((pts, closed)), Some(m)) = (outline(cx, &all, i), mirror(b, point)) {
@@ -1064,6 +1090,7 @@ pub(crate) fn submit(view: &mut DocView, doc: &Document, tool: DraftTool, settin
         return match factor {
             Some(f) => {
                 view.draft.base = None;
+                view.draft.scale_ref = None;
                 Some(Edit::TransformAnnotation { page, index, matrix: scaling(b, f), copy: false })
             }
             None => {
@@ -1121,6 +1148,9 @@ pub(crate) fn submit(view: &mut DocView, doc: &Document, tool: DraftTool, settin
 
 /// Escape with a modify tool steps back: the base point first, then the selection.
 pub(crate) fn step_back(view: &mut DocView) {
+    if view.draft.scale_ref.take().is_some() {
+        return;
+    }
     if view.draft.base.take().is_none() {
         view.comments.selected = None;
     }

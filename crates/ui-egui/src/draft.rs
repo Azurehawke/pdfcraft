@@ -98,6 +98,9 @@ impl DraftTool {
         DraftTool::Erase,
     ];
 
+    /// The dimension tools, also on the Markup tab.
+    pub const DIMENSIONS: [DraftTool; 4] = [DraftTool::Dimension, DraftTool::DimLinear, DraftTool::DimRadius, DraftTool::DimDiameter];
+
     pub fn name(self) -> &'static str {
         match self {
             Self::Line => "line",
@@ -178,7 +181,7 @@ impl DraftTool {
             Self::Copy => "Copy (pick, base point, then each copy)",
             Self::Rotate => "Rotate (pick, centre, then the angle)",
             Self::Mirror => "Mirror (pick, then two points on the mirror line)",
-            Self::Scale => "Scale (pick, base point, then type the factor)",
+            Self::Scale => "Scale (pick, base point, then drag a point or type the factor)",
             Self::ArrayRect => "Rectangular array (rows and columns in the ribbon)",
             Self::ArrayPolar => "Polar array (pick, then the centre)",
             Self::Offset => "Offset (a parallel copy at the offset distance)",
@@ -317,6 +320,8 @@ pub struct DraftSettings {
     pub mirror_keep: bool,
     /// Dimensions end in architectural ticks rather than arrows.
     pub dim_ticks: bool,
+    /// How wide new lines, polylines and shapes are drawn.
+    pub line_width: LineWidth,
     /// The Draft tools panel shows only icons.
     pub panel_collapsed: bool,
     /// The tool each fly-out group shows, by group.
@@ -345,6 +350,7 @@ impl Default for DraftSettings {
             polar_angle: 360.0,
             mirror_keep: true,
             dim_ticks: false,
+            line_width: LineWidth::Paper(1.0),
             panel_collapsed: false,
             group_tool: Vec::new(),
         }
@@ -370,6 +376,8 @@ pub struct DraftView {
     pub base: Option<[f64; 2]>,
     /// A grip being dragged with the Select tool.
     pub grip: Option<crate::draft_edit::Grip>,
+    /// Scale: the distance from the base point to the point grabbed to drag.
+    pub scale_ref: Option<f64>,
     /// The markup's lines and shapes per (page, edit generation).
     pub(crate) geometry: Option<(usize, u64, Vec<pdfcraft_engine::geometry::Geometry>)>,
     /// A distance or factor typed with a modify tool (inches, or the scale factor), for the shared
@@ -384,6 +392,7 @@ impl DraftView {
         self.input.clear();
         self.base = None;
         self.grip = None;
+        self.scale_ref = None;
     }
 }
 
@@ -552,6 +561,48 @@ fn annotation(page: usize, shape: Shape, color: [f64; 3], width: f64, fill: Opti
     })
 }
 
+/// How wide new drafting lines are drawn.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum LineWidth {
+    /// A pen width on paper, in points.
+    Paper(f64),
+    /// A real-world width, in inches, drawn to the page's scale (walls).
+    Real(f64),
+}
+
+/// The width in points for a line drawn on `page` near `at`, and its real-world width when it has
+/// one.
+fn pen(doc: &Document, page: usize, at: [f64; 2], settings: &DraftSettings) -> (f64, Option<f64>) {
+    match settings.line_width {
+        LineWidth::Paper(pt) => (pt.clamp(0.1, 72.0), None),
+        LineWidth::Real(inches) => {
+            let inches = inches.clamp(0.01, 1200.0);
+            ((inches * units_per_inch(doc, page, at)).clamp(0.1, 500.0), Some(inches))
+        }
+    }
+}
+
+/// A drafted line, polyline or polygon at the drafting width.
+fn shape_edit(page: usize, shape: Shape, color: [f64; 3], author: &str, doc: &Document, settings: &DraftSettings) -> Edit {
+    let at = match &shape {
+        Shape::Line { from, .. } => *from,
+        Shape::PolyLine { vertices, .. } | Shape::Polygon { vertices, .. } => vertices.first().copied().unwrap_or_default(),
+        _ => [0.0, 0.0],
+    };
+    let (width, real_width) = pen(doc, page, at, settings);
+    Edit::AddDraftShape {
+        new: NewAnnotation {
+            page,
+            shape,
+            style: Style { color, opacity: 1.0, width, fill: None },
+            contents: String::new(),
+            author: author.to_string(),
+        },
+        real_width,
+        caption: None,
+    }
+}
+
 /// Wall outlines: each segment of the centre line as a filled quadrilateral `thickness` wide,
 /// mitred at the corners.
 pub fn wall_quads(points: &[[f64; 2]], thickness: f64, closed: bool) -> Vec<[[f64; 2]; 4]> {
@@ -679,28 +730,28 @@ fn finish_edit(tool: DraftTool, page: usize, points: &[[f64; 2]], closed: bool, 
     match tool {
         DraftTool::Line => match points {
             [a, b, ..] => {
-                Some(annotation(page, Shape::Line { from: *a, to: *b, start: LineEnding::None, end: LineEnding::None }, color, 1.0, None, author))
+                Some(shape_edit(page, Shape::Line { from: *a, to: *b, start: LineEnding::None, end: LineEnding::None }, color, author, doc, settings))
             }
             _ => None,
         },
         DraftTool::Rectangle => match points {
             [a, b, ..] if (a[0] - b[0]).abs() > 1e-6 && (a[1] - b[1]).abs() > 1e-6 => {
                 let vertices = vec![*a, [b[0], a[1]], *b, [a[0], b[1]]];
-                Some(annotation(page, Shape::Polygon { vertices, cloud: false }, color, 1.0, None, author))
+                Some(shape_edit(page, Shape::Polygon { vertices, cloud: false }, color, author, doc, settings))
             }
             _ => None,
         },
         DraftTool::Polyline => {
             if closed && points.len() >= 3 {
-                Some(annotation(page, Shape::Polygon { vertices: points.to_vec(), cloud: false }, color, 1.0, None, author))
+                Some(shape_edit(page, Shape::Polygon { vertices: points.to_vec(), cloud: false }, color, author, doc, settings))
             } else if points.len() >= 2 {
-                Some(annotation(
+                Some(shape_edit(
                     page,
                     Shape::PolyLine { vertices: points.to_vec(), start: LineEnding::None, end: LineEnding::None },
                     color,
-                    1.0,
-                    None,
                     author,
+                    doc,
+                    settings,
                 ))
             } else {
                 None
@@ -719,15 +770,25 @@ fn finish_edit(tool: DraftTool, page: usize, points: &[[f64; 2]], closed: bool, 
         DraftTool::Circle => match points {
             [c, p, ..] => {
                 let r = (p[0] - c[0]).hypot(p[1] - c[1]);
-                (r >= 0.5).then(|| annotation(page, Shape::Oval { rect: [c[0] - r, c[1] - r, c[0] + r, c[1] + r] }, color, 1.0, None, author))
+                (r >= 0.5).then(|| {
+                    annotation(
+                        page,
+                        Shape::Oval { rect: [c[0] - r, c[1] - r, c[0] + r, c[1] + r] },
+                        color,
+                        pen(doc, page, *c, settings).0,
+                        None,
+                        author,
+                    )
+                })
             }
             _ => None,
         },
         DraftTool::Arc => match points {
             [a, m, b, ..] => {
                 let vertices = crate::draft_edit::arc_points(*a, *m, *b);
-                (vertices.len() >= 2)
-                    .then(|| annotation(page, Shape::PolyLine { vertices, start: LineEnding::None, end: LineEnding::None }, color, 1.0, None, author))
+                (vertices.len() >= 2).then(|| {
+                    shape_edit(page, Shape::PolyLine { vertices, start: LineEnding::None, end: LineEnding::None }, color, author, doc, settings)
+                })
             }
             _ => None,
         },
@@ -743,9 +804,9 @@ fn finish_edit(tool: DraftTool, page: usize, points: &[[f64; 2]], closed: bool, 
         DraftTool::Spline => {
             let vertices = crate::draft_edit::spline_points(points, closed);
             if closed && vertices.len() >= 3 {
-                Some(annotation(page, Shape::Polygon { vertices, cloud: false }, color, 1.0, None, author))
+                Some(shape_edit(page, Shape::Polygon { vertices, cloud: false }, color, author, doc, settings))
             } else if vertices.len() >= 2 {
-                Some(annotation(page, Shape::PolyLine { vertices, start: LineEnding::None, end: LineEnding::None }, color, 1.0, None, author))
+                Some(shape_edit(page, Shape::PolyLine { vertices, start: LineEnding::None, end: LineEnding::None }, color, author, doc, settings))
             } else {
                 None
             }
@@ -753,15 +814,23 @@ fn finish_edit(tool: DraftTool, page: usize, points: &[[f64; 2]], closed: bool, 
         DraftTool::Ellipse => match points {
             [c, p, ..] => {
                 let (rx, ry) = ((p[0] - c[0]).abs(), (p[1] - c[1]).abs());
-                (rx >= 0.5 && ry >= 0.5)
-                    .then(|| annotation(page, Shape::Oval { rect: [c[0] - rx, c[1] - ry, c[0] + rx, c[1] + ry] }, color, 1.0, None, author))
+                (rx >= 0.5 && ry >= 0.5).then(|| {
+                    annotation(
+                        page,
+                        Shape::Oval { rect: [c[0] - rx, c[1] - ry, c[0] + rx, c[1] + ry] },
+                        color,
+                        pen(doc, page, *c, settings).0,
+                        None,
+                        author,
+                    )
+                })
             }
             _ => None,
         },
         DraftTool::Polygon => match points {
             [c, p, ..] => {
                 let vertices = crate::draft_edit::regular_polygon(*c, *p, settings.polygon_sides);
-                (vertices.len() >= 3).then(|| annotation(page, Shape::Polygon { vertices, cloud: false }, color, 1.0, None, author))
+                (vertices.len() >= 3).then(|| shape_edit(page, Shape::Polygon { vertices, cloud: false }, color, author, doc, settings))
             }
             _ => None,
         },
@@ -1152,6 +1221,8 @@ pub fn ribbon(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
                     }
                 });
                 separator(ui, &t);
+                group(ui, &t, tl!("Line width"), |ui| line_width(ui, &mut app.draft.line_width));
+                separator(ui, &t);
                 ui.add_enabled_ui(allowed, |ui| tool_options(app, ui, &t));
                 separator(ui, &t);
                 group(ui, &t, tl!("Type a length or coordinates, then Enter"), |ui| {
@@ -1211,6 +1282,40 @@ pub fn ribbon(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
         app.notify(e);
         app.views[index].draft.error = None;
     }
+}
+
+/// The ribbon's line width: presets, the number, and whether it is a real-world size (drawn to the
+/// page's scale) or a pen width on paper.
+fn line_width(ui: &mut egui::Ui, w: &mut LineWidth) {
+    let presets: [(LineWidth, &str); 5] = [
+        (LineWidth::Paper(0.5), "Fine (1/2 pt)"),
+        (LineWidth::Paper(1.0), "Thin (1 pt)"),
+        (LineWidth::Paper(2.0), "Heavy (2 pt)"),
+        (LineWidth::Real(4.5), "Interior wall (4 1/2 in)"),
+        (LineWidth::Real(6.0), "Exterior wall (6 in)"),
+    ];
+    ui.horizontal(|ui| {
+        ui.spacing_mut().item_spacing.x = 4.0;
+        let current = presets.iter().find(|(p, _)| p == w).map(|(_, l)| tl!(l)).unwrap_or_else(|| tl!("Custom"));
+        egui::ComboBox::from_id_salt("draft-line-width").selected_text(current).width(150.0).show_ui(ui, |ui| {
+            for (p, label) in presets {
+                ui.selectable_value(w, p, tl!(label));
+            }
+        });
+        match w {
+            LineWidth::Paper(pt) => {
+                ui.add(egui::DragValue::new(pt).range(0.1..=72.0).speed(0.1).suffix(" pt")).on_hover_text(tl!("Pen width on paper"));
+            }
+            LineWidth::Real(inches) => {
+                ui.add(egui::DragValue::new(inches).range(0.25..=1200.0).speed(0.25).suffix(" in"))
+                    .on_hover_text(tl!("Real-world width, drawn to the page's scale"));
+            }
+        }
+        let mut real = matches!(w, LineWidth::Real(_));
+        if ui.checkbox(&mut real, tl!("To scale")).on_hover_text(tl!("Width in real-world inches, drawn to the page's scale (walls)")).changed() {
+            *w = if real { LineWidth::Real(6.0) } else { LineWidth::Paper(1.0) };
+        }
+    });
 }
 
 /// A labelled number in the ribbon.

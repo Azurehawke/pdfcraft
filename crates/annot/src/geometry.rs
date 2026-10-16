@@ -218,6 +218,52 @@ pub fn set_vertices(doc: &mut Document, page: usize, index: usize, points: &[[f6
     Ok(index)
 }
 
+/// Mark the line, polyline or polygon at `(page, index)` as drawn `inches` wide in the real world
+/// (`/PCRealWidth`): it gets square ends and sharp corners, room for them in `/Rect`, and its width
+/// scales with the Scale tool.
+pub fn mark_real_width(doc: &mut Document, page: usize, index: usize, inches: f64) -> Result<(), AnnotError> {
+    if !inches.is_finite() || inches <= 0.0 || inches > 1e5 {
+        return Err(AnnotError::Invalid("invalid width".into()));
+    }
+    let (_, r) = annot_ref(doc, page, index)?;
+    let mut d = annot_dict(doc, r);
+    if !matches!(d.name(b"Subtype"), Some(b"Line" | b"PolyLine" | b"Polygon")) {
+        return Err(AnnotError::Invalid("only lines and shapes made of lines have a drawn width".into()));
+    }
+    let w = crate::border_width_of(&d);
+    d.set(b"PCRealWidth".to_vec(), Object::Real(inches));
+    // Sharp corners reach out up to a whole width (mitre limit 2).
+    let rect = numbers(doc, &d, b"Rect");
+    if let [x0, y0, x1, y1] = rect[..] {
+        let grow = w / 2.0 + 1.0;
+        d.set(b"Rect".to_vec(), num_array(&[x0.min(x1) - grow, y0.min(y1) - grow, x0.max(x1) + grow, y0.max(y1) + grow]));
+    }
+    doc.update_dict(r, |t| *t = d)?;
+    set_appearance(doc, r)
+}
+
+/// Write `text` as the caption a line or polyline shows (an angle's reading), as its comment and
+/// subject too, and redraw it.
+pub fn set_caption(doc: &mut Document, page: usize, index: usize, text: &str, subject: &str) -> Result<(), AnnotError> {
+    if text.chars().count() > 256 || subject.chars().count() > 64 {
+        return Err(AnnotError::Invalid("caption too long".into()));
+    }
+    let (_, r) = annot_ref(doc, page, index)?;
+    doc.update_dict(r, |d| {
+        d.set(b"PCMeasureValue".to_vec(), PdfString::text(text));
+        d.set(b"Contents".to_vec(), PdfString::text(text));
+        d.set(b"Subj".to_vec(), PdfString::text(subject));
+        // Room for the caption above the shape.
+        let rect: Vec<f64> = d.get(b"Rect").and_then(|o| o.as_array()).map(|a| a.iter().filter_map(|x| x.as_f64()).collect()).unwrap_or_default();
+        if let [x0, y0, x1, y1] = rect[..] {
+            let width = (text.chars().count() as f64 * 6.0).max(40.0);
+            let cx = (x0 + x1) / 2.0;
+            d.set(b"Rect".to_vec(), num_array(&[x0.min(cx - width / 2.0), y0.min(y1), x1.max(cx + width / 2.0), y0.max(y1) + 16.0]));
+        }
+    })?;
+    set_appearance(doc, r)
+}
+
 /// Apply `m` (`[a b c d e f]`, as PDF writes matrices) to a point.
 pub fn apply(m: &[f64; 6], p: [f64; 2]) -> [f64; 2] {
     [m[0] * p[0] + m[2] * p[1] + m[4], m[1] * p[0] + m[3] * p[1] + m[5]]
@@ -258,6 +304,26 @@ pub fn transform(doc: &mut Document, page: usize, index: usize, m: &[f64; 6], co
         write_points(&mut changed, &new, &old, meta)?;
         if dim_points.len() == 2 {
             changed.set(b"PCDimPoints".to_vec(), num_array(&dim_points.concat()));
+        }
+        // A line drawn at a real-world width grows and shrinks with the drawing.
+        let factor = (m[0] * m[3] - m[1] * m[2]).abs().sqrt();
+        if changed.contains(b"PCRealWidth") && factor.is_finite() && (factor - 1.0).abs() > 1e-9 {
+            let w = crate::border_width_of(&changed) * factor;
+            if w.is_finite() && w > 0.0 && w < 1e4 {
+                crate::set_border_width(&mut changed, w);
+                if let Some(real) = changed.get(b"PCRealWidth").and_then(Object::as_f64) {
+                    changed.set(b"PCRealWidth".to_vec(), Object::Real(real * factor));
+                }
+                let rect = changed
+                    .get(b"Rect")
+                    .and_then(|o| o.as_array())
+                    .map(|a| a.iter().filter_map(|x| x.as_f64()).collect::<Vec<_>>())
+                    .unwrap_or_default();
+                if let [x0, y0, x1, y1] = rect[..] {
+                    let grow = w;
+                    changed.set(b"Rect".to_vec(), num_array(&[x0.min(x1) - grow, y0.min(y1) - grow, x0.max(x1) + grow, y0.max(y1) + grow]));
+                }
+            }
         }
         // The dimension line stays as far off in proportion, and on its side after a mirror
         // (which turns clockwise into anticlockwise).

@@ -62,7 +62,7 @@ impl Workflow {
             ],
             Self::Measure => &[
                 ("Scale", &["measure.scale"]),
-                ("Measure", &["measure.distance", "measure.perimeter", "measure.area"]),
+                ("Measure", &["measure.distance", "measure.perimeter", "measure.area", "measure.rectangle", "measure.angle", "measure.radius"]),
                 ("Tools", &["measure.snap", "measure.info"]),
                 ("Export", &["measure.export"]),
             ],
@@ -109,6 +109,9 @@ fn icon(id: &str, registry: &'static str) -> &'static str {
         "measure.distance" => "ruler",
         "measure.perimeter" => "spline",
         "measure.area" => "pentagon",
+        "measure.rectangle" => "square-dashed",
+        "measure.angle" => "chevron-left",
+        "measure.radius" => "circle-dot",
         "measure.snap" => "grid-3x3",
         "measure.info" => "info",
         "measure.export" => "file-spreadsheet",
@@ -188,6 +191,27 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
                                 }
                             });
                             ui.label(egui::RichText::new(crate::i18n::t(caption)).font(theme::regular(11.0)).color(t.text_faint));
+                        });
+                    }
+                    // RevuCraft: dimensions are added to existing drawings too, so Markup has them
+                    // as well as the Draft tools panel.
+                    if app.workflow == Workflow::Markup {
+                        ui.add_space(8.0);
+                        let x = ui.cursor().left();
+                        ui.painter().vline(x, ui.max_rect().y_range().shrink(6.0), Stroke::new(1.0, t.divider));
+                        ui.add_space(8.0);
+                        ui.allocate_ui_with_layout(vec2(0.0, ui.available_height()), Layout::top_down(Align::Center), |ui| {
+                            ui.spacing_mut().item_spacing.y = 1.0;
+                            ui.horizontal(|ui| {
+                                ui.spacing_mut().item_spacing.x = 2.0;
+                                for tool in crate::draft::DraftTool::DIMENSIONS {
+                                    let selected = app.quick_tool == QuickTool::Draft(tool);
+                                    if crate::cad_icons::button(ui, tool.icon(), 34.0, selected, crate::i18n::t(tool.label())).clicked() {
+                                        app.quick_tool = if selected { QuickTool::Select } else { QuickTool::Draft(tool) };
+                                    }
+                                }
+                            });
+                            ui.label(egui::RichText::new(crate::i18n::t("Dimensions")).font(theme::regular(11.0)).color(t.text_faint));
                         });
                     }
                     if let Some(id) = run {

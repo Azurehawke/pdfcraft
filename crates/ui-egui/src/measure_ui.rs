@@ -12,6 +12,12 @@ pub enum Tool {
     Perimeter,
     Area,
     Calibrate,
+    /// The area of a rectangle from two opposite corners.
+    Rectangle,
+    /// The angle at a vertex: an arm's end, the vertex, the other arm's end.
+    Angle,
+    /// The radius of a circle or arc through three points on it.
+    Radius,
 }
 impl Tool {
     pub fn name(self) -> &'static str {
@@ -20,6 +26,9 @@ impl Tool {
             Self::Perimeter => "perimeter",
             Self::Area => "area",
             Self::Calibrate => "calibrate",
+            Self::Rectangle => "rectangle",
+            Self::Angle => "angle",
+            Self::Radius => "radius",
         }
     }
     pub fn from_name(s: &str) -> Option<Self> {
@@ -28,17 +37,70 @@ impl Tool {
             "perimeter" => Some(Self::Perimeter),
             "area" => Some(Self::Area),
             "calibrate" => Some(Self::Calibrate),
+            "rectangle" => Some(Self::Rectangle),
+            "angle" => Some(Self::Angle),
+            "radius" => Some(Self::Radius),
             _ => None,
         }
     }
     fn kind(self) -> Kind {
         match self {
-            Self::Area => Kind::Area,
+            Self::Area | Self::Rectangle => Kind::Area,
             Self::Perimeter => Kind::Perimeter,
             _ => Kind::Distance,
         }
     }
 }
+/// How many clicks finish a fixed-count tool.
+fn clicks(tool: Tool) -> Option<usize> {
+    match tool {
+        Tool::Distance | Tool::Calibrate | Tool::Rectangle => Some(2),
+        Tool::Angle | Tool::Radius => Some(3),
+        Tool::Perimeter | Tool::Area => None,
+    }
+}
+
+/// The points a tool measures from the clicked ones: a rectangle's four corners, a circle's centre
+/// and the first point (its radius); the others as clicked.
+fn measured(tool: Tool, points: &[Point]) -> Vec<Point> {
+    match (tool, points) {
+        (Tool::Rectangle, [a, b, ..]) => vec![*a, [b[0], a[1]], *b, [a[0], b[1]]],
+        (Tool::Radius, [a, m, b, ..]) => match circle_through(*a, *m, *b) {
+            Some((c, _)) => vec![c, *a],
+            None => vec![*a, *b],
+        },
+        _ => points.to_vec(),
+    }
+}
+
+/// The circle through three points (centre and radius), `None` when they are in a row.
+fn circle_through(a: Point, m: Point, b: Point) -> Option<(Point, f64)> {
+    let d = 2.0 * (a[0] * (m[1] - b[1]) + m[0] * (b[1] - a[1]) + b[0] * (a[1] - m[1]));
+    if d.abs() < 1e-9 {
+        return None;
+    }
+    let sq = |p: Point| p[0] * p[0] + p[1] * p[1];
+    let c = [
+        (sq(a) * (m[1] - b[1]) + sq(m) * (b[1] - a[1]) + sq(b) * (a[1] - m[1])) / d,
+        (sq(a) * (b[0] - m[0]) + sq(m) * (a[0] - b[0]) + sq(b) * (m[0] - a[0])) / d,
+    ];
+    let r = measure::distance(c, a);
+    (c.iter().all(|v| v.is_finite()) && r.is_finite() && r < 1e7).then_some((c, r))
+}
+
+/// The angle at `vertex` between the arms to `a` and `b`, in degrees (0–180), as drawn on the
+/// page (the scale's axes can differ).
+fn angle_at(a: Point, vertex: Point, b: Point, scale: &Scale) -> Option<f64> {
+    let u = [(a[0] - vertex[0]) * scale.x, (a[1] - vertex[1]) * scale.y];
+    let v = [(b[0] - vertex[0]) * scale.x, (b[1] - vertex[1]) * scale.y];
+    let (lu, lv) = (u[0].hypot(u[1]), v[0].hypot(v[1]));
+    if lu < 1e-12 || lv < 1e-12 {
+        return None;
+    }
+    let cos = ((u[0] * v[0] + u[1] * v[1]) / (lu * lv)).clamp(-1.0, 1.0);
+    Some(cos.acos().to_degrees())
+}
+
 /// A common drawing scale: `paper_points` on the sheet stand for `real` `unit`s. `fractions`
 /// is the inch denominator for feet-and-inch scales, 0 for decimal ones. The names are the
 /// trade's own notation and aren't translated.
@@ -274,7 +336,7 @@ pub(crate) fn page_input(ui: &egui::Ui, resp: &egui::Response, doc: &Document, v
             if !closes && !repeats && state.points.len() < measure::MAX_POINTS {
                 state.points.push(point);
             }
-            let finishes = closes || matches!(tool, Tool::Distance | Tool::Calibrate) && state.points.len() == 2;
+            let finishes = closes || clicks(tool).is_some_and(|n| state.points.len() >= n);
             if finishes {
                 finish(state, &mut view.pending_edit, doc, page, tool, author);
             }
@@ -294,12 +356,47 @@ pub(crate) fn page_input(ui: &egui::Ui, resp: &egui::Response, doc: &Document, v
             points.push(p);
         }
         if let Some(scale) = &state.scale {
-            match measure::reading(tool.kind(), &points, scale) {
-                Ok(reading) => state.reading = Some(reading),
+            match measure::reading(tool.kind(), &measured(tool, &points), scale) {
+                Ok(mut reading) => {
+                    if tool == Tool::Angle {
+                        reading.label = match points.as_slice() {
+                            [a, v, b, ..] => angle_at(*a, *v, *b, scale).map(|d| format!("{d:.1}°")).unwrap_or_default(),
+                            _ => String::new(),
+                        };
+                    }
+                    if tool == Tool::Radius && points.len() < 3 {
+                        reading.label = String::new();
+                    }
+                    state.reading = Some(reading)
+                }
                 Err(e) => state.error = Some(e.to_string()),
             }
         }
-        let positions: Vec<Pos2> = points.iter().map(|&p| screen(p)).collect();
+        // A rectangle shows its four sides; a radius its circle and the radius line.
+        let shown: Vec<Point> = match (tool, points.as_slice()) {
+            (Tool::Rectangle, [_, _, ..]) => {
+                let mut c = measured(tool, &points);
+                if let Some(first) = c.first().copied() {
+                    c.push(first);
+                }
+                c
+            }
+            _ => points.clone(),
+        };
+        if tool == Tool::Radius
+            && let [a, m, b, ..] = points.as_slice()
+            && let Some((c, r)) = circle_through(*a, *m, *b)
+        {
+            let ring: Vec<Pos2> = (0..=72)
+                .map(|k| {
+                    let t = std::f64::consts::TAU * f64::from(k) / 72.0;
+                    screen([c[0] + r * t.cos(), c[1] + r * t.sin()])
+                })
+                .collect();
+            ui.painter().add(egui::Shape::line(ring, Stroke::new(1.0, Color32::from_rgb(0, 120, 214).gamma_multiply(0.6))));
+            ui.painter().line_segment([screen(c), screen(*a)], Stroke::new(1.5, Color32::from_rgb(0, 120, 214)));
+        }
+        let positions: Vec<Pos2> = shown.iter().map(|&p| screen(p)).collect();
         let stroke = Stroke::new(1.5, Color32::from_rgb(0, 120, 214));
         for pair in positions.windows(2) {
             if let [a, b] = pair {
@@ -385,19 +482,53 @@ fn finish(state: &mut MeasureView, pending: &mut Option<Edit>, doc: &Document, p
         state.cancel();
         return;
     }
-    let minimum = if tool == Tool::Area { 3 } else { 2 };
+    // An angle is drawn as its two arms with the reading on them.
+    if tool == Tool::Angle {
+        if let ([a, v, b, ..], Some(scale)) = (state.points.as_slice(), state.scale.as_ref())
+            && let Some(deg) = angle_at(*a, *v, *b, scale)
+        {
+            *pending = Some(Edit::AddDraftShape {
+                new: pdfcraft_engine::NewAnnotation {
+                    page,
+                    shape: pdfcraft_engine::Shape::PolyLine {
+                        vertices: vec![*a, *v, *b],
+                        start: pdfcraft_engine::LineEnding::None,
+                        end: pdfcraft_engine::LineEnding::None,
+                    },
+                    style: Style { color: [0.0, 0.47, 0.84], ..Style::default() },
+                    contents: String::new(),
+                    author: author.into(),
+                },
+                real_width: None,
+                caption: Some((format!("{deg:.1}°"), "Angle".into())),
+            });
+        }
+        state.cancel();
+        return;
+    }
+    let minimum = match tool {
+        Tool::Area | Tool::Angle | Tool::Radius => 3,
+        _ => 2,
+    };
     if state.points.len() < minimum {
         state.error = Some(crate::i18n::fmt(tl!("This measurement needs at least {n} points."), &[("n", &minimum.to_string())]));
         return;
     }
     if let Some(scale) = state.scale.clone() {
+        let points = measured(tool, &state.points);
+        if tool == Tool::Radius && matches!(state.points.as_slice(), [a, m, b, ..] if circle_through(*a, *m, *b).is_none()) {
+            state.error = Some(tl!("These three points are in a line; pick three points on the circle or arc.").into());
+            state.cancel();
+            return;
+        }
+        let label = if tool == Tool::Radius && state.label.is_empty() { "R".to_string() } else { state.label.clone() };
         *pending = Some(Edit::AddMeasurement(NewMeasurement {
             page,
             kind: tool.kind(),
-            points: state.points.clone(),
+            points,
             scale,
             style: Style { color: [0.0, 0.47, 0.84], ..Style::default() },
-            label: state.label.clone(),
+            label,
             author: author.into(),
             dimension: None,
         }));

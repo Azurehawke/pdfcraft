@@ -303,7 +303,12 @@ pub fn build(d: &Dict) -> Option<Stream> {
         b"FileAttachment" => {
             let col = stroke.unwrap_or([0.0, 0.47, 0.84]);
             let icon = d.name(b"Name").map(|n| String::from_utf8_lossy(n).into_owned()).unwrap_or_else(|| "PushPin".into());
-            c.push_str(&attach_icon(&icon, col));
+            // RevuCraft's pinned photos show a camera, so anyone reading the PDF knows what they are.
+            if crate::is_photo(d) {
+                c.push_str(&camera_icon(col));
+            } else {
+                c.push_str(&attach_icon(&icon, col));
+            }
             return Some(form([0.0, 0.0, NOTE_SIZE, NOTE_SIZE], c.as_bytes(), res));
         }
         _ if markup => {
@@ -412,7 +417,7 @@ pub fn build(d: &Dict) -> Option<Stream> {
                 return None;
             }
             let fill = interior_color(d, Some(col)).unwrap_or(col);
-            c.push_str(&format!("{}{}{} w 1 J 1 j\n{}", rg_stroke(col), rg(fill), n(w), dash(d)));
+            c.push_str(&format!("{}{}{} w {}\n{}", rg_stroke(col), rg(fill), n(w), joins(d), dash(d)));
             // A dimension (§12.5.6.7): extension lines from the measured points and the
             // dimension line `/LL` away from the line, its text in the middle.
             let leader = d.get(b"LL").and_then(Object::as_f64).filter(|v| v.is_finite() && v.abs() > 1e-9 && v.abs() < 1e7);
@@ -484,7 +489,7 @@ pub fn build(d: &Dict) -> Option<Stream> {
                 c.push_str(&rg(f));
             }
             if let Some(s) = col {
-                c.push_str(&format!("{}{} w 1 J 1 j\n{}", rg_stroke(s), n(w), dash(d)));
+                c.push_str(&format!("{}{} w {}\n{}", rg_stroke(s), n(w), joins(d), dash(d)));
             }
             if cloudy {
                 let intensity = d.get(b"BE").and_then(|b| b.as_dict()).and_then(|b| b.get(b"I")).and_then(|i| i.as_f64()).unwrap_or(1.0);
@@ -812,6 +817,12 @@ pub fn build(d: &Dict) -> Option<Stream> {
     Some(form(rect, &out, res))
 }
 
+/// Line caps and joins: round, or square ends and sharp corners for RevuCraft's drafting lines
+/// drawn at a real-world width (`/PCRealWidth`), so wide lines meet cleanly like walls.
+fn joins(d: &Dict) -> &'static str {
+    if d.contains(b"PCRealWidth") { "2 J 0 j 2 M" } else { "1 J 1 j" }
+}
+
 /// The angle (radians, anticlockwise in page space) to write text along a line at `angle` so it
 /// reads left to right, or upward, on a page shown turned `turn` degrees clockwise (`/Rotate`).
 pub(crate) fn readable(angle: f64, turn: i64) -> f64 {
@@ -978,6 +989,55 @@ fn attach_icon(name: &str, col: Rgb) -> String {
             s.push_str("10 2 m 10 9 l S\n6 9 m 14 9 l 14 11 l 12 12 l 12 16 l 13.5 17 l 13.5 18.5 l 6.5 18.5 l 6.5 17 l 8 16 l 8 12 l 6 11 l h f\n");
         }
     }
+    s
+}
+
+/// A white camera on a disc of `col`, in the 20×20 icon box.
+fn camera_icon(col: Rgb) -> String {
+    let k = 0.5523 * 9.5;
+    let mut s = rg(col);
+    // The disc.
+    s.push_str(&format!(
+        "10 0.5 m {a} 0.5 19.5 {b} 19.5 10 c 19.5 {c} {a} 19.5 10 19.5 c {d} 19.5 0.5 {c} 0.5 10 c 0.5 {b} {d} 0.5 10 0.5 c f\n",
+        a = n(10.0 + k),
+        b = n(10.0 - k),
+        c = n(10.0 + k),
+        d = n(10.0 - k)
+    ));
+    // The camera: body with the viewfinder bump, and the lens.
+    s.push_str("1 1 1 RG 1.3 w 1 j 1 J\n4.5 5.5 m 15.5 5.5 l 15.5 13 l 13 13 l 12 14.8 l 8 14.8 l 7 13 l 4.5 13 l h S\n");
+    let r = 2.5;
+    let kr = 0.5523 * r;
+    let (cx, cy) = (10.0, 9.3);
+    s.push_str(&format!(
+        "{} {} m {} {} {} {} {} {} c {} {} {} {} {} {} c {} {} {} {} {} {} c {} {} {} {} {} {} c S\n",
+        n(cx + r),
+        n(cy),
+        n(cx + r),
+        n(cy + kr),
+        n(cx + kr),
+        n(cy + r),
+        n(cx),
+        n(cy + r),
+        n(cx - kr),
+        n(cy + r),
+        n(cx - r),
+        n(cy + kr),
+        n(cx - r),
+        n(cy),
+        n(cx - r),
+        n(cy - kr),
+        n(cx - kr),
+        n(cy - r),
+        n(cx),
+        n(cy - r),
+        n(cx + kr),
+        n(cy - r),
+        n(cx + r),
+        n(cy - kr),
+        n(cx + r),
+        n(cy)
+    ));
     s
 }
 

@@ -177,6 +177,7 @@ fn scope_of(edit: &Edit) -> Scope {
         Edit::SetAnnotationLayer { .. } | Edit::AddSymbol(_) | Edit::SetLayerColor { .. } | Edit::SetLayerLocked { .. } => Scope::Comments,
         Edit::AddMeasurement(_)
         | Edit::AddAnnotation(_)
+        | Edit::AddDraftShape { .. }
         | Edit::AddCustomStamp { .. }
         | Edit::DeleteAnnotation { .. }
         | Edit::SetAnnotationContents { .. }
@@ -834,6 +835,14 @@ pub enum Edit {
     },
     /// Add a comment (sticky note, highlight, shape, drawing, text box…).
     AddAnnotation(NewAnnotation),
+    /// RevuCraft drafting: a line, polyline or polygon, drawn `real_width` inches wide in the
+    /// real world when set (square ends, sharp corners; the width scales with the drawing).
+    AddDraftShape {
+        new: NewAnnotation,
+        real_width: Option<f64>,
+        /// A reading shown on it (an angle) and the subject it is listed by.
+        caption: Option<(String, String)>,
+    },
     /// A custom stamp from a picture file (a PDF page or an image) on `page`. A zero-size
     /// `rect` is a point: the stamp is centred there at its natural size (at most 200 pt).
     AddCustomStamp {
@@ -1243,6 +1252,8 @@ impl Edit {
             Edit::AddMeasurement(m) => format!("Measure {}", m.kind.name()),
             Edit::SetMeasurementScale { .. } => "Set measurement scale".into(),
             Edit::AddAnnotation(a) => format!("Add {}", annotation_noun(&a.shape)),
+            Edit::AddDraftShape { caption: Some((_, subject)), .. } => format!("Measure {}", subject.to_lowercase()),
+            Edit::AddDraftShape { new, .. } => format!("Add {}", annotation_noun(&new.shape)),
             Edit::AddCustomStamp { .. } => "Add stamp".into(),
             Edit::AddLayer { .. } => "New layer".into(),
             Edit::RenameLayer { .. } => "Rename layer".into(),
@@ -1397,6 +1408,7 @@ fn check_permission(edit: &Edit, p: &pdfcraft_cos::Permissions) -> Result<(), Ed
         }
         Edit::AddMeasurement(_)
         | Edit::AddAnnotation(_)
+        | Edit::AddDraftShape { .. }
         | Edit::AddCustomStamp { .. }
         | Edit::AddLayer { .. }
         | Edit::RenameLayer { .. }
@@ -1643,6 +1655,16 @@ fn run_edit(doc: &mut pdfcraft_cos::Document, edit: &Edit, cx: &mut EditCtx) -> 
             let index = pdfcraft_annot::add_annotation(doc, a, &cx.meta())?;
             cx.place_on_layer(doc, a.page, index)?;
         }
+        Edit::AddDraftShape { new, real_width, caption } => {
+            let index = pdfcraft_annot::add_annotation(doc, new, &cx.meta())?;
+            if let Some(inches) = real_width {
+                pdfcraft_annot::geometry::mark_real_width(doc, new.page, index, *inches)?;
+            }
+            if let Some((text, subject)) = caption {
+                pdfcraft_annot::geometry::set_caption(doc, new.page, index, text, subject)?;
+            }
+            cx.place_on_layer(doc, new.page, index)?;
+        }
         Edit::AddLayer { name, color } => {
             pdfcraft_annot::layers::add(doc, name, *color)?;
         }
@@ -1659,7 +1681,12 @@ fn run_edit(doc: &mut pdfcraft_cos::Document, edit: &Edit, cx: &mut EditCtx) -> 
                 return Err(EditError::Invalid("the photo is empty".into()));
             }
             let shape = Shape::Attachment { at: *at, icon: pdfcraft_annot::AttachIcon::PushPin, file: name.clone(), data: data.clone() };
-            let style = pdfcraft_annot::Style { color: [0.96, 0.62, 0.04], ..pdfcraft_annot::Style::default_for(&shape) };
+            // In the colour of the layer it goes on (a strong blue without one).
+            let color = cx
+                .layer
+                .and_then(|l| pdfcraft_annot::layers::list(doc).into_iter().find(|x| x.id == layer_ref(l)))
+                .map_or([0.18, 0.44, 0.69], |l| l.color);
+            let style = pdfcraft_annot::Style { color, ..pdfcraft_annot::Style::default_for(&shape) };
             let new = NewAnnotation { page: *page, shape, style, contents: caption.clone(), author: author.clone() };
             let index = pdfcraft_annot::add_annotation(doc, &new, &cx.meta())?;
             pdfcraft_annot::mark_photo(doc, *page, index)?;

@@ -1262,7 +1262,8 @@ pub fn mark_photo(doc: &mut Document, page: usize, index: usize) -> Result<(), A
         d.set(b"PCPhoto".to_vec(), Object::Bool(true));
         d.set(b"Subj".to_vec(), PdfString::text("Photo"));
     })?;
-    Ok(())
+    // Drawn as a camera from now on.
+    set_appearance(doc, r)
 }
 
 /// Whether the annotation dictionary is a pinned photo.
@@ -1724,6 +1725,14 @@ fn apply_text_box(doc: &mut Document, r: ObjRef, rect: [f64; 4], meta: &Meta) ->
         touch(d, meta);
     })?;
     set_appearance(doc, r)
+}
+
+/// Set the border width (`/BS /W`), dropping a legacy `/Border`.
+fn set_border_width(d: &mut Dict, w: f64) {
+    let mut bs = d.get(b"BS").and_then(|b| b.as_dict()).cloned().unwrap_or_default();
+    bs.set(b"W".to_vec(), Object::Real(w.max(0.0)));
+    d.set(b"BS".to_vec(), Object::Dict(bs));
+    d.remove(b"Border");
 }
 
 fn border_width_of(d: &Dict) -> f64 {

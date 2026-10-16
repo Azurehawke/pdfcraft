@@ -632,6 +632,7 @@ impl PdfCraftApp {
 fn comment_page(edit: &Edit) -> Option<usize> {
     match edit {
         Edit::AddAnnotation(a) => Some(a.page),
+        Edit::AddDraftShape { new, .. } => Some(new.page),
         Edit::DeleteAnnotation { page, .. }
         | Edit::SetAnnotationContents { page, .. }
         | Edit::ReplyToAnnotation { page, .. }
