@@ -115,7 +115,7 @@ fn to_segment(p: Pt, a: Pt, b: Pt) -> (f64, f64) {
 }
 
 /// Distance along an open path to each vertex (starting at 0).
-fn running_lengths(points: &[Pt]) -> Vec<f64> {
+pub(crate) fn running_lengths(points: &[Pt]) -> Vec<f64> {
     let mut out = Vec::with_capacity(points.len());
     let mut total = 0.0;
     for (i, p) in points.iter().enumerate() {
@@ -154,7 +154,7 @@ fn project(points: &[Pt], p: Pt) -> Option<(f64, f64)> {
 }
 
 /// The part of an open path from `s0` to `s1` along it.
-fn piece(points: &[Pt], lengths: &[f64], s0: f64, s1: f64) -> Vec<Pt> {
+pub(crate) fn piece(points: &[Pt], lengths: &[f64], s0: f64, s1: f64) -> Vec<Pt> {
     let mut out = Vec::new();
     if let Some(p) = point_along(points, lengths, s0) {
         out.push(p);
@@ -1049,6 +1049,39 @@ pub(crate) fn modify_input(
                     }
                 }
                 None => chip(painter, hint_at, tl!("Click a circle")),
+            }
+        }
+        DraftTool::Door | DraftTool::Window => {
+            use crate::openings::{self, Opening};
+            let kind = if tool == DraftTool::Door { Opening::Door } else { Opening::Window };
+            let inches = if kind == Opening::Door { settings.door_inches } else { settings.window_inches };
+            let width = inches.clamp(1.0, 600.0) * crate::draft::units_per_inch(doc, page, raw);
+            let Some(wall) = openings::wall_at(&all, raw, tolerance) else {
+                chip(painter, hint_at, tl!("Click a wall"));
+                return;
+            };
+            let Some(at) = openings::place(&wall, raw, width) else {
+                chip(painter, hint_at, tl!("The wall is shorter than the opening"));
+                return;
+            };
+            if wall.locked {
+                chip(painter, hint_at, tl!("That wall is locked"));
+                return;
+            }
+            for piece in openings::cut(&wall, &at) {
+                draw_path(painter, cx, &piece, wall.is_outline(), ghost);
+            }
+            for shape in openings::drawing(kind, &at, settings.door_flip) {
+                match shape {
+                    pdfcraft_engine::Shape::Line { from, to, .. } => painter.line_segment([cx.to_screen(from), cx.to_screen(to)], stroke),
+                    pdfcraft_engine::Shape::PolyLine { vertices, .. } => draw_path(painter, cx, &vertices, false, stroke),
+                    pdfcraft_engine::Shape::Polygon { vertices, .. } => draw_path(painter, cx, &vertices, true, stroke),
+                    _ => {}
+                }
+            }
+            if clicked {
+                let color = crate::draft::layer_color(doc);
+                view.pending_edit = Some(openings::edit(page, &wall, &at, kind, settings.door_flip, color, &settings.author));
             }
         }
         _ => {}

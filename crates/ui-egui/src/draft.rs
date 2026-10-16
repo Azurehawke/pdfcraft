@@ -62,10 +62,14 @@ pub enum DraftTool {
     Join,
     Explode,
     Erase,
+    /// Click a wall: a door in it (the opening is cut, the leaf and swing drawn).
+    Door,
+    /// Click a wall: a window in it.
+    Window,
 }
 
 impl DraftTool {
-    pub const ALL: [DraftTool; 30] = [
+    pub const ALL: [DraftTool; 32] = [
         DraftTool::Line,
         DraftTool::Polyline,
         DraftTool::Rectangle,
@@ -96,6 +100,8 @@ impl DraftTool {
         DraftTool::Join,
         DraftTool::Explode,
         DraftTool::Erase,
+        DraftTool::Door,
+        DraftTool::Window,
     ];
 
     /// The dimension tools, also on the Markup tab.
@@ -133,6 +139,8 @@ impl DraftTool {
             Self::Join => "join",
             Self::Explode => "explode",
             Self::Erase => "erase",
+            Self::Door => "door",
+            Self::Window => "window",
         }
     }
 
@@ -193,6 +201,8 @@ impl DraftTool {
             Self::Join => "Join (two lines that meet become one)",
             Self::Explode => "Explode (a polyline or shape into separate lines)",
             Self::Erase => "Erase (click the markup to delete)",
+            Self::Door => "Door (click a wall where it goes)",
+            Self::Window => "Window (click a wall where it goes)",
         }
     }
 
@@ -230,6 +240,8 @@ impl DraftTool {
             Self::Join => I::Join,
             Self::Explode => I::Explode,
             Self::Erase => I::Erase,
+            Self::Door => I::Door,
+            Self::Window => I::Window,
         }
     }
 
@@ -294,6 +306,10 @@ pub struct DraftSettings {
     pub ortho: bool,
     /// Wall thickness, inches.
     pub wall_inches: f64,
+    /// Door and window widths, inches; doors hinge at the other end of the opening.
+    pub door_inches: f64,
+    pub window_inches: f64,
+    pub door_flip: bool,
     pub bare: BareUnit,
     /// The on-screen keypad is shown while drafting.
     pub keypad: bool,
@@ -333,6 +349,9 @@ impl Default for DraftSettings {
         Self {
             ortho: false,
             wall_inches: 4.5,
+            door_inches: 32.0,
+            window_inches: 36.0,
+            door_flip: false,
             bare: BareUnit::Feet,
             keypad: cfg!(target_os = "android"),
             // ARCH D landscape at 1/4" = 1'-0".
@@ -551,7 +570,7 @@ pub(crate) fn layer_color(doc: &Document) -> [f64; 3] {
     doc.current_layer.and_then(|c| doc.layer_list().into_iter().find(|l| (l.id.num, l.id.generation) == c)).map_or([0.0; 3], |l| l.color)
 }
 
-fn annotation(page: usize, shape: Shape, color: [f64; 3], width: f64, fill: Option<[f64; 3]>, author: &str) -> Edit {
+pub(crate) fn annotation(page: usize, shape: Shape, color: [f64; 3], width: f64, fill: Option<[f64; 3]>, author: &str) -> Edit {
     Edit::AddAnnotation(NewAnnotation {
         page,
         shape,
@@ -1337,6 +1356,13 @@ fn tool_options(app: &mut PdfCraftApp, ui: &mut egui::Ui, t: &Tokens) {
             ui.spacing_mut().item_spacing.x = 6.0;
             match tool {
                 Some(DraftTool::Wall) => number(ui, tl!("Thickness"), &mut d.wall_inches, 0.5..=48.0, " in", tl!("Wall thickness")),
+                Some(DraftTool::Door) => {
+                    number(ui, tl!("Width"), &mut d.door_inches, 12.0..=144.0, " in", tl!("Door width (the opening cut in the wall)"));
+                    let _ = ui.checkbox(&mut d.door_flip, tl!("Flip hinge")).on_hover_text(tl!("Hinge the door at the other end of the opening"));
+                }
+                Some(DraftTool::Window) => {
+                    number(ui, tl!("Width"), &mut d.window_inches, 12.0..=240.0, " in", tl!("Window width (the opening cut in the wall)"))
+                }
                 Some(DraftTool::Offset) => number(
                     ui,
                     tl!("Distance"),

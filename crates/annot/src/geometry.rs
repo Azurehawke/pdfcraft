@@ -30,6 +30,10 @@ pub struct Geometry {
     pub kind: Kind,
     pub points: Vec<[f64; 2]>,
     pub locked: bool,
+    /// The line width in points (`/BS /W`), and whether it is a real-world width drawn to the
+    /// page's scale (`/PCRealWidth`: a wall drawn as a thick line).
+    pub width: f64,
+    pub real_width: bool,
 }
 
 impl Geometry {
@@ -77,7 +81,8 @@ pub fn page_geometry(doc: &Document, page: usize) -> Vec<Geometry> {
             points.truncate(2);
         }
         if points.len() >= 2 {
-            out.push(Geometry { index, kind, points, locked: is_locked(doc, d) });
+            let width = crate::border_width_of(d);
+            out.push(Geometry { index, kind, points, locked: is_locked(doc, d), width, real_width: d.contains(b"PCRealWidth") });
         }
     }
     out

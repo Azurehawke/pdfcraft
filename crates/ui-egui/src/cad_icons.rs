@@ -43,6 +43,8 @@ pub enum CadIcon {
     DimDiameter,
     Text,
     Callout,
+    Door,
+    Window,
 }
 
 struct Pen<'a> {
@@ -181,6 +183,19 @@ pub fn paint(p: &Painter, rect: Rect, icon: CadIcon, base: Color32, accent: Colo
                 let y = 12.0 + 6.0 * ang.to_radians().sin();
                 pen.arc(x, y, 3.2, -ang - 70.0, -ang + 110.0, a);
             }
+        }
+        Door => {
+            // A wall with a gap, the leaf and its swing.
+            pen.l(2.0, 20.0, 6.0, 20.0);
+            pen.l(20.0, 20.0, 22.0, 20.0);
+            pen.la(6.0, 20.0, 6.0, 6.0);
+            pen.arc(6.0, 20.0, 14.0, 0.0, 90.0, a);
+        }
+        Window => {
+            pen.l(2.0, 12.0, 5.0, 12.0);
+            pen.l(19.0, 12.0, 22.0, 12.0);
+            pen.rect(5.0, 9.0, 14.0, 6.0, a);
+            pen.la(5.0, 12.0, 19.0, 12.0);
         }
         Wall => {
             pen.poly(&[(3.0, 20.0), (3.0, 4.0), (21.0, 4.0)], false, a);

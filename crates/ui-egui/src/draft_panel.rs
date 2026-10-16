@@ -60,7 +60,7 @@ pub const GROUPS: [(&str, &str, &[Entry]); 9] = [
             Entry::Tool(D::Cloud),
         ],
     ),
-    ("Walls", "Draw", &[Entry::Tool(D::Wall)]),
+    ("Walls", "Draw", &[Entry::Tool(D::Wall), Entry::Tool(D::Door), Entry::Tool(D::Window)]),
     ("Transform", "Modify", &[Entry::Tool(D::Move), Entry::Tool(D::Copy), Entry::Tool(D::Rotate), Entry::Tool(D::Mirror), Entry::Tool(D::Scale)]),
     ("Arrays", "Modify", &[Entry::Tool(D::ArrayRect), Entry::Tool(D::ArrayPolar)]),
     ("Edit", "Modify", &[Entry::Tool(D::Offset), Entry::Tool(D::Trim), Entry::Tool(D::Extend), Entry::Tool(D::Fillet), Entry::Tool(D::Chamfer)]),

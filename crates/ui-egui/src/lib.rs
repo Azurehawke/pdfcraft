@@ -86,6 +86,7 @@ mod icon_data;
 pub mod icons;
 pub mod last_session;
 mod markups_list;
+mod openings;
 mod pageboxes;
 mod palette;
 mod panels;
