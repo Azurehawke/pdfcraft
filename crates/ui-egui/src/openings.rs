@@ -128,7 +128,7 @@ fn quad_wall(g: &Geometry) -> Option<Wall> {
     let along = unit(sub(b, a))?;
     // The thickness is the distance between the two faces, across the wall.
     let thickness = cross(along, sub(q[3], q[0])).abs().max(cross(along, sub(q[2], q[1])).abs());
-    (thickness.is_finite() && thickness > 0.01).then(|| Wall { index: g.index, locked: g.locked, a, b, thickness, body: Body::Quad(q) })
+    (thickness.is_finite() && thickness > 0.01).then_some(Wall { index: g.index, locked: g.locked, a, b, thickness, body: Body::Quad(q) })
 }
 
 /// The wall under `p` (within `tolerance` of its edge), nearest first.

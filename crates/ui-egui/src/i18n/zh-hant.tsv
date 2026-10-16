@@ -2064,3 +2064,6 @@ key	Space	空格
 	Remove page	刪除頁面
 	Remove {n} pages	刪除 {n} 頁
 	To open and save PDFs anywhere on this device, turn on All files access for RevuCraft. Settings opens on the switch; come back here afterwards.	要在此裝置上的任何位置開啟和儲存 PDF，請為 RevuCraft 開啟「所有檔案存取權」。設定會直接開啟該開關；完成後回到這裡。
+	Measure rectangle area	測量矩形面積
+	Measure angle	測量角度
+	Measure radius	測量半徑
