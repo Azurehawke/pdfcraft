@@ -96,6 +96,7 @@ mod pickers;
 mod point_bar;
 mod props_box;
 mod status_bar;
+mod tool_chest;
 #[cfg(target_os = "android")]
 pub use android_picker::{AndroidDocuments, AndroidFileAccess, SystemPick, set_android_documents, set_android_file_access};
 pub mod prepare;
@@ -192,6 +193,8 @@ pub enum RightPanel {
     Compare,
     /// RevuCraft's Markups list ([`markups_list`]).
     Markups,
+    /// RevuCraft's Tool chest ([`tool_chest`]).
+    ToolChest,
 }
 
 /// Quick-action bar tools (the vertical floating strip).
@@ -239,6 +242,37 @@ pub enum QuickTool {
     PhotoCallout,
     /// RevuCraft: draw at scale (the Draft tab).
     Draft(draft::DraftTool),
+}
+
+impl QuickTool {
+    /// The tool's id (`select`, `draft-line`, `measure-area`, `highlight`…), as the control
+    /// channel, the tool chest and saved settings name it.
+    pub fn id(self) -> String {
+        match self {
+            QuickTool::Measure(t) => format!("measure-{}", t.name()),
+            QuickTool::Select => "select".to_string(),
+            QuickTool::Hand => "hand".to_string(),
+            QuickTool::Crop => "crop".to_string(),
+            QuickTool::Redact => "redact".to_string(),
+            QuickTool::AddText => "add-text".to_string(),
+            QuickTool::EditText => "edit-text".to_string(),
+            QuickTool::Link => "link".to_string(),
+            QuickTool::SignArea { certify: false } => "sign".to_string(),
+            QuickTool::SignArea { certify: true } => "certify".to_string(),
+            QuickTool::MarqueeZoom => "marquee-zoom".to_string(),
+            QuickTool::Snapshot => "snapshot".to_string(),
+            QuickTool::ColumnSelect => "column-select".to_string(),
+            QuickTool::Symbol => "symbol".to_string(),
+            QuickTool::PhotoPin => "photo-pin".to_string(),
+            QuickTool::PhotoCallout => "photo-callout".to_string(),
+            QuickTool::Draft(t) => format!("draft-{}", t.name()),
+            QuickTool::Stamp(k) => format!("stamp-{}", k.name().trim_start_matches("PC").to_ascii_lowercase()),
+            QuickTool::CustomStamp(i) => format!("custom-stamp-{i}"),
+            QuickTool::Fill(f) => format!("fill-{}", f.command().trim_start_matches("sign.fill.")),
+            QuickTool::Field(f) => format!("field-{}", f.command().trim_start_matches("form.add.")),
+            QuickTool::Comment(t) => t.command().trim_start_matches("comment.").to_string(),
+        }
+    }
 }
 
 /// Files dropped on a document's page grid.
@@ -447,6 +481,8 @@ pub struct PdfCraftApp {
     pub(crate) photo_viewer: Option<revu::PhotoViewer>,
     /// RevuCraft's Markups list: sort, filters and rows.
     pub(crate) markups: markups_list::MarkupsState,
+    /// RevuCraft's Tool chest (saved and recent tools) and workspaces.
+    pub(crate) chest: tool_chest::ToolChest,
     /// RevuCraft: the side panels open in the dock, in the order opened.
     pub(crate) dock: Vec<RightPanel>,
     /// Dock boxes collapsed to their title bar.
@@ -770,6 +806,7 @@ impl PdfCraftApp {
             layer_panel: Default::default(),
             photo_viewer: None,
             markups: Default::default(),
+            chest: Default::default(),
             dock: Vec::new(),
             dock_collapsed: Vec::new(),
             dock_order: Vec::new(),
@@ -1492,8 +1529,58 @@ impl PdfCraftApp {
             "combine_zoom": self.combine_zoom,
             "comments_panel_closed": self.comments_panel_closed,
             "dock": self.dock_layout(),
+            "tool_chest": self.chest.to_json(),
         })
         .to_string()
+    }
+
+    /// The tool with id `value` (see [`QuickTool::id`]).
+    pub(crate) fn quick_tool_from_id(&mut self, value: &str) -> Result<QuickTool, String> {
+        Ok(match value {
+            "select" => QuickTool::Select,
+            measure if measure.starts_with("measure-") => QuickTool::Measure(
+                measure_ui::Tool::from_name(measure.trim_start_matches("measure-")).ok_or_else(|| format!("unknown tool {measure}"))?,
+            ),
+            "hand" => QuickTool::Hand,
+            "crop" => QuickTool::Crop,
+            "redact" => QuickTool::Redact,
+            "add-text" => QuickTool::AddText,
+            "edit-text" => QuickTool::EditText,
+            "link" => QuickTool::Link,
+            "sign" => QuickTool::SignArea { certify: false },
+            "marquee-zoom" => QuickTool::MarqueeZoom,
+            "snapshot" => QuickTool::Snapshot,
+            "column-select" => QuickTool::ColumnSelect,
+            "symbol" => QuickTool::Symbol,
+            "photo-pin" => QuickTool::PhotoPin,
+            "photo-callout" => QuickTool::PhotoCallout,
+            d if d.starts_with("draft-") => QuickTool::Draft(draft::DraftTool::from_name(&d[6..]).ok_or_else(|| format!("unknown draft tool {d}"))?),
+            "certify" => QuickTool::SignArea { certify: true },
+            custom if custom.starts_with("custom-stamp-") => {
+                let i: usize = custom[13..].parse().map_err(|_| format!("bad stamp {custom}"))?;
+                if i >= self.custom_stamps.len() {
+                    return Err(format!("there are {} custom stamps", self.custom_stamps.len()));
+                }
+                QuickTool::CustomStamp(i)
+            }
+            stamp if stamp.starts_with("stamp-") => QuickTool::Stamp(
+                pdfcraft_engine::StampKind::ALL
+                    .into_iter()
+                    .find(|k| k.name().trim_start_matches("PC").eq_ignore_ascii_case(&stamp[6..]))
+                    .ok_or_else(|| format!("unknown stamp {stamp}"))?,
+            ),
+            field if field.starts_with("field-") => QuickTool::Field(
+                prepare::FieldTool::from_command(&format!("form.add.{}", &field[6..])).ok_or_else(|| format!("unknown tool {field}"))?,
+            ),
+            fill if fill.starts_with("fill-") => QuickTool::Fill(
+                fill_sign::FillTool::from_command(&format!("sign.fill.{}", &fill[5..])).ok_or_else(|| format!("unknown tool {fill}"))?,
+            ),
+            other => {
+                let t = comments::CommentTool::from_command(&format!("comment.{other}")).ok_or_else(|| format!("unknown tool {other}"))?;
+                self.comment_prefs.group_tool[t.group()] = t;
+                QuickTool::Comment(t)
+            }
+        })
     }
 
     /// Restore state written by `persist`. Unknown or malformed data is ignored.
@@ -1537,6 +1624,9 @@ impl PdfCraftApp {
         }
         if v["dock"].is_object() {
             self.restore_dock_layout(&v["dock"]);
+        }
+        if v["tool_chest"].is_object() {
+            self.chest = tool_chest::ToolChest::from_json(&v["tool_chest"]);
         }
         if let Some(defaults) = v["default_zoom"].as_str().and_then(|zoom| self.view_defaults.with_zoom(zoom)) {
             self.view_defaults = defaults;
@@ -1678,6 +1768,7 @@ impl PdfCraftApp {
                     "search" => Some(RightPanel::Search),
                     "compare" => Some(RightPanel::Compare),
                     "markups" => Some(RightPanel::Markups),
+                    "tool-chest" => Some(RightPanel::ToolChest),
                     "none" => None,
                     other => return Err(format!("unknown panel {other}")),
                 }
@@ -1822,53 +1913,7 @@ impl PdfCraftApp {
             ("notice", Some(v)) => v.notice_dismissed = value == "off",
             ("quick", _) => {
                 // `--quick select|hand|note|freetext|highlight|underline|strikeout|ink|line|arrow|square|circle`
-                self.quick_tool = match value {
-                    "select" => QuickTool::Select,
-                    measure if measure.starts_with("measure-") => QuickTool::Measure(
-                        measure_ui::Tool::from_name(measure.trim_start_matches("measure-")).ok_or_else(|| format!("unknown tool {measure}"))?,
-                    ),
-                    "hand" => QuickTool::Hand,
-                    "crop" => QuickTool::Crop,
-                    "redact" => QuickTool::Redact,
-                    "add-text" => QuickTool::AddText,
-                    "edit-text" => QuickTool::EditText,
-                    "link" => QuickTool::Link,
-                    "sign" => QuickTool::SignArea { certify: false },
-                    "marquee-zoom" => QuickTool::MarqueeZoom,
-                    "snapshot" => QuickTool::Snapshot,
-                    "column-select" => QuickTool::ColumnSelect,
-                    "symbol" => QuickTool::Symbol,
-                    "photo-pin" => QuickTool::PhotoPin,
-                    "photo-callout" => QuickTool::PhotoCallout,
-                    d if d.starts_with("draft-") => {
-                        QuickTool::Draft(draft::DraftTool::from_name(&d[6..]).ok_or_else(|| format!("unknown draft tool {d}"))?)
-                    }
-                    "certify" => QuickTool::SignArea { certify: true },
-                    custom if custom.starts_with("custom-stamp-") => {
-                        let i: usize = custom[13..].parse().map_err(|_| format!("bad stamp {custom}"))?;
-                        if i >= self.custom_stamps.len() {
-                            return Err(format!("there are {} custom stamps", self.custom_stamps.len()));
-                        }
-                        QuickTool::CustomStamp(i)
-                    }
-                    stamp if stamp.starts_with("stamp-") => QuickTool::Stamp(
-                        pdfcraft_engine::StampKind::ALL
-                            .into_iter()
-                            .find(|k| k.name().trim_start_matches("PC").eq_ignore_ascii_case(&stamp[6..]))
-                            .ok_or_else(|| format!("unknown stamp {stamp}"))?,
-                    ),
-                    field if field.starts_with("field-") => QuickTool::Field(
-                        prepare::FieldTool::from_command(&format!("form.add.{}", &field[6..])).ok_or_else(|| format!("unknown tool {field}"))?,
-                    ),
-                    fill if fill.starts_with("fill-") => QuickTool::Fill(
-                        fill_sign::FillTool::from_command(&format!("sign.fill.{}", &fill[5..])).ok_or_else(|| format!("unknown tool {fill}"))?,
-                    ),
-                    other => {
-                        let t = comments::CommentTool::from_command(&format!("comment.{other}")).ok_or_else(|| format!("unknown tool {other}"))?;
-                        self.comment_prefs.group_tool[t.group()] = t;
-                        QuickTool::Comment(t)
-                    }
-                };
+                self.quick_tool = self.quick_tool_from_id(value)?;
             }
             ("author", _) => self.comment_prefs.author = value.to_string(),
             ("draft-panel", _) => {
@@ -2025,6 +2070,7 @@ impl eframe::App for PdfCraftApp {
 
     fn logic(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         self.ctx = Some(ctx.clone());
+        self.chest.note(self.quick_tool);
         self.dialog_epoch();
         // Notices raised outside `ui` (opened files, OS events, the control channel) translate too.
         let lang = i18n::Lang::from_pref(&self.language);

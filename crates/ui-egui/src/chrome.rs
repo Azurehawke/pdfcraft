@@ -404,6 +404,7 @@ fn main_menu(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
             }
             crate::commands::registry_menu(app, ui, "View");
             ui.menu_button(tl!("Display theme"), |ui| theme_menu(app, ui));
+            ui.menu_button(tl!("Workspaces"), |ui| crate::tool_chest::workspaces_menu(app, ui));
             ui.menu_button(tl!("Side panels"), |ui| {
                 for (p, label) in [
                     (RightPanel::Comments, tl!("Comments")),
@@ -417,6 +418,7 @@ fn main_menu(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
                     (RightPanel::Search, tl!("Search")),
                     (RightPanel::Compare, tl!("Compare")),
                     (RightPanel::Markups, tl!("Markups list")),
+                    (RightPanel::ToolChest, tl!("Tool chest")),
                 ] {
                     if ui.radio(app.right == Some(p), tl!(label)).clicked() {
                         app.choose_right_panel(Some(p));
@@ -507,6 +509,7 @@ pub fn right_rail(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
             rail_button(ui, RightPanel::Fields, "text-cursor-input", "Form fields", has_fields);
             rail_button(ui, RightPanel::Layers, "layers", "Layers", has_layers);
             rail_button(ui, RightPanel::Markups, "list-checks", "Markups list", false);
+            rail_button(ui, RightPanel::ToolChest, "wrench", "Tool chest", false);
             rail_button(ui, RightPanel::Attachments, "paperclip", "Attachments", has_files);
             rail_button(ui, RightPanel::Signatures, "signature", "Signatures", has_signatures);
             if has_check {
@@ -515,6 +518,13 @@ pub fn right_rail(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
             // RevuCraft: the selected markup's Properties box.
             if docks && icons::button(ui, "sliders-horizontal", 34.0, app.dock_properties, tl!("Properties")).clicked() {
                 app.toggle_properties();
+            }
+            // RevuCraft: saved dock layouts.
+            if docks {
+                let r = icons::button(ui, "layout-grid", 34.0, false, tl!("Workspaces"));
+                egui::Popup::from_toggle_button_response(&r)
+                    .close_behavior(egui::PopupCloseBehavior::CloseOnClickOutside)
+                    .show(|ui| crate::tool_chest::workspaces_menu(app, ui));
             }
 
             // Page navigation cluster at the bottom (as in Acrobat's rail).
