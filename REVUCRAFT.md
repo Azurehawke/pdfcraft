@@ -86,6 +86,11 @@ Markup and measuring
       description beside it, on the side the user chooses (left or right of the photo), with a
       leader line to the spot. Placed like a callout (the spot, then the box); pick or take the
       photo, type the description; an existing photo pin can become one. Prints with the drawing.
+- [ ] **(Steve)** Scaled line width for Draft lines: a Width option on the ribbon for the
+      drawing tools in real-world units (presets 4 1/2" interior wall, 6" exterior wall, thin
+      linework; or plain paper points), converted with the page's scale (e.g. 6" at 2" = 15'
+      is about 4.8 pt); square ends and mitred corners for wide lines; the width stays with the
+      line through edits and scales with Scale. The Wall tool stays as it is.
 - [x] **(Steve)** Option to turn off the hover tooltip with the author's name on markup: it
       covers the live measurement label when drawing over other lines. Also: never show it while a
       drawing or measuring tool is placing points. Done: the Tips switch on the status bar (also in
