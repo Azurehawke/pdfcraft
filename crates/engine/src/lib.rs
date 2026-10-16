@@ -191,6 +191,7 @@ fn scope_of(edit: &Edit) -> Scope {
         | Edit::ResizeAnnotation { .. }
         | Edit::SetVertices { .. }
         | Edit::TransformAnnotation { .. }
+        | Edit::EditSymbol { .. }
         | Edit::StyleAnnotation { .. }
         | Edit::FillAnnotation { .. }
         | Edit::SetAnnotationInfo { .. } => Scope::Comments,
@@ -317,6 +318,11 @@ impl Document {
     /// Points in the markup on `page` that drafting snaps to (line ends, vertices, corners).
     pub fn markup_vertices(&self, page: usize) -> Vec<[f64; 2]> {
         self.editor.as_ref().map(|e| pdfcraft_annot::symbols::markup_vertices(&e.cos, page)).unwrap_or_default()
+    }
+
+    /// The turn of the symbol at `(page, index)` in degrees.
+    pub fn symbol_rotation(&self, page: usize, index: usize) -> f64 {
+        self.editor.as_ref().map_or(0.0, |e| pdfcraft_annot::symbols::rotation_at(&e.cos, page, index))
     }
 
     /// The lines, polylines and polygons on `page`, for drafting's grips, trim, extend and offset.
@@ -960,6 +966,13 @@ pub enum Edit {
         vertices: Vec<[f64; 2]>,
         copy: bool,
     },
+    /// RevuCraft: change a placed symbol's label and/or turn (degrees anticlockwise, absolute).
+    EditSymbol {
+        page: usize,
+        index: usize,
+        label: Option<String>,
+        rotation: Option<f64>,
+    },
     /// RevuCraft drafting: move or rotate markup by an affine matrix `[a b c d e f]`, or add a
     /// transformed copy.
     TransformAnnotation {
@@ -1276,6 +1289,8 @@ impl Edit {
             Edit::MoveAnnotation { .. } => "Move comment".into(),
             Edit::ResizeAnnotation { .. } => "Resize comment".into(),
             Edit::SetVertices { copy: false, .. } => "Edit points".into(),
+            Edit::EditSymbol { rotation: Some(_), label: None, .. } => "Rotate symbol".into(),
+            Edit::EditSymbol { .. } => "Edit symbol".into(),
             Edit::SetVertices { copy: true, .. } => "Offset".into(),
             Edit::TransformAnnotation { copy: true, .. } => "Copy markup".into(),
             Edit::TransformAnnotation { matrix, .. } if matrix[..4] == [1.0, 0.0, 0.0, 1.0] => "Move markup".into(),
@@ -1429,6 +1444,7 @@ fn check_permission(edit: &Edit, p: &pdfcraft_cos::Permissions) -> Result<(), Ed
         | Edit::ResizeAnnotation { .. }
         | Edit::SetVertices { .. }
         | Edit::TransformAnnotation { .. }
+        | Edit::EditSymbol { .. }
         | Edit::StyleAnnotation { .. }
         | Edit::FillAnnotation { .. }
         | Edit::SetAnnotationInfo { .. }
@@ -1734,6 +1750,9 @@ fn run_edit(doc: &mut pdfcraft_cos::Document, edit: &Edit, cx: &mut EditCtx) -> 
         Edit::SetVertices { page, index, vertices, copy } => {
             let changed = pdfcraft_annot::geometry::set_vertices(doc, *page, *index, vertices, *copy, &cx.meta())?;
             measure::refresh(doc, *page, changed)?;
+        }
+        Edit::EditSymbol { page, index, label, rotation } => {
+            pdfcraft_annot::symbols::edit_symbol(doc, *page, *index, label.as_deref(), *rotation, &cx.meta())?;
         }
         Edit::TransformAnnotation { page, index, matrix, copy } => {
             let changed = pdfcraft_annot::geometry::transform(doc, *page, *index, matrix, *copy, &cx.meta())?;

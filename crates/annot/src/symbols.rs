@@ -363,6 +363,8 @@ pub struct NewSymbol {
     pub label: String,
     pub color: Rgb,
     pub author: String,
+    /// Its turn in degrees anticlockwise (0: level).
+    pub rotation: f64,
 }
 
 fn rg(c: Rgb) -> String {
@@ -378,15 +380,37 @@ fn font(base: &str) -> Object {
     Object::Dict(f)
 }
 
-/// The picture of `symbol` with `label`: a form XObject, and its width and height in its units.
-fn picture(symbol: Symbol, label: &str, color: Rgb) -> (Stream, f64, f64) {
+/// The side of the square the artwork is drawn in: the box itself, or room for any turn of it.
+fn art_side(degrees: f64) -> f64 {
+    if degrees.rem_euclid(360.0).abs() < 1e-9 { BOX } else { BOX * std::f64::consts::SQRT_2 }
+}
+
+/// The picture of `symbol` with `label`, its artwork turned `degrees` anticlockwise (the label
+/// stays level): a form XObject, and its width and height in its units.
+fn picture(symbol: Symbol, label: &str, color: Rgb, degrees: f64) -> (Stream, f64, f64) {
     let label_width = if label.is_empty() { 0.0 } else { pdfcraft_fonts::helvetica_width(label, LABEL_SIZE) * 1.04 + 8.0 };
-    let width = BOX.max(label_width);
+    let side = art_side(degrees);
+    let width = side.max(label_width);
     let band = if label.is_empty() { 0.0 } else { LABEL_BAND };
-    let height = BOX + band;
+    let height = side + band;
     let mut content: Vec<u8> = Vec::new();
     content.extend_from_slice(rg(color).as_bytes());
-    content.extend_from_slice(format!("{} w 1 J 1 j\nq 1 0 0 1 {} {} cm\n", n(WEIGHT), n((width - BOX) / 2.0), n(band)).as_bytes());
+    let (sin, cos) = degrees.to_radians().sin_cos();
+    content.extend_from_slice(
+        format!(
+            "{} w 1 J 1 j\nq 1 0 0 1 {} {} cm {} {} {} {} 0 0 cm 1 0 0 1 {} {} cm\n",
+            n(WEIGHT),
+            n(width / 2.0),
+            n(band + side / 2.0),
+            n(cos),
+            n(sin),
+            n(-sin),
+            n(cos),
+            n(-BOX / 2.0),
+            n(-BOX / 2.0)
+        )
+        .as_bytes(),
+    );
     content.extend_from_slice(symbol.art().as_bytes());
     content.extend_from_slice(b"Q\n");
     if !label.is_empty() {
@@ -429,13 +453,17 @@ pub fn add_symbol(doc: &mut Document, new: &NewSymbol, meta: &Meta) -> Result<us
         return Err(AnnotError::Invalid("invalid symbol colour".into()));
     }
     let label = clean_label(&new.label);
-    let (stream, width, height) = picture(new.symbol, &label, new.color);
+    if !new.rotation.is_finite() || new.rotation.abs() > 36_000.0 {
+        return Err(AnnotError::Invalid("invalid symbol turn".into()));
+    }
+    let turn = new.rotation.rem_euclid(360.0);
+    let (stream, width, height) = picture(new.symbol, &label, new.color, turn);
     let picture = doc.add(Object::Stream(stream));
     let k = new.size / BOX;
     let band = if label.is_empty() { 0.0 } else { LABEL_BAND };
     // The symbol's centre (not the label's) lands on the point.
     let x0 = new.center[0] - width / 2.0 * k;
-    let y0 = new.center[1] - (band + BOX / 2.0) * k;
+    let y0 = new.center[1] - (band + art_side(turn) / 2.0) * k;
     let rect = [x0, y0, x0 + width * k, y0 + height * k];
     let shape = Shape::CustomStamp { rect, name: format!("Symbol{}", new.symbol.id()), picture, image: false, size: (width, height) };
     let annotation = NewAnnotation { page: new.page, style: Style::default_for(&shape), shape, contents: label.clone(), author: new.author.clone() };
@@ -445,9 +473,88 @@ pub fn add_symbol(doc: &mut Document, new: &NewSymbol, meta: &Meta) -> Result<us
         d.set(b"Subj".to_vec(), PdfString::text(new.symbol.name()));
         d.set(b"PCSymbol".to_vec(), PdfString::text(new.symbol.id()));
         d.set(b"PCLabel".to_vec(), PdfString::text(&label));
+        d.set(b"PCSize".to_vec(), Object::Real(new.size));
+        if turn != 0.0 {
+            d.set(b"PCRotation".to_vec(), Object::Real(turn));
+        }
         d.set(b"C".to_vec(), Object::Array(new.color.iter().map(|v| Object::Real(*v)).collect()));
     })?;
     Ok(index)
+}
+
+/// Change a placed symbol's label and/or turn (degrees anticlockwise, absolute), keeping its size
+/// and the point its centre sits on. The label stays level as the artwork turns.
+pub fn edit_symbol(doc: &mut Document, page: usize, index: usize, label: Option<&str>, degrees: Option<f64>, meta: &Meta) -> Result<(), AnnotError> {
+    let (_, r) = annot_ref(doc, page, index)?;
+    crate::unlocked(doc, r)?;
+    let d = crate::annot_dict(doc, r);
+    let text = |k: &[u8]| d.get(k).map(|o| doc.resolve(o)).and_then(|o| o.as_string().map(PdfString::to_text));
+    let Some(symbol) = text(b"PCSymbol").as_deref().and_then(Symbol::from_id) else {
+        return Err(AnnotError::Invalid("not a symbol from the library".into()));
+    };
+    let nums = |k: &[u8]| -> Vec<f64> {
+        d.get(k).map(|o| doc.resolve(o)).and_then(|o| o.as_array().map(|a| a.iter().filter_map(|x| x.as_f64()).collect())).unwrap_or_default()
+    };
+    let color: Rgb = match nums(b"C")[..] {
+        [r, g, b] => [r, g, b].map(|v| if v.is_finite() { v.clamp(0.0, 1.0) } else { 0.0 }),
+        _ => [0.0; 3],
+    };
+    let old_label = text(b"PCLabel").unwrap_or_default();
+    let old_turn = d.get(b"PCRotation").and_then(|o| doc.resolve(o).as_f64()).filter(|v| v.is_finite()).unwrap_or(0.0);
+    let [x0, y0, x1, y1] = nums(b"Rect")[..] else { return Err(AnnotError::Invalid("the symbol has no rectangle".into())) };
+    let (x0, y0, x1, y1) = (x0.min(x1), y0.min(y1), x0.max(x1), y0.max(y1));
+    let old_band = if old_label.is_empty() { 0.0 } else { LABEL_BAND };
+    let old_height = art_side(old_turn) + old_band;
+    // Its scale (user units per picture unit), from its size, else from its rectangle.
+    let k = match d.get(b"PCSize").and_then(|o| doc.resolve(o).as_f64()).filter(|v| v.is_finite() && *v > 0.0) {
+        Some(size) => size / BOX,
+        None => (y1 - y0) / old_height,
+    };
+    if !k.is_finite() || k <= 0.0 {
+        return Err(AnnotError::Invalid("the symbol's size can't be read".into()));
+    }
+    let center = [(x0 + x1) / 2.0, y0 + (old_band + art_side(old_turn) / 2.0) * k];
+    let label = label.map_or(old_label, clean_label);
+    let turn = match degrees {
+        Some(t) if t.is_finite() && t.abs() <= 36_000.0 => t.rem_euclid(360.0),
+        Some(_) => return Err(AnnotError::Invalid("invalid turn".into())),
+        None => old_turn,
+    };
+    let (stream, width, height) = picture(symbol, &label, color, turn);
+    let pic = doc.add(Object::Stream(stream));
+    let band = if label.is_empty() { 0.0 } else { LABEL_BAND };
+    let nx0 = center[0] - width / 2.0 * k;
+    let ny0 = center[1] - (band + art_side(turn) / 2.0) * k;
+    let rect = [nx0, ny0, nx0 + width * k, ny0 + height * k];
+    if !rect.iter().all(|v| v.is_finite() && v.abs() < 1e7) {
+        return Err(AnnotError::Invalid("the symbol would leave the page".into()));
+    }
+    doc.update_dict(r, |d| {
+        d.set(b"Rect".to_vec(), Object::Array(rect.iter().map(|v| Object::Real(*v)).collect()));
+        d.set(b"PCPicture".to_vec(), Object::Ref(pic));
+        d.set(b"PCPictureSize".to_vec(), Object::Array(vec![Object::Real(width), Object::Real(height)]));
+        d.set(b"PCLabel".to_vec(), PdfString::text(&label));
+        d.set(b"Contents".to_vec(), PdfString::text(&label));
+        d.set(b"PCSize".to_vec(), Object::Real(k * BOX));
+        if turn == 0.0 {
+            d.remove(b"PCRotation");
+        } else {
+            d.set(b"PCRotation".to_vec(), Object::Real(turn));
+        }
+        crate::touch(d, meta);
+    })?;
+    crate::set_appearance(doc, r)
+}
+
+/// The turn of the symbol at `(page, index)` in degrees (0 when level or not a symbol).
+pub fn rotation_at(doc: &Document, page: usize, index: usize) -> f64 {
+    let Some(p) = page_refs(doc).ok().and_then(|r| r.get(page).copied()) else { return 0.0 };
+    annots(doc, p).get(index).map(|e| doc.resolve(e)).and_then(|o| o.as_dict().map(rotation_of)).unwrap_or(0.0)
+}
+
+/// A placed symbol's turn in degrees (0 when level).
+pub fn rotation_of(d: &Dict) -> f64 {
+    d.get(b"PCRotation").and_then(Object::as_f64).filter(|v| v.is_finite()).unwrap_or(0.0)
 }
 
 /// A placed symbol, for counts and the bill of materials.
@@ -613,6 +720,7 @@ mod tests {
             label: "  PC (desk) \u{7} ".into(),
             color: [0.0, 0.4, 0.9],
             author: "Steve".into(),
+            rotation: 0.0,
         };
         let i = add_symbol(&mut doc, &new, &Meta::default()).unwrap();
         crate::layers::assign(&mut doc, 0, i, Some(layer)).unwrap();
@@ -656,6 +764,41 @@ mod tests {
     }
 
     #[test]
+    fn symbols_turn_and_relabel_in_place() {
+        let mut doc = blank();
+        let new = NewSymbol {
+            page: 0,
+            symbol: Symbol::DataJack,
+            center: [300.0, 200.0],
+            size: 20.0,
+            label: "PC".into(),
+            color: [0.0, 0.4, 0.9],
+            author: String::new(),
+            rotation: 0.0,
+        };
+        let i = add_symbol(&mut doc, &new, &Meta::default()).unwrap();
+        let centre = |doc: &Document| {
+            let p = page_refs(doc).unwrap()[0];
+            let d = doc.resolve(&annots(doc, p)[i]).as_dict().unwrap().clone();
+            let r: Vec<f64> = d.get(b"Rect").unwrap().as_array().unwrap().iter().filter_map(|x| x.as_f64()).collect();
+            let label = d.get(b"PCLabel").unwrap().as_string().unwrap().to_text();
+            let band = if label.is_empty() { 0.0 } else { LABEL_BAND };
+            let k = 20.0 / BOX;
+            ([(r[0] + r[2]) / 2.0, r[1] + (band + art_side(rotation_of(&d)) / 2.0) * k], label, rotation_of(&d))
+        };
+        edit_symbol(&mut doc, 0, i, Some("VoIP-3"), Some(90.0), &Meta::default()).unwrap();
+        let (c, label, turn) = centre(&doc);
+        assert!((c[0] - 300.0).abs() < 1e-6 && (c[1] - 200.0).abs() < 1e-6, "{c:?}");
+        assert_eq!((label.as_str(), turn), ("VoIP-3", 90.0));
+        assert_eq!(placed(&doc)[0].label, "VoIP-3");
+        edit_symbol(&mut doc, 0, i, Some(""), Some(0.0), &Meta::default()).unwrap();
+        let (c, label, turn) = centre(&doc);
+        assert!((c[0] - 300.0).abs() < 1e-6 && (c[1] - 200.0).abs() < 1e-6, "{c:?}");
+        assert_eq!((label.as_str(), turn), ("", 0.0));
+        assert!(edit_symbol(&mut doc, 0, i, None, Some(f64::NAN), &Meta::default()).is_err());
+    }
+
+    #[test]
     fn bad_placements_are_refused() {
         let mut doc = blank();
         let base = NewSymbol {
@@ -666,6 +809,7 @@ mod tests {
             label: String::new(),
             color: [0.0; 3],
             author: String::new(),
+            rotation: 0.0,
         };
         for bad in [
             NewSymbol { size: f64::NAN, ..base.clone() },

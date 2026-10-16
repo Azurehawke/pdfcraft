@@ -25,6 +25,12 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
     let annotation = doc.info.annotations.iter().find(|a| a.page == page && a.index == ai).cloned();
     let editable = doc.allows_annotation() && doc.read_only_reason.is_none();
     let layers = app.session.layer_details(id);
+    let rotation = doc.symbol_rotation(page, ai);
+    // The direction of the line or wall nearest the symbol, for lining it up.
+    let wall_angle = annotation.as_ref().filter(|a| a.symbol.is_some()).and_then(|a| {
+        let [x0, y0, x1, y1] = a.rect.map(f64::from);
+        nearest_line_angle(doc, page, [(x0 + x1) / 2.0, (y0 + y1) / 2.0])
+    });
     // A new selection, or nothing pending: show the markup as it is now.
     let reload = app.props_box.as_ref().is_none_or(|d| d.page != page || d.index != ai || d.edited == d.original);
     if reload {
@@ -98,13 +104,39 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
                     let r = ui.add(egui::TextEdit::multiline(&mut text).desired_rows(2).desired_width(170.0));
                     if r.lost_focus() {
                         if text != a.contents.clone().unwrap_or_default() {
-                            extra.push(Edit::SetAnnotationContents { page, index: ai, text: text.clone() });
+                            // A symbol's label is drawn under it, so the symbol is redrawn.
+                            if a.symbol.is_some() {
+                                extra.push(Edit::EditSymbol { page, index: ai, label: Some(text.clone()), rotation: None });
+                            } else {
+                                extra.push(Edit::SetAnnotationContents { page, index: ai, text: text.clone() });
+                            }
                         }
                         ui.data_mut(|m| m.remove::<String>(text_id));
                     } else if r.has_focus() {
                         ui.data_mut(|m| m.insert_temp(text_id, text));
                     }
                     ui.end_row();
+                    // A symbol's turn, and turning it to line up with the nearest wall or line.
+                    if a.symbol.is_some() {
+                        ui.label(tl!("Rotation"));
+                        ui.horizontal(|ui| {
+                            let mut turn = rotation;
+                            let r = ui.add(egui::DragValue::new(&mut turn).range(-360.0..=360.0).speed(1.0).suffix("°"));
+                            if (r.drag_stopped() || r.lost_focus() || (r.changed() && !r.dragged() && !r.has_focus()))
+                                && (turn - rotation).abs() > 1e-6
+                            {
+                                extra.push(Edit::EditSymbol { page, index: ai, label: None, rotation: Some(turn) });
+                            }
+                            if widgets::pill_button(ui, tl!("Align to nearest wall"), false)
+                                .on_hover_text(tl!("Turn the symbol to line up with the nearest wall or line"))
+                                .clicked()
+                                && let Some(t) = wall_angle
+                            {
+                                extra.push(Edit::EditSymbol { page, index: ai, label: None, rotation: Some(t) });
+                            }
+                        });
+                        ui.end_row();
+                    }
                 }
                 ui.label(tl!("Subject"));
                 let r = ui.add(egui::TextEdit::singleline(&mut d.edited.subject).desired_width(170.0));
@@ -146,4 +178,36 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
     if more {
         app.open_comment_props(page, ai);
     }
+}
+
+/// The angle (degrees, -90 to 90) of the markup line nearest `p` on `page`, for lining a symbol up
+/// with a wall.
+pub(crate) fn nearest_line_angle(doc: &pdfcraft_engine::Document, page: usize, p: [f64; 2]) -> Option<f64> {
+    nearest_line(doc, page, p).map(|(_, a)| a)
+}
+
+/// The distance to the markup line nearest `p` on `page`, and its angle (degrees, -90 to 90).
+pub(crate) fn nearest_line(doc: &pdfcraft_engine::Document, page: usize, p: [f64; 2]) -> Option<(f64, f64)> {
+    let mut best: Option<(f64, f64)> = None;
+    for g in doc.markup_geometry(page) {
+        for (a, b) in g.segments() {
+            let (dx, dy) = (b[0] - a[0], b[1] - a[1]);
+            let len2 = dx * dx + dy * dy;
+            if len2 < 1e-12 {
+                continue;
+            }
+            let t = (((p[0] - a[0]) * dx + (p[1] - a[1]) * dy) / len2).clamp(0.0, 1.0);
+            let d = (p[0] - a[0] - dx * t).hypot(p[1] - a[1] - dy * t);
+            if best.is_none_or(|(bd, _)| d < bd) {
+                let mut angle = dy.atan2(dx).to_degrees();
+                if angle > 90.0 {
+                    angle -= 180.0;
+                } else if angle <= -90.0 {
+                    angle += 180.0;
+                }
+                best = Some((d, angle));
+            }
+        }
+    }
+    best
 }

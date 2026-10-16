@@ -41,12 +41,32 @@ pub struct SymbolSettings {
     pub label: String,
     /// Append a number to the label, counting up with each symbol placed.
     pub auto_number: bool,
+    /// New symbols turn to line up with the nearest wall or line.
+    pub align_to_wall: bool,
     pub next: u32,
+    /// Renumber: the symbol kind, the label before the number, the first number, every page.
+    pub renumber_kind: Option<String>,
+    pub renumber_prefix: String,
+    pub renumber_start: u32,
+    pub renumber_all_pages: bool,
 }
 
 impl Default for SymbolSettings {
     fn default() -> Self {
-        Self { symbol: Symbol::DataJack, real_size: true, real_inches: 12.0, paper_inches: 0.25, label: String::new(), auto_number: false, next: 1 }
+        Self {
+            symbol: Symbol::DataJack,
+            real_size: true,
+            real_inches: 12.0,
+            paper_inches: 0.25,
+            label: String::new(),
+            auto_number: false,
+            align_to_wall: false,
+            next: 1,
+            renumber_kind: None,
+            renumber_prefix: String::new(),
+            renumber_start: 1,
+            renumber_all_pages: false,
+        }
     }
 }
 
@@ -260,6 +280,9 @@ pub fn ribbon(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
                         ui.add(egui::DragValue::new(&mut s.next).range(0..=99_999));
                     }
                 });
+                let _ = ui
+                    .checkbox(&mut s.align_to_wall, tl!("Line up with walls"))
+                    .on_hover_text(tl!("Turn new symbols to line up with the nearest wall or line"));
             });
             separator(ui);
             group(ui, &t, tl!("Photos"), |ui| {
@@ -267,6 +290,13 @@ pub fn ribbon(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
                 if icons::button(ui, "camera", 34.0, pinning, tl!("Pin a photo: tap the drawing where it goes")).clicked() {
                     app.quick_tool = if pinning { QuickTool::Select } else { QuickTool::PhotoPin };
                 }
+            });
+            separator(ui);
+            group(ui, &t, tl!("Renumber"), |ui| {
+                let resp = icons::button(ui, "list-ordered", 34.0, false, tl!("Renumber symbols in order across the page"));
+                egui::Popup::from_toggle_button_response(&resp).close_behavior(egui::PopupCloseBehavior::CloseOnClickOutside).show(|ui| {
+                    renumber_popup(app, ui, id);
+                });
             });
             separator(ui);
             group(ui, &t, tl!("Counts"), |ui| {
@@ -363,6 +393,12 @@ pub fn symbol_edit(s: &SymbolSettings, doc: &pdfcraft_engine::Document, page: us
         label: s.label_now(),
         color,
         author: author.to_string(),
+        // Lined up with a wall or line within a couple of symbol widths.
+        rotation: if s.align_to_wall {
+            crate::props_box::nearest_line(doc, page, at).filter(|(d, _)| *d <= size.max(12.0) * 2.0).map_or(0.0, |(_, a)| a)
+        } else {
+            0.0
+        },
     })
 }
 
@@ -705,5 +741,85 @@ pub fn photo_window(app: &mut PdfCraftApp, ctx: &egui::Context) {
     }
     if close {
         app.photo_viewer = None;
+    }
+}
+
+/// The Renumber pop-up: label every symbol of one kind in reading order (top to bottom, then left
+/// to right) as prefix + number, counting up from the start.
+fn renumber_popup(app: &mut PdfCraftApp, ui: &mut egui::Ui, id: pdfcraft_engine::DocId) {
+    let placed = app.session.placed_symbols(id);
+    let mut kinds: Vec<String> = placed.iter().map(|p| p.symbol.clone()).collect();
+    kinds.sort();
+    kinds.dedup();
+    if kinds.is_empty() {
+        ui.label(tl!("There are no symbols to renumber yet."));
+        return;
+    }
+    let current_page = app.active_ids().and_then(|(i, _)| app.views.get(i)).map_or(0, |v| v.current);
+    let s = &mut app.symbols;
+    if s.renumber_kind.as_ref().is_none_or(|k| !kinds.contains(k)) {
+        s.renumber_kind = kinds.first().cloned();
+    }
+    egui::Grid::new("renumber-grid").num_columns(2).spacing([8.0, 6.0]).show(ui, |ui| {
+        ui.label(tl!("Symbol"));
+        let shown = s.renumber_kind.as_deref().map(pdfcraft_engine::symbols::display_name).unwrap_or_default();
+        egui::ComboBox::from_id_salt("renumber-kind").selected_text(shown).width(160.0).show_ui(ui, |ui| {
+            for k in &kinds {
+                ui.selectable_value(&mut s.renumber_kind, Some(k.clone()), pdfcraft_engine::symbols::display_name(k));
+            }
+        });
+        ui.end_row();
+        ui.label(tl!("Label"));
+        ui.add(egui::TextEdit::singleline(&mut s.renumber_prefix).desired_width(100.0).hint_text(tl!("PC, VoIP…")));
+        ui.end_row();
+        ui.label(tl!("Start at"));
+        ui.add(egui::DragValue::new(&mut s.renumber_start).range(0..=99_999));
+        ui.end_row();
+    });
+    ui.checkbox(&mut s.renumber_all_pages, tl!("Every page (otherwise this page)"));
+    let preview = {
+        let prefix = s.renumber_prefix.trim();
+        if prefix.is_empty() { s.renumber_start.to_string() } else { format!("{prefix}-{}", s.renumber_start) }
+    };
+    ui.label(egui::RichText::new(crate::i18n::fmt(tl!("The first one becomes {label}"), &[("label", &preview)])).small());
+    if !crate::widgets::pill_button(ui, tl!("Renumber"), true).clicked() {
+        return;
+    }
+    let Some(kind) = s.renumber_kind.clone() else { return };
+    let (prefix, start, all) = (s.renumber_prefix.trim().to_string(), s.renumber_start, s.renumber_all_pages);
+    let Some(doc) = app.session.get(id) else { return };
+    // Reading order: page, then rows from the top, then left to right.
+    let mut targets: Vec<(usize, usize, f32, f32)> = placed
+        .iter()
+        .filter(|p| p.symbol == kind && (all || p.page == current_page))
+        .filter_map(|p| {
+            doc.info
+                .annotations
+                .iter()
+                .find(|a| a.page == p.page && a.index == p.index)
+                .map(|a| (p.page, p.index, a.rect[1].max(a.rect[3]), a.rect[0].min(a.rect[2])))
+        })
+        .collect();
+    targets.sort_by(|a, b| {
+        a.0.cmp(&b.0)
+            .then(b.2.partial_cmp(&a.2).unwrap_or(std::cmp::Ordering::Equal))
+            .then(a.3.partial_cmp(&b.3).unwrap_or(std::cmp::Ordering::Equal))
+    });
+    let edits: Vec<Edit> = targets
+        .iter()
+        .enumerate()
+        .map(|(k, (page, index, _, _))| {
+            let n = start.saturating_add(u32::try_from(k).unwrap_or(u32::MAX));
+            let label = if prefix.is_empty() { n.to_string() } else { format!("{prefix}-{n}") };
+            Edit::EditSymbol { page: *page, index: *index, label: Some(label), rotation: None }
+        })
+        .collect();
+    if edits.is_empty() {
+        app.notify(tl!("There are no symbols of that kind on this page."));
+        return;
+    }
+    let count = edits.len();
+    if app.apply_edit(Edit::Batch { label: "Renumber symbols".into(), edits }) {
+        app.notify(crate::i18n::fmt(tl!("Renumbered {n} symbols."), &[("n", &count.to_string())]));
     }
 }

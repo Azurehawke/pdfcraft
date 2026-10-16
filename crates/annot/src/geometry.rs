@@ -376,10 +376,16 @@ pub fn transform(doc: &mut Document, page: usize, index: usize, m: &[f64; 6], co
         crate::set_rect(doc, page, index, [a[0].min(b[0]), a[1].min(b[1]), a[0].max(b[0]), a[1].max(b[1])], meta)?;
         return Ok(index);
     }
-    // Everything else moves with its centre.
+    // Everything else moves with its centre; a library symbol turns with the drawing too.
     let c = [(x0 + x1) / 2.0, (y0 + y1) / 2.0];
     let to = apply(m, c);
     crate::move_annotation(doc, page, index, to[0] - c[0], to[1] - c[1], meta)?;
+    let det = m[0] * m[3] - m[1] * m[2];
+    let turn = m[1].atan2(m[0]).to_degrees();
+    if d.get(b"PCSymbol").is_some() && (det - 1.0).abs() < 1e-6 && turn.abs() > 1e-6 {
+        let old = crate::symbols::rotation_of(&d);
+        crate::symbols::edit_symbol(doc, page, index, None, Some(old + turn), meta)?;
+    }
     Ok(index)
 }
 
