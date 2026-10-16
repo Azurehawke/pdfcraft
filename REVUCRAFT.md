@@ -69,7 +69,7 @@ Panels and layout
 - [ ] Workspaces: save and switch dock layouts ("Office", "Field"), as Adobe apps do.
 - [x] Properties box: the selected markup's colour, line width, opacity, layer, subject, label and
       measurement scale, edited in place (Revu's Properties panel).
-- [ ] Markups list box: every markup and measurement in a sortable, filterable table (type, label,
+- [x] Markups list box: every markup and measurement in a sortable, filterable table (type, label,
       layer, page, author, status, value), click to go to it, export CSV (roadmap R4).
 - [x] Status bar: cursor position in feet-inches, page scale, snapping on/off, current layer.
 
@@ -107,13 +107,17 @@ than rewritten.
 - [x] Drawing by numbers: lengths in feet-inches (`15'`, `12'6"`), relative `@0,15`, polar
       `@15<90`, ortho and polar angles, a big keypad on the tablet; later fed by the laser
       meter and the LiDAR scan.
-- [ ] Tools (line, polyline, rectangle, walls, circle, arc and dimension done; doors and windows to come): line, polyline, rectangle, circle and arc, walls with a thickness, doors and windows
+- [ ] Tools (line, polyline, spline, rectangle, circle, arc, ellipse, polygon, revision cloud, walls and aligned, linear, radius and diameter dimensions done; doors and windows to come): line, polyline, rectangle, circle and arc, walls with a thickness, doors and windows
       from the symbol library; object snaps (end, mid, intersection, perpendicular) shared with
       measuring.
 - [x] Editing: grips, move, copy, rotate, offset, trim and extend; dimensions (from the
       measuring tools); text. Trim and extend work on lines and polylines against other markup
       (not yet against the PDF's own drawing); boxes and symbols rotate about the centre point
       but stay upright.
+- [x] Draft tools panel on the left (CADCraft's Tool Sets): Draw, Modify and Annotate groups with
+      drafting icons; collapses to one icon per group, the arrow on a button flies out the rest.
+- [x] More CAD tools: mirror, scale, rectangular and polar arrays, fillet (sharp or rounded),
+      chamfer, break, join, explode, erase, callout; the ribbon shows the tool's options.
 - [x] Cursor coordinates in feet-inches in the status bar; a page origin to measure from.
 - [ ] Everything drawn stays editable, on layers, and saved in the PDF (annotations with their
       geometry in drawing units).
