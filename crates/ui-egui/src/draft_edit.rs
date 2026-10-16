@@ -390,8 +390,11 @@ fn set_end(points: &[Pt], at_end: bool, p: Pt) -> Vec<Pt> {
     out
 }
 
+/// Two paths reshaped to meet at a corner, and the arc or chamfer between them (if any).
+pub type Cornered = (Vec<Pt>, Vec<Pt>, Option<Vec<Pt>>);
+
 /// The two paths with their ends meeting at a corner, and the arc or chamfer between them.
-pub fn corner(p1: &[Pt], c1: Pt, p2: &[Pt], c2: Pt, kind: Corner) -> Option<(Vec<Pt>, Vec<Pt>, Option<Vec<Pt>>)> {
+pub fn corner(p1: &[Pt], c1: Pt, p2: &[Pt], c2: Pt, kind: Corner) -> Option<Cornered> {
     let seg = |p: &[Pt], c: Pt| -> Option<(Pt, Pt)> {
         let lengths = running_lengths(p);
         let (s, _) = project(p, c)?;

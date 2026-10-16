@@ -317,7 +317,7 @@ mod tests {
         assert_eq!(g[1].points, vec![[0.0, 0.0], [50.0, 0.0]]);
         // A line keeps two points.
         let k = add(&mut d, Shape::Line { from: [0.0, 0.0], to: [50.0, 50.0], start: LineEnding::None, end: LineEnding::None });
-        assert!(set_vertices(&mut d, 0, k, &[[0.0, 0.0], [1.0, 1.0], [5.0, 5.0]], false, &meta()).is_err());
+        assert!(set_vertices(&mut d, 0, k, &[[0.0, 0.0]], false, &meta()).is_err(), "one point is not a line");
         assert!(set_vertices(&mut d, 0, k, &[[0.0, 0.0], [f64::NAN, 1.0]], false, &meta()).is_err());
         assert!(set_vertices(&mut d, 0, 99, &[[0.0, 0.0], [10.0, 1.0]], false, &meta()).is_err());
     }
