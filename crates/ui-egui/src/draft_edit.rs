@@ -1073,7 +1073,9 @@ pub(crate) fn modify_input(
             }
             for shape in openings::drawing(kind, &at, settings.door_flip) {
                 match shape {
-                    pdfcraft_engine::Shape::Line { from, to, .. } => painter.line_segment([cx.to_screen(from), cx.to_screen(to)], stroke),
+                    pdfcraft_engine::Shape::Line { from, to, .. } => {
+                        painter.line_segment([cx.to_screen(from), cx.to_screen(to)], stroke);
+                    }
                     pdfcraft_engine::Shape::PolyLine { vertices, .. } => draw_path(painter, cx, &vertices, false, stroke),
                     pdfcraft_engine::Shape::Polygon { vertices, .. } => draw_path(painter, cx, &vertices, true, stroke),
                     _ => {}

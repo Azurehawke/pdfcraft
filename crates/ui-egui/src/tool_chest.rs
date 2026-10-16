@@ -344,10 +344,10 @@ pub fn workspaces_menu(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
                 if !name.is_empty() {
                     let layout = app.workspace_now();
                     let w = &mut app.chest.workspaces;
-                    match w.iter_mut().find(|(n, _)| *n == name) {
-                        Some(slot) => slot.1 = layout,
-                        None if w.len() < MAX_WORKSPACES => w.push((name, layout)),
-                        None => {}
+                    if let Some(slot) = w.iter_mut().find(|(n, _)| *n == name) {
+                        slot.1 = layout;
+                    } else if w.len() < MAX_WORKSPACES {
+                        w.push((name, layout));
                     }
                 }
             }
