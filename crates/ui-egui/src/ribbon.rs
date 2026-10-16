@@ -62,7 +62,18 @@ impl Workflow {
             ],
             Self::Measure => &[
                 ("Scale", &["measure.scale"]),
-                ("Measure", &["measure.distance", "measure.perimeter", "measure.area", "measure.rectangle", "measure.angle", "measure.radius"]),
+                (
+                    "Measure",
+                    &[
+                        "measure.calibrate",
+                        "measure.distance",
+                        "measure.perimeter",
+                        "measure.area",
+                        "measure.rectangle",
+                        "measure.angle",
+                        "measure.radius",
+                    ],
+                ),
                 ("Tools", &["measure.snap", "measure.info"]),
                 ("Export", &["measure.export"]),
             ],
@@ -112,6 +123,7 @@ fn icon(id: &str, registry: &'static str) -> &'static str {
         "measure.rectangle" => "square-dashed",
         "measure.angle" => "chevron-left",
         "measure.radius" => "circle-dot",
+        "measure.calibrate" => "maximize-2",
         "measure.snap" => "grid-3x3",
         "measure.info" => "info",
         "measure.export" => "file-spreadsheet",

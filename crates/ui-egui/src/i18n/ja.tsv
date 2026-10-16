@@ -2472,3 +2472,11 @@ key	Space	スペース
 	Drafting	製図
 	Crop	トリミング
 	Snapshot	スナップショット
+	How long is this line really?	この線の実際の長さは？
+	Use this scale on every page	このスケールをすべてのページに使う
+	Click one end of a length you know	長さがわかっている部分の一端をクリック
+	Click the other end	もう一端をクリック
+	Type the real length, like 12'6", 150 or 3.5m	実際の長さを入力（例：12'6"、150、3.5m）
+	The two points are in the same place; pick two ends of a length.	2点が同じ位置です。長さの両端を選んでください。
+	The page can't be measured.	このページは測定できません。
+	Calibrate scale	スケールを校正

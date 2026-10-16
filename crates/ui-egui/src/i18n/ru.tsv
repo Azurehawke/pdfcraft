@@ -2385,3 +2385,11 @@ key	Space	Пробел
 	Drafting	Черчение
 	Crop	Обрезать
 	Snapshot	Снимок
+	How long is this line really?	Какова реальная длина этой линии?
+	Use this scale on every page	Использовать этот масштаб на всех страницах
+	Click one end of a length you know	Щёлкните один конец известной длины
+	Click the other end	Щёлкните другой конец
+	Type the real length, like 12'6", 150 or 3.5m	Введите реальную длину, например 12'6", 150 или 3.5m
+	The two points are in the same place; pick two ends of a length.	Обе точки в одном месте; выберите два конца отрезка.
+	The page can't be measured.	Эту страницу нельзя измерить.
+	Calibrate scale	Откалибровать масштаб

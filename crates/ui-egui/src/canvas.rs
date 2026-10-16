@@ -2250,6 +2250,7 @@ pub fn document_area(app: &mut PdfCraftApp, index: usize, ui: &mut egui::Ui) {
                 view.cursor = Some((i, [f64::from(u[0]), f64::from(u[1])]));
             }
             if let QuickTool::Measure(measure_tool) = tool {
+                view.measure.bare = draft_settings.bare;
                 crate::measure_ui::page_input(ui, &resp, doc, view, &pcx, measure_tool);
             }
             if let QuickTool::Draft(draft_tool) = tool {
@@ -2913,6 +2914,10 @@ pub fn document_area(app: &mut PdfCraftApp, index: usize, ui: &mut egui::Ui) {
     }
     if symbol_placed && app.symbols.auto_number {
         app.symbols.next = app.symbols.next.saturating_add(1);
+    }
+    // A scale just set by calibrating puts the Calibrate tool down.
+    if std::mem::take(&mut app.views[index].measure.calibrated) {
+        app.quick_tool = QuickTool::Select;
     }
     if tool == QuickTool::PhotoCallout || app.quick_tool != QuickTool::PhotoCallout {
         app.symbols.callout_spot = callout_spot;

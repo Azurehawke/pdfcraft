@@ -2470,3 +2470,11 @@ key	Space	Szóköz
 	Drafting	Műszaki rajz
 	Crop	Körbevágás
 	Snapshot	Pillanatkép
+	How long is this line really?	Milyen hosszú valójában ez a vonal?
+	Use this scale on every page	Ez a lépték legyen minden oldalon
+	Click one end of a length you know	Kattintson egy ismert hosszúság egyik végére
+	Click the other end	Kattintson a másik végére
+	Type the real length, like 12'6", 150 or 3.5m	Írja be a valós hosszt, pl. 12'6", 150 vagy 3.5m
+	The two points are in the same place; pick two ends of a length.	A két pont ugyanott van; válassza ki egy hosszúság két végét.
+	The page can't be measured.	Ez az oldal nem mérhető.
+	Calibrate scale	Lépték kalibrálása

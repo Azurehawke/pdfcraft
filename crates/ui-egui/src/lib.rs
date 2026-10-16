@@ -97,6 +97,7 @@ mod point_bar;
 mod props_box;
 mod status_bar;
 mod tool_chest;
+mod value_prompt;
 #[cfg(target_os = "android")]
 pub use android_picker::{AndroidDocuments, AndroidFileAccess, SystemPick, set_android_documents, set_android_file_access};
 pub mod prepare;

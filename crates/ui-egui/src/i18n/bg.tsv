@@ -2434,3 +2434,11 @@ key	Space	Интервал
 	Drafting	Чертане
 	Crop	Изрязване
 	Snapshot	Моментна снимка
+	How long is this line really?	Колко е реалната дължина на тази линия?
+	Use this scale on every page	Използване на този мащаб на всички страници
+	Click one end of a length you know	Щракнете единия край на известна дължина
+	Click the other end	Щракнете другия край
+	Type the real length, like 12'6", 150 or 3.5m	Въведете реалната дължина, напр. 12'6", 150 или 3.5m
+	The two points are in the same place; pick two ends of a length.	Двете точки са на едно място; изберете двата края на отсечка.
+	The page can't be measured.	Тази страница не може да се измерва.
+	Calibrate scale	Калибриране на мащаба

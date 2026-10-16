@@ -185,12 +185,30 @@ pub struct MeasureView {
     pub rect: [f64; 4],
     pub label: String,
     seeded_page: Option<usize>,
+    /// Calibrating: the two points picked, waiting for their real length in the value box.
+    pub calibration: Option<Calibration>,
+    /// What a typed number without a unit means (Draft's setting), for the real length.
+    pub bare: crate::draft::BareUnit,
+    /// A scale was just set by calibrating (the canvas puts the tool down).
+    pub calibrated: bool,
     /// Snapping geometry (or why it failed) per (page, edit generation): extraction is not
     /// repeated on every hover frame.
     paths: Option<(usize, u64, Result<measure::snap::Geometry, String>)>,
     /// Saved measurements per edit generation, for the panel.
     listing: Option<(u64, Result<measure::Listing, String>)>,
 }
+/// A calibration waiting for the real length of the line between `a` and `b` (user space).
+#[derive(Clone, Debug, Default)]
+pub struct Calibration {
+    pub page: usize,
+    pub a: Point,
+    pub b: Point,
+    pub text: String,
+    pub error: Option<String>,
+    /// Set the scale on every page, not only this one.
+    pub all_pages: bool,
+}
+
 impl Default for MeasureView {
     fn default() -> Self {
         Self {
@@ -213,6 +231,9 @@ impl Default for MeasureView {
             rect: [0.0, 0.0, 100.0, 100.0],
             label: String::new(),
             seeded_page: None,
+            calibration: None,
+            bare: crate::draft::BareUnit::Feet,
+            calibrated: false,
             paths: None,
             listing: None,
         }
@@ -220,6 +241,7 @@ impl Default for MeasureView {
 }
 impl MeasureView {
     pub fn cancel(&mut self) {
+        self.calibration = None;
         self.points.clear();
         self.page = None;
         self.reading = None;
@@ -238,6 +260,65 @@ pub(crate) fn page_input(ui: &egui::Ui, resp: &egui::Response, doc: &Document, v
     if state.tool != Some(tool) {
         state.cancel();
         state.tool = Some(tool);
+    }
+    // Calibrating: the two points are picked; the value box asks for their real length.
+    let bare_feet = state.bare == crate::draft::BareUnit::Feet;
+    if tool == Tool::Calibrate
+        && let Some(cal) = state.calibration.as_mut()
+    {
+        if cal.page != page {
+            return;
+        }
+        let screen = |p: Point| {
+            let v = info.user_to_view(p[0] as f32, p[1] as f32);
+            xf.norm_to_screen(v[0] / xf.pw, v[1] / xf.ph)
+        };
+        let stroke = Stroke::new(1.5, Color32::from_rgb(0, 120, 214));
+        let (a, b) = (screen(cal.a), screen(cal.b));
+        ui.painter().line_segment([a, b], stroke);
+        ui.painter().circle_filled(a, 3.0, stroke.color);
+        ui.painter().circle_filled(b, 3.0, stroke.color);
+        let several = doc.info.pages.len() > 1;
+        let all_pages = &mut cal.all_pages;
+        let action = crate::value_prompt::show(
+            ui.ctx(),
+            ("calibrate", page),
+            b,
+            ui.clip_rect(),
+            tl!("How long is this line really?"),
+            "12'6\"  150  3.5m",
+            &mut cal.text,
+            cal.error.as_deref(),
+            |ui| {
+                let unit = if bare_feet { tl!("Plain numbers are feet") } else { tl!("Plain numbers are inches") };
+                ui.label(egui::RichText::new(unit).small().weak());
+                if several {
+                    ui.checkbox(all_pages, tl!("Use this scale on every page"));
+                }
+            },
+        );
+        match action {
+            Some(crate::value_prompt::PromptAction::Cancel) => state.cancel(),
+            Some(crate::value_prompt::PromptAction::Apply) => {
+                let bare = state.bare;
+                let fractions = state.fractions;
+                let precision = state.precision;
+                let name = state.name.clone();
+                if let Some(cal) = state.calibration.as_mut() {
+                    match calibration_edit(doc, cal, bare, fractions, precision, &name) {
+                        Ok(edit) => {
+                            view.pending_edit = Some(edit);
+                            state.cancel();
+                            state.error = None;
+                            state.calibrated = true;
+                        }
+                        Err(e) => cal.error = Some(e),
+                    }
+                }
+            }
+            None => {}
+        }
+        return;
     }
     // Keys belong to a focused text field (the label, unit or viewport name) when there is one.
     let typing = ui.ctx().egui_wants_keyboard_input();
@@ -460,6 +541,66 @@ pub(crate) fn page_input(ui: &egui::Ui, resp: &egui::Response, doc: &Document, v
             ui.painter().text(screen(p) + egui::vec2(12.0, 12.0), egui::Align2::LEFT_TOP, &reading.label, crate::theme::semibold(12.0), stroke.color);
         }
     }
+    // Calibrating: say what to click.
+    if tool == Tool::Calibrate
+        && let Some(p) = pos
+    {
+        let hint = if state.points.is_empty() { tl!("Click one end of a length you know") } else { tl!("Click the other end") };
+        crate::draft_edit::chip(ui.painter(), p + egui::vec2(14.0, 30.0), hint);
+    }
+}
+
+/// The edit that sets the scale from a calibration: the real length typed for the line between
+/// the two points, on this page or every page. Feet and inches read as feet and inches; a metric
+/// length makes a metric scale.
+fn calibration_edit(
+    doc: &Document,
+    cal: &Calibration,
+    bare: crate::draft::BareUnit,
+    fractions: u16,
+    precision: u8,
+    name: &str,
+) -> Result<Edit, String> {
+    let text = cal.text.trim().to_ascii_lowercase();
+    let inches = crate::draft::parse_length(&text, bare)
+        .filter(|v| v.is_finite() && *v > 0.0)
+        .ok_or_else(|| tl!("Type the real length, like 12'6\", 150 or 3.5m").to_string())?;
+    let metric = text.ends_with('m');
+    let (real, unit) = if metric { (inches * 0.0254, "m") } else { (inches / 12.0, "ft") };
+    let a = doc.measurement_to_view(cal.page, cal.a)?;
+    let b = doc.measurement_to_view(cal.page, cal.b)?;
+    let drawn = measure::distance(a, b);
+    if !drawn.is_finite() || drawn < 1e-6 {
+        return Err(tl!("The two points are in the same place; pick two ends of a length.").to_string());
+    }
+    let ratio = real / drawn;
+    let pages: Vec<usize> = if cal.all_pages { (0..doc.info.pages.len()).collect() } else { vec![cal.page] };
+    let mut edits = Vec::new();
+    for page in pages {
+        let Some(info) = doc.info.pages.get(page) else { continue };
+        let ua = doc.measurement_to_user(page, [0.0, 0.0])?;
+        let ub = doc.measurement_to_user(page, [1.0, 0.0])?;
+        let scale = Scale::calibrate(ua, ub, ratio, unit, if metric { precision.max(2) } else { precision });
+        let scale = match (metric, fractions) {
+            (true, _) => scale,
+            (false, 0) => scale.and_then(|s| s.with_feet_inches(16)),
+            (false, d) => scale.and_then(|s| s.with_feet_inches(d)),
+        }
+        .map_err(|e| e.to_string())?;
+        let a = info.view_to_user(0.0, 0.0);
+        let b = info.view_to_user(info.width, info.height);
+        edits.push(Edit::SetMeasurementScale {
+            page,
+            bbox: [f64::from(a[0].min(b[0])), f64::from(a[1].min(b[1])), f64::from(a[0].max(b[0])), f64::from(a[1].max(b[1]))],
+            name: name.to_string(),
+            scale,
+        });
+    }
+    match edits.len() {
+        0 => Err(tl!("The page can't be measured.").to_string()),
+        1 => edits.pop().ok_or_else(|| tl!("The page can't be measured.").to_string()),
+        _ => Ok(Edit::Batch { label: "Set measurement scale".into(), edits }),
+    }
 }
 /// Whether a perimeter or area has enough points to keep.
 fn enough_points(tool: Tool, n: usize) -> bool {
@@ -472,14 +613,15 @@ fn enough_points(tool: Tool, n: usize) -> bool {
 
 fn finish(state: &mut MeasureView, pending: &mut Option<Edit>, doc: &Document, page: usize, tool: Tool, author: &str) {
     if tool == Tool::Calibrate {
-        if let [a, b] = state.points.as_slice() {
-            let a = doc.measurement_to_view(page, *a);
-            let b = doc.measurement_to_view(page, *b);
-            if let (Ok(a), Ok(b)) = (a, b) {
-                state.drawing_points = measure::distance(a, b);
-            }
-        }
+        let picked = match state.points.as_slice() {
+            [a, b] => Some((*a, *b)),
+            _ => None,
+        };
         state.cancel();
+        // The value box asks for the line's real length next.
+        if let Some((a, b)) = picked {
+            state.calibration = Some(Calibration { page, a, b, ..Default::default() });
+        }
         return;
     }
     // An angle is drawn as its two arms with the reading on them.

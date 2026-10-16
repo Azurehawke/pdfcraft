@@ -2437,3 +2437,11 @@ key	Space	空格
 	Drafting	制图
 	Crop	裁剪
 	Snapshot	快照
+	How long is this line really?	这条线的实际长度是多少？
+	Use this scale on every page	在所有页面使用此比例
+	Click one end of a length you know	单击已知长度的一端
+	Click the other end	单击另一端
+	Type the real length, like 12'6", 150 or 3.5m	输入实际长度，如 12'6"、150 或 3.5m
+	The two points are in the same place; pick two ends of a length.	两点位置相同；请选择一段长度的两端。
+	The page can't be measured.	此页面无法测量。
+	Calibrate scale	校准比例
