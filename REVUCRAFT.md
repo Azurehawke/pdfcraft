@@ -80,6 +80,12 @@ Markup and measuring
       is in the Prepare a form box.
 - [ ] **(Steve)** Dimension tools (aligned, linear, radius, diameter) on the Markup tab as well,
       since dimensions are mostly added to existing PDFs; they stay in the Draft tools panel too.
+- [ ] **(Steve)** Photo pins drawn as a camera icon (not a plain pin), so anyone reading the
+      PDF can tell what they are.
+- [ ] **(Steve)** Photo callout: a box on the sheet with the photo scaled down to fit and a
+      description beside it, on the side the user chooses (left or right of the photo), with a
+      leader line to the spot. Placed like a callout (the spot, then the box); pick or take the
+      photo, type the description; an existing photo pin can become one. Prints with the drawing.
 - [x] **(Steve)** Option to turn off the hover tooltip with the author's name on markup: it
       covers the live measurement label when drawing over other lines. Also: never show it while a
       drawing or measuring tool is placing points. Done: the Tips switch on the status bar (also in
