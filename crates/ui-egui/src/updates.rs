@@ -23,6 +23,10 @@ pub const LATEST_API: &str = "https://api.github.com/repos/Azurehawke/pdfcraft/r
 /// numbered by its own workflow's builds).
 pub const LATEST_WINDOWS_API: &str = "https://api.github.com/repos/Azurehawke/pdfcraft/releases/tags/revucraft-windows-latest";
 
+/// GitHub's API answer for the latest RevuCraft build for Linux (`revucraft-linux-latest`,
+/// numbered by its own workflow's builds).
+pub const LATEST_LINUX_API: &str = "https://api.github.com/repos/Azurehawke/pdfcraft/releases/tags/revucraft-linux-latest";
+
 /// This build's number (`REVUCRAFT_BUILD`, set by CI), or the crate version for a local build.
 pub fn current_version() -> &'static str {
     option_env!("REVUCRAFT_BUILD").filter(|b| !b.is_empty()).unwrap_or(env!("CARGO_PKG_VERSION"))

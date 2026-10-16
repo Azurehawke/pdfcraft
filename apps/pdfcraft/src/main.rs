@@ -38,8 +38,13 @@ mod updates;
 #[path = "windows_manifest.rs"]
 mod windows_manifest;
 
-/// Freedesktop app id: the `.desktop` file name and the hicolor icon name.
+/// PdfCraft's app id, which the macOS bundle id must match (xtask gate `macos_bundle_id_matches_app_id`).
+#[allow(dead_code)]
 const APP_ID: &str = "ai.storyteller.pdfcraft";
+
+/// RevuCraft's freedesktop app id: the `.desktop` file name and the hicolor icon name that
+/// packaging/linux/revucraft-package.sh installs, so RevuCraft and PdfCraft can sit side by side.
+const LINUX_APP_ID: &str = "com.azurehawke.revucraft";
 
 /// The app icon (assets/app-icon/README.md). macOS gets the version on Apple's icon grid, with a
 /// transparent margin; Windows and Linux get the full-bleed tile.
@@ -260,8 +265,8 @@ fn native_options(integrated: bool, renderer: eframe::Renderer) -> eframe::Nativ
         .with_inner_size([1440.0, 920.0])
         .with_min_inner_size([820.0, 520.0])
         .with_drag_and_drop(true)
-        // Wayland app id: matches packaging/linux/ai.storyteller.pdfcraft.desktop.
-        .with_app_id(APP_ID);
+        // Wayland app id: matches the .desktop file packaging/linux/revucraft-package.sh writes.
+        .with_app_id(LINUX_APP_ID);
     // Dock, taskbar, Alt-Tab and launcher icon when running unbundled.
     match eframe::icon_data::from_png_bytes(APP_ICON_PNG) {
         Ok(icon) => viewport = viewport.with_icon(icon),

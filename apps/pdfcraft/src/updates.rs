@@ -4,7 +4,11 @@ use std::time::Duration;
 
 #[cfg(test)]
 use pdfcraft_ui_egui::updates::RELEASES_PAGE;
-use pdfcraft_ui_egui::updates::{LATEST_WINDOWS_API as LATEST, Release};
+use pdfcraft_ui_egui::updates::Release;
+
+/// The release this platform's builds are published as: Windows and Linux each have their own
+/// build numbers.
+const LATEST: &str = if cfg!(windows) { pdfcraft_ui_egui::updates::LATEST_WINDOWS_API } else { pdfcraft_ui_egui::updates::LATEST_LINUX_API };
 
 /// The latest build. The answer is untrusted: its size is capped, and only a page under the
 /// releases list is ever offered for download (anything else falls back to that list).
@@ -70,7 +74,8 @@ fn rate_limited(reset: Option<&str>, now: u64) -> String {
 }
 
 fn parse(body: &str) -> Result<Release, String> {
-    // Windows: offer the installer itself; elsewhere the release page.
+    // Windows: offer the installer itself; elsewhere (Linux: a .deb, an AppImage or a folder) the
+    // release page, to pick from.
     pdfcraft_ui_egui::updates::parse_latest_asset(body, cfg!(windows).then_some(".msi"))
 }
 

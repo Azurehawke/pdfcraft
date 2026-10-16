@@ -28,6 +28,16 @@ installs beside PdfCraft. The files are not code-signed, so SmartScreen may ask 
 then Run anyway. The app checks that release at start and offers newer installers. Packaging:
 `packaging/windows/revucraft-package.ps1`, `revucraft.wxs`, `revucraft-installer-ui.wxs`.
 
+## Linux
+
+Every push also runs `.github/workflows/revucraft-linux.yml` (Ubuntu 22.04, so it runs on any
+64-bit distro with glibc 2.35 or newer) and publishes the `revucraft-linux-latest` prerelease:
+`revucraft_amd64.deb` (`sudo apt install ./revucraft_amd64.deb`; menu entry, opens PDFs, later
+builds upgrade it), `RevuCraft-x86_64.AppImage` (one file for any distro: `chmod +x`, run) and
+`RevuCraft-linux-x86_64.tar.gz` (a plain folder: `RevuCraft/bin/revucraft`). The app id is
+`com.azurehawke.revucraft`, so it installs beside PdfCraft. The app checks that release at start
+and offers its page when a newer build is out. Packaging: `packaging/linux/revucraft-package.sh`.
+
 ## Android
 
 The `android` branch's tablet build is merged in. Every push to `revucraft` runs
@@ -83,7 +93,7 @@ Tablet
       undo.
 
 Builds
-- [ ] One build number shared by Android and Windows.
+- [ ] One build number shared by Android, Windows and Linux.
 
 Draft tab: CAD-style drawing on the PDF (direction decided 2026-10-15)
 

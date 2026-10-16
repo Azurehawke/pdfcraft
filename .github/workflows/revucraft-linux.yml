@@ -1,0 +1,83 @@
+name: RevuCraft Linux
+
+# Builds RevuCraft (the revucraft branch) for Linux x86_64 and publishes an AppImage, a .deb and a
+# .tar.gz as the `revucraft-linux-latest` prerelease. The desktop app's update check on Linux
+# reads that release ("RevuCraft for Linux (build N)") and offers its page.
+on:
+  push:
+    branches: [revucraft]
+    paths-ignore: ["**.md"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: revucraft-linux-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+  # Faster CI builds than the desktop release profile.
+  CARGO_PROFILE_RELEASE_LTO: "false"
+  CARGO_PROFILE_RELEASE_CODEGEN_UNITS: "16"
+  CARGO_PROFILE_RELEASE_STRIP: debuginfo
+
+jobs:
+  linux:
+    # The oldest supported runner, so the binaries run on any distro with glibc 2.35 or newer.
+    runs-on: ubuntu-22.04
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Linux dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            libxkbcommon-dev libwayland-dev libx11-dev libxrandr-dev libxi-dev \
+            libgl1-mesa-dev libgtk-3-dev desktop-file-utils file
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: revucraft-linux-x64
+
+      - name: Build and package
+        env:
+          # The build's own number, for the update check (pdfcraft_ui_egui::updates).
+          REVUCRAFT_BUILD: ${{ github.run_number }}
+        run: |
+          set -o pipefail
+          ./packaging/linux/revucraft-package.sh 2>&1 | tee "$RUNNER_TEMP/build.log"
+
+      # The log, readable without the Actions log viewer, on the ci-logs-revucraft-linux branch.
+      - name: Publish the build log
+        if: always()
+        run: |
+          log="$RUNNER_TEMP/build.log"
+          [ -f "$log" ] || exit 0
+          dir=$(mktemp -d)
+          cp "$log" "$dir/"
+          grep -E "^error(\[E[0-9]+\])?:" -A12 "$log" | head -c 60000 > "$dir/errors.txt" || true
+          cd "$dir" && git init -q -b ci-logs-revucraft-linux && git add -A \
+            && git -c user.name=github-actions -c user.email=github-actions@users.noreply.github.com commit -qm "RevuCraft Linux build ${{ github.run_number }} (${GITHUB_SHA::7}): ${{ job.status }}" \
+            && git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" ci-logs-revucraft-linux
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: revucraft-linux
+          path: dist/revucraft/*
+          if-no-files-found: error
+
+      - name: Publish as the revucraft-linux-latest prerelease
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete revucraft-linux-latest --yes --cleanup-tag || true
+          gh release create revucraft-linux-latest \
+            dist/revucraft/RevuCraft-x86_64.AppImage dist/revucraft/revucraft_amd64.deb dist/revucraft/RevuCraft-linux-x86_64.tar.gz \
+            --prerelease --target "$GITHUB_SHA" \
+            --title "RevuCraft for Linux (build ${{ github.run_number }})" \
+            --notes "Built from ${GITHUB_SHA::7} on the revucraft branch, for 64-bit PCs with glibc 2.35 or newer (Ubuntu 22.04+, Debian 12+, Fedora 36+, Mint 21+). revucraft_amd64.deb installs RevuCraft with a menu entry on Debian, Ubuntu and Mint (sudo apt install ./revucraft_amd64.deb); later builds upgrade it the same way. RevuCraft-x86_64.AppImage is one file for any distro: chmod +x it and run it. RevuCraft-linux-x86_64.tar.gz is the same as a plain folder: run RevuCraft/bin/revucraft. See REVUCRAFT.md."
