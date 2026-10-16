@@ -109,7 +109,7 @@ Markup and measuring
       selection; electrical and security libraries; make a symbol from your own drawing.
 
 Tablet
-- [ ] **(Steve, next build)** Touch mode: bigger buttons and handles, long-press for the context menu, two-finger tap to
+- [ ] **(Steve, later update)** Touch mode: bigger buttons and handles, long-press for the context menu, two-finger tap to
       undo.
 
 Builds
