@@ -78,6 +78,8 @@ Markup and measuring
       (text, checkbox, radio, drop-down, list, button, image, date), Detect fields, Preview,
       tab order and Field properties. Done: a Forms tab (Fields, Form, Tab order, Data); Preview
       is in the Prepare a form box.
+- [ ] **(Steve)** Dimension tools (aligned, linear, radius, diameter) on the Markup tab as well,
+      since dimensions are mostly added to existing PDFs; they stay in the Draft tools panel too.
 - [x] **(Steve)** Option to turn off the hover tooltip with the author's name on markup: it
       covers the live measurement label when drawing over other lines. Also: never show it while a
       drawing or measuring tool is placing points. Done: the Tips switch on the status bar (also in
