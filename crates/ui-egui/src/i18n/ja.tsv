@@ -2535,3 +2535,41 @@ key	Space	スペース
 	Measure cable run	ケーブル配線を測定
 	Perpendicular	垂直
 	Fiber	光ファイバー
+	Add to the open document	開いている文書に追加
+	Desktop	デスクトップ
+	Double-click a size to create it	サイズをダブルクリックして作成
+	Files you open appear here.	開いたファイルがここに表示されます。
+	Get started	はじめる
+	ISO (A sizes)	ISO（A判）
+	Inches	インチ
+	Millimetres	ミリメートル
+	New	新規
+	New or open	新規または開く
+	No drawings here.	ここには図面がありません。
+	None (paper size)	なし（用紙サイズ）
+	Open a file	ファイルを開く
+	Open from device…	デバイスから開く…
+	PDF and images	PDF と画像
+	Pin your jobs folder to list its newest drawings here.	案件フォルダーをピン留めすると、最新の図面がここに表示されます。
+	Plans, markup and takeoff for network jobs and inspections.	ネットワーク工事と点検のための図面、マークアップ、拾い出し。
+	Recent files	最近のファイル
+	Search this folder	このフォルダーを検索
+	Sizes you make appear here.	作成したサイズがここに表示されます。
+	Start a drawing or open a file	図面を始めるかファイルを開く
+	Start a new drawing	新しい図面を始める
+	That page size can't be made; pages are 1 to 200 inches a side.	このページサイズは作成できません。辺の長さは 1〜200 インチです。
+	This computer	このコンピューター
+	Tool icons	ツールアイコン
+	Up a folder	1 つ上のフォルダー
+	Your size	任意のサイズ
+	Draw a floor plan	平面図を描く
+	Walls · Doors and windows · Dimensions	壁 · ドアと窓 · 寸法
+	Measure and calibrate	計測とキャリブレーション
+	Calibrate · Distance · Area · Angle	キャリブレーション · 距離 · 面積 · 角度
+	Place symbols	シンボルを配置
+	Data jacks · Access points · Your own symbols	情報コンセント · アクセスポイント · 自作シンボル
+	Run lengths with drops and slack · Totals by layer	立ち下げと余長込みの長さ · レイヤー別合計
+	Photos on the plan	図面上の写真
+	Photo pins · Photo callouts	写真ピン · 写真吹き出し
+	Markups and reports	マークアップとレポート
+	Markups list · Your columns · Summary report	マークアップ一覧 · 独自の列 · サマリーレポート

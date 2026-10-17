@@ -1364,8 +1364,7 @@ pub fn ribbon(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
                 ui.spacing_mut().item_spacing.x = 4.0;
                 group(ui, &t, tl!("Sheet"), |ui| {
                     if icons::button(ui, "file-plus-2", 34.0, false, tl!("New sheet at a drawing scale")).clicked() {
-                        app.draft.sheet.open = true;
-                        app.draft.sheet.add_to_document = active.is_some();
+                        app.show_new_dialog(active.is_some());
                     }
                 });
                 separator(ui, &t);

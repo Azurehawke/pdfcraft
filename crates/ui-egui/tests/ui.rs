@@ -39,6 +39,22 @@ fn home_shows_welcome_and_tools() {
     h.get_by_label("New or open");
 }
 
+#[test]
+fn new_dialog_makes_a_drawing_at_a_size() {
+    let mut h = harness(|_| {});
+    h.get_by_label("New or open").click();
+    h.run_steps(3);
+    h.get_by_label("Start a new drawing");
+    h.get_by_label("ARCH").click();
+    h.run_steps(2);
+    h.get_by_label("ARCH D").click();
+    h.run_steps(2);
+    h.get_by_label("Create").click();
+    h.run_steps(4);
+    assert!(h.state().active_ids().is_some(), "Create opens the new drawing");
+    assert!(h.query_by_label("Start a new drawing").is_none(), "and closes the dialog");
+}
+
 /// Every piece of text painted on the last frame: its whole text, whether it was cut with "…",
 /// and where it was drawn.
 fn painted_text(h: &Harness<'static, PdfCraftApp>) -> Vec<(String, bool, egui::Rect)> {
@@ -190,7 +206,7 @@ fn tabs_shrink_to_fit_then_arrows_step_through_them_and_open_stays_in_sight() {
             app.open_bytes(&name(i), None, FIXTURE.to_vec()).unwrap();
         }
     });
-    let open = h.get_by_label("Open").rect();
+    let open = h.get_by_label("New").rect();
     let theme = h.get_by_label_contains("Display theme").rect();
     assert!(open.right() <= theme.left(), "Open {open:?} must not run under the theme button {theme:?}");
     let mut previous_right = f32::MIN;
@@ -214,7 +230,7 @@ fn tabs_shrink_to_fit_then_arrows_step_through_them_and_open_stays_in_sight() {
     h.run_steps(4);
     assert!(h.get_by_label(&name(0)).rect().left() > first.left(), "the left arrow scrolls the tabs back");
     assert_eq!(enabled(&h, "Scroll tabs right"), Some(true), "and then there is more to the right");
-    let open = h.get_by_label("Open").rect();
+    let open = h.get_by_label("New").rect();
     let right = h.get_by_label("Scroll tabs right").rect();
     assert!(right.right() <= open.left() + 0.5 && open.right() <= h.get_by_label_contains("Display theme").rect().left());
     // Twenty: Open stays in sight left of Discord.
@@ -222,7 +238,7 @@ fn tabs_shrink_to_fit_then_arrows_step_through_them_and_open_stays_in_sight() {
         h.state_mut().open_bytes(&format!("more-{i:02}.pdf"), None, FIXTURE.to_vec()).unwrap();
     }
     h.run_steps(4);
-    let open = h.get_by_label("Open").rect();
+    let open = h.get_by_label("New").rect();
     let theme = h.get_by_label_contains("Display theme").rect();
     assert!(open.left() > 0.0 && open.right() <= theme.left(), "Open {open:?} stays in sight left of the theme button {theme:?}");
 }

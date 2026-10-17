@@ -31,7 +31,7 @@ pub fn tab_strip(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
                 // Keep the two 28-point buttons, Discord's text/padding and three gaps outside the scrolling tabs.
                 let controls_width = ui.fonts_mut(|f| f.layout_no_wrap("Discord".into(), theme::medium(13.0), t.text).size().x) + 106.0;
                 // Open stays in sight after the tabs: its icon, text and padding, and the gaps around it.
-                let open_width = ui.fonts_mut(|f| f.layout_no_wrap(tl!("Open").into(), theme::medium(13.0), t.text).size().x) + 38.0 + 12.0;
+                let open_width = ui.fonts_mut(|f| f.layout_no_wrap(tl!("New").into(), theme::medium(13.0), t.text).size().x) + 38.0 + 12.0;
                 let mut tabs_width = (ui.available_width() - controls_width - open_width).max(0.0);
                 // Tabs shrink to share the strip (names end in "…") and scroll only once they reach
                 // their narrowest; then arrows either side say so and step through them.
@@ -117,9 +117,8 @@ pub fn tab_strip(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
                     ui.ctx().request_repaint();
                 }
                 ui.add_space(4.0);
-                let tip = crate::commands::command_tip(ui.ctx(), tl!("Open a PDF ({key})"), "file.open");
-                if widgets::ghost_button(ui, "plus", tl!("Open")).on_hover_text(tip).clicked() {
-                    app.open_dialog();
+                if widgets::ghost_button(ui, "plus", tl!("New")).on_hover_text(tl!("Start a drawing or open a file")).clicked() {
+                    app.open_new();
                 }
                 ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
                     let (icon, label) = match app.theme_preference {

@@ -88,6 +88,7 @@ mod icon_data;
 pub mod icons;
 pub mod last_session;
 mod markups_list;
+mod new_dialog;
 mod openings;
 mod pageboxes;
 mod palette;
@@ -482,6 +483,7 @@ pub struct PdfCraftApp {
     pub symbols: revu::SymbolSettings,
     /// The Draft tab's settings.
     pub(crate) draft: draft::DraftSettings,
+    pub(crate) new_doc: new_dialog::NewDialog,
     pub(crate) layer_panel: revu::LayerPanel,
     pub(crate) photo_viewer: Option<revu::PhotoViewer>,
     /// RevuCraft's Markups list: sort, filters and rows.
@@ -813,6 +815,7 @@ impl PdfCraftApp {
             workflow: ribbon::Workflow::default(),
             symbols: Default::default(),
             draft: Default::default(),
+            new_doc: Default::default(),
             layer_panel: Default::default(),
             photo_viewer: None,
             markups: Default::default(),
@@ -1265,8 +1268,7 @@ impl PdfCraftApp {
 
     /// File ▸ New (and Home's New or open): a new drawing at a page size, or a file to open.
     pub fn open_new(&mut self) {
-        self.draft.sheet.open = true;
-        self.draft.sheet.add_to_document = false;
+        self.show_new_dialog(false);
     }
 
     pub fn open_dialog(&mut self) {
@@ -1788,6 +1790,11 @@ impl PdfCraftApp {
             ("workflow", _) => {
                 self.workflow = ribbon::Workflow::parse(value).ok_or("workflow must be markup, draft, symbols, measure, review or document")?;
             }
+            ("new-dialog", _) => match value {
+                "open" => self.show_new_dialog(false),
+                "add" => self.show_new_dialog(true),
+                _ => return Err("new-dialog must be open or add".into()),
+            },
             ("icon-color", _) => {
                 let c = theme::IconColor::from_code(value)
                     .ok_or("icon-color must be accent, neutral or a colour (amber, blue, teal, green, red, violet)")?;
@@ -2341,6 +2348,7 @@ impl eframe::App for PdfCraftApp {
         dialogs::show(self, &ctx);
         revu::photo_window(self, &ctx);
         draft::sheet_dialog(self, &ctx);
+        new_dialog::show(self, &ctx);
         draft::keypad(self, &ctx);
         #[cfg(target_os = "android")]
         pickers::show_browser(self, &ctx);
