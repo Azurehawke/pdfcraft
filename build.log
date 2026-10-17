@@ -1,0 +1,137 @@
+==> RevuCraft build 65 for Linux x86_64 (deb 1.0.65)
+[1m[92m    Updating[0m crates.io index
+[1m[92m     Locking[0m 17 packages to highest Rust 1.90 compatible versions
+[1m[92m      Adding[0m aho-corasick v1.1.5
+[1m[92m      Adding[0m android_log-sys v0.3.2
+[1m[92m      Adding[0m android_logger v0.15.1
+[1m[92m      Adding[0m cesu8 v1.1.0
+[1m[92m      Adding[0m env_filter v0.1.4
+[1m[92m      Adding[0m jni v0.21.1 [1m[33m(available: v0.22.4)[0m
+[1m[92m      Adding[0m regex v1.13.1
+[1m[92m      Adding[0m regex-automata v0.4.18
+[1m[92m      Adding[0m windows-sys v0.45.0
+[1m[92m      Adding[0m windows-targets v0.42.2
+[1m[92m      Adding[0m windows_aarch64_gnullvm v0.42.2
+[1m[92m      Adding[0m windows_aarch64_msvc v0.42.2
+[1m[92m      Adding[0m windows_i686_gnu v0.42.2
+[1m[92m      Adding[0m windows_i686_msvc v0.42.2
+[1m[92m      Adding[0m windows_x86_64_gnu v0.42.2
+[1m[92m      Adding[0m windows_x86_64_gnullvm v0.42.2
+[1m[92m      Adding[0m windows_x86_64_msvc v0.42.2
+[1m[92m   Compiling[0m pdfcraft-crypt v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/crypt)
+[1m[92m   Compiling[0m pdfcraft-filters v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/filters)
+[1m[92m   Compiling[0m pdfcraft-fonts v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/fonts)
+[1m[92m   Compiling[0m hayro-jbig2 v0.3.0 (/home/runner/work/pdfcraft/pdfcraft/vendor/hayro-jbig2)
+[1m[92m   Compiling[0m pdfcraft-cos v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/cos)
+[1m[92m   Compiling[0m pdfcraft-model v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/model)
+[1m[92m   Compiling[0m pdfcraft-content v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/content)
+[1m[92m   Compiling[0m pdfcraft-annot v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/annot)
+[1m[92m   Compiling[0m winit v0.30.13 (/home/runner/work/pdfcraft/pdfcraft/vendor/winit)
+[1m[92m   Compiling[0m hayro-syntax v0.7.2 (/home/runner/work/pdfcraft/pdfcraft/vendor/hayro-syntax)
+[1m[92m   Compiling[0m hayro-interpret v0.7.0 (/home/runner/work/pdfcraft/pdfcraft/vendor/hayro-interpret)
+[1m[92m   Compiling[0m pdfcraft-forms v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/forms)
+[1m[92m   Compiling[0m lopdf v0.45.0 (/home/runner/work/pdfcraft/pdfcraft/vendor/lopdf)
+[1m[92m   Compiling[0m hayro v0.7.1 (/home/runner/work/pdfcraft/pdfcraft/vendor/hayro)
+[1m[92m   Compiling[0m pdfcraft-edit v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/edit)
+[1m[92m   Compiling[0m pdfcraft-sign v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/sign)
+[1m[92m   Compiling[0m pdfcraft-redact v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/redact)
+[1m[92m   Compiling[0m pdfcraft-ocr v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/ocr)
+[1m[92m   Compiling[0m pdfcraft-render v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/render)
+[1m[92m   Compiling[0m pdfcraft-js v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/js)
+[1m[92m   Compiling[0m pdfcraft-xfdf v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/xfdf)
+[1m[92m   Compiling[0m pdfcraft-create v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/create)
+[1m[92m   Compiling[0m pdfcraft-optimize v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/optimize)
+[1m[92m   Compiling[0m pdfcraft-measure v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/measure)
+[1m[92m   Compiling[0m pdfcraft-a11y v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/a11y)
+[1m[92m   Compiling[0m pdfcraft-print v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/print)
+[1m[92m   Compiling[0m pdfcraft-organize v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/organize)
+[1m[92m   Compiling[0m pdfcraft-preflight v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/preflight)
+[1m[92m   Compiling[0m pdfcraft-xfa v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/xfa)
+[1m[92m   Compiling[0m pdfcraft-export v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/export)
+[1m[92m   Compiling[0m pdfcraft-compare v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/compare)
+[1m[92m   Compiling[0m pdfcraft-engine v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/engine)
+[1m[92m   Compiling[0m accesskit_winit v0.32.2
+[1m[92m   Compiling[0m pdfcraft-platform v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/platform)
+[1m[92m   Compiling[0m egui-wgpu v0.36.2 (/home/runner/work/pdfcraft/pdfcraft/vendor/egui-wgpu)
+[1m[92m   Compiling[0m egui-winit v0.36.2
+[1m[92m   Compiling[0m glutin-winit v0.5.0
+[1m[92m   Compiling[0m pdfcraft-ui-egui v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/ui-egui)
+[1m[92m   Compiling[0m eframe v0.36.2
+[1m[92m   Compiling[0m pdfcraft v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/apps/pdfcraft)
+[1m[92m   Compiling[0m pdfcraft-cli v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/apps/pdfcraft-cli)
+[1m[92m   Compiling[0m pdfcraft-automation v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/automation)
+[1m[92m    Finished[0m `release` profile [optimized] target(s) in 1m 59s
+[1m[92m   Compiling[0m lopdf v0.45.0 (/home/runner/work/pdfcraft/pdfcraft/vendor/lopdf)
+[1m[92m   Compiling[0m xtask v0.1.0 (/home/runner/work/pdfcraft/pdfcraft/xtask)
+[1m[92m    Finished[0m `dev` profile [optimized + debuginfo] target(s) in 20.79s
+[1m[92m     Running[0m `target/debug/xtask models /home/runner/work/pdfcraft/pdfcraft/target/revucraft-linux/root/usr/share/pdfcraft/models`
+assets: fetching https://ocrs-models.s3-accelerate.amazonaws.com/text-detection.rten
+assets: fetching https://creativecommons.org/licenses/by-sa/4.0/legalcode.txt
+assets: fetching https://ocrs-models.s3-accelerate.amazonaws.com/text-recognition.rten
+assets: fetching https://creativecommons.org/licenses/by-sa/4.0/legalcode.txt
+models: /home/runner/work/pdfcraft/pdfcraft/target/revucraft-linux/root/usr/share/pdfcraft/models/text-detection.rten
+models: /home/runner/work/pdfcraft/pdfcraft/target/revucraft-linux/root/usr/share/pdfcraft/models/text-recognition.rten
+OCR models in /home/runner/work/pdfcraft/pdfcraft/target/revucraft-linux/root/usr/share/pdfcraft/models:
+total 11988
+-rw-r--r-- 1 runner runner     872 Oct 17 13:03 ATTRIBUTION.txt
+-rw-r--r-- 1 runner runner 2510284 Oct 17 13:03 text-detection.rten
+-rw-r--r-- 1 runner runner   20138 Oct 17 13:03 text-detection.rten.LICENCE.txt
+-rw-r--r-- 1 runner runner 9716568 Oct 17 13:03 text-recognition.rten
+-rw-r--r-- 1 runner runner   20138 Oct 17 13:03 text-recognition.rten.LICENCE.txt
+/home/runner/work/pdfcraft/pdfcraft/target/revucraft-linux/root/usr/share/applications/com.azurehawke.revucraft.desktop: hint: value "Office;Graphics;Engineering;" for key "Categories" in group "Desktop Entry" contains more than one main category; application might appear more than once in the application menu
+wrote /home/runner/work/pdfcraft/pdfcraft/dist/revucraft/RevuCraft-linux-x86_64.tar.gz
+dpkg-deb: building package 'revucraft' in '/home/runner/work/pdfcraft/pdfcraft/dist/revucraft/revucraft_amd64.deb'.
+wrote /home/runner/work/pdfcraft/pdfcraft/dist/revucraft/revucraft_amd64.deb
+appimagetool, continuous build (git version 854e19e), build 313 built on 2026-10-04 14:58:08 UTC
+/home/runner/work/pdfcraft/pdfcraft/target/revucraft-linux/RevuCraft.AppDir/com.azurehawke.revucraft.desktop: hint: value "Office;Graphics;Engineering;" for key "Categories" in group "Desktop Entry" contains more than one main category; application might appear more than once in the application menu
+Using architecture x86_64
+/home/runner/work/pdfcraft/pdfcraft/target/revucraft-linux/RevuCraft.AppDir should be packaged as /home/runner/work/pdfcraft/pdfcraft/dist/revucraft/RevuCraft-x86_64.AppImage
+Generating squashfs...
+Downloading runtime file from https://github.com/AppImage/type2-runtime/releases/download/continuous/runtime-x86_64
+Downloaded runtime binary of size 944632
+Parallel mksquashfs: Using 4 processors
+Creating 4.0 filesystem on /home/runner/work/pdfcraft/pdfcraft/dist/revucraft/RevuCraft-x86_64.AppImage, block size 131072.
+[===============================================================/] 962/962 100%
+
+Exportable Squashfs 4.0 filesystem, zstd compressed, data block size 131072
+	compressed data, compressed metadata, compressed fragments,
+	compressed xattrs, compressed ids
+	duplicates are removed
+Filesystem size 49471.32 Kbytes (48.31 Mbytes)
+	40.60% of uncompressed filesystem size (121839.88 Kbytes)
+Inode table size 2758 bytes (2.69 Kbytes)
+	58.54% of uncompressed inode table size (4711 bytes)
+Directory table size 397 bytes (0.39 Kbytes)
+	53.58% of uncompressed directory table size (741 bytes)
+Number of duplicate files found 2
+Number of inodes 27
+Number of files 12
+Number of fragments 1
+Number of symbolic links 2
+Number of device nodes 0
+Number of fifo nodes 0
+Number of socket nodes 0
+Number of directories 13
+Number of hard-links 0
+Number of ids (unique uids + gids) 1
+Number of uids 1
+	root (0)
+Number of gids 1
+	root (0)
+Embedding ELF...
+Marking the AppImage as executable...
+Embedding MD5 digest
+Success
+
+Please consider submitting your AppImage to AppImageHub, the crowd-sourced
+central directory of available AppImages, by opening a pull request
+at https://github.com/AppImage/appimage.github.io
+wrote /home/runner/work/pdfcraft/pdfcraft/dist/revucraft/RevuCraft-x86_64.AppImage
+pdfcraft-cli 0.5.0
+Web:     https://github.com/Azurehawke/pdfcraft/blob/revucraft/REVUCRAFT.md
+Source:  https://github.com/Azurehawke/pdfcraft/tree/revucraft
+==> done
+total 143M
+-rw-r--r-- 1 runner runner 53M Oct 17 13:03 RevuCraft-linux-x86_64.tar.gz
+-rwxr-xr-x 1 runner runner 50M Oct 17 13:04 RevuCraft-x86_64.AppImage
+-rw-r--r-- 1 runner runner 41M Oct 17 13:04 revucraft_amd64.deb
