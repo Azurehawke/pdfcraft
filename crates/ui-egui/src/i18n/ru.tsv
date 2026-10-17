@@ -2491,3 +2491,28 @@ key	Space	Пробел
 	Move markups	Переместить пометки
 	Delete markups	Удалить пометки
 	Paste markups	Вставить пометки
+	An area	Область
+	Area:	Область:
+	Calibrate	Калибровка
+	Choose a scale below, or calibrate from the drawing.	Выберите масштаб ниже или откалибруйте по чертежу.
+	Click points; finish with Enter or a double-click · Shift for 45°	Щёлкайте точки; завершите Enter или двойным щелчком · Shift для 45°
+	Click two points a known distance apart	Щёлкните две точки на известном расстоянии
+	Click two points a known distance apart, like the ends of a scale bar or a door.	Щёлкните две точки на известном расстоянии, например концы масштабной линейки или двери.
+	Decimal feet	Десятичные футы
+	Drag a box around the area that has this scale	Обведите рамкой область с этим масштабом
+	Drag a box around the detail or viewport that has this scale.	Обведите рамкой фрагмент или видовой экран с этим масштабом.
+	Draw again	Обвести заново
+	Export CSV	Экспорт в CSV
+	Measurements	Измерения
+	Measurements you make appear here.	Здесь появятся ваши измерения.
+	Metres	Метры
+	Next measurement	Следующее измерение
+	On paper = in real life	На бумаге = в натуре
+	Pick two points	Выбрать две точки
+	Preset	Готовый
+	Show lengths as	Показывать длины как
+	Snap settings	Настройки привязки
+	THIS PAGE	ЭТА СТРАНИЦА
+	This page	Эта страница
+	Type the real distance, like 3' or 36".	Введите реальное расстояние, например 3' или 36".
+	Use on	Применить к

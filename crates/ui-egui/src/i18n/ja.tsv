@@ -2578,3 +2578,28 @@ key	Space	スペース
 	Move markups	マークアップを移動
 	Delete markups	マークアップを削除
 	Paste markups	マークアップを貼り付け
+	An area	範囲
+	Area:	範囲：
+	Calibrate	キャリブレーション
+	Choose a scale below, or calibrate from the drawing.	下で縮尺を選ぶか、図面からキャリブレーションします。
+	Click points; finish with Enter or a double-click · Shift for 45°	点をクリックし、Enter かダブルクリックで終了 · Shift で 45°
+	Click two points a known distance apart	距離がわかっている 2 点をクリック
+	Click two points a known distance apart, like the ends of a scale bar or a door.	距離がわかっている 2 点をクリックします（スケールバーやドアの両端など）。
+	Decimal feet	フィート（小数）
+	Drag a box around the area that has this scale	この縮尺の範囲を枠で囲む
+	Drag a box around the detail or viewport that has this scale.	この縮尺の詳細図やビューポートを枠で囲みます。
+	Draw again	描き直す
+	Export CSV	CSV に書き出す
+	Measurements	計測
+	Measurements you make appear here.	計測した結果がここに表示されます。
+	Metres	メートル
+	Next measurement	次の計測
+	On paper = in real life	用紙上 = 実寸
+	Pick two points	2 点を選ぶ
+	Preset	プリセット
+	Show lengths as	長さの表示
+	Snap settings	スナップ設定
+	THIS PAGE	このページ
+	This page	このページ
+	Type the real distance, like 3' or 36".	実際の距離を入力（3' や 36" など）。
+	Use on	適用先

@@ -48,6 +48,20 @@ impl PdfCraftApp {
     /// Finish a marquee gesture for the current tool.
     pub(crate) fn finish_marquee(&mut self, index: usize, done: Marquee) {
         let (page, rect, view_rect) = done;
+        // The Scale panel's "An area": the box becomes the scale's viewport on that page.
+        if let Some(view) = self.views.get_mut(index)
+            && view.measure.area_pick
+        {
+            view.measure.area_pick = false;
+            let [x0, y0, x1, y1] = view_rect.map(f64::from);
+            if (x1 - x0).abs() >= 2.0 && (y1 - y0).abs() >= 2.0 {
+                view.current = page;
+                view.measure.rect = [x0.min(x1), y0.min(y1), (x1 - x0).abs(), (y1 - y0).abs()];
+                view.measure.whole_page = false;
+            }
+            self.quick_tool = QuickTool::Select;
+            return;
+        }
         match self.quick_tool {
             QuickTool::MarqueeZoom => {
                 let view = &mut self.views[index];

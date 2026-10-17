@@ -34,6 +34,14 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
     let layers = app.session.layer_details(id);
     let current = app.session.get(id).and_then(|d| d.current_layer);
     let layer = current.and_then(|c| layers.iter().find(|l| (l.id.num, l.id.generation) == c));
+    // What to do next with the tool in hand (the Scale panel keeps its space for settings).
+    let picking_area = app.views.get(index).is_some_and(|v| v.measure.area_pick);
+    let hint = match app.quick_tool {
+        _ if picking_area => Some(tl!("Drag a box around the area that has this scale")),
+        crate::QuickTool::Measure(crate::measure_ui::Tool::Calibrate) => Some(tl!("Click two points a known distance apart")),
+        crate::QuickTool::Measure(_) => Some(tl!("Click points; finish with Enter or a double-click · Shift for 45°")),
+        _ => None,
+    };
     egui::Panel::bottom("status_bar")
         .exact_size(28.0)
         .frame(egui::Frame::NONE.fill(t.chrome).inner_margin(egui::Margin::symmetric(10, 0)).stroke(Stroke::new(1.0, t.divider)))
@@ -47,9 +55,13 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
                         ui.label(egui::RichText::new(format!("Y {y}")).font(theme::medium(12.0)).color(t.text));
                         ui.label(egui::RichText::new(ratio).font(font.clone()).color(t.text_muted));
                     }
-                    None => {
+                    None if hint.is_none() => {
                         ui.label(egui::RichText::new(tl!("Point at the drawing to see coordinates")).font(font.clone()).color(t.text_faint));
                     }
+                    None => {}
+                }
+                if let Some(hint) = hint {
+                    ui.label(egui::RichText::new(hint).font(font.clone()).color(t.text_muted));
                 }
                 ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
                     // Current layer: click to manage layers.
@@ -70,6 +82,17 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
                     }
                     ui.separator();
                     if let Some(v) = app.views.get_mut(index) {
+                        // Snap settings, beside the Snap switch.
+                        let more = crate::icons::button(ui, "chevron-up", 20.0, false, tl!("Snap settings"));
+                        egui::Popup::menu(&more).close_behavior(egui::PopupCloseBehavior::CloseOnClickOutside).show(|ui| {
+                            ui.set_min_width(200.0);
+                            let m = &mut v.measure;
+                            ui.checkbox(&mut m.snaps.endpoints, tl!("Endpoints"));
+                            ui.checkbox(&mut m.snaps.midpoints, tl!("Midpoints"));
+                            ui.checkbox(&mut m.snaps.intersections, tl!("Intersections"));
+                            ui.checkbox(&mut m.snaps.paths, tl!("Paths"));
+                            ui.add(egui::Slider::new(&mut m.sensitivity, 1.0..=20.0).text(tl!("Sensitivity")));
+                        });
                         let _ = ui
                             .toggle_value(&mut v.measure.snap_enabled, egui::RichText::new(tl!("Snap")).font(font.clone()))
                             .on_hover_text(tl!("Snap to ends, middles and crossings of the drawing"));

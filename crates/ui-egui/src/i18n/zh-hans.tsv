@@ -2543,3 +2543,28 @@ key	Space	空格
 	Move markups	移动标记
 	Delete markups	删除标记
 	Paste markups	粘贴标记
+	An area	一个区域
+	Area:	区域：
+	Calibrate	校准
+	Choose a scale below, or calibrate from the drawing.	在下方选择比例，或从图纸校准。
+	Click points; finish with Enter or a double-click · Shift for 45°	点击各点；按 Enter 或双击结束 · Shift 锁定 45°
+	Click two points a known distance apart	点击距离已知的两点
+	Click two points a known distance apart, like the ends of a scale bar or a door.	点击距离已知的两点，例如比例尺或门的两端。
+	Decimal feet	十进制英尺
+	Drag a box around the area that has this scale	框选使用此比例的区域
+	Drag a box around the detail or viewport that has this scale.	框选使用此比例的详图或视口。
+	Draw again	重新框选
+	Export CSV	导出 CSV
+	Measurements	测量
+	Measurements you make appear here.	你的测量会显示在这里。
+	Metres	米
+	Next measurement	下一个测量
+	On paper = in real life	图上 = 实际
+	Pick two points	选取两点
+	Preset	预设
+	Show lengths as	长度显示为
+	Snap settings	捕捉设置
+	THIS PAGE	此页
+	This page	此页
+	Type the real distance, like 3' or 36".	输入实际距离，例如 3' 或 36"。
+	Use on	应用于
