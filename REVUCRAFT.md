@@ -115,10 +115,15 @@ Markup and measuring
 
 - [x] **(Steve)** Calibrate on the Measure tab: click two ends of a known length, type it in the
       value box beside the point (12'6", 150, 3.5m), on this page or every page.
-- [ ] **(Steve, next session)** One way to type values everywhere: click on the drawing, the value
+- [ ] **(Steve, next build)** One way to type values everywhere: click on the drawing, the value
       box opens at the pointer, type, Enter (as Calibrate does). For Scale (factor), Rotate (angle),
       Move/Copy (distance or @x,y), Offset (distance), line/polyline/wall lengths while drawing,
       photo pin and callout captions, and a symbol's label after placing. The ribbon entry stays.
+- [ ] **(Steve, next build)** Snapping: perpendicular (the foot of a line from the last point, for
+      drafting and measuring), and midpoints of drawn markup lines (the PDF's own lines already
+      snap to midpoints); the snap kind shown at the pointer while drafting, as measuring does.
+- [ ] **(Steve, next build)** Your own symbols: import SVG files into the symbol library (Symbols
+      tab), placed, sized, rotated, labelled and counted like the built-in ones; kept with the app.
 
 Tablet
 - [ ] **(Steve, later update)** Touch mode: bigger buttons and handles, long-press for the context menu, two-finger tap to
