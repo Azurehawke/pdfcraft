@@ -149,6 +149,10 @@ Markup and measuring
       beside the accent (Display theme / Preferences): Accent, Neutral, or a colour of their own
       (Amber, Blue, Teal, Green, Red, Violet), the accent staying the chosen tool's highlight. Draft
       tools: what the tool makes in the icon colour, existing lines grey.
+- [ ] **(Steve, next build)** Home screen for RevuCraft's work instead of PDF chores: cards for
+      Draw a floor plan, Measure and calibrate, Place symbols, Photos on the plan, Markups and
+      reports, Cable runs, and New / Open (the New dialog); a tagline about plans, markup and
+      takeoff (suggested, waiting for Steve's pick).
 
 Tablet
 - [ ] **(Steve, later update)** Touch mode: bigger buttons and handles, long-press for the context menu, two-finger tap to
