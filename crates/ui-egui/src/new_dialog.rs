@@ -293,64 +293,66 @@ pub fn show(app: &mut PdfCraftApp, ctx: &egui::Context) {
                 .corner_radius(CornerRadius::same(8))
                 .inner_margin(egui::Margin::same(12))
                 .show(ui, |ui| {
-                    ui.set_width(details_w - 24.0);
-                    ui.label(egui::RichText::new(tl!("Details")).font(theme::semibold(12.0)).color(t.text_muted));
-                    let k = if d.metric { 25.4 } else { 1.0 };
-                    egui::Grid::new("new-details").num_columns(2).spacing([8.0, 6.0]).show(ui, |ui| {
-                        ui.label(tl!("Width"));
-                        let mut w = d.width * k;
-                        if ui
-                            .add(egui::DragValue::new(&mut w).range(1.0 * k..=200.0 * k).speed(0.1).suffix(format!(" {}", units(d.metric))))
-                            .changed()
-                        {
-                            d.width = w / k;
-                            d.custom = true;
-                        }
-                        ui.end_row();
-                        ui.label(tl!("Height"));
-                        let mut h = d.height * k;
-                        if ui
-                            .add(egui::DragValue::new(&mut h).range(1.0 * k..=200.0 * k).speed(0.1).suffix(format!(" {}", units(d.metric))))
-                            .changed()
-                        {
-                            d.height = h / k;
-                            d.custom = true;
-                        }
-                        ui.end_row();
-                        ui.label(tl!("Units"));
-                        ui.horizontal(|ui| {
-                            ui.selectable_value(&mut d.metric, false, tl!("Inches"));
-                            ui.selectable_value(&mut d.metric, true, tl!("Millimetres"));
-                        });
-                        ui.end_row();
-                        ui.label(tl!("Orientation"));
-                        ui.horizontal(|ui| {
-                            ui.selectable_value(&mut d.landscape, false, tl!("Portrait"));
-                            ui.selectable_value(&mut d.landscape, true, tl!("Landscape"));
-                        });
-                        ui.end_row();
-                        ui.label(tl!("Drawing scale"));
-                        let presets = &crate::measure_ui::PRESETS;
-                        let current =
-                            d.scale.and_then(|i| presets.get(i)).map_or_else(|| tl!("None (paper size)").to_string(), |p| p.name.to_string());
-                        egui::ComboBox::from_id_salt("new-scale").selected_text(current).width(140.0).show_ui(ui, |ui| {
-                            ui.selectable_value(&mut d.scale, None, tl!("None (paper size)"));
-                            for (i, p) in presets.iter().enumerate() {
-                                ui.selectable_value(&mut d.scale, Some(i), p.name);
+                    ui.vertical(|ui| {
+                        ui.set_width(details_w - 24.0);
+                        ui.label(egui::RichText::new(tl!("Details")).font(theme::semibold(12.0)).color(t.text_muted));
+                        let k = if d.metric { 25.4 } else { 1.0 };
+                        egui::Grid::new("new-details").num_columns(2).spacing([8.0, 6.0]).show(ui, |ui| {
+                            ui.label(tl!("Width"));
+                            let mut w = d.width * k;
+                            if ui
+                                .add(egui::DragValue::new(&mut w).range(1.0 * k..=200.0 * k).speed(0.1).suffix(format!(" {}", units(d.metric))))
+                                .changed()
+                            {
+                                d.width = w / k;
+                                d.custom = true;
                             }
+                            ui.end_row();
+                            ui.label(tl!("Height"));
+                            let mut h = d.height * k;
+                            if ui
+                                .add(egui::DragValue::new(&mut h).range(1.0 * k..=200.0 * k).speed(0.1).suffix(format!(" {}", units(d.metric))))
+                                .changed()
+                            {
+                                d.height = h / k;
+                                d.custom = true;
+                            }
+                            ui.end_row();
+                            ui.label(tl!("Units"));
+                            ui.horizontal(|ui| {
+                                ui.selectable_value(&mut d.metric, false, tl!("Inches"));
+                                ui.selectable_value(&mut d.metric, true, tl!("Millimetres"));
+                            });
+                            ui.end_row();
+                            ui.label(tl!("Orientation"));
+                            ui.horizontal(|ui| {
+                                ui.selectable_value(&mut d.landscape, false, tl!("Portrait"));
+                                ui.selectable_value(&mut d.landscape, true, tl!("Landscape"));
+                            });
+                            ui.end_row();
+                            ui.label(tl!("Drawing scale"));
+                            let presets = &crate::measure_ui::PRESETS;
+                            let current =
+                                d.scale.and_then(|i| presets.get(i)).map_or_else(|| tl!("None (paper size)").to_string(), |p| p.name.to_string());
+                            egui::ComboBox::from_id_salt("new-scale").selected_text(current).width(140.0).show_ui(ui, |ui| {
+                                ui.selectable_value(&mut d.scale, None, tl!("None (paper size)"));
+                                for (i, p) in presets.iter().enumerate() {
+                                    ui.selectable_value(&mut d.scale, Some(i), p.name);
+                                }
+                            });
+                            ui.end_row();
+                            ui.label(tl!("Pages"));
+                            ui.add(egui::DragValue::new(&mut d.pages).range(1..=500));
+                            ui.end_row();
                         });
-                        ui.end_row();
-                        ui.label(tl!("Pages"));
-                        ui.add(egui::DragValue::new(&mut d.pages).range(1..=500));
-                        ui.end_row();
+                        if has_doc {
+                            ui.checkbox(&mut d.add_to_document, tl!("Add to the open document"));
+                        }
+                        ui.add_space(6.0);
+                        if widgets::pill_button(ui, tl!("Create"), true).clicked() {
+                            act = Some(Act::Create);
+                        }
                     });
-                    if has_doc {
-                        ui.checkbox(&mut d.add_to_document, tl!("Add to the open document"));
-                    }
-                    ui.add_space(6.0);
-                    if widgets::pill_button(ui, tl!("Create"), true).clicked() {
-                        act = Some(Act::Create);
-                    }
                 });
         });
         ui.add_space(8.0);
@@ -610,61 +612,80 @@ fn browser(ui: &mut egui::Ui, t: &Tokens, d: &mut NewDialog, recent: &[(String, 
         });
         // Files.
         egui::Frame::NONE.stroke(Stroke::new(1.0, t.border)).corner_radius(CornerRadius::same(6)).show(ui, |ui| {
-            ui.set_width(ui.available_width());
-            ui.set_height(list_h);
-            let q = d.search.trim().to_lowercase();
-            match d.listing.as_ref().map(|(_, _, l)| l) {
-                Some(Err(e)) => {
-                    ui.colored_label(ui.visuals().error_fg_color, e);
-                }
-                Some(Ok(entries)) => {
-                    let visible: Vec<&Entry> = entries.iter().filter(|e| q.is_empty() || e.name.to_lowercase().contains(&q)).collect();
-                    if visible.is_empty() {
-                        ui.label(egui::RichText::new(tl!("No drawings here.")).color(t.text_muted));
+            ui.vertical(|ui| {
+                ui.set_width(ui.available_width());
+                ui.set_height(list_h);
+                let q = d.search.trim().to_lowercase();
+                match d.listing.as_ref().map(|(_, _, l)| l) {
+                    Some(Err(e)) => {
+                        ui.colored_label(ui.visuals().error_fg_color, e);
                     }
-                    egui::ScrollArea::vertical().id_salt("new-files").auto_shrink([false, false]).show_rows(ui, 26.0, visible.len(), |ui, range| {
-                        for e in visible.get(range).unwrap_or_default() {
-                            let selected = d.selected.as_ref() == Some(&e.path);
-                            let (rect, resp) = ui.allocate_exact_size(vec2(ui.available_width(), 26.0), Sense::click());
-                            resp.widget_info(|| egui::WidgetInfo::selected(egui::WidgetType::Button, true, selected, &e.name));
-                            if selected {
-                                ui.painter().rect_filled(rect, CornerRadius::same(4), t.accent_soft);
-                            } else if resp.hovered() {
-                                ui.painter().rect_filled(rect, CornerRadius::same(4), t.hover);
-                            }
-                            let icon = if e.folder { "folder" } else { "file-text" };
-                            let tint = if e.folder { t.text_muted } else { t.tool_icon };
-                            icons::paint(ui, Rect::from_min_size(rect.min + vec2(6.0, 4.0), vec2(18.0, 18.0)), icon, 16.0, tint);
-                            let date = modified_label(e.modified);
-                            let size = if e.folder { String::new() } else { crate::panels::human_size(e.size as usize) };
-                            ui.painter().text(rect.right_center() - vec2(8.0, 0.0), Align2::RIGHT_CENTER, size, theme::regular(11.5), t.text_muted);
-                            ui.painter().text(rect.right_center() - vec2(96.0, 0.0), Align2::RIGHT_CENTER, date, theme::regular(11.5), t.text_muted);
-                            widgets::row_text(
-                                ui,
-                                rect.min + vec2(30.0, 13.0),
-                                e.name.clone(),
-                                theme::regular(13.0),
-                                t.text,
-                                (rect.width() - 220.0).max(60.0),
-                            );
-                            if resp.clicked() {
-                                d.selected = Some(e.path.clone());
-                                if !e.folder {
-                                    d.file_name = e.name.clone();
-                                }
-                            }
-                            if resp.double_clicked() {
-                                if e.folder {
-                                    go = Some(Place::Folder(e.path.clone()));
-                                } else {
-                                    *act = Some(Act::Open(e.path.clone()));
-                                }
-                            }
+                    Some(Ok(entries)) => {
+                        let visible: Vec<&Entry> = entries.iter().filter(|e| q.is_empty() || e.name.to_lowercase().contains(&q)).collect();
+                        if visible.is_empty() {
+                            ui.label(egui::RichText::new(tl!("No drawings here.")).color(t.text_muted));
                         }
-                    });
+                        egui::ScrollArea::vertical().id_salt("new-files").auto_shrink([false, false]).show_rows(
+                            ui,
+                            26.0,
+                            visible.len(),
+                            |ui, range| {
+                                for e in visible.get(range).unwrap_or_default() {
+                                    let selected = d.selected.as_ref() == Some(&e.path);
+                                    let (rect, resp) = ui.allocate_exact_size(vec2(ui.available_width(), 26.0), Sense::click());
+                                    resp.widget_info(|| egui::WidgetInfo::selected(egui::WidgetType::Button, true, selected, &e.name));
+                                    if selected {
+                                        ui.painter().rect_filled(rect, CornerRadius::same(4), t.accent_soft);
+                                    } else if resp.hovered() {
+                                        ui.painter().rect_filled(rect, CornerRadius::same(4), t.hover);
+                                    }
+                                    let icon = if e.folder { "folder" } else { "file-text" };
+                                    let tint = if e.folder { t.text_muted } else { t.tool_icon };
+                                    icons::paint(ui, Rect::from_min_size(rect.min + vec2(6.0, 4.0), vec2(18.0, 18.0)), icon, 16.0, tint);
+                                    let date = modified_label(e.modified);
+                                    let size = if e.folder { String::new() } else { crate::panels::human_size(e.size as usize) };
+                                    ui.painter().text(
+                                        rect.right_center() - vec2(8.0, 0.0),
+                                        Align2::RIGHT_CENTER,
+                                        size,
+                                        theme::regular(11.5),
+                                        t.text_muted,
+                                    );
+                                    ui.painter().text(
+                                        rect.right_center() - vec2(96.0, 0.0),
+                                        Align2::RIGHT_CENTER,
+                                        date,
+                                        theme::regular(11.5),
+                                        t.text_muted,
+                                    );
+                                    widgets::row_text(
+                                        ui,
+                                        rect.min + vec2(30.0, 13.0),
+                                        e.name.clone(),
+                                        theme::regular(13.0),
+                                        t.text,
+                                        (rect.width() - 220.0).max(60.0),
+                                    );
+                                    if resp.clicked() {
+                                        d.selected = Some(e.path.clone());
+                                        if !e.folder {
+                                            d.file_name = e.name.clone();
+                                        }
+                                    }
+                                    if resp.double_clicked() {
+                                        if e.folder {
+                                            go = Some(Place::Folder(e.path.clone()));
+                                        } else {
+                                            *act = Some(Act::Open(e.path.clone()));
+                                        }
+                                    }
+                                }
+                            },
+                        );
+                    }
+                    None => {}
                 }
-                None => {}
-            }
+            });
         });
     });
     // The file name, type and Open.
