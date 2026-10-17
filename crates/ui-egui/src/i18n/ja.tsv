@@ -2480,3 +2480,58 @@ key	Space	スペース
 	The two points are in the same place; pick two ends of a length.	2点が同じ位置です。長さの両端を選んでください。
 	The page can't be measured.	このページは測定できません。
 	Calibrate scale	スケールを校正
+	Add a column	列を追加
+	Add symbol from SVG…	SVG から記号を追加…
+	Added to every run for the drop down the wall and the service loop (10' or 3m)	各ケーブルに壁の立ち下がりとサービスループ分として加算（10' または 3m）
+	Cable	ケーブル
+	Cable ({layer}): {runs} runs, {length}	ケーブル（{layer}）：{runs} 本、{length}
+	Cable run	ケーブル配線
+	Cable run: click along the route, then Finish	ケーブル配線：経路に沿ってクリックし、完了
+	Cable runs	ケーブル配線
+	Cable totals by layer	レイヤー別ケーブル合計
+	Cable type	ケーブルの種類
+	Choices (comma-separated)	選択肢（カンマ区切り）
+	Column {n}	列 {n}
+	Drop ID	アウトレット番号
+	Leave the choices empty for a column you type into.	入力する列は選択肢を空にしてください。
+	Legend	凡例
+	My symbol	マイ記号
+	My symbols	マイ記号
+	No cable runs yet.	ケーブル配線はまだありません。
+	Page {n}	{n} ページ
+	Page {n} of {total}	{n} / {total} ページ
+	Place a legend of the symbols used; it keeps itself up to date	使用中の記号の凡例を配置（自動で更新）
+	Port	ポート
+	Progress	進捗
+	Remove from my symbols	マイ記号から削除
+	Remove this column	この列を削除
+	Runs	本数
+	SVG drawings	SVG 図面
+	Saved the summary report.	サマリーレポートを保存しました。
+	Summary report (PDF): the markups shown, with photos, by layer	サマリーレポート（PDF）：表示中のマークアップを写真付きでレイヤー別に
+	Symbols in the whole document	文書全体の記号
+	Symbols on this page	このページの記号
+	Use a line drawing saved as SVG as a symbol of your own	SVG で保存した線画を自分の記号として使う
+	You have as many symbols of your own as can be kept; remove one first.	保存できる自分の記号の上限です。先に 1 つ削除してください。
+	Your columns	自分の列
+	Your columns: drop ID, progress and others	自分の列：アウトレット番号、進捗など
+	{name} — Markup report	{name} — マークアップレポート
+	How far off the line	線からの距離
+	Width and height	幅と高さ
+	Length, or @x,y	長さ、または @x,y
+	Start point (x,y from the origin)	始点（原点からの x,y）
+	Distance, or @x,y	距離、または @x,y
+	Angle in degrees	角度（度）
+	Scale factor	尺度の倍率
+	Base point (x,y from the origin)	基点（原点からの x,y）
+	Offset distance	オフセット距離
+	Fillet radius	フィレット半径
+	Chamfer distance	面取り距離
+	Not started	未着手
+	Pulled	入線済み
+	Terminated	成端済み
+	Tested	試験済み
+	Added {name} to your symbols.	{name} をマイ記号に追加しました。
+	Measure cable run	ケーブル配線を測定
+	Perpendicular	垂直
+	Fiber	光ファイバー

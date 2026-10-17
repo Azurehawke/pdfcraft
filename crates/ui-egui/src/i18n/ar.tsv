@@ -2502,3 +2502,58 @@ key	Space	مسافة
 	The two points are in the same place; pick two ends of a length.	النقطتان في المكان نفسه؛ اختر طرفي طول.
 	The page can't be measured.	لا يمكن قياس هذه الصفحة.
 	Calibrate scale	معايرة المقياس
+	Add a column	إضافة عمود
+	Add symbol from SVG…	إضافة رمز من SVG…
+	Added to every run for the drop down the wall and the service loop (10' or 3m)	يضاف إلى كل مسار للنزول داخل الجدار وحلقة الخدمة عند الخزانة (10' أو 3m)
+	Cable	كابل
+	Cable ({layer}): {runs} runs, {length}	كابل ({layer}): {runs} مسارات، {length}
+	Cable run	مسار كابل
+	Cable run: click along the route, then Finish	مسار كابل: انقر على طول المسار ثم إنهاء
+	Cable runs	مسارات الكابلات
+	Cable totals by layer	إجمالي الكابلات حسب الطبقة
+	Cable type	نوع الكابل
+	Choices (comma-separated)	الخيارات (مفصولة بفواصل)
+	Column {n}	العمود {n}
+	Drop ID	رقم المأخذ
+	Leave the choices empty for a column you type into.	اترك الخيارات فارغة لعمود يُكتب فيه.
+	Legend	وسيلة الإيضاح
+	My symbol	رمزي
+	My symbols	رموزي
+	No cable runs yet.	لا توجد مسارات كابلات بعد.
+	Page {n}	الصفحة {n}
+	Page {n} of {total}	الصفحة {n} من {total}
+	Place a legend of the symbols used; it keeps itself up to date	وضع وسيلة إيضاح للرموز المستخدمة؛ تتحدّث تلقائيًا
+	Port	المنفذ
+	Progress	التقدّم
+	Remove from my symbols	إزالة من رموزي
+	Remove this column	إزالة هذا العمود
+	Runs	المسارات
+	SVG drawings	رسومات SVG
+	Saved the summary report.	تم حفظ التقرير الموجز.
+	Summary report (PDF): the markups shown, with photos, by layer	تقرير موجز (PDF): العلامات المعروضة مع الصور، حسب الطبقة
+	Symbols in the whole document	رموز المستند بأكمله
+	Symbols on this page	رموز هذه الصفحة
+	Use a line drawing saved as SVG as a symbol of your own	استخدام رسم خطي محفوظ بصيغة SVG رمزًا خاصًا بك
+	You have as many symbols of your own as can be kept; remove one first.	لديك أقصى عدد من الرموز الخاصة؛ أزل واحدًا أولًا.
+	Your columns	أعمدتك
+	Your columns: drop ID, progress and others	أعمدتك: رقم المأخذ والتقدّم وغيرها
+	{name} — Markup report	{name} — تقرير العلامات
+	How far off the line	البعد عن الخط
+	Width and height	العرض والارتفاع
+	Length, or @x,y	الطول، أو @x,y
+	Start point (x,y from the origin)	نقطة البداية (x,y من الأصل)
+	Distance, or @x,y	المسافة، أو @x,y
+	Angle in degrees	الزاوية بالدرجات
+	Scale factor	معامل التحجيم
+	Base point (x,y from the origin)	نقطة الأساس (x,y من الأصل)
+	Offset distance	مسافة الإزاحة
+	Fillet radius	نصف قطر التقويس
+	Chamfer distance	مسافة الشطف
+	Not started	لم يبدأ
+	Pulled	تم السحب
+	Terminated	تم التوصيل
+	Tested	تم الاختبار
+	Added {name} to your symbols.	تمت إضافة {name} إلى رموزك.
+	Measure cable run	قياس مسار كابل
+	Perpendicular	عمودي
+	Fiber	ألياف

@@ -2489,3 +2489,58 @@ key	Space	Spazio
 	The two points are in the same place; pick two ends of a length.	I due punti coincidono; scegli le due estremità di una lunghezza.
 	The page can't be measured.	Questa pagina non può essere misurata.
 	Calibrate scale	Calibra la scala
+	Add a column	Aggiungi una colonna
+	Add symbol from SVG…	Aggiungi simbolo da SVG…
+	Added to every run for the drop down the wall and the service loop (10' or 3m)	Aggiunto a ogni tratta per la discesa nel muro e l’asola di scorta (10' o 3m)
+	Cable	Cavo
+	Cable ({layer}): {runs} runs, {length}	Cavo ({layer}): {runs} tratte, {length}
+	Cable run	Tratta di cavo
+	Cable run: click along the route, then Finish	Tratta di cavo: fai clic lungo il percorso, poi Fine
+	Cable runs	Tratte di cavo
+	Cable totals by layer	Totali cavo per livello
+	Cable type	Tipo di cavo
+	Choices (comma-separated)	Scelte (separate da virgole)
+	Column {n}	Colonna {n}
+	Drop ID	ID presa
+	Leave the choices empty for a column you type into.	Lascia vuote le scelte per una colonna da digitare.
+	Legend	Legenda
+	My symbol	Il mio simbolo
+	My symbols	I miei simboli
+	No cable runs yet.	Ancora nessuna tratta di cavo.
+	Page {n}	Pagina {n}
+	Page {n} of {total}	Pagina {n} di {total}
+	Place a legend of the symbols used; it keeps itself up to date	Posiziona una legenda dei simboli usati; si aggiorna da sola
+	Port	Porta
+	Progress	Avanzamento
+	Remove from my symbols	Rimuovi dai miei simboli
+	Remove this column	Rimuovi questa colonna
+	Runs	Tratte
+	SVG drawings	Disegni SVG
+	Saved the summary report.	Rapporto di riepilogo salvato.
+	Summary report (PDF): the markups shown, with photos, by layer	Rapporto di riepilogo (PDF): le annotazioni mostrate, con foto, per livello
+	Symbols in the whole document	Simboli in tutto il documento
+	Symbols on this page	Simboli in questa pagina
+	Use a line drawing saved as SVG as a symbol of your own	Usa un disegno al tratto salvato come SVG come simbolo tuo
+	You have as many symbols of your own as can be kept; remove one first.	Hai tutti i simboli personali che si possono tenere; rimuovine prima uno.
+	Your columns	Le tue colonne
+	Your columns: drop ID, progress and others	Le tue colonne: ID presa, avanzamento e altre
+	{name} — Markup report	{name} — Rapporto delle annotazioni
+	How far off the line	Distanza dalla linea
+	Width and height	Larghezza e altezza
+	Length, or @x,y	Lunghezza, o @x,y
+	Start point (x,y from the origin)	Punto iniziale (x,y dall’origine)
+	Distance, or @x,y	Distanza, o @x,y
+	Angle in degrees	Angolo in gradi
+	Scale factor	Fattore di scala
+	Base point (x,y from the origin)	Punto base (x,y dall’origine)
+	Offset distance	Distanza di offset
+	Fillet radius	Raggio di raccordo
+	Chamfer distance	Distanza dello smusso
+	Not started	Non iniziato
+	Pulled	Tirato
+	Terminated	Attestato
+	Tested	Collaudato
+	Added {name} to your symbols.	{name} aggiunto ai tuoi simboli.
+	Measure cable run	Misura tratta di cavo
+	Perpendicular	Perpendicolare
+	Fiber	Fibra

@@ -2393,3 +2393,58 @@ key	Space	Пробел
 	The two points are in the same place; pick two ends of a length.	Обе точки в одном месте; выберите два конца отрезка.
 	The page can't be measured.	Эту страницу нельзя измерить.
 	Calibrate scale	Откалибровать масштаб
+	Add a column	Добавить столбец
+	Add symbol from SVG…	Добавить символ из SVG…
+	Added to every run for the drop down the wall and the service loop (10' or 3m)	Добавляется к каждой трассе на спуск по стене и запас у стойки (10' или 3m)
+	Cable	Кабель
+	Cable ({layer}): {runs} runs, {length}	Кабель ({layer}): трасс {runs}, {length}
+	Cable run	Кабельная трасса
+	Cable run: click along the route, then Finish	Кабельная трасса: щёлкайте вдоль маршрута, затем Готово
+	Cable runs	Кабельные трассы
+	Cable totals by layer	Итоги по кабелю по слоям
+	Cable type	Тип кабеля
+	Choices (comma-separated)	Варианты (через запятую)
+	Column {n}	Столбец {n}
+	Drop ID	Номер розетки
+	Leave the choices empty for a column you type into.	Оставьте варианты пустыми для столбца с вводом текста.
+	Legend	Легенда
+	My symbol	Мой символ
+	My symbols	Мои символы
+	No cable runs yet.	Кабельных трасс пока нет.
+	Page {n}	Страница {n}
+	Page {n} of {total}	Страница {n} из {total}
+	Place a legend of the symbols used; it keeps itself up to date	Разместить легенду использованных символов; она обновляется сама
+	Port	Порт
+	Progress	Ход работ
+	Remove from my symbols	Убрать из моих символов
+	Remove this column	Удалить этот столбец
+	Runs	Трассы
+	SVG drawings	Рисунки SVG
+	Saved the summary report.	Сводный отчёт сохранён.
+	Summary report (PDF): the markups shown, with photos, by layer	Сводный отчёт (PDF): показанные пометки с фото, по слоям
+	Symbols in the whole document	Символы всего документа
+	Symbols on this page	Символы на этой странице
+	Use a line drawing saved as SVG as a symbol of your own	Использовать линейный рисунок в SVG как собственный символ
+	You have as many symbols of your own as can be kept; remove one first.	У вас максимум собственных символов; сначала удалите один.
+	Your columns	Ваши столбцы
+	Your columns: drop ID, progress and others	Ваши столбцы: номер розетки, ход работ и другие
+	{name} — Markup report	{name} — отчёт по пометкам
+	How far off the line	Отступ от линии
+	Width and height	Ширина и высота
+	Length, or @x,y	Длина или @x,y
+	Start point (x,y from the origin)	Начальная точка (x,y от начала координат)
+	Distance, or @x,y	Расстояние или @x,y
+	Angle in degrees	Угол в градусах
+	Scale factor	Коэффициент масштаба
+	Base point (x,y from the origin)	Базовая точка (x,y от начала координат)
+	Offset distance	Расстояние смещения
+	Fillet radius	Радиус скругления
+	Chamfer distance	Размер фаски
+	Not started	Не начато
+	Pulled	Протянуто
+	Terminated	Оконцовано
+	Tested	Протестировано
+	Added {name} to your symbols.	{name} добавлен в ваши символы.
+	Measure cable run	Измерить кабельную трассу
+	Perpendicular	Перпендикуляр
+	Fiber	Оптика

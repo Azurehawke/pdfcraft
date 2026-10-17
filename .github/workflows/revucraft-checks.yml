@@ -99,6 +99,8 @@ jobs:
           shot plan-draft-door "$plan" --workflow draft --quick draft-door --dock tool-chest
           shot plan-markup "$plan" --workflow markup
           shot plan-photo-callout "$plan" --workflow symbols --quick photo-callout
+          shot plan-cable "$plan" --workflow measure --quick measure-cable
+          shot plan-markups-list "$plan" --workflow markup --dock markups
           shot plan-forms "$plan" --workflow forms
           shot plan-review "$plan" --workflow review
           shot plan-document "$plan" --workflow document

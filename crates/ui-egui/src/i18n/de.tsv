@@ -2480,3 +2480,58 @@ key	Space	Leertaste
 	The two points are in the same place; pick two ends of a length.	Beide Punkte liegen an derselben Stelle; wählen Sie die zwei Enden einer Länge.
 	The page can't be measured.	Diese Seite kann nicht gemessen werden.
 	Calibrate scale	Maßstab kalibrieren
+	Add a column	Spalte hinzufügen
+	Add symbol from SVG…	Symbol aus SVG hinzufügen…
+	Added to every run for the drop down the wall and the service loop (10' or 3m)	Wird jeder Leitung für den Abstieg in der Wand und die Reserveschlaufe hinzugefügt (10' oder 3m)
+	Cable	Kabel
+	Cable ({layer}): {runs} runs, {length}	Kabel ({layer}): {runs} Leitungen, {length}
+	Cable run	Kabelweg
+	Cable run: click along the route, then Finish	Kabelweg: entlang der Strecke klicken, dann Fertig
+	Cable runs	Kabelwege
+	Cable totals by layer	Kabelsummen nach Ebene
+	Cable type	Kabeltyp
+	Choices (comma-separated)	Auswahl (durch Kommas getrennt)
+	Column {n}	Spalte {n}
+	Drop ID	Dosen-Nr.
+	Leave the choices empty for a column you type into.	Auswahl leer lassen für eine Spalte zum Eintippen.
+	Legend	Legende
+	My symbol	Mein Symbol
+	My symbols	Meine Symbole
+	No cable runs yet.	Noch keine Kabelwege.
+	Page {n}	Seite {n}
+	Page {n} of {total}	Seite {n} von {total}
+	Place a legend of the symbols used; it keeps itself up to date	Eine Legende der verwendeten Symbole platzieren; sie hält sich selbst aktuell
+	Port	Port
+	Progress	Fortschritt
+	Remove from my symbols	Aus meinen Symbolen entfernen
+	Remove this column	Diese Spalte entfernen
+	Runs	Leitungen
+	SVG drawings	SVG-Zeichnungen
+	Saved the summary report.	Zusammenfassung gespeichert.
+	Summary report (PDF): the markups shown, with photos, by layer	Zusammenfassung (PDF): die angezeigten Markierungen mit Fotos, nach Ebene
+	Symbols in the whole document	Symbole im ganzen Dokument
+	Symbols on this page	Symbole auf dieser Seite
+	Use a line drawing saved as SVG as a symbol of your own	Eine als SVG gespeicherte Strichzeichnung als eigenes Symbol verwenden
+	You have as many symbols of your own as can be kept; remove one first.	Sie haben so viele eigene Symbole wie möglich; entfernen Sie zuerst eines.
+	Your columns	Ihre Spalten
+	Your columns: drop ID, progress and others	Ihre Spalten: Dosen-Nr., Fortschritt und weitere
+	{name} — Markup report	{name} — Markierungsbericht
+	How far off the line	Abstand von der Linie
+	Width and height	Breite und Höhe
+	Length, or @x,y	Länge oder @x,y
+	Start point (x,y from the origin)	Startpunkt (x,y vom Ursprung)
+	Distance, or @x,y	Abstand oder @x,y
+	Angle in degrees	Winkel in Grad
+	Scale factor	Maßstabsfaktor
+	Base point (x,y from the origin)	Basispunkt (x,y vom Ursprung)
+	Offset distance	Versatzabstand
+	Fillet radius	Rundungsradius
+	Chamfer distance	Fasenabstand
+	Not started	Nicht begonnen
+	Pulled	Gezogen
+	Terminated	Aufgelegt
+	Tested	Geprüft
+	Added {name} to your symbols.	{name} zu Ihren Symbolen hinzugefügt.
+	Measure cable run	Kabelweg messen
+	Perpendicular	Lotrecht
+	Fiber	Glasfaser

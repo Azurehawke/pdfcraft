@@ -2442,3 +2442,58 @@ key	Space	Интервал
 	The two points are in the same place; pick two ends of a length.	Двете точки са на едно място; изберете двата края на отсечка.
 	The page can't be measured.	Тази страница не може да се измерва.
 	Calibrate scale	Калибриране на мащаба
+	Add a column	Добавяне на колона
+	Add symbol from SVG…	Добавяне на символ от SVG…
+	Added to every run for the drop down the wall and the service loop (10' or 3m)	Добавя се към всяко трасе за спускането в стената и резерва при шкафа (10' или 3m)
+	Cable	Кабел
+	Cable ({layer}): {runs} runs, {length}	Кабел ({layer}): трасета {runs}, {length}
+	Cable run	Кабелно трасе
+	Cable run: click along the route, then Finish	Кабелно трасе: щракайте по маршрута, после Готово
+	Cable runs	Кабелни трасета
+	Cable totals by layer	Общо кабел по слоеве
+	Cable type	Вид кабел
+	Choices (comma-separated)	Възможности (разделени със запетая)
+	Column {n}	Колона {n}
+	Drop ID	Номер на розетка
+	Leave the choices empty for a column you type into.	Оставете възможностите празни за колона, в която се пише.
+	Legend	Легенда
+	My symbol	Мой символ
+	My symbols	Моите символи
+	No cable runs yet.	Все още няма кабелни трасета.
+	Page {n}	Страница {n}
+	Page {n} of {total}	Страница {n} от {total}
+	Place a legend of the symbols used; it keeps itself up to date	Поставяне на легенда на използваните символи; тя се обновява сама
+	Port	Порт
+	Progress	Напредък
+	Remove from my symbols	Премахване от моите символи
+	Remove this column	Премахване на колоната
+	Runs	Трасета
+	SVG drawings	SVG чертежи
+	Saved the summary report.	Обобщеният отчет е запазен.
+	Summary report (PDF): the markups shown, with photos, by layer	Обобщен отчет (PDF): показаните маркировки със снимки, по слоеве
+	Symbols in the whole document	Символи в целия документ
+	Symbols on this page	Символи на тази страница
+	Use a line drawing saved as SVG as a symbol of your own	Използване на линеен чертеж, запазен като SVG, като собствен символ
+	You have as many symbols of your own as can be kept; remove one first.	Имате максимума собствени символи; първо премахнете един.
+	Your columns	Вашите колони
+	Your columns: drop ID, progress and others	Вашите колони: номер на розетка, напредък и други
+	{name} — Markup report	{name} — отчет за маркировките
+	How far off the line	Отстояние от линията
+	Width and height	Ширина и височина
+	Length, or @x,y	Дължина или @x,y
+	Start point (x,y from the origin)	Начална точка (x,y от началото)
+	Distance, or @x,y	Разстояние или @x,y
+	Angle in degrees	Ъгъл в градуси
+	Scale factor	Коефициент на мащаба
+	Base point (x,y from the origin)	Базова точка (x,y от началото)
+	Offset distance	Разстояние на отместване
+	Fillet radius	Радиус на закръгляне
+	Chamfer distance	Размер на скосяването
+	Not started	Не е започнато
+	Pulled	Изтеглено
+	Terminated	Терминирано
+	Tested	Тествано
+	Added {name} to your symbols.	{name} е добавен към вашите символи.
+	Measure cable run	Измерване на кабелно трасе
+	Perpendicular	Перпендикуляр
+	Fiber	Оптика

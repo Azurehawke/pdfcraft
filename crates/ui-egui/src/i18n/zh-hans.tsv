@@ -2445,3 +2445,58 @@ key	Space	空格
 	The two points are in the same place; pick two ends of a length.	两点位置相同；请选择一段长度的两端。
 	The page can't be measured.	此页面无法测量。
 	Calibrate scale	校准比例
+	Add a column	添加列
+	Add symbol from SVG…	从 SVG 添加符号…
+	Added to every run for the drop down the wall and the service loop (10' or 3m)	每条线缆都加上墙内下线和机柜处预留的长度（10' 或 3m）
+	Cable	线缆
+	Cable ({layer}): {runs} runs, {length}	线缆（{layer}）：{runs} 条，{length}
+	Cable run	线缆路由
+	Cable run: click along the route, then Finish	线缆路由：沿路径单击，然后单击完成
+	Cable runs	线缆路由
+	Cable totals by layer	按图层的线缆合计
+	Cable type	线缆类型
+	Choices (comma-separated)	选项（用逗号分隔）
+	Column {n}	第 {n} 列
+	Drop ID	信息点编号
+	Leave the choices empty for a column you type into.	要输入文字的列请把选项留空。
+	Legend	图例
+	My symbol	我的符号
+	My symbols	我的符号
+	No cable runs yet.	还没有线缆路由。
+	Page {n}	第 {n} 页
+	Page {n} of {total}	第 {n} 页，共 {total} 页
+	Place a legend of the symbols used; it keeps itself up to date	放置所用符号的图例；它会自动更新
+	Port	端口
+	Progress	进度
+	Remove from my symbols	从我的符号中移除
+	Remove this column	删除此列
+	Runs	条数
+	SVG drawings	SVG 图纸
+	Saved the summary report.	已保存汇总报告。
+	Summary report (PDF): the markups shown, with photos, by layer	汇总报告（PDF）：所显示的标记及照片，按图层
+	Symbols in the whole document	整个文档中的符号
+	Symbols on this page	此页上的符号
+	Use a line drawing saved as SVG as a symbol of your own	把保存为 SVG 的线条图用作自己的符号
+	You have as many symbols of your own as can be kept; remove one first.	自己的符号已达上限；请先移除一个。
+	Your columns	你的列
+	Your columns: drop ID, progress and others	你的列：信息点编号、进度等
+	{name} — Markup report	{name} — 标记报告
+	How far off the line	离线的距离
+	Width and height	宽度和高度
+	Length, or @x,y	长度，或 @x,y
+	Start point (x,y from the origin)	起点（相对原点的 x,y）
+	Distance, or @x,y	距离，或 @x,y
+	Angle in degrees	角度（度）
+	Scale factor	缩放比例
+	Base point (x,y from the origin)	基点（相对原点的 x,y）
+	Offset distance	偏移距离
+	Fillet radius	圆角半径
+	Chamfer distance	倒角距离
+	Not started	未开始
+	Pulled	已穿线
+	Terminated	已端接
+	Tested	已测试
+	Added {name} to your symbols.	已将 {name} 添加到你的符号。
+	Measure cable run	测量线缆路由
+	Perpendicular	垂直
+	Fiber	光纤

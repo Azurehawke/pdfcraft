@@ -2482,3 +2482,58 @@ key	Space	Espaço
 	The two points are in the same place; pick two ends of a length.	Os dois pontos estão no mesmo lugar; escolha as duas pontas de um comprimento.
 	The page can't be measured.	Esta página não pode ser medida.
 	Calibrate scale	Calibrar escala
+	Add a column	Adicionar coluna
+	Add symbol from SVG…	Adicionar símbolo de SVG…
+	Added to every run for the drop down the wall and the service loop (10' or 3m)	Somado a cada lance para a descida na parede e a folga de serviço (10' ou 3m)
+	Cable	Cabo
+	Cable ({layer}): {runs} runs, {length}	Cabo ({layer}): {runs} lances, {length}
+	Cable run	Lance de cabo
+	Cable run: click along the route, then Finish	Lance de cabo: clique ao longo do trajeto e depois em Concluir
+	Cable runs	Lances de cabo
+	Cable totals by layer	Totais de cabo por camada
+	Cable type	Tipo de cabo
+	Choices (comma-separated)	Opções (separadas por vírgula)
+	Column {n}	Coluna {n}
+	Drop ID	ID do ponto
+	Leave the choices empty for a column you type into.	Deixe as opções vazias para uma coluna de digitar.
+	Legend	Legenda
+	My symbol	Meu símbolo
+	My symbols	Meus símbolos
+	No cable runs yet.	Ainda não há lances de cabo.
+	Page {n}	Página {n}
+	Page {n} of {total}	Página {n} de {total}
+	Place a legend of the symbols used; it keeps itself up to date	Colocar uma legenda dos símbolos usados; ela se mantém atualizada
+	Port	Porta
+	Progress	Andamento
+	Remove from my symbols	Remover dos meus símbolos
+	Remove this column	Remover esta coluna
+	Runs	Lances
+	SVG drawings	Desenhos SVG
+	Saved the summary report.	Relatório resumido salvo.
+	Summary report (PDF): the markups shown, with photos, by layer	Relatório resumido (PDF): as marcações mostradas, com fotos, por camada
+	Symbols in the whole document	Símbolos do documento inteiro
+	Symbols on this page	Símbolos desta página
+	Use a line drawing saved as SVG as a symbol of your own	Usar um desenho de linhas salvo como SVG como símbolo seu
+	You have as many symbols of your own as can be kept; remove one first.	Você já tem o máximo de símbolos próprios; remova um primeiro.
+	Your columns	Suas colunas
+	Your columns: drop ID, progress and others	Suas colunas: ID do ponto, andamento e outras
+	{name} — Markup report	{name} — Relatório de marcações
+	How far off the line	Distância da linha
+	Width and height	Largura e altura
+	Length, or @x,y	Comprimento, ou @x,y
+	Start point (x,y from the origin)	Ponto inicial (x,y a partir da origem)
+	Distance, or @x,y	Distância, ou @x,y
+	Angle in degrees	Ângulo em graus
+	Scale factor	Fator de escala
+	Base point (x,y from the origin)	Ponto base (x,y a partir da origem)
+	Offset distance	Distância de deslocamento
+	Fillet radius	Raio da concordância
+	Chamfer distance	Distância do chanfro
+	Not started	Não iniciado
+	Pulled	Passado
+	Terminated	Terminado
+	Tested	Testado
+	Added {name} to your symbols.	{name} adicionado aos seus símbolos.
+	Measure cable run	Medir lance de cabo
+	Perpendicular	Perpendicular
+	Fiber	Fibra

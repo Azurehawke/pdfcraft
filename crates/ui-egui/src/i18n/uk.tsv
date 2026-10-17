@@ -2504,3 +2504,58 @@ key	Space	Пробіл
 	The two points are in the same place; pick two ends of a length.	Обидві точки в одному місці; виберіть два кінці відрізка.
 	The page can't be measured.	Цю сторінку не можна виміряти.
 	Calibrate scale	Відкалібрувати масштаб
+	Add a column	Додати стовпець
+	Add symbol from SVG…	Додати символ із SVG…
+	Added to every run for the drop down the wall and the service loop (10' or 3m)	Додається до кожної траси на спуск по стіні та запас біля стійки (10' або 3m)
+	Cable	Кабель
+	Cable ({layer}): {runs} runs, {length}	Кабель ({layer}): трас {runs}, {length}
+	Cable run	Кабельна траса
+	Cable run: click along the route, then Finish	Кабельна траса: клацайте вздовж маршруту, потім Готово
+	Cable runs	Кабельні траси
+	Cable totals by layer	Підсумки кабелю за шарами
+	Cable type	Тип кабелю
+	Choices (comma-separated)	Варіанти (через кому)
+	Column {n}	Стовпець {n}
+	Drop ID	Номер розетки
+	Leave the choices empty for a column you type into.	Залиште варіанти порожніми для стовпця з введенням тексту.
+	Legend	Легенда
+	My symbol	Мій символ
+	My symbols	Мої символи
+	No cable runs yet.	Кабельних трас поки немає.
+	Page {n}	Сторінка {n}
+	Page {n} of {total}	Сторінка {n} з {total}
+	Place a legend of the symbols used; it keeps itself up to date	Розмістити легенду використаних символів; вона оновлюється сама
+	Port	Порт
+	Progress	Хід робіт
+	Remove from my symbols	Прибрати з моїх символів
+	Remove this column	Видалити цей стовпець
+	Runs	Траси
+	SVG drawings	Малюнки SVG
+	Saved the summary report.	Зведений звіт збережено.
+	Summary report (PDF): the markups shown, with photos, by layer	Зведений звіт (PDF): показані позначки з фото, за шарами
+	Symbols in the whole document	Символи всього документа
+	Symbols on this page	Символи на цій сторінці
+	Use a line drawing saved as SVG as a symbol of your own	Використати лінійний малюнок у SVG як власний символ
+	You have as many symbols of your own as can be kept; remove one first.	У вас максимум власних символів; спершу видаліть один.
+	Your columns	Ваші стовпці
+	Your columns: drop ID, progress and others	Ваші стовпці: номер розетки, хід робіт та інші
+	{name} — Markup report	{name} — звіт за позначками
+	How far off the line	Відступ від лінії
+	Width and height	Ширина й висота
+	Length, or @x,y	Довжина або @x,y
+	Start point (x,y from the origin)	Початкова точка (x,y від початку координат)
+	Distance, or @x,y	Відстань або @x,y
+	Angle in degrees	Кут у градусах
+	Scale factor	Коефіцієнт масштабу
+	Base point (x,y from the origin)	Базова точка (x,y від початку координат)
+	Offset distance	Відстань зміщення
+	Fillet radius	Радіус заокруглення
+	Chamfer distance	Розмір фаски
+	Not started	Не розпочато
+	Pulled	Протягнуто
+	Terminated	Оконцьовано
+	Tested	Протестовано
+	Added {name} to your symbols.	{name} додано до ваших символів.
+	Measure cable run	Виміряти кабельну трасу
+	Perpendicular	Перпендикуляр
+	Fiber	Оптика

@@ -2478,3 +2478,58 @@ key	Space	Szóköz
 	The two points are in the same place; pick two ends of a length.	A két pont ugyanott van; válassza ki egy hosszúság két végét.
 	The page can't be measured.	Ez az oldal nem mérhető.
 	Calibrate scale	Lépték kalibrálása
+	Add a column	Oszlop hozzáadása
+	Add symbol from SVG…	Szimbólum hozzáadása SVG-ből…
+	Added to every run for the drop down the wall and the service loop (10' or 3m)	Minden nyomvonalhoz hozzáadva a falban lefutó szakaszra és a tartalékhurokra (10' vagy 3m)
+	Cable	Kábel
+	Cable ({layer}): {runs} runs, {length}	Kábel ({layer}): {runs} nyomvonal, {length}
+	Cable run	Kábelnyomvonal
+	Cable run: click along the route, then Finish	Kábelnyomvonal: kattintson végig az útvonalon, majd Kész
+	Cable runs	Kábelnyomvonalak
+	Cable totals by layer	Kábelösszesítés rétegenként
+	Cable type	Kábeltípus
+	Choices (comma-separated)	Választható értékek (vesszővel elválasztva)
+	Column {n}	{n}. oszlop
+	Drop ID	Aljzatszám
+	Leave the choices empty for a column you type into.	Hagyja üresen a választékot egy beírós oszlophoz.
+	Legend	Jelmagyarázat
+	My symbol	Saját szimbólum
+	My symbols	Saját szimbólumok
+	No cable runs yet.	Még nincs kábelnyomvonal.
+	Page {n}	{n}. oldal
+	Page {n} of {total}	{n}. oldal / {total}
+	Place a legend of the symbols used; it keeps itself up to date	A használt szimbólumok jelmagyarázatának elhelyezése; magától frissül
+	Port	Port
+	Progress	Készültség
+	Remove from my symbols	Eltávolítás a saját szimbólumok közül
+	Remove this column	Az oszlop eltávolítása
+	Runs	Nyomvonalak
+	SVG drawings	SVG-rajzok
+	Saved the summary report.	Az összefoglaló jelentés mentve.
+	Summary report (PDF): the markups shown, with photos, by layer	Összefoglaló jelentés (PDF): a látható jelölések fotókkal, rétegenként
+	Symbols in the whole document	Szimbólumok a teljes dokumentumban
+	Symbols on this page	Szimbólumok ezen az oldalon
+	Use a line drawing saved as SVG as a symbol of your own	SVG-ként mentett vonalas rajz használata saját szimbólumként
+	You have as many symbols of your own as can be kept; remove one first.	Elérte a saját szimbólumok legnagyobb számát; előbb távolítson el egyet.
+	Your columns	Saját oszlopok
+	Your columns: drop ID, progress and others	Saját oszlopok: aljzatszám, készültség és mások
+	{name} — Markup report	{name} — Jelölések jelentése
+	How far off the line	Távolság a vonaltól
+	Width and height	Szélesség és magasság
+	Length, or @x,y	Hossz vagy @x,y
+	Start point (x,y from the origin)	Kezdőpont (x,y az origótól)
+	Distance, or @x,y	Távolság vagy @x,y
+	Angle in degrees	Szög fokban
+	Scale factor	Méretezési szorzó
+	Base point (x,y from the origin)	Alappont (x,y az origótól)
+	Offset distance	Eltolás távolsága
+	Fillet radius	Lekerekítési sugár
+	Chamfer distance	Letörés mérete
+	Not started	Nincs elkezdve
+	Pulled	Behúzva
+	Terminated	Bekötve
+	Tested	Bemérve
+	Added {name} to your symbols.	{name} hozzáadva a saját szimbólumokhoz.
+	Measure cable run	Kábelnyomvonal mérése
+	Perpendicular	Merőleges
+	Fiber	Optika
