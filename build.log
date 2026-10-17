@@ -1,0 +1,86 @@
+RevuCraft build 65 for Windows x64 (MSI 1.0.65)
+==> cargo build (x86_64-pc-windows-msvc)
+    Updating crates.io index
+     Locking 17 packages to highest Rust 1.90 compatible versions
+      Adding aho-corasick v1.1.5
+      Adding android_log-sys v0.3.2
+      Adding android_logger v0.15.1
+      Adding cesu8 v1.1.0
+      Adding env_filter v0.1.4
+      Adding jni v0.21.1 (available: v0.22.4)
+      Adding regex v1.13.1
+      Adding regex-automata v0.4.18
+      Adding windows-sys v0.45.0
+      Adding windows-targets v0.42.2
+      Adding windows_aarch64_gnullvm v0.42.2
+      Adding windows_aarch64_msvc v0.42.2
+      Adding windows_i686_gnu v0.42.2
+      Adding windows_i686_msvc v0.42.2
+      Adding windows_x86_64_gnu v0.42.2
+      Adding windows_x86_64_gnullvm v0.42.2
+      Adding windows_x86_64_msvc v0.42.2
+   Compiling pdfcraft-crypt v0.5.0 (D:\a\pdfcraft\pdfcraft\crates\crypt)
+   Compiling pdfcraft-filters v0.5.0 (D:\a\pdfcraft\pdfcraft\crates\filters)
+   Compiling pdfcraft-fonts v0.5.0 (D:\a\pdfcraft\pdfcraft\crates\fonts)
+   Compiling hayro-jbig2 v0.3.0 (D:\a\pdfcraft\pdfcraft\vendor\hayro-jbig2)
+   Compiling pdfcraft-cos v0.5.0 (D:\a\pdfcraft\pdfcraft\crates\cos)
+   Compiling winit v0.30.13 (D:\a\pdfcraft\pdfcraft\vendor\winit)
+   Compiling hayro-syntax v0.7.2 (D:\a\pdfcraft\pdfcraft\vendor\hayro-syntax)
+   Compiling pdfcraft-model v0.5.0 (D:\a\pdfcraft\pdfcraft\crates\model)
+   Compiling pdfcraft-content v0.5.0 (D:\a\pdfcraft\pdfcraft\crates\content)
+   Compiling pdfcraft-annot v0.5.0 (D:\a\pdfcraft\pdfcraft\crates\annot)
+   Compiling pdfcraft-forms v0.5.0 (D:\a\pdfcraft\pdfcraft\crates\forms)
+   Compiling hayro-interpret v0.7.0 (D:\a\pdfcraft\pdfcraft\vendor\hayro-interpret)
+   Compiling lopdf v0.45.0 (D:\a\pdfcraft\pdfcraft\vendor\lopdf)
+   Compiling hayro v0.7.1 (D:\a\pdfcraft\pdfcraft\vendor\hayro)
+   Compiling pdfcraft-edit v0.5.0 (D:\a\pdfcraft\pdfcraft\crates\edit)
+   Compiling pdfcraft-sign v0.5.0 (D:\a\pdfcraft\pdfcraft\crates\sign)
+   Compiling pdfcraft-redact v0.5.0 (D:\a\pdfcraft\pdfcraft\crates\redact)
+   Compiling pdfcraft-ocr v0.5.0 (D:\a\pdfcraft\pdfcraft\crates\ocr)
+   Compiling pdfcraft-render v0.5.0 (D:\a\pdfcraft\pdfcraft\crates\render)
+   Compiling pdfcraft-js v0.5.0 (D:\a\pdfcraft\pdfcraft\crates\js)
+   Compiling pdfcraft-xfdf v0.5.0 (D:\a\pdfcraft\pdfcraft\crates\xfdf)
+   Compiling pdfcraft-measure v0.5.0 (D:\a\pdfcraft\pdfcraft\crates\measure)
+   Compiling pdfcraft-optimize v0.5.0 (D:\a\pdfcraft\pdfcraft\crates\optimize)
+   Compiling pdfcraft-print v0.5.0 (D:\a\pdfcraft\pdfcraft\crates\print)
+   Compiling pdfcraft-organize v0.5.0 (D:\a\pdfcraft\pdfcraft\crates\organize)
+   Compiling pdfcraft-a11y v0.5.0 (D:\a\pdfcraft\pdfcraft\crates\a11y)
+   Compiling pdfcraft-xfa v0.5.0 (D:\a\pdfcraft\pdfcraft\crates\xfa)
+   Compiling pdfcraft-create v0.5.0 (D:\a\pdfcraft\pdfcraft\crates\create)
+   Compiling pdfcraft-preflight v0.5.0 (D:\a\pdfcraft\pdfcraft\crates\preflight)
+   Compiling pdfcraft-export v0.5.0 (D:\a\pdfcraft\pdfcraft\crates\export)
+   Compiling pdfcraft-compare v0.5.0 (D:\a\pdfcraft\pdfcraft\crates\compare)
+   Compiling pdfcraft-engine v0.5.0 (D:\a\pdfcraft\pdfcraft\crates\engine)
+   Compiling accesskit_winit v0.32.2
+   Compiling pdfcraft-platform v0.5.0 (D:\a\pdfcraft\pdfcraft\crates\platform)
+   Compiling egui-wgpu v0.36.2 (D:\a\pdfcraft\pdfcraft\vendor\egui-wgpu)
+   Compiling egui-winit v0.36.2
+   Compiling glutin-winit v0.5.0
+   Compiling pdfcraft-ui-egui v0.5.0 (D:\a\pdfcraft\pdfcraft\crates\ui-egui)
+   Compiling eframe v0.36.2
+   Compiling pdfcraft-cli v0.5.0 (D:\a\pdfcraft\pdfcraft\apps\pdfcraft-cli)
+   Compiling pdfcraft v0.5.0 (D:\a\pdfcraft\pdfcraft\apps\pdfcraft)
+   Compiling pdfcraft-automation v0.5.0 (D:\a\pdfcraft\pdfcraft\crates\automation)
+    Finished `release` profile [optimized] target(s) in 4m 41s
+==> cargo xtask models
+   Compiling lopdf v0.45.0 (D:\a\pdfcraft\pdfcraft\vendor\lopdf)
+   Compiling xtask v0.1.0 (D:\a\pdfcraft\pdfcraft\xtask)
+    Finished `dev` profile [optimized + debuginfo] target(s) in 42.47s
+     Running `target\debug\xtask.exe models D:\a\pdfcraft\pdfcraft\target\revucraft-package\stage\models`
+assets: fetching https://ocrs-models.s3-accelerate.amazonaws.com/text-detection.rten
+assets: fetching https://creativecommons.org/licenses/by-sa/4.0/legalcode.txt
+assets: fetching https://ocrs-models.s3-accelerate.amazonaws.com/text-recognition.rten
+assets: fetching https://creativecommons.org/licenses/by-sa/4.0/legalcode.txt
+models: D:\a\pdfcraft\pdfcraft\target\revucraft-package\stage\models\text-detection.rten
+models: D:\a\pdfcraft\pdfcraft\target\revucraft-package\stage\models\text-recognition.rten
+==> wix build
+==> revucraft-cli --version
+pdfcraft-cli 0.5.0
+Web:     https://github.com/Azurehawke/pdfcraft/blob/revucraft/REVUCRAFT.md
+Source:  https://github.com/Azurehawke/pdfcraft/tree/revucraft
+
+Name                     Length
+----                     ------
+RevuCraft-setup.msi    43020288
+RevuCraft-portable.zip 54146692
+
