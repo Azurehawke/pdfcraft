@@ -145,8 +145,8 @@ Markup and measuring
       name and type, Open) on the bottom half, after VectorCraft's New Document. Home's New or open and
       Draft's New sheet open it too; Android shows recent files and Open from device… instead of the browser.
 - [ ] **(Steve, next build)** Select several markups at once (pen strokes, shapes, symbols, Draft lines):
-      drag a box on empty page with the Select tool to pick everything inside it; Shift+click adds
-      to the selection and Ctrl+click (⌘ on a Mac) toggles a markup in or out. The group moves,
+      drag a box on empty page with the Select tool to pick everything inside it; Shift+click or
+      Ctrl+click (⌘ on a Mac) toggles a markup in or out, as in Acrobat and Bluebeam. The group moves,
       deletes, copies and takes property changes together, with one handle box around it.
 - [ ] **(later)** The New dialog's Saved tab: page sizes of your own, kept by name.
 - [x] **(Steve, build 65)** Tool icons in the theme's accent colour (ribbon, left tools, rail, Draft
