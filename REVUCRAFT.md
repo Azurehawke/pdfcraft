@@ -144,6 +144,12 @@ Markup and measuring
       pages; Create) on the top half and a file browser (places, folder path, search, files, file
       name and type, Open) on the bottom half, after VectorCraft's New Document. Home's New or open and
       Draft's New sheet open it too; Android shows recent files and Open from device… instead of the browser.
+- [ ] **(Steve, next build)** Simplified Scale panel (mock-up approved): a card with the page's scale
+      in large type; a Preset / Custom / Calibrate switch (one dropdown; "1 in = 8 ft"; two steps
+      with Pick two points); one "Show lengths as" dropdown in place of unit, decimals, format and
+      fraction; Use on This page / All pages / An area (drag a box instead of typing the viewport);
+      Apply scale; a tidy Measurements list with Export CSV. The instructions move to the status
+      bar, the snap settings under its Snap button, and the Distance/Perimeter/Area tabs go.
 - [ ] **(Steve, next build)** Select several markups at once (pen strokes, shapes, symbols, Draft lines):
       drag a box on empty page with the Select tool to pick everything inside it; Shift+click or
       Ctrl+click (⌘ on a Mac) toggles a markup in or out, as in Acrobat and Bluebeam. The group moves,
