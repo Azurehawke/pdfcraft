@@ -101,7 +101,7 @@ pub use pdfcraft_annot::{
     AttachIcon, FillMark, LineEnding, Markup, NOTE_SIZE, NewAnnotation, NoteIcon, OverlayFont, OverlayLook, PenKind, Props as CommentProps,
     ReviewState, Rgb, Shape, StampGroup, StampKind, Style, rect_quad,
 };
-pub use pdfcraft_annot::{geometry, layers, photo_callout, svg_art, symbols};
+pub use pdfcraft_annot::{fields, geometry, layers, photo_callout, svg_art, symbols};
 pub use pdfcraft_forms::detect;
 pub use pdfcraft_optimize as optimize;
 pub use pdfcraft_preflight as pdfa;
@@ -193,6 +193,7 @@ fn scope_of(edit: &Edit) -> Scope {
         | Edit::TransformAnnotation { .. }
         | Edit::EditSymbol { .. }
         | Edit::SetCalloutSide { .. }
+        | Edit::SetAnnotationField { .. }
         | Edit::StyleAnnotation { .. }
         | Edit::FillAnnotation { .. }
         | Edit::SetAnnotationInfo { .. } => Scope::Comments,
@@ -325,6 +326,17 @@ impl Document {
     /// The turn of the symbol at `(page, index)` in degrees.
     pub fn symbol_rotation(&self, page: usize, index: usize) -> f64 {
         self.editor.as_ref().map_or(0.0, |e| pdfcraft_annot::symbols::rotation_at(&e.cos, page, index))
+    }
+
+    /// Your own columns' values on the markup at `(page, index)`.
+    pub fn annotation_fields(&self, page: usize, index: usize) -> Vec<(String, String)> {
+        let Some(e) = self.editor.as_ref() else { return Vec::new() };
+        pdfcraft_annot::photo_callout::dict_at(&e.cos, page, index).map(|d| pdfcraft_annot::fields::fields_of(&e.cos, &d)).unwrap_or_default()
+    }
+
+    /// Every markup's own columns: (page, index, fields).
+    pub fn all_annotation_fields(&self) -> Vec<(usize, usize, Vec<(String, String)>)> {
+        self.editor.as_ref().map(|e| pdfcraft_annot::fields::all_fields(&e.cos)).unwrap_or_default()
     }
 
     /// The photo in the photo callout at `(page, index)` (JPEG bytes), if it is one.
@@ -1001,6 +1013,13 @@ pub enum Edit {
         side: pdfcraft_annot::photo_callout::TextSide,
         photo_height: f64,
     },
+    /// RevuCraft: set one of your own columns on a markup (an empty value clears it).
+    SetAnnotationField {
+        page: usize,
+        index: usize,
+        name: String,
+        value: String,
+    },
     /// RevuCraft: put a photo callout's description on the given side of the photo.
     SetCalloutSide {
         page: usize,
@@ -1335,6 +1354,7 @@ impl Edit {
             Edit::AddPhotoCallout { .. } => "Add photo callout".into(),
             Edit::PinToCallout { .. } => "Make photo callout".into(),
             Edit::SetCalloutSide { .. } => "Move description".into(),
+            Edit::SetAnnotationField { name, .. } => format!("Set {name}"),
             Edit::SetVertices { copy: true, .. } => "Offset".into(),
             Edit::TransformAnnotation { copy: true, .. } => "Copy markup".into(),
             Edit::TransformAnnotation { matrix, .. } if matrix[..4] == [1.0, 0.0, 0.0, 1.0] => "Move markup".into(),
@@ -1492,6 +1512,7 @@ fn check_permission(edit: &Edit, p: &pdfcraft_cos::Permissions) -> Result<(), Ed
         | Edit::AddPhotoCallout { .. }
         | Edit::PinToCallout { .. }
         | Edit::SetCalloutSide { .. }
+        | Edit::SetAnnotationField { .. }
         | Edit::StyleAnnotation { .. }
         | Edit::FillAnnotation { .. }
         | Edit::SetAnnotationInfo { .. }
@@ -1849,6 +1870,7 @@ fn run_edit(doc: &mut pdfcraft_cos::Document, edit: &Edit, cx: &mut EditCtx) -> 
             }
             pdfcraft_annot::delete_annotation(doc, *page, *index)?;
         }
+        Edit::SetAnnotationField { page, index, name, value } => pdfcraft_annot::fields::set_field(doc, *page, *index, name, value, &cx.meta())?,
         Edit::SetCalloutSide { page, index, side } => pdfcraft_annot::photo_callout::set_side(doc, *page, *index, *side, &cx.meta())?,
         Edit::EditSymbol { page, index, label, rotation } => {
             pdfcraft_annot::symbols::edit_symbol(doc, *page, *index, label.as_deref(), *rotation, &cx.meta())?;

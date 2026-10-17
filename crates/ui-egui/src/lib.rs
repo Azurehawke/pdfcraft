@@ -68,6 +68,7 @@ mod autoscroll;
 mod bidi;
 pub mod bulk_fields;
 mod cad_icons;
+mod columns;
 /// rfd, or on Android the builder `android_picker` reads.
 mod dialog;
 mod dialogs;
@@ -486,6 +487,8 @@ pub struct PdfCraftApp {
     pub(crate) chest: tool_chest::ToolChest,
     /// RevuCraft: your own symbols (from SVG files), kept with the app.
     pub(crate) my_symbols: Vec<pdfcraft_engine::symbols::CustomArt>,
+    /// RevuCraft: your own columns on markups (drop ID, progress…).
+    pub(crate) markup_columns: Vec<columns::MarkupColumn>,
     /// RevuCraft: the side panels open in the dock, in the order opened.
     pub(crate) dock: Vec<RightPanel>,
     /// Dock boxes collapsed to their title bar.
@@ -811,6 +814,7 @@ impl PdfCraftApp {
             markups: Default::default(),
             chest: Default::default(),
             my_symbols: Vec::new(),
+            markup_columns: columns::defaults(),
             dock: Vec::new(),
             dock_collapsed: Vec::new(),
             dock_order: Vec::new(),
@@ -1534,6 +1538,7 @@ impl PdfCraftApp {
             "comments_panel_closed": self.comments_panel_closed,
             "dock": self.dock_layout(),
             "tool_chest": self.chest.to_json(),
+            "markup_columns": columns::to_json(&self.markup_columns),
             "my_symbols": self.my_symbols.iter().map(|s| serde_json::json!({ "name": s.name, "art": s.art })).collect::<Vec<_>>(),
         })
         .to_string()
@@ -1642,6 +1647,9 @@ impl PdfCraftApp {
                         .then(|| pdfcraft_engine::symbols::CustomArt { name, art: art.to_string() })
                 })
                 .collect();
+        }
+        if let Some(cols) = columns::from_json(&v["markup_columns"]) {
+            self.markup_columns = cols;
         }
         if v["tool_chest"].is_object() {
             self.chest = tool_chest::ToolChest::from_json(&v["tool_chest"]);

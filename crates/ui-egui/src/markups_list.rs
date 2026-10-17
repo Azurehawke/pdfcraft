@@ -24,6 +24,8 @@ pub enum Col {
     Status,
     Value,
     Date,
+    /// One of your own columns (its position in your list).
+    Custom(usize),
 }
 
 impl Col {
@@ -39,6 +41,7 @@ impl Col {
             Col::Status => "Status",
             Col::Value => "Value",
             Col::Date => "Date",
+            Col::Custom(_) => "",
         }
     }
 
@@ -68,11 +71,18 @@ pub struct Row {
     /// The value as a number, for sorting.
     pub amount: Option<f64>,
     pub date: String,
+    /// Your own columns' values (name, value).
+    pub fields: Vec<(String, String)>,
 }
 
 impl Row {
-    fn text(&self, col: Col) -> String {
+    fn field(&self, name: &str) -> String {
+        self.fields.iter().find(|(n, _)| n == name).map(|(_, v)| v.clone()).unwrap_or_default()
+    }
+
+    fn text(&self, col: Col, custom: &[String]) -> String {
         match col {
+            Col::Custom(i) => custom.get(i).map(|n| self.field(n)).unwrap_or_default(),
             Col::Type => self.kind.clone(),
             Col::Label => self.label.clone(),
             Col::Layer => self.layer.clone(),
@@ -123,6 +133,7 @@ pub fn rows(doc: &Document) -> Vec<Row> {
         l.and_then(|l| layers.iter().find(|x| (x.id.num, x.id.generation) == l)).map(|x| x.name.clone()).unwrap_or_default()
     };
     let measured = doc.measurements().map(|l| l.measurements).unwrap_or_default();
+    let all_fields = doc.all_annotation_fields();
     let mut out = Vec::new();
     for a in info.annotations.iter().filter(|a| a.in_reply_to.is_none() && a.state.is_none() && a.subtype != "Popup") {
         if out.len() >= MAX_ROWS {
@@ -174,19 +185,21 @@ pub fn rows(doc: &Document) -> Vec<Row> {
             value: measurement.map(|m| m.reading.label.clone()).unwrap_or_default(),
             amount: measurement.map(|m| m.reading.value),
             date: a.modified.as_deref().map(pdf_date).unwrap_or_default(),
+            fields: all_fields.iter().find(|(p, i, _)| *p == a.page && *i == a.index).map(|(_, _, f)| f.clone()).unwrap_or_default(),
         });
     }
     out
 }
 
 /// The rows that pass the filters, in the chosen order.
-pub fn visible(rows: &[Row], state: &MarkupsState) -> Vec<Row> {
+pub fn visible(rows: &[Row], state: &MarkupsState, custom: &[String]) -> Vec<Row> {
+    let cols = all_columns(custom);
     let q = state.query.trim().to_lowercase();
     let mut out: Vec<Row> = rows
         .iter()
         .filter(|r| state.kind.as_ref().is_none_or(|k| &r.kind == k))
         .filter(|r| state.layer.as_ref().is_none_or(|l| &r.layer == l))
-        .filter(|r| q.is_empty() || Col::ALL.iter().any(|c| r.text(*c).to_lowercase().contains(&q)))
+        .filter(|r| q.is_empty() || cols.iter().any(|c| r.text(*c, custom).to_lowercase().contains(&q)))
         .cloned()
         .collect();
     let col = state.sort;
@@ -194,7 +207,11 @@ pub fn visible(rows: &[Row], state: &MarkupsState) -> Vec<Row> {
         let order = match col {
             Col::Page => (a.page, a.index).cmp(&(b.page, b.index)),
             Col::Value => a.amount.partial_cmp(&b.amount).unwrap_or(std::cmp::Ordering::Equal).then_with(|| a.value.cmp(&b.value)),
-            other => a.text(other).to_lowercase().cmp(&b.text(other).to_lowercase()).then_with(|| (a.page, a.index).cmp(&(b.page, b.index))),
+            other => a
+                .text(other, custom)
+                .to_lowercase()
+                .cmp(&b.text(other, custom).to_lowercase())
+                .then_with(|| (a.page, a.index).cmp(&(b.page, b.index))),
         };
         if state.descending { order.reverse() } else { order }
     });
@@ -207,12 +224,35 @@ fn cell(text: &str) -> String {
     if text.contains([',', '"', '\n', '\r']) { format!("\"{}\"", text.replace('"', "\"\"")) } else { text }
 }
 
+/// The built-in columns, then yours.
+fn all_columns(custom: &[String]) -> Vec<Col> {
+    Col::ALL.into_iter().chain((0..custom.len()).map(Col::Custom)).collect()
+}
+
+/// A column's heading (translated for the built-in ones).
+fn heading(c: Col, custom: &[String]) -> String {
+    match c {
+        Col::Custom(i) => custom.get(i).cloned().unwrap_or_default(),
+        other => tl!(other.title()).to_string(),
+    }
+}
+
 /// The rows as CSV, with a header.
-pub fn csv(rows: &[Row]) -> String {
-    let mut out = Col::ALL.iter().map(|c| c.title()).collect::<Vec<_>>().join(",");
+pub fn csv(rows: &[Row], custom: &[String]) -> String {
+    let cols = all_columns(custom);
+    let mut out = cols
+        .iter()
+        .map(|c| {
+            cell(&match c {
+                Col::Custom(i) => custom.get(*i).cloned().unwrap_or_default(),
+                other => other.title().to_string(),
+            })
+        })
+        .collect::<Vec<_>>()
+        .join(",");
     out.push_str("\r\n");
     for r in rows {
-        out.push_str(&Col::ALL.iter().map(|c| cell(&r.text(*c))).collect::<Vec<_>>().join(","));
+        out.push_str(&cols.iter().map(|c| cell(&r.text(*c, custom))).collect::<Vec<_>>().join(","));
         out.push_str("\r\n");
     }
     out
@@ -235,6 +275,8 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
     let mut layer_names: Vec<String> = all.iter().map(|r| r.layer.clone()).filter(|l| !l.is_empty()).collect();
     layer_names.sort();
     layer_names.dedup();
+    let custom: Vec<String> = app.markup_columns.iter().map(|c| c.name.clone()).collect();
+    let cols = all_columns(&custom);
     let mut export = false;
     ui.horizontal(|ui| {
         ui.add(egui::TextEdit::singleline(&mut state.query).hint_text(tl!("Search markups")).desired_width(130.0));
@@ -261,8 +303,12 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
         if icons::button(ui, "file-spreadsheet", 26.0, false, tl!("Export the list as a spreadsheet (CSV)")).clicked() {
             export = true;
         }
+        let r = icons::button(ui, "columns-3", 26.0, false, tl!("Your columns: drop ID, progress and others"));
+        egui::Popup::from_toggle_button_response(&r)
+            .close_behavior(egui::PopupCloseBehavior::CloseOnClickOutside)
+            .show(|ui| crate::columns::editor(ui, &mut app.markup_columns));
     });
-    let shown = visible(&all, state);
+    let shown = visible(&all, state, &custom);
     let count = if shown.len() == all.len() {
         crate::i18n::fmt(tl!("Markups: {n}"), &[("n", &all.len().to_string())])
     } else {
@@ -279,15 +325,15 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
             .sense(Sense::click())
             .auto_shrink([false, false])
             .cell_layout(Layout::left_to_right(Align::Center));
-        for c in Col::ALL {
+        for c in cols.iter().copied() {
             builder = builder.column(Column::initial(c.width()).at_least(36.0).resizable(true).clip(true));
         }
         builder
             .header(22.0, |mut header| {
-                for c in Col::ALL {
+                for c in cols.iter().copied() {
                     header.col(|ui| {
                         let arrow = if state.sort == c { if state.descending { " ↓" } else { " ↑" } } else { "" };
-                        let text = format!("{}{arrow}", tl!(c.title()));
+                        let text = format!("{}{arrow}", heading(c, &custom));
                         if ui.add(egui::Label::new(egui::RichText::new(text).strong()).sense(Sense::click())).clicked() {
                             sort_by = Some(c);
                         }
@@ -298,9 +344,9 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
                 body.rows(22.0, shown.len(), |mut row| {
                     let Some(r) = shown.get(row.index()) else { return };
                     row.set_selected(selected == Some((r.page, r.index)));
-                    for c in Col::ALL {
+                    for c in cols.iter().copied() {
                         row.col(|ui| {
-                            ui.add(egui::Label::new(r.text(c)).truncate().selectable(false));
+                            ui.add(egui::Label::new(r.text(c, &custom)).truncate().selectable(false));
                         });
                     }
                     if row.response().clicked() {
@@ -329,7 +375,7 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
         v.flash = Some((r.page, r.rect, 0.0));
     }
     if export {
-        export_csv(app, csv(&shown));
+        export_csv(app, csv(&shown, &custom));
     }
 }
 
@@ -373,6 +419,7 @@ mod tests {
             value: value.map(|v| format!("{v}'")).unwrap_or_default(),
             amount: value,
             date: String::new(),
+            fields: vec![("Progress".into(), "Pulled".into())],
         }
     }
 
@@ -380,16 +427,21 @@ mod tests {
     fn sorting_filtering_and_csv() {
         let rows = vec![row(2, "Distance", "Wall", Some(12.0)), row(0, "Data jack", "PC", None), row(1, "Distance", "Run", Some(3.5))];
         let mut s = MarkupsState::default();
-        assert_eq!(visible(&rows, &s).iter().map(|r| r.page).collect::<Vec<_>>(), [0, 1, 2]);
+        let none: [String; 0] = [];
+        assert_eq!(visible(&rows, &s, &none).iter().map(|r| r.page).collect::<Vec<_>>(), [0, 1, 2]);
         s.sort = Col::Value;
         s.descending = true;
-        assert_eq!(visible(&rows, &s).first().map(|r| r.label.as_str()), Some("Wall"));
+        assert_eq!(visible(&rows, &s, &none).first().map(|r| r.label.as_str()), Some("Wall"));
         s.kind = Some("Distance".into());
-        assert_eq!(visible(&rows, &s).len(), 2);
+        assert_eq!(visible(&rows, &s, &none).len(), 2);
         s.kind = None;
         s.query = "pc".into();
-        assert_eq!(visible(&rows, &s).len(), 1);
-        let text = csv(&[row(0, "Note", "=SUM(A1), \"x\"", None)]);
+        assert_eq!(visible(&rows, &s, &none).len(), 1);
+        // Your own columns are searched and exported.
+        s.query = "pulled".into();
+        assert_eq!(visible(&rows, &s, &["Progress".to_string()]).len(), 3);
+        assert!(csv(&rows, &["Progress".to_string()]).starts_with("Type,Label,Layer,Page,Author,Status,Value,Date,Progress\r\n"));
+        let text = csv(&[row(0, "Note", "=SUM(A1), \"x\"", None)], &none);
         assert!(text.starts_with("Type,Label,Layer,Page,Author,Status,Value,Date\r\n"));
         assert!(text.contains("\"'=SUM(A1), \"\"x\"\"\""), "{text}");
         assert_eq!(pdf_date("D:20261015093000-07'00'"), "2026-10-15");

@@ -27,6 +27,8 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
     let layers = app.session.layer_details(id);
     let rotation = doc.symbol_rotation(page, ai);
     let callout_side = doc.callout_side(page, ai);
+    let fields = doc.annotation_fields(page, ai);
+    let columns = app.markup_columns.clone();
     let (new_side, new_height) = (app.symbols.callout_side, crate::revu::callout_height(&app.symbols));
     // The direction of the line or wall nearest the symbol, for lining it up.
     let wall_angle = annotation.as_ref().filter(|a| a.symbol.is_some()).and_then(|a| {
@@ -165,6 +167,42 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
                         }
                         ui.end_row();
                     }
+                }
+                // Your own columns.
+                for col in &columns {
+                    let current = fields.iter().find(|(n, _)| *n == col.name).map(|(_, v)| v.clone()).unwrap_or_default();
+                    ui.label(col.name.as_str());
+                    if col.choices.is_empty() {
+                        let id = egui::Id::new(("props-field", page, ai, col.name.as_str()));
+                        let mut text = ui.data(|m| m.get_temp::<String>(id)).unwrap_or_else(|| current.clone());
+                        let r = ui.add(egui::TextEdit::singleline(&mut text).desired_width(170.0));
+                        if r.lost_focus() {
+                            if text.trim() != current {
+                                extra.push(Edit::SetAnnotationField { page, index: ai, name: col.name.clone(), value: text.clone() });
+                            }
+                            ui.data_mut(|m| m.remove::<String>(id));
+                        } else if r.has_focus() {
+                            ui.data_mut(|m| m.insert_temp(id, text));
+                        }
+                    } else {
+                        let mut choice = current.clone();
+                        egui::ComboBox::from_id_salt(("props-choice", col.name.as_str())).selected_text(choice.as_str()).width(170.0).show_ui(
+                            ui,
+                            |ui| {
+                                ui.selectable_value(&mut choice, String::new(), "—");
+                                for c in &col.choices {
+                                    ui.selectable_value(&mut choice, c.clone(), c.as_str());
+                                }
+                                if !current.is_empty() && !col.choices.contains(&current) {
+                                    ui.selectable_value(&mut choice, current.clone(), current.as_str());
+                                }
+                            },
+                        );
+                        if choice != current {
+                            extra.push(Edit::SetAnnotationField { page, index: ai, name: col.name.clone(), value: choice });
+                        }
+                    }
+                    ui.end_row();
                 }
                 ui.label(tl!("Subject"));
                 let r = ui.add(egui::TextEdit::singleline(&mut d.edited.subject).desired_width(170.0));
