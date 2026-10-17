@@ -122,6 +122,15 @@ Markup and measuring
 - [ ] **(Steve, next build)** Snapping: perpendicular (the foot of a line from the last point, for
       drafting and measuring), and midpoints of drawn markup lines (the PDF's own lines already
       snap to midpoints); the snap kind shown at the pointer while drafting, as measuring does.
+- [ ] **(Steve, next build)** Custom columns and statuses: your own fields on markups (drop ID, port,
+      patch panel, cable type) and a status list (Pulled / Terminated / Tested), set in Properties,
+      shown in the Markups list and exported with it.
+- [ ] **(Steve, next build)** Cable runs: a run measured along its route plus a fixed allowance per
+      run (drop down the wall, service loop at the rack), with totals by layer for ordering.
+- [ ] **(Steve, next build)** Legends that build themselves: a legend box on the sheet listing every
+      symbol used, with its picture and count, kept up to date.
+- [ ] **(Steve, next build)** Summary report: markups, photos, comments, statuses and custom fields as
+      a PDF report grouped by layer, with the photos in it (the customer report).
 - [ ] **(Steve, next build)** Your own symbols: import SVG files into the symbol library (Symbols
       tab), placed, sized, rotated, labelled and counted like the built-in ones; kept with the app.
 
