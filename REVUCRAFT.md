@@ -143,6 +143,9 @@ Markup and measuring
       (Recent, ANSI, ARCH, ISO, Saved; Custom; width, height, units, orientation, drawing scale,
       pages; Create) on the top half and a file browser (places, folder path, search, files, file
       name and type, Open) on the bottom half, after VectorCraft's New Document (mock-up made).
+- [ ] **(Steve, next build)** Tool icons in the theme's accent colour (ribbon, left tools, rail, Draft
+      tools); the chosen tool a solid accent tile with its icon in the accent's contrast colour;
+      captions and text stay neutral (mock-up made).
 
 Tablet
 - [ ] **(Steve, later update)** Touch mode: bigger buttons and handles, long-press for the context menu, two-finger tap to
