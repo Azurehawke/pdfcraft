@@ -683,10 +683,10 @@ impl PdfCraftApp {
         };
         self.views[index].comments.tool_done = true;
         if self.apply_edit(edit) {
-            // The new pin is the last photo on its page.
+            // The new pin is the last photo on its page; its caption is typed beside it.
             let new = self.session.get(id).and_then(|d| d.info.annotations.iter().filter(|a| a.photo && a.page == page).map(|a| a.index).max());
             if let Some(i) = new {
-                self.open_photo(page, i);
+                self.views[index].caption_prompt = Some(CaptionPrompt { page, index: i, text: String::new(), kind: CaptionKind::Photo });
             }
         }
     }
@@ -739,7 +739,7 @@ impl PdfCraftApp {
                     .filter(|_| d.info.annotations.iter().filter(|a| a.page == page).count() > before)
             });
             if let Some(i) = new {
-                self.open_photo(page, i);
+                self.views[index].caption_prompt = Some(CaptionPrompt { page, index: i, text: String::new(), kind: CaptionKind::Callout });
             }
         }
     }
@@ -772,6 +772,89 @@ impl PdfCraftApp {
                 ctx.load_texture(format!("photo-{page}-{index}"), image, egui::TextureOptions::LINEAR)
             });
         self.photo_viewer = Some(PhotoViewer { doc: id, page, index, caption, texture, callout });
+    }
+}
+
+/// What a caption box is for.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum CaptionKind {
+    /// A photo pin's caption.
+    Photo,
+    /// A photo callout's description (several lines; the first is the title).
+    Callout,
+    /// A symbol's label.
+    Symbol,
+}
+
+/// The value box beside something just placed, for its caption, description or label.
+#[derive(Clone, Debug)]
+pub struct CaptionPrompt {
+    pub page: usize,
+    pub index: usize,
+    pub text: String,
+    pub kind: CaptionKind,
+}
+
+/// Queue `edit` with whatever the page already has pending this frame (a label typed, then the
+/// next symbol placed with the same click), as one step.
+fn queue_edit(view: &mut crate::canvas::DocView, edit: Edit) {
+    view.pending_edit = Some(match view.pending_edit.take() {
+        Some(prev) => Edit::Batch { label: prev.label(), edits: vec![edit, prev] },
+        None => edit,
+    });
+}
+
+/// The caption box on `page`: opens beside a symbol once it is placed, and stays beside a photo,
+/// callout or symbol until Enter, Escape or a click elsewhere (which keeps what was typed).
+pub(crate) fn caption_box(
+    ui: &egui::Ui,
+    info: &pdfcraft_render::DocInfo,
+    view: &mut crate::canvas::DocView,
+    page: usize,
+    to_screen: impl Fn([f64; 2]) -> egui::Pos2,
+) {
+    // A symbol just placed: once it is in the document, its label box opens.
+    if let Some((p, before)) = view.label_after
+        && p == page
+    {
+        let symbols: Vec<_> = info.annotations.iter().filter(|a| a.page == page && a.symbol.is_some()).collect();
+        if symbols.len() > before
+            && let Some(newest) = symbols.iter().max_by_key(|a| a.index)
+        {
+            view.caption_prompt =
+                Some(CaptionPrompt { page, index: newest.index, text: newest.contents.clone().unwrap_or_default(), kind: CaptionKind::Symbol });
+            view.label_after = None;
+        }
+    }
+    let Some(prompt) = view.caption_prompt.as_mut().filter(|c| c.page == page) else { return };
+    let Some(a) = info.annotations.iter().find(|a| a.page == page && a.index == prompt.index) else {
+        view.caption_prompt = None;
+        return;
+    };
+    let [x0, y0, x1, y1] = a.rect.map(f64::from);
+    let anchor = to_screen([x0.max(x1), y0.min(y1)]);
+    let (title, hint) = match prompt.kind {
+        CaptionKind::Photo => (tl!("Caption"), tl!("Rack A, ceiling above room 104…")),
+        CaptionKind::Callout => (tl!("Description (the first line is the title)"), tl!("Rack A\n24-port switch and patch panel 1…")),
+        CaptionKind::Symbol => (tl!("Label"), tl!("PC, VoIP…")),
+    };
+    let look = crate::value_prompt::Prompt { multiline: prompt.kind == CaptionKind::Callout, ..crate::value_prompt::Prompt::new(title, hint) };
+    let action = crate::value_prompt::show(ui.ctx(), ("caption", page), anchor, ui.clip_rect(), look, &mut prompt.text, |_| {});
+    let (kind, index, text) = (prompt.kind, prompt.index, prompt.text.trim().to_string());
+    let old = a.contents.clone().unwrap_or_default();
+    match action {
+        Some(crate::value_prompt::PromptAction::Apply | crate::value_prompt::PromptAction::Leave) => {
+            view.caption_prompt = None;
+            if text != old.trim() {
+                let edit = match kind {
+                    CaptionKind::Symbol => Edit::EditSymbol { page, index, label: Some(text), rotation: None },
+                    CaptionKind::Photo | CaptionKind::Callout => Edit::SetAnnotationContents { page, index, text },
+                };
+                queue_edit(view, edit);
+            }
+        }
+        Some(crate::value_prompt::PromptAction::Cancel) => view.caption_prompt = None,
+        None => {}
     }
 }
 

@@ -981,6 +981,75 @@ pub fn keys(ctx: &egui::Context, doc: &Document, view: &mut DocView, tool: Draft
     out
 }
 
+// ---- the value box ------------------------------------------------------------------------------
+
+/// What the value box asks for while drafting on `page`, if anything: its title, a hint, and the
+/// point it opens beside (the pointer when `None`).
+fn value_request(view: &DocView, tool: DraftTool, page: usize) -> Option<(&'static str, &'static str, Option<[f64; 2]>)> {
+    let typed = !view.draft.input.is_empty();
+    if !tool.modifies() {
+        let points: &[[f64; 2]] = if view.draft.page == Some(page) { &view.draft.points } else { &[] };
+        return match (points.last().copied(), tool) {
+            (Some(last), DraftTool::Circle) => Some(("Radius", "6'  2'6\"", Some(last))),
+            (Some(last), DraftTool::Dimension | DraftTool::DimLinear) if points.len() == 2 => Some(("How far off the line", "2'", Some(last))),
+            (Some(last), DraftTool::Rectangle) => Some(("Width and height", "@12',10'", Some(last))),
+            (Some(last), _) => Some(("Length, or @x,y", "15'6\"  @0,15  @15<90", Some(last))),
+            (None, _) if typed => Some(("Start point (x,y from the origin)", "0,0  10',5'", None)),
+            (None, _) => None,
+        };
+    }
+    let (index, base) = crate::draft_edit::target(view, page);
+    match (tool, index, base) {
+        (DraftTool::Move | DraftTool::Copy | DraftTool::Mirror, Some(_), Some(b)) => Some(("Distance, or @x,y", "10'  @5',0", Some(b))),
+        (DraftTool::Rotate, Some(_), Some(b)) => Some(("Angle in degrees", "90  -45", Some(b))),
+        (DraftTool::Scale, Some(_), Some(b)) if view.draft.scale_ref.is_none() => Some(("Scale factor", "2  0.5", Some(b))),
+        (DraftTool::Move | DraftTool::Copy | DraftTool::Mirror | DraftTool::Rotate | DraftTool::Scale, Some(_), None) if typed => {
+            Some(("Base point (x,y from the origin)", "0,0", None))
+        }
+        (DraftTool::Offset, Some(_), _) => Some(("Offset distance", "6\"  2'", None)),
+        (DraftTool::Fillet, _, _) if typed => Some(("Fillet radius", "6\"  0", None)),
+        (DraftTool::Chamfer, _, _) if typed => Some(("Chamfer distance", "6\"", None)),
+        _ => None,
+    }
+}
+
+/// The value box while drafting: what has been typed (from the keyboard anywhere, or in the box)
+/// beside the point it applies to. Enter applies it, Escape takes a step back, as before.
+fn value_box(ui: &egui::Ui, doc: &Document, view: &mut DocView, cx: &PageCx<'_>, tool: DraftTool, settings: &DraftSettings, pos: Option<Pos2>) {
+    let page = cx.page;
+    let Some((title, hint, at)) = value_request(view, tool, page) else { return };
+    let anchor = match at {
+        Some(p) => cx.to_screen(p),
+        None => match pos {
+            Some(p) => p,
+            None => return,
+        },
+    };
+    let error = view.draft.error.clone();
+    let prompt = crate::value_prompt::Prompt { error: error.as_deref(), focus: false, ..crate::value_prompt::Prompt::new(tl!(title), hint) };
+    match crate::value_prompt::show(ui.ctx(), ("draft", page), anchor, ui.clip_rect(), prompt, &mut view.draft.input, |_| {}) {
+        Some(crate::value_prompt::PromptAction::Apply) => {
+            let edit = submit(view, doc, tool, settings);
+            if edit.is_some() {
+                view.pending_edit = edit;
+            }
+        }
+        Some(crate::value_prompt::PromptAction::Cancel) => {
+            if !view.draft.input.is_empty() {
+                view.draft.input.clear();
+            } else if tool.modifies() {
+                crate::draft_edit::step_back(view);
+            } else {
+                let edit = finish(view, doc, tool, false, settings);
+                if edit.is_some() {
+                    view.pending_edit = edit;
+                }
+            }
+        }
+        Some(crate::value_prompt::PromptAction::Leave) | None => {}
+    }
+}
+
 // ---- the page ----------------------------------------------------------------------------------
 
 /// Drafting on one page: snapping, clicks, the shape so far, the rubber band and its length.
@@ -1001,6 +1070,7 @@ pub(crate) fn page_input(
     let pos = ui.input(|i| i.pointer.hover_pos()).filter(|p| xf.rect.contains(*p));
     let pixels_per_unit = f64::from((xf.rect.width() / xf.pw).max(1e-6));
     let tolerance = SNAP_PX / pixels_per_unit;
+    value_box(ui, doc, view, cx, tool, settings, pos);
     let accent = Color32::from_rgb(242, 163, 58);
     let stroke = Stroke::new(1.5, accent);
     let mut hover: Option<[f64; 2]> = None;

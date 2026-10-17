@@ -285,10 +285,11 @@ pub(crate) fn page_input(ui: &egui::Ui, resp: &egui::Response, doc: &Document, v
             ("calibrate", page),
             b,
             ui.clip_rect(),
-            tl!("How long is this line really?"),
-            "12'6\"  150  3.5m",
+            crate::value_prompt::Prompt {
+                error: cal.error.as_deref(),
+                ..crate::value_prompt::Prompt::new(tl!("How long is this line really?"), "12'6\"  150  3.5m")
+            },
             &mut cal.text,
-            cal.error.as_deref(),
             |ui| {
                 let unit = if bare_feet { tl!("Plain numbers are feet") } else { tl!("Plain numbers are inches") };
                 ui.label(egui::RichText::new(unit).small().weak());
@@ -297,8 +298,10 @@ pub(crate) fn page_input(ui: &egui::Ui, resp: &egui::Response, doc: &Document, v
                 }
             },
         );
+        let escape = action.is_none() && !ui.ctx().egui_wants_keyboard_input() && ui.input(|i| i.key_pressed(egui::Key::Escape));
         match action {
             Some(crate::value_prompt::PromptAction::Cancel) => state.cancel(),
+            None if escape => state.cancel(),
             Some(crate::value_prompt::PromptAction::Apply) => {
                 let bare = state.bare;
                 let fractions = state.fractions;
@@ -316,7 +319,7 @@ pub(crate) fn page_input(ui: &egui::Ui, resp: &egui::Response, doc: &Document, v
                     }
                 }
             }
-            None => {}
+            Some(crate::value_prompt::PromptAction::Leave) | None => {}
         }
         return;
     }

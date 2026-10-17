@@ -645,7 +645,7 @@ fn after_place(view: &mut DocView, tool: DraftTool) {
 }
 
 /// The selected markup on `page`, the base point set on it, and the page they are on.
-fn target(view: &DocView, page: usize) -> (Option<usize>, Option<Pt>) {
+pub(crate) fn target(view: &DocView, page: usize) -> (Option<usize>, Option<Pt>) {
     let index = view.comments.selected.filter(|(p, _)| *p == page).map(|(_, i)| i);
     let base = view.draft.base.filter(|_| view.draft.page == Some(page) && index.is_some());
     (index, base)

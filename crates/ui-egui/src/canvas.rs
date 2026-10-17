@@ -361,6 +361,11 @@ pub struct DocView {
     /// Commenting state: selected comment, gestures, composer.
     pub comments: crate::comments::CommentView,
     pub measure: crate::measure_ui::MeasureView,
+    /// RevuCraft: the value box beside a photo, callout or symbol just placed, for its caption,
+    /// description or label; and a symbol placed but not yet in the document (page, symbols on
+    /// it before), whose label box opens once it is.
+    pub caption_prompt: Option<crate::revu::CaptionPrompt>,
+    pub label_after: Option<(usize, usize)>,
     /// The pointer over a page this frame: the page and the point in user space (the status bar).
     pub cursor: Option<(usize, [f64; 2])>,
     /// Drafting state (the Draft tab).
@@ -563,6 +568,8 @@ impl DocView {
             grid_pages: HashMap::new(),
             comments: Default::default(),
             measure: Default::default(),
+            caption_prompt: None,
+            label_after: None,
             cursor: None,
             draft: Default::default(),
             forms: Default::default(),
@@ -2316,10 +2323,21 @@ pub fn document_area(app: &mut PdfCraftApp, index: usize, ui: &mut egui::Ui) {
                     if tool == QuickTool::Symbol {
                         view.pending_edit = Some(crate::revu::symbol_edit(&symbols, doc, i, at, &author));
                         symbol_placed = true;
+                        let before = info.annotations.iter().filter(|a| a.page == i && a.symbol.is_some()).count();
+                        view.label_after = Some((i, before));
                     } else {
                         photo_at = Some((i, at));
                     }
                 }
+            }
+            // RevuCraft: the caption, description or label of what was just placed.
+            {
+                let pg = &info.pages[i];
+                let to_screen = |u: [f64; 2]| {
+                    let q = pg.user_to_view(u[0] as f32, u[1] as f32);
+                    xf.norm_to_screen(q[0] / xf.pw, q[1] / xf.ph)
+                };
+                crate::revu::caption_box(ui, info, view, i, to_screen);
             }
             // RevuCraft: a photo callout: the spot, then the box (a preview follows the pointer).
             if tool == QuickTool::PhotoCallout && allowed {
