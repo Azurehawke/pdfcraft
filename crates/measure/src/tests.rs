@@ -464,3 +464,14 @@ fn dimensions_have_extension_lines_and_an_offset_line() {
     m.dimension = Some(Dimension { leader: f64::NAN, extension: 4.0, gap: 2.0, ends: pdfcraft_annot::LineEnding::Slash, from: None });
     assert!(add(&mut d, &m, &meta).is_err());
 }
+
+#[test]
+fn perpendicular_snaps_to_the_foot_on_the_segment() {
+    let wall = [[0.0, 0.0], [100.0, 0.0]];
+    // From (30, 40) the foot on the wall is (30, 0); the pointer near it catches it.
+    assert_eq!(snap::perpendicular([30.0, 40.0], [31.0, 2.0], [wall], 5.0), Some([30.0, 0.0]));
+    // Too far from the pointer, or the foot past the segment's end: nothing.
+    assert_eq!(snap::perpendicular([30.0, 40.0], [60.0, 2.0], [wall], 5.0), None);
+    assert_eq!(snap::perpendicular([150.0, 40.0], [100.0, 1.0], [wall], 5.0), None);
+    assert_eq!(snap::perpendicular([f64::NAN, 0.0], [0.0, 0.0], [wall], 5.0), None);
+}

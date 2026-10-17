@@ -6,6 +6,7 @@
 //! stays editable, measurable and visible in any PDF viewer.
 
 use egui::{Color32, Pos2, Stroke, vec2};
+use pdfcraft_engine::measure::snap::SnapKind;
 use pdfcraft_engine::{Document, Edit, LineEnding, NewAnnotation, Shape, Style, measure};
 
 use crate::canvas::DocView;
@@ -981,6 +982,17 @@ pub fn keys(ctx: &egui::Context, doc: &Document, view: &mut DocView, tool: Draft
     out
 }
 
+/// A snap's name, translated where it is shown.
+pub(crate) fn snap_name(k: SnapKind) -> &'static str {
+    match k {
+        SnapKind::Endpoint => "Endpoint",
+        SnapKind::Midpoint => "Midpoint",
+        SnapKind::Intersection => "Intersection",
+        SnapKind::Path => "Path",
+        SnapKind::Perpendicular => "Perpendicular",
+    }
+}
+
 // ---- the value box ------------------------------------------------------------------------------
 
 /// What the value box asks for while drafting on `page`, if anything: its title, a hint, and the
@@ -1077,37 +1089,81 @@ pub(crate) fn page_input(
     if let Some(pos) = pos {
         ui.ctx().set_cursor_icon(egui::CursorIcon::Crosshair);
         let mut point = cx.to_user(pos);
-        // Snap: the shape's own points and other markup first, then the page's drawing.
+        // Snap: the shape's own points and other markup's corners and middles first, then the
+        // page's drawing, then square off the last point to a line.
+        let mut kind: Option<SnapKind> = None;
         if view.measure.snap_enabled {
-            let mut best: Option<([f64; 2], f64)> = None;
+            let raw = point;
+            let shapes = crate::draft_edit::shapes(view, doc, page);
+            let last = view.draft.points.last().copied().filter(|_| view.draft.page == Some(page));
+            let mut best: Option<([f64; 2], f64, SnapKind)> = None;
+            let mut consider = |p: [f64; 2], k: SnapKind| {
+                let d = (p[0] - raw[0]).hypot(p[1] - raw[1]);
+                if d <= tolerance && best.is_none_or(|(_, b, _)| d < b) {
+                    best = Some((p, d, k));
+                }
+            };
             let own = view.draft.points.iter().copied().filter(|_| view.draft.page == Some(page));
-            for v in own.chain(doc.markup_vertices(page)) {
-                let d = (v[0] - point[0]).hypot(v[1] - point[1]);
-                if d <= tolerance && best.is_none_or(|(_, b)| d < b) {
-                    best = Some((v, d));
+            if view.measure.snaps.endpoints {
+                for v in own.chain(doc.markup_vertices(page)) {
+                    consider(v, SnapKind::Endpoint);
                 }
             }
-            match best {
-                Some((v, _)) => point = v,
-                None => {
-                    if view.draft.paths.as_ref().is_none_or(|(p, g, _)| *p != page || *g != doc.edit_generation()) {
-                        view.draft.paths = Some((page, doc.edit_generation(), doc.measurement_paths(page).ok()));
+            if view.measure.snaps.midpoints {
+                for g in &shapes {
+                    for (a, b) in g.segments() {
+                        consider([(a[0] + b[0]) / 2.0, (a[1] + b[1]) / 2.0], SnapKind::Midpoint);
                     }
-                    if let Some((_, _, Some(paths))) = &view.draft.paths
-                        && let Ok(Some(hit)) = paths.snap(point, tolerance, view.measure.snaps)
+                }
+            }
+            if view.draft.paths.as_ref().is_none_or(|(p, g, _)| *p != page || *g != doc.edit_generation()) {
+                view.draft.paths = Some((page, doc.edit_generation(), doc.measurement_paths(page).ok()));
+            }
+            let pdf = match &view.draft.paths {
+                Some((_, _, Some(paths))) => Some(paths),
+                _ => None,
+            };
+            match best {
+                Some((v, _, k)) => {
+                    point = v;
+                    kind = Some(k);
+                }
+                None => {
+                    if let Some(paths) = pdf
+                        && let Ok(Some(hit)) = paths.snap(raw, tolerance, view.measure.snaps)
                     {
                         point = hit.point;
+                        kind = Some(hit.kind);
                     }
+                }
+            }
+            if kind.is_none_or(|k| k == SnapKind::Path)
+                && let Some(last) = last
+            {
+                let markup = shapes.iter().flat_map(|g| g.segments().map(|(a, b)| [a, b]).collect::<Vec<_>>());
+                let drawing = pdf.map(|p| p.segments.clone()).unwrap_or_default();
+                if let Some(p) = measure::snap::perpendicular(last, raw, markup.chain(drawing), tolerance) {
+                    point = p;
+                    kind = Some(SnapKind::Perpendicular);
                 }
             }
         }
         let shift = ui.input(|i| i.modifiers.shift);
         if let Some(last) = view.draft.points.last().filter(|_| view.draft.page == Some(page))
             && settings.ortho != shift
+            && kind != Some(SnapKind::Perpendicular)
         {
             point = orthogonal(*last, point);
+            kind = None;
         }
         hover = Some(point);
+        // What the pointer caught, as measuring shows it.
+        if let Some(k) = kind {
+            let at = cx.to_screen(point);
+            let green = Color32::from_rgb(46, 158, 92);
+            ui.painter().circle_stroke(at, 6.0, Stroke::new(1.0, green));
+            ui.painter().text(at + vec2(10.0, -10.0), egui::Align2::LEFT_BOTTOM, tl!(snap_name(k)), theme::regular(11.0), green);
+        }
         if tool.modifies() {
             if resp.clicked() && view.draft.setting_origin {
                 view.draft.origin = Some((page, point));

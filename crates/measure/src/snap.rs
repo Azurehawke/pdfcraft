@@ -26,6 +26,8 @@ pub enum SnapKind {
     Midpoint,
     Intersection,
     Path,
+    /// The foot of a line from the previous point square to a segment.
+    Perpendicular,
 }
 #[derive(Clone, Copy, Debug, PartialEq, Serialize)]
 pub struct Snap {
@@ -74,6 +76,37 @@ fn nearest(p: Point, a: Point, b: Point) -> Point {
     let t = (dot(sub(p, a), v) / length).clamp(0.0, 1.0);
     [a[0] + v[0] * t, a[1] + v[1] * t]
 }
+/// The point on one of `segments` where a line from `from` meets it at a right angle, nearest
+/// `at` and within `tolerance` of it (the foot must lie on the segment). At most `MAX_SEGMENTS`
+/// segments are looked at.
+pub fn perpendicular<I: IntoIterator<Item = [Point; 2]>>(from: Point, at: Point, segments: I, tolerance: f64) -> Option<Point> {
+    if check_points(&[from, at]).is_err() || !tolerance.is_finite() || tolerance <= 0.0 {
+        return None;
+    }
+    let mut best: Option<(Point, f64)> = None;
+    for [a, b] in segments.into_iter().take(MAX_SEGMENTS) {
+        let v = sub(b, a);
+        let length = dot(v, v);
+        if !length.is_finite() || length < 1e-12 {
+            continue;
+        }
+        let t = dot(sub(from, a), v) / length;
+        if !(0.0..=1.0).contains(&t) {
+            continue;
+        }
+        let foot = [a[0] + v[0] * t, a[1] + v[1] * t];
+        // A foot at the previous point itself (drawing along the segment) is no target.
+        if distance(foot, from) < 1e-6 {
+            continue;
+        }
+        let d = distance(foot, at);
+        if d <= tolerance && best.is_none_or(|(_, bd)| d < bd) {
+            best = Some((foot, d));
+        }
+    }
+    best.map(|(p, _)| p)
+}
+
 impl Geometry {
     /// Dense intersection searches are capped independently from path extraction.
     pub fn intersection_limited(&self, at: Point, tolerance: f64) -> bool {

@@ -367,9 +367,18 @@ pub(crate) fn page_input(ui: &egui::Ui, resp: &egui::Response, doc: &Document, v
                 if state.snaps.intersections && paths.intersection_limited(point, tolerance) {
                     state.error = Some(tl!("This area has too many overlapping paths; intersection snapping is limited.").into());
                 }
+                let raw = point;
                 if let Ok(Some(hit)) = paths.snap(point, tolerance, state.snaps) {
                     point = hit.point;
                     snap = Some(hit.kind);
+                }
+                // Square off the previous point to a line, unless a corner or middle is closer.
+                if snap.is_none_or(|k| k == measure::snap::SnapKind::Path)
+                    && let Some(last) = state.points.last().copied()
+                    && let Some(p) = measure::snap::perpendicular(last, raw, paths.segments.iter().copied(), tolerance)
+                {
+                    point = p;
+                    snap = Some(measure::snap::SnapKind::Perpendicular);
                 }
             }
         }
@@ -535,6 +544,7 @@ pub(crate) fn page_input(ui: &egui::Ui, resp: &egui::Response, doc: &Document, v
                     measure::snap::SnapKind::Midpoint => "Midpoint",
                     measure::snap::SnapKind::Intersection => "Intersection",
                     measure::snap::SnapKind::Path => "Path",
+                    measure::snap::SnapKind::Perpendicular => "Perpendicular",
                 }),
                 crate::theme::regular(11.0),
                 stroke.color,

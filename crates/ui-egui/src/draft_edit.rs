@@ -500,7 +500,7 @@ fn side(points: &[Pt], closed: bool, p: Pt) -> f64 {
 // ---- the page ----------------------------------------------------------------------------------
 
 /// The lines, polylines and polygons on `page`, read once per edit.
-fn shapes(view: &mut DocView, doc: &Document, page: usize) -> Vec<Geometry> {
+pub(crate) fn shapes(view: &mut DocView, doc: &Document, page: usize) -> Vec<Geometry> {
     let generation = doc.edit_generation();
     if view.draft.geometry.as_ref().is_none_or(|(p, g, _)| *p != page || *g != generation) {
         view.draft.geometry = Some((page, generation, doc.markup_geometry(page)));
