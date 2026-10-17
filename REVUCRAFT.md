@@ -133,6 +133,9 @@ Markup and measuring
       a PDF report grouped by layer, with the photos in it (the customer report).
 - [x] **(Steve)** Your own symbols: import SVG files into the symbol library (Symbols
       tab), placed, sized, rotated, labelled and counted like the built-in ones; kept with the app.
+- [ ] **(Steve, later update)** The drafting value box takes the cursor as it opens after each click, so
+      a length or @x,y (e.g. `@2<45`) can be typed without clicking into it first (Backspace in the
+      empty box takes back the last point; Enter and Escape as now).
 
 Tablet
 - [ ] **(Steve, later update)** Touch mode: bigger buttons and handles, long-press for the context menu, two-finger tap to
