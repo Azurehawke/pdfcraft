@@ -2597,3 +2597,8 @@ key	Space	Пробіл
 	Photo pins · Photo callouts	Мітки фото · Виноски з фото
 	Markups and reports	Позначки та звіти
 	Markups list · Your columns · Summary report	Список позначок · Власні стовпці · Зведений звіт
+	{n} markups copied from RevuCraft	Скопійовано позначок із RevuCraft: {n}
+	{n} markups selected: changes apply to all of them	Вибрано позначок: {n}; зміни застосовуються до всіх
+	Move markups	Перемістити позначки
+	Delete markups	Видалити позначки
+	Paste markups	Вставити позначки

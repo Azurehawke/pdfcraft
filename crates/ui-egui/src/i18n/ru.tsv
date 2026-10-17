@@ -2486,3 +2486,8 @@ key	Space	Пробел
 	Photo pins · Photo callouts	Метки фото · Выноски с фото
 	Markups and reports	Пометки и отчёты
 	Markups list · Your columns · Summary report	Список пометок · Свои столбцы · Сводный отчёт
+	{n} markups copied from RevuCraft	Скопировано пометок из RevuCraft: {n}
+	{n} markups selected: changes apply to all of them	Выбрано пометок: {n}; изменения применяются ко всем
+	Move markups	Переместить пометки
+	Delete markups	Удалить пометки
+	Paste markups	Вставить пометки

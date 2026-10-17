@@ -2535,3 +2535,8 @@ key	Space	Интервал
 	Photo pins · Photo callouts	Маркери за снимки · Износки със снимки
 	Markups and reports	Бележки и отчети
 	Markups list · Your columns · Summary report	Списък с бележки · Ваши колони · Обобщен отчет
+	{n} markups copied from RevuCraft	Копирани бележки от RevuCraft: {n}
+	{n} markups selected: changes apply to all of them	Избрани бележки: {n}; промените важат за всички
+	Move markups	Преместване на бележки
+	Delete markups	Изтриване на бележки
+	Paste markups	Поставяне на бележки

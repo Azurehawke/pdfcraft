@@ -23,6 +23,16 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
         return;
     };
     let annotation = doc.info.annotations.iter().find(|a| a.page == page && a.index == ai).cloned();
+    // The other markups selected with it take the same changes.
+    let others: Vec<usize> = app
+        .views
+        .get(index)
+        .map(|v| v.comments.group())
+        .unwrap_or_default()
+        .into_iter()
+        .filter(|(p, i)| *p == page && *i != ai)
+        .map(|(_, i)| i)
+        .collect();
     let editable = doc.allows_annotation() && doc.read_only_reason.is_none();
     let layers = app.session.layer_details(id);
     let rotation = doc.symbol_rotation(page, ai);
@@ -50,6 +60,10 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
         .and_then(|a| a.symbol.as_deref().map(pdfcraft_engine::symbols::display_name))
         .unwrap_or_else(|| tl!(crate::comments_panel::subtype_label(&d.edited.subtype)).to_string());
     ui.label(egui::RichText::new(kind).font(theme::semibold(14.0)));
+    if !others.is_empty() {
+        let n = (others.len() + 1).to_string();
+        ui.label(egui::RichText::new(crate::i18n::fmt(tl!("{n} markups selected: changes apply to all of them"), &[("n", &n)])).color(t.text_muted));
+    }
     ui.add_space(4.0);
     egui::ScrollArea::vertical().id_salt("props-box").auto_shrink([false, false]).show(ui, |ui| {
         ui.add_enabled_ui(editable && !d.edited.locked, |ui| {
@@ -237,6 +251,15 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
         d.original = d.edited.clone();
     }
     edits.extend(extra);
+    if !others.is_empty() {
+        let mut more_edits = Vec::new();
+        for &other in &others {
+            let props = doc.comment_props(page, other);
+            let fit = props.as_ref().map_or((false, false, false), |p| (p.restylable, p.width.is_some(), p.fillable));
+            more_edits.extend(edits.iter().filter_map(|e| retarget(e, other, fit)));
+        }
+        edits.extend(more_edits);
+    }
     match edits.len() {
         0 => {}
         1 => {
@@ -253,6 +276,24 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
     }
     if view_photo {
         app.open_photo(page, ai);
+    }
+}
+
+/// The same change for another selected markup, where it applies to that kind of markup
+/// (`fit`: it can be restyled, has a line width, can be filled). Text and symbol changes stay
+/// with the one markup.
+fn retarget(e: &Edit, index: usize, (restylable, has_width, fillable): (bool, bool, bool)) -> Option<Edit> {
+    match e {
+        Edit::StyleAnnotation { page, color, opacity, width, .. } if restylable => {
+            Some(Edit::StyleAnnotation { page: *page, index, color: *color, opacity: *opacity, width: width.filter(|_| has_width), endings: None })
+        }
+        Edit::FillAnnotation { page, fill, .. } if fillable => Some(Edit::FillAnnotation { page: *page, index, fill: *fill }),
+        Edit::LockAnnotation { page, locked, .. } => Some(Edit::LockAnnotation { page: *page, index, locked: *locked }),
+        Edit::SetAnnotationLayer { page, layer, .. } => Some(Edit::SetAnnotationLayer { page: *page, index, layer: *layer }),
+        Edit::SetAnnotationField { page, name, value, .. } => {
+            Some(Edit::SetAnnotationField { page: *page, index, name: name.clone(), value: value.clone() })
+        }
+        _ => None,
     }
 }
 

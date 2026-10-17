@@ -1213,7 +1213,9 @@ pub(crate) fn grips(ui: &egui::Ui, doc: &Document, view: &mut DocView, cx: &Page
         return false;
     }
     let active = view.draft.grip.as_ref().is_some_and(|g| g.page == page);
-    let selected = view.comments.selected.filter(|(p, _)| *p == page).map(|(_, i)| i);
+    // A group of markups moves as one; its members show no grips.
+    let grouped = view.comments.group().len() > 1;
+    let selected = view.comments.selected.filter(|(p, _)| *p == page && !grouped).map(|(_, i)| i);
     if selected.is_none() && !active {
         return false;
     }

@@ -360,6 +360,9 @@ pub enum Gesture {
     Move { page: usize, index: usize, from: Pos2 },
     /// Resizing a comment by one of its handles: (dx, dy) ∈ {-1, 0, 1}² says which sides move.
     Resize { page: usize, index: usize, handle: (i8, i8), from: Pos2, aspect_ratio: Option<f32> },
+    /// Dragging a box on empty page to select the markups inside it (`add`: Shift or Ctrl was
+    /// held, so they join the selection).
+    Box { page: usize, from: Pos2, add: bool },
 }
 
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -435,6 +438,68 @@ pub struct CommentView {
     pub context_at: Option<(usize, [f64; 2])>,
     /// A one-shot tool just finished; the app returns to the Select tool unless pinned.
     pub tool_done: bool,
+    /// More markups selected with `selected` (Shift/Ctrl-click or a box): their indices on its
+    /// page. They count only while `selected` is still `also_for`, so code that picks another
+    /// markup leaves the group behind without knowing about it.
+    pub also: Vec<usize>,
+    pub also_for: Option<(usize, usize)>,
+    /// Markups copied with Ctrl+C: (page, indices, how many times they were pasted).
+    pub copied: Option<(usize, Vec<usize>, u32)>,
+    /// After a paste: select the page's newest markups (page, how many).
+    pub select_newest: Option<(usize, usize)>,
+}
+
+impl CommentView {
+    /// The selected markups: the selected one first, then the others picked with it.
+    pub(crate) fn group(&self) -> Vec<(usize, usize)> {
+        let Some((page, first)) = self.selected else { return Vec::new() };
+        let mut out = vec![(page, first)];
+        if self.also_for == self.selected {
+            for &i in &self.also {
+                if !out.contains(&(page, i)) {
+                    out.push((page, i));
+                }
+            }
+        }
+        out
+    }
+
+    pub(crate) fn in_group(&self, page: usize, index: usize) -> bool {
+        self.group().contains(&(page, index))
+    }
+
+    /// Select these markups on `page` (the last one is the one the properties show).
+    pub(crate) fn set_group(&mut self, page: usize, indices: &[usize]) {
+        match indices.split_last() {
+            Some((&last, rest)) => {
+                self.selected = Some((page, last));
+                self.also = rest.to_vec();
+                self.also_for = self.selected;
+            }
+            None => {
+                self.selected = None;
+                self.also.clear();
+                self.also_for = None;
+            }
+        }
+    }
+
+    /// Select only this markup.
+    pub(crate) fn select_one(&mut self, page: usize, index: usize) {
+        self.set_group(page, &[index]);
+    }
+
+    /// Shift/Ctrl-click: add the markup to the selection, or take it out.
+    pub(crate) fn toggle(&mut self, page: usize, index: usize) {
+        let mut indices: Vec<usize> = self.group().into_iter().filter(|(p, _)| *p == page).map(|(_, i)| i).collect();
+        match indices.iter().position(|&i| i == index) {
+            Some(k) => {
+                indices.remove(k);
+            }
+            None => indices.push(index),
+        }
+        self.set_group(page, &indices);
+    }
 }
 
 /// Comments panel order (Acrobat: Sort by page, author, date, type, colour).
@@ -880,8 +945,19 @@ fn select_input(
     origin: Option<Pos2>,
     pressed_here: bool,
 ) -> bool {
+    // A drag that starts on the page's text selects text, as before; elsewhere it boxes markups.
+    let over_text = origin
+        .and_then(|o| {
+            let text = view.texts.get(&cx.page)?;
+            let (vx, vy) = cx.xf.screen_to_view(o);
+            Some(text.glyphs.iter().any(|g| vx >= g.rect[0] && vx <= g.rect[2] && vy >= g.rect[1] && vy <= g.rect[3]))
+        })
+        .unwrap_or(false);
+    let adding = ui.input(|i| i.modifiers.shift || i.modifiers.command || i.modifiers.ctrl);
     let cv = &mut view.comments;
-    let selected = cv.selected.filter(|(p, _)| *p == cx.page).and_then(|(_, i)| cx.get(i));
+    let grouped = cv.group().len() > 1;
+    // A group has no resize handles.
+    let selected = cv.selected.filter(|(p, _)| *p == cx.page && !grouped).and_then(|(_, i)| cx.get(i));
     // Handles of a selected, resizable comment.
     let handle_at = |p: Pos2| -> Option<(i8, i8)> {
         let a = selected.filter(|a| cx.allowed && resizable(a))?;
@@ -915,15 +991,25 @@ fn select_input(
         } else if let Some(a) = cx.hit(o)
             && !is_markup(&a.subtype)
         {
-            cv.selected = Some((cx.page, a.index));
+            // Dragging one of the selected markups moves them all.
+            if !cv.in_group(cx.page, a.index) {
+                if adding {
+                    cv.toggle(cx.page, a.index);
+                } else {
+                    cv.select_one(cx.page, a.index);
+                }
+            }
             cv.reveal = true;
             if cx.allowed {
                 cv.gesture = Some(Gesture::Move { page: cx.page, index: a.index, from: o });
             }
             consumed = true;
+        } else if cx.hit(o).is_none() && !over_text {
+            cv.gesture = Some(Gesture::Box { page: cx.page, from: o, add: adding });
+            consumed = true;
         }
     }
-    if matches!(cv.gesture, Some(Gesture::Move { page, .. } | Gesture::Resize { page, .. }) if page == cx.page) {
+    if matches!(cv.gesture, Some(Gesture::Move { page, .. } | Gesture::Resize { page, .. } | Gesture::Box { page, .. }) if page == cx.page) {
         consumed = true;
     }
     if resp.drag_stopped()
@@ -935,7 +1021,31 @@ fn select_input(
                 let (a, b) = (cx.to_user(from), cx.to_user(p));
                 let (dx, dy) = (b[0] - a[0], b[1] - a[1]);
                 if from.distance(p) >= 2.0 {
-                    view.pending_edit = Some(Edit::MoveAnnotation { page, index, dx, dy });
+                    let group = cv.group();
+                    view.pending_edit = Some(if group.len() > 1 && group.contains(&(page, index)) {
+                        Edit::Batch {
+                            label: "Move markups".into(),
+                            edits: group.iter().map(|&(page, index)| Edit::MoveAnnotation { page, index, dx, dy }).collect(),
+                        }
+                    } else {
+                        Edit::MoveAnnotation { page, index, dx, dy }
+                    });
+                }
+            }
+            Some(Gesture::Box { page, from, add }) if page == cx.page => {
+                cv.gesture = None;
+                let r = Rect::from_two_pos(from, p);
+                if r.width() >= 3.0 || r.height() >= 3.0 {
+                    let mut picked: Vec<usize> =
+                        if add { cv.group().into_iter().filter(|(pg, _)| *pg == page).map(|(_, i)| i).collect() } else { Vec::new() };
+                    for a in cx.comments() {
+                        let rects = cx.screen_rects(a);
+                        if !rects.is_empty() && rects.iter().all(|s| r.contains_rect(*s)) && !picked.contains(&a.index) {
+                            picked.push(a.index);
+                        }
+                    }
+                    cv.set_group(page, &picked);
+                    cv.reveal = picked.len() == 1;
                 }
             }
             Some(Gesture::Resize { page, index, handle, from, aspect_ratio }) if page == cx.page => {
@@ -955,8 +1065,12 @@ fn select_input(
     let on_page = pointer.is_some_and(|p| cx.xf.rect.contains(p));
     if resp.clicked() && on_page {
         match pointer.and_then(|p| cx.hit(p)) {
+            Some(a) if adding => {
+                cv.toggle(cx.page, a.index);
+                consumed = true;
+            }
             Some(a) => {
-                cv.selected = Some((cx.page, a.index));
+                cv.select_one(cx.page, a.index);
                 cv.reveal = true;
                 consumed = true;
                 // RevuCraft: tapping a photo pin shows the photo.
@@ -964,7 +1078,8 @@ fn select_input(
                     cv.open_photo = Some((cx.page, a.index));
                 }
             }
-            None => cv.selected = None,
+            None if adding => {}
+            None => cv.set_group(cx.page, &[]),
         }
     }
     if resp.double_clicked()
@@ -1018,11 +1133,16 @@ pub(crate) fn paint_page(ui: &egui::Ui, painter: &egui::Painter, cx: &PageCx<'_>
     if cv.gesture.is_none()
         && let Some(a) = pointer.and_then(|p| cx.hit(p))
         && (cx.tool == QuickTool::Select || matches!(cx.tool, QuickTool::Fill(_)) && a.fill_sign)
-        && cv.selected != Some((cx.page, a.index))
+        && !cv.in_group(cx.page, a.index)
     {
         for r in cx.screen_rects(a) {
             painter.rect_stroke(r.expand(2.0), CornerRadius::same(2), Stroke::new(1.0, SELECT_BLUE.gamma_multiply(0.7)), egui::StrokeKind::Outside);
         }
+    }
+    let group = cv.group();
+    if group.len() > 1 {
+        paint_group(painter, cx, view, &group, pointer);
+        return paint_gesture(painter, cx, view);
     }
     if let Some((page, index)) = cv.selected
         && page == cx.page
@@ -1050,7 +1170,42 @@ pub(crate) fn paint_page(ui: &egui::Ui, painter: &egui::Painter, cx: &PageCx<'_>
     paint_gesture(painter, cx, view);
 }
 
+/// Several markups selected: each outlined (following a drag), and one box around them all.
+fn paint_group(painter: &egui::Painter, cx: &PageCx<'_>, view: &DocView, group: &[(usize, usize)], pointer: Option<Pos2>) {
+    let cv = &view.comments;
+    let offset = match (&cv.gesture, pointer) {
+        (Some(Gesture::Move { page, index, from }), Some(p)) if *page == cx.page && group.contains(&(*page, *index)) => p - *from,
+        _ => vec2(0.0, 0.0),
+    };
+    let mut all: Option<Rect> = None;
+    for &(page, index) in group {
+        if page != cx.page {
+            continue;
+        }
+        let Some(a) = cx.get(index) else { continue };
+        for r in cx.screen_rects(a) {
+            let r = r.translate(offset).expand(2.0);
+            painter.rect_stroke(r, CornerRadius::ZERO, Stroke::new(1.0, SELECT_BLUE.gamma_multiply(0.8)), egui::StrokeKind::Middle);
+            all = Some(all.map_or(r, |u| u.union(r)));
+        }
+    }
+    if let Some(u) = all {
+        let u = u.expand(4.0);
+        painter.rect_stroke(u, CornerRadius::same(2), Stroke::new(1.5, SELECT_BLUE), egui::StrokeKind::Middle);
+        for h in HANDLES {
+            painter.rect_filled(Rect::from_center_size(handle_pos(u, h), vec2(6.0, 6.0)), CornerRadius::same(1), SELECT_BLUE);
+        }
+    }
+}
+
 fn paint_gesture(painter: &egui::Painter, cx: &PageCx<'_>, view: &DocView) {
+    if let Some(Gesture::Box { page, from, .. }) = &view.comments.gesture
+        && *page == cx.page
+        && let Some(p) = painter.ctx().input(|i| i.pointer.hover_pos())
+    {
+        let r = Rect::from_two_pos(*from, p);
+        painter.rect(r, CornerRadius::ZERO, SELECT_BLUE.gamma_multiply(0.10), Stroke::new(1.0, SELECT_BLUE), egui::StrokeKind::Middle);
+    }
     if let Some(Gesture::Draw { page, tool, points }) = &view.comments.gesture
         && *page == cx.page
     {
@@ -1363,7 +1518,34 @@ pub(crate) fn keys(ctx: &egui::Context, view: &mut DocView, tool: &mut QuickTool
     if ctx.egui_wants_keyboard_input() {
         return;
     }
+    let text_selected = view.selection.is_some();
     let cv = &mut view.comments;
+    // Ctrl+C copies the selected markups and Ctrl+V pastes copies beside them (egui delivers both
+    // as clipboard events; the clipboard gets a line of text so that Paste comes back).
+    let (copy, paste) =
+        ctx.input(|i| (i.events.iter().any(|e| matches!(e, egui::Event::Copy)), i.events.iter().any(|e| matches!(e, egui::Event::Paste(_)))));
+    let group = cv.group();
+    if copy
+        && !text_selected
+        && let Some(&(page, _)) = group.first()
+    {
+        cv.copied = Some((page, group.iter().map(|g| g.1).collect(), 0));
+        ctx.copy_text(crate::i18n::fmt(tl!("{n} markups copied from RevuCraft"), &[("n", &group.len().to_string())]));
+    }
+    if paste
+        && allowed
+        && let Some((page, indices, times)) = cv.copied.as_mut()
+    {
+        *times = times.saturating_add(1);
+        let step = 18.0 * f64::from(*times);
+        let edits: Vec<Edit> = indices
+            .iter()
+            .map(|&index| Edit::TransformAnnotation { page: *page, index, matrix: [1.0, 0.0, 0.0, 1.0, step, -step], copy: true })
+            .collect();
+        cv.select_newest = Some((*page, edits.len()));
+        view.pending_edit = Some(Edit::Batch { label: "Paste markups".into(), edits });
+        return;
+    }
     if ctx.input(|i| i.key_pressed(egui::Key::Escape)) {
         // One step back per press: cancel the gesture, then deselect, then drop the tool.
         let cancelled = cv.gesture.take().is_some() || cv.selected.take().is_some();
@@ -1375,8 +1557,18 @@ pub(crate) fn keys(ctx: &egui::Context, view: &mut DocView, tool: &mut QuickTool
         && let Some((page, index)) = cv.selected
         && ctx.input(|i| i.key_pressed(egui::Key::Delete) || i.key_pressed(egui::Key::Backspace))
     {
-        cv.selected = None;
-        view.pending_edit = Some(Edit::DeleteAnnotation { page, index });
+        let mut group = cv.group();
+        cv.set_group(page, &[]);
+        view.pending_edit = Some(if group.len() > 1 {
+            // Highest index first, so each delete leaves the others where they are.
+            group.sort_unstable_by(|a, b| b.cmp(a));
+            Edit::Batch {
+                label: "Delete markups".into(),
+                edits: group.into_iter().map(|(page, index)| Edit::DeleteAnnotation { page, index }).collect(),
+            }
+        } else {
+            Edit::DeleteAnnotation { page, index }
+        });
     }
 }
 
@@ -1641,6 +1833,26 @@ pub fn status_badge(state: &str) -> Option<(&'static str, &'static str, Color32)
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn shift_and_ctrl_clicks_build_a_group_that_other_picks_leave() {
+        let mut cv = CommentView::default();
+        cv.toggle(0, 3);
+        assert_eq!(cv.group(), vec![(0, 3)]);
+        cv.toggle(0, 5);
+        cv.toggle(0, 7);
+        assert_eq!(cv.group(), vec![(0, 7), (0, 3), (0, 5)], "the last one picked shows its properties");
+        cv.toggle(0, 3);
+        assert_eq!(cv.group(), vec![(0, 7), (0, 5)], "a second click takes it out");
+        // Code that selects one markup without knowing about groups leaves the group behind.
+        cv.selected = Some((0, 9));
+        assert_eq!(cv.group(), vec![(0, 9)]);
+        cv.set_group(0, &[]);
+        assert!(cv.group().is_empty() && cv.selected.is_none());
+        cv.select_one(1, 2);
+        cv.toggle(1, 2);
+        assert!(cv.selected.is_none(), "taking out the only one selects nothing");
+    }
 
     #[test]
     fn proportional_corners_keep_the_opposite_anchor_and_edges_stretch_one_axis() {

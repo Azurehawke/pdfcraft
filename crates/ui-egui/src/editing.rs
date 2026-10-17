@@ -77,6 +77,18 @@ impl PdfCraftApp {
                     Edit::DeleteAnnotation { .. } => view.comments.selected = None,
                     _ => {}
                 }
+                // A paste selects the copies it made (appended last on their page).
+                if let Some((page, n)) = view.comments.select_newest.take() {
+                    let mut newest: Vec<usize> = info
+                        .annotations
+                        .iter()
+                        .filter(|x| x.page == page && x.in_reply_to.is_none() && x.subtype != "Popup")
+                        .map(|x| x.index)
+                        .collect();
+                    newest.sort_unstable();
+                    let newest = newest.split_off(newest.len().saturating_sub(n));
+                    view.comments.set_group(page, &newest);
+                }
                 if std::mem::take(&mut view.comments.tool_done) && !self.comment_prefs.pinned {
                     self.quick_tool = crate::QuickTool::Select;
                 }
@@ -647,6 +659,14 @@ fn comment_page(edit: &Edit) -> Option<usize> {
         | Edit::StyleAnnotation { page, .. }
         | Edit::FillAnnotation { page, .. }
         | Edit::SetAnnotationInfo { page, .. } => Some(*page),
+        // Several markups changed together (moved, deleted, pasted) on one page.
+        Edit::Batch { edits, .. } => {
+            let pages: Vec<Option<usize>> = edits.iter().map(comment_page).collect();
+            match pages.first() {
+                Some(Some(first)) if pages.iter().all(|p| *p == Some(*first)) => Some(*first),
+                _ => None,
+            }
+        }
         _ => None,
     }
 }
