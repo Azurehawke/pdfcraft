@@ -102,8 +102,8 @@ pub use pdfcraft_annot::{
     ReviewState, Rgb, Shape, StampGroup, StampKind, Style, rect_quad,
 };
 pub use pdfcraft_annot::{fields, geometry, layers, photo_callout, svg_art, symbols};
-pub use pdfcraft_forms::detect;
 pub use pdfcraft_create::report;
+pub use pdfcraft_forms::detect;
 pub use pdfcraft_optimize as optimize;
 pub use pdfcraft_preflight as pdfa;
 pub use pdfcraft_print as print;
@@ -338,7 +338,7 @@ impl Document {
     }
 
     /// Every markup's own columns: (page, index, fields).
-    pub fn all_annotation_fields(&self) -> Vec<(usize, usize, Vec<(String, String)>)> {
+    pub fn all_annotation_fields(&self) -> Vec<(usize, usize, pdfcraft_annot::fields::Fields)> {
         self.editor.as_ref().map(|e| pdfcraft_annot::fields::all_fields(&e.cos)).unwrap_or_default()
     }
 
@@ -1711,6 +1711,9 @@ impl EditCtx {
         pdfcraft_annot::Meta { date: self.date.clone(), id }
     }
 }
+
+/// A report entry and the markup whose photo goes under it (page, index).
+pub type ReportItem = (pdfcraft_create::report::ReportEntry, Option<(usize, usize)>);
 
 /// Perform an edit on a working copy (the caller discards it on error).
 fn layer_ref(id: (u32, u16)) -> pdfcraft_cos::ObjRef {
@@ -3467,7 +3470,7 @@ impl Session {
         title: &str,
         subtitle: &str,
         summary: &[String],
-        entries: Vec<(pdfcraft_create::report::ReportEntry, Option<(usize, usize)>)>,
+        entries: Vec<ReportItem>,
         page_label: impl Fn(usize, usize) -> String,
     ) -> Result<Arc<Vec<u8>>, EditError> {
         let doc = self.get(id).ok_or(EditError::NoDocument)?;

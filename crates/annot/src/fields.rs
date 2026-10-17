@@ -75,8 +75,11 @@ pub fn set_field(doc: &mut Document, page: usize, index: usize, name: &str, valu
     Ok(())
 }
 
+/// A markup's fields: (name, value) pairs.
+pub type Fields = Vec<(String, String)>;
+
 /// Every markup that has fields: (page, index, fields).
-pub fn all_fields(doc: &Document) -> Vec<(usize, usize, Vec<(String, String)>)> {
+pub fn all_fields(doc: &Document) -> Vec<(usize, usize, Fields)> {
     let mut out = Vec::new();
     let mut seen = 0usize;
     for (page, p) in page_refs(doc).unwrap_or_default().into_iter().enumerate() {
