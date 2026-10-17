@@ -2,12 +2,103 @@
 //! another app's list).
 
 use egui::{Align2, CornerRadius, Rect, Sense, Stroke, vec2};
-use pdfcraft_engine::catalog;
 
 use crate::theme::{self, Tokens};
-use crate::{LeftPanel, PdfCraftApp, icons, panels::human_size, widgets};
+use crate::{PdfCraftApp, icons, panels::human_size, widgets};
 
-const RECOMMENDED: [&str; 5] = ["organize", "comment", "form", "edit", "protect"];
+/// What a home card starts: a tab of the ribbon and a tool on it.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Start {
+    Draft,
+    Calibrate,
+    Symbols,
+    CableRuns,
+    PhotoCallout,
+    Markups,
+}
+
+/// A home card: its title and line (English, translated where shown), icon, colour and what it starts.
+pub struct Card {
+    pub title: &'static str,
+    pub blurb: &'static str,
+    pub icon: &'static str,
+    pub hue: [u8; 3],
+    pub start: Start,
+}
+
+/// RevuCraft's work, front and centre (PDF chores stay in All tools and the Document tab).
+pub const CARDS: [Card; 6] = [
+    Card {
+        title: "Draw a floor plan",
+        blurb: "Walls · Doors and windows · Dimensions",
+        icon: "pen-tool",
+        hue: [0x4B, 0x8B, 0xF5],
+        start: Start::Draft,
+    },
+    Card {
+        title: "Measure and calibrate",
+        blurb: "Calibrate · Distance · Area · Angle",
+        icon: "ruler",
+        hue: [0x2B, 0xB3, 0xA3],
+        start: Start::Calibrate,
+    },
+    Card {
+        title: "Place symbols",
+        blurb: "Data jacks · Access points · Your own symbols",
+        icon: "pentagon",
+        hue: [0xF2, 0xA3, 0x3A],
+        start: Start::Symbols,
+    },
+    Card {
+        title: "Cable runs",
+        blurb: "Run lengths with drops and slack · Totals by layer",
+        icon: "move-right",
+        hue: [0x9B, 0x7B, 0xF0],
+        start: Start::CableRuns,
+    },
+    Card { title: "Photos on the plan", blurb: "Photo pins · Photo callouts", icon: "camera", hue: [0xE5, 0x53, 0x4B], start: Start::PhotoCallout },
+    Card {
+        title: "Markups and reports",
+        blurb: "Markups list · Your columns · Summary report",
+        icon: "list-checks",
+        hue: [0x4C, 0xB7, 0x72],
+        start: Start::Markups,
+    },
+];
+
+impl PdfCraftApp {
+    /// A home card: its tab and tool, on the document last worked on (or a new one when none
+    /// is open).
+    pub fn start_with(&mut self, start: Start) {
+        use crate::ribbon::Workflow;
+        use crate::{QuickTool, RightPanel};
+        let (workflow, tool) = match start {
+            Start::Draft => (Workflow::Draft, Some(QuickTool::Draft(crate::draft::DraftTool::Wall))),
+            Start::Calibrate => (Workflow::Measure, Some(QuickTool::Measure(crate::measure_ui::Tool::Calibrate))),
+            Start::Symbols => (Workflow::Symbols, Some(QuickTool::Symbol)),
+            Start::CableRuns => (Workflow::Measure, Some(QuickTool::Measure(crate::measure_ui::Tool::CableRun))),
+            Start::PhotoCallout => (Workflow::Symbols, Some(QuickTool::PhotoCallout)),
+            Start::Markups => (Workflow::Markup, None),
+        };
+        self.workflow = workflow;
+        if self.mode == crate::Mode::Read {
+            self.select_mode(crate::Mode::AllTools);
+        }
+        if start == Start::Markups && !self.is_docked(RightPanel::Markups) {
+            self.toggle_docked(RightPanel::Markups);
+        }
+        if self.views.is_empty() {
+            self.open_new();
+            return;
+        }
+        if self.active.is_none() {
+            self.active = Some(self.views.len() - 1);
+        }
+        if let Some(t) = tool {
+            self.quick_tool = t;
+        }
+    }
+}
 
 pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
     let t = Tokens::get(ui.ctx());
@@ -15,7 +106,7 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
         egui::Frame::NONE.inner_margin(egui::Margin { left: 36, right: 36, top: 28, bottom: 28 }).show(ui, |ui| {
             ui.label(egui::RichText::new(tl!("Welcome to RevuCraft")).font(theme::semibold(24.0)));
             ui.label(
-                egui::RichText::new(tl!("An open-source PDF workbench — local, private, and scriptable."))
+                egui::RichText::new(tl!("Plans, markup and takeoff for network jobs and inspections."))
                     .color(t.text_muted)
                     .font(theme::regular(14.0)),
             );
@@ -43,6 +134,7 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
                 });
             ui.add_space(22.0);
 
+            let mut start: Option<Start> = None;
             egui::Frame::NONE
                 .fill(t.card)
                 .stroke(Stroke::new(1.0, t.border))
@@ -50,29 +142,24 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
                 .inner_margin(egui::Margin::same(18))
                 .show(ui, |ui| {
                     ui.set_width(ui.available_width());
-                    ui.label(egui::RichText::new(tl!("Recommended tools")).font(theme::semibold(15.0)));
+                    ui.label(egui::RichText::new(tl!("Get started")).font(theme::semibold(15.0)));
                     ui.add_space(10.0);
                     ui.horizontal_wrapped(|ui| {
                         ui.spacing_mut().item_spacing = vec2(14.0, 14.0);
-                        for id in RECOMMENDED {
-                            let Some(g) = catalog::group(id) else { continue };
+                        for card in CARDS {
                             let (rect, resp) = ui.allocate_exact_size(vec2(190.0, 104.0), Sense::click());
-                            resp.widget_info(|| egui::WidgetInfo::labeled(egui::WidgetType::Button, true, tl!(g.label)));
+                            resp.widget_info(|| egui::WidgetInfo::labeled(egui::WidgetType::Button, true, tl!(card.title)));
                             let fill = if resp.hovered() { t.hover } else { t.card };
                             ui.painter().rect(rect, CornerRadius::same(10), fill, Stroke::new(1.0, t.divider), egui::StrokeKind::Inside);
-                            let color = egui::Color32::from_rgb(g.hue[0], g.hue[1], g.hue[2]);
-                            icons::paint(ui, Rect::from_min_size(rect.min + vec2(14.0, 14.0), vec2(22.0, 22.0)), g.icon, 21.0, color);
-                            let mut title_job = egui::text::LayoutJob::simple_singleline(tl!(g.label).to_owned(), theme::semibold(13.5), t.text);
+                            let color = egui::Color32::from_rgb(card.hue[0], card.hue[1], card.hue[2]);
+                            icons::paint(ui, Rect::from_min_size(rect.min + vec2(14.0, 14.0), vec2(22.0, 22.0)), card.icon, 21.0, color);
+                            let mut title_job = egui::text::LayoutJob::simple_singleline(tl!(card.title).to_owned(), theme::semibold(13.5), t.text);
                             title_job.wrap =
                                 egui::text::TextWrapping { max_width: rect.width() - 58.0, max_rows: 1, break_anywhere: true, ..Default::default() };
                             let title = ui.fonts_mut(|f| f.layout_job(title_job));
                             let title_elided = title.elided;
                             ui.painter().galley(rect.min + vec2(44.0, 25.0 - title.size().y * 0.5), title, t.text);
-                            let blurb = g
-                                .sections
-                                .first()
-                                .map(|s| s.items.iter().take(3).map(|i| tl!(i.label)).collect::<Vec<_>>().join(" · "))
-                                .unwrap_or_default();
+                            let blurb = tl!(card.blurb).to_string();
                             // Fixed-height cards must leave room for their action in every language.
                             let mut job = egui::text::LayoutJob::simple(blurb.clone(), theme::regular(11.5), t.text_muted, rect.width() - 28.0);
                             job.wrap.max_rows = 2;
@@ -86,14 +173,13 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
                                 theme::medium(12.0),
                                 t.accent_text,
                             );
-                            let resp = if title_elided || blurb_elided { resp.on_hover_text(format!("{}\n{blurb}", tl!(g.label))) } else { resp };
+                            let resp = if title_elided || blurb_elided { resp.on_hover_text(format!("{}\n{blurb}", tl!(card.title))) } else { resp };
                             if resp.clicked() {
-                                app.left = LeftPanel::Tool(g.id);
-                                app.left_open = true;
+                                start = Some(card.start);
                             }
                         }
                         let (rect, resp) = ui.allocate_exact_size(vec2(170.0, 104.0), Sense::click());
-                        resp.widget_info(|| egui::WidgetInfo::labeled(egui::WidgetType::Button, true, tl!("Open file")));
+                        resp.widget_info(|| egui::WidgetInfo::labeled(egui::WidgetType::Button, true, tl!("New or open")));
                         ui.painter().rect(
                             rect,
                             CornerRadius::same(10),
@@ -101,13 +187,16 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
                             Stroke::new(1.0, t.divider),
                             egui::StrokeKind::Inside,
                         );
-                        icons::paint(ui, Rect::from_center_size(rect.center() - vec2(0.0, 16.0), vec2(28.0, 28.0)), "folder-open", 26.0, t.icon);
-                        ui.painter().text(rect.center() + vec2(0.0, 22.0), Align2::CENTER_CENTER, tl!("Open file"), theme::semibold(13.0), t.text);
+                        icons::paint(ui, Rect::from_center_size(rect.center() - vec2(0.0, 16.0), vec2(28.0, 28.0)), "file-plus-2", 26.0, t.icon);
+                        ui.painter().text(rect.center() + vec2(0.0, 22.0), Align2::CENTER_CENTER, tl!("New or open"), theme::semibold(13.0), t.text);
                         if resp.clicked() {
-                            app.open_dialog();
+                            app.open_new();
                         }
                     });
                 });
+            if let Some(s) = start {
+                app.start_with(s);
+            }
 
             #[cfg(not(target_arch = "wasm32"))]
             {
@@ -206,17 +295,7 @@ mod tests {
         let ctx = egui::Context::default();
         ctx.set_fonts(theme::font_definitions());
         let mut app = PdfCraftApp::new();
-        let blurb = catalog::group("form")
-            .unwrap()
-            .sections
-            .first()
-            .unwrap()
-            .items
-            .iter()
-            .take(3)
-            .map(|item| crate::i18n::tr(de, item.label))
-            .collect::<Vec<_>>()
-            .join(" · ");
+        let blurb = crate::i18n::tr(de, CARDS[3].blurb).to_string();
         let output = ctx
             .run_ui(egui::RawInput { screen_rect: Some(Rect::from_min_size(egui::Pos2::ZERO, vec2(1440.0, 900.0))), ..Default::default() }, |ui| {
                 show(&mut app, ui)

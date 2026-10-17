@@ -1260,6 +1260,12 @@ impl PdfCraftApp {
         }
     }
 
+    /// File ▸ New (and Home's New or open): a new drawing at a page size, or a file to open.
+    pub fn open_new(&mut self) {
+        self.draft.sheet.open = true;
+        self.draft.sheet.add_to_document = false;
+    }
+
     pub fn open_dialog(&mut self) {
         self.startup_superseded = true;
         #[cfg(not(target_arch = "wasm32"))]

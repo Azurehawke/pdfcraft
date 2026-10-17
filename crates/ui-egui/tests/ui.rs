@@ -33,8 +33,10 @@ fn harness(setup: impl FnOnce(&mut PdfCraftApp) + 'static) -> Harness<'static, P
 fn home_shows_welcome_and_tools() {
     let h = harness(|_| {});
     h.get_by_label_contains("Welcome to RevuCraft");
-    assert!(h.query_all_by_label("Organize pages").count() >= 2, "tool list + home card");
-    h.get_by_label("Open file");
+    // RevuCraft's work on the home cards; PDF chores stay in the tool list.
+    h.get_by_label("Draw a floor plan");
+    h.get_by_label("Markups and reports");
+    h.get_by_label("New or open");
 }
 
 /// Every piece of text painted on the last frame: its whole text, whether it was cut with "…",

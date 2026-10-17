@@ -300,10 +300,7 @@ pub(crate) fn section(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
     });
     ui.add_space(4.0);
     if app.pinned.folders.is_empty() {
-        ui.label(
-            egui::RichText::new(tl!("Pin a folder to list its newest PDFs here, such as where your scanner or a synced cloud drive saves them."))
-                .color(t.text_muted),
-        );
+        ui.label(egui::RichText::new(tl!("Pin your jobs folder to list its newest drawings here.")).color(t.text_muted));
     }
     let mut open = None;
     let mut unpin = None;
