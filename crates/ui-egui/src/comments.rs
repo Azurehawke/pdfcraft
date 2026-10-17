@@ -1518,7 +1518,7 @@ pub(crate) fn keys(ctx: &egui::Context, view: &mut DocView, tool: &mut QuickTool
     if ctx.egui_wants_keyboard_input() {
         return;
     }
-    let text_selected = view.selection.is_some();
+    let text_selected = view.selected_text().is_some_and(|t| !t.is_empty());
     let cv = &mut view.comments;
     // Ctrl+C copies the selected markups and Ctrl+V pastes copies beside them (egui delivers both
     // as clipboard events; the clipboard gets a line of text so that Paste comes back).
