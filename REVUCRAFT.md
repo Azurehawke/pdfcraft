@@ -139,20 +139,22 @@ Markup and measuring
 - [ ] **(Steve, later update)** Turn angles while drafting: `@2<<90` turns 90° from the previous line
       (anticlockwise; `<<-90` turns the other way) and goes 2, for walking around a room; `@2<90`
       stays the absolute angle (0 right, 90 up).
-- [ ] **(Steve, next build)** "Open" becomes "New": one dialog with a new drawing from a page size
+- [x] **(Steve, build 65)** "Open" becomes "New": one dialog with a new drawing from a page size
       (Recent, ANSI, ARCH, ISO, Saved; Custom; width, height, units, orientation, drawing scale,
       pages; Create) on the top half and a file browser (places, folder path, search, files, file
-      name and type, Open) on the bottom half, after VectorCraft's New Document (mock-up made).
-- [ ] **(Steve, next build)** Tool icons in the theme's accent colour (ribbon, left tools, rail, Draft
+      name and type, Open) on the bottom half, after VectorCraft's New Document. Home's New or open and
+      Draft's New sheet open it too; Android shows recent files and Open from device… instead of the browser.
+- [ ] **(later)** The New dialog's Saved tab: page sizes of your own, kept by name.
+- [x] **(Steve, build 65)** Tool icons in the theme's accent colour (ribbon, left tools, rail, Draft
       tools, fly-outs, dock and panel buttons); the chosen tool a solid accent tile with its icon in
       the accent's contrast colour; captions and text stay neutral (mock-up made). An "Icons" setting
       beside the accent (Display theme / Preferences): Accent, Neutral, or a colour of their own
       (Amber, Blue, Teal, Green, Red, Violet), the accent staying the chosen tool's highlight. Draft
       tools: what the tool makes in the icon colour, existing lines grey.
-- [ ] **(Steve, next build)** Home screen for RevuCraft's work instead of PDF chores: cards for
+- [x] **(Steve, build 65)** Home screen for RevuCraft's work instead of PDF chores: cards for
       Draw a floor plan, Measure and calibrate, Place symbols, Photos on the plan, Markups and
       reports, Cable runs, and New / Open (the New dialog); a tagline about plans, markup and
-      takeoff (suggested, waiting for Steve's pick).
+      takeoff.
 
 Tablet
 - [ ] **(Steve, later update)** Touch mode: bigger buttons and handles, long-press for the context menu, two-finger tap to
