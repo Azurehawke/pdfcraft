@@ -136,6 +136,9 @@ Markup and measuring
 - [ ] **(Steve, later update)** The drafting value box takes the cursor as it opens after each click, so
       a length or @x,y (e.g. `@2<45`) can be typed without clicking into it first (Backspace in the
       empty box takes back the last point; Enter and Escape as now).
+- [ ] **(Steve, later update)** Turn angles while drafting: `@2<<90` turns 90° from the previous line
+      (anticlockwise; `<<-90` turns the other way) and goes 2, for walking around a room; `@2<90`
+      stays the absolute angle (0 right, 90 up).
 
 Tablet
 - [ ] **(Steve, later update)** Touch mode: bigger buttons and handles, long-press for the context menu, two-finger tap to
