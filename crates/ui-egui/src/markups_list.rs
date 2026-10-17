@@ -281,7 +281,8 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
     let cols = all_columns(&custom);
     let mut export = false;
     let mut report = false;
-    ui.horizontal(|ui| {
+    // Wraps in a narrow dock, so the buttons stay in view.
+    ui.horizontal_wrapped(|ui| {
         ui.add(egui::TextEdit::singleline(&mut state.query).hint_text(tl!("Search markups")).desired_width(130.0));
         egui::ComboBox::from_id_salt("markups-kind")
             .selected_text(state.kind.clone().unwrap_or_else(|| tl!("All types").to_string()))
