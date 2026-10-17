@@ -159,6 +159,11 @@ Markup and measuring
 Tablet
 - [ ] **(Steve, later update)** Touch mode: bigger buttons and handles, long-press for the context menu, two-finger tap to
       undo.
+- [ ] **(Steve, later update)** Touch mode: a typed length alone has a direction on a tablet. When the
+      last touch is on (or next to) the last point, the line carries on the way the previous line went
+      (the first line goes right; Ortho squares it as usual). A long-press elsewhere on the drawing aims
+      without placing a point, and the rubber band shows the direction before Enter. Mouse and pen
+      hover keep aiming at the pointer.
 
 Builds
 - [x] **(Steve)** One build number shared by Android, Windows and Linux (from build 36: commits
