@@ -3059,6 +3059,10 @@ fn cable_runs_add_their_allowance_and_fields_stay_with_the_markup() {
     session.apply(id, Edit::SetAnnotationField { page: 0, index, name: "Progress".into(), value: "Pulled".into() }).unwrap();
     assert_eq!(session.get(id).unwrap().annotation_fields(0, index), vec![("Progress".to_string(), "Pulled".to_string())]);
     // A distance can't be a cable run; a bad allowance is refused.
-    assert!(session.apply(id, Edit::AddCableRun { new: measure::NewMeasurement { kind: measure::Kind::Distance, ..new.clone() }, extra_inches: 12.0 }).is_err());
+    assert!(
+        session
+            .apply(id, Edit::AddCableRun { new: measure::NewMeasurement { kind: measure::Kind::Distance, ..new.clone() }, extra_inches: 12.0 })
+            .is_err()
+    );
     assert!(session.apply(id, Edit::AddCableRun { new, extra_inches: f64::NAN }).is_err());
 }

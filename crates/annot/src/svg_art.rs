@@ -29,7 +29,7 @@ const MAX_DEPTH: usize = 64;
 /// One path in the SVG, flattened to its page coordinates.
 struct Shape {
     segments: Vec<Seg>,
-    fill: Option<(bool, bool)>, // (light, even-odd)
+    fill: Option<(bool, bool)>,  // (light, even-odd)
     stroke: Option<(bool, f64)>, // (light, width)
 }
 

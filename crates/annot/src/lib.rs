@@ -22,6 +22,7 @@ pub use pen::PenKind;
 pub mod fields;
 pub mod geometry;
 pub mod layers;
+pub mod legend;
 pub mod links;
 pub mod photo_callout;
 pub mod svg_art;

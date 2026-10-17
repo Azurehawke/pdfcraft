@@ -177,6 +177,7 @@ fn scope_of(edit: &Edit) -> Scope {
         Edit::SetAnnotationLayer { .. } | Edit::AddSymbol(_) | Edit::SetLayerColor { .. } | Edit::SetLayerLocked { .. } => Scope::Comments,
         Edit::AddMeasurement(_)
         | Edit::AddCableRun { .. }
+        | Edit::AddLegend { .. }
         | Edit::AddAnnotation(_)
         | Edit::AddDraftShape { .. }
         | Edit::AddCustomStamp { .. }
@@ -1020,6 +1021,15 @@ pub enum Edit {
         new: measure::NewMeasurement,
         extra_inches: f64,
     },
+    /// RevuCraft: a legend of the symbols used (on `page`, or in the whole document), its top-left
+    /// corner at `top_left`; it keeps itself up to date.
+    AddLegend {
+        page: usize,
+        top_left: [f64; 2],
+        whole_document: bool,
+        title: String,
+        author: String,
+    },
     /// RevuCraft: set one of your own columns on a markup (an empty value clears it).
     SetAnnotationField {
         page: usize,
@@ -1331,6 +1341,7 @@ impl Edit {
             Edit::NumberPages { .. } => "Number pages".into(),
             Edit::AddMeasurement(m) => format!("Measure {}", m.kind.name()),
             Edit::AddCableRun { .. } => "Measure cable run".into(),
+            Edit::AddLegend { .. } => "Add legend".into(),
             Edit::SetMeasurementScale { .. } => "Set measurement scale".into(),
             Edit::AddAnnotation(a) => format!("Add {}", annotation_noun(&a.shape)),
             Edit::AddDraftShape { caption: Some((_, subject)), .. } => format!("Measure {}", subject.to_lowercase()),
@@ -1495,6 +1506,7 @@ fn check_permission(edit: &Edit, p: &pdfcraft_cos::Permissions) -> Result<(), Ed
         }
         Edit::AddMeasurement(_)
         | Edit::AddCableRun { .. }
+        | Edit::AddLegend { .. }
         | Edit::AddAnnotation(_)
         | Edit::AddDraftShape { .. }
         | Edit::AddCustomStamp { .. }
@@ -1747,6 +1759,10 @@ fn run_edit(doc: &mut pdfcraft_cos::Document, edit: &Edit, cx: &mut EditCtx) -> 
         Edit::AddMeasurement(m) => {
             let index = measure::add(doc, m, &cx.meta())?;
             cx.place_on_layer(doc, m.page, index)?;
+        }
+        Edit::AddLegend { page, top_left, whole_document, title, author } => {
+            let index = pdfcraft_annot::legend::add_legend(doc, *page, *top_left, *whole_document, title, author, &cx.meta())?;
+            cx.place_on_layer(doc, *page, index)?;
         }
         Edit::AddCableRun { new, extra_inches } => {
             let index = measure::add(doc, new, &cx.meta())?;
@@ -2776,6 +2792,11 @@ impl Session {
         // `next` is a copy: if the edit fails or crashes, the document is unchanged.
         guard(|| run_edit(&mut next, &edit, &mut cx))
             .unwrap_or_else(|m| Err(EditError::Invalid(format!("{} failed unexpectedly ({m}); the document was not changed", edit.label()))))?;
+        // RevuCraft: legends follow the symbols. A legend that can't be redrawn keeps its old
+        // picture rather than failing the change.
+        if matches!(scope_of(&edit), Scope::Comments | Scope::Full) {
+            let _ = guard(|| pdfcraft_annot::legend::refresh_legends(&mut next));
+        }
         // An XFA form's scripts answer the change: exit and validate scripts of the field, then
         // every calculation (and a reset recalculates). They read the data, so it is brought up
         // to date first.

@@ -879,7 +879,10 @@ mod tests {
     #[test]
     fn your_own_symbols_place_turn_relabel_and_count() {
         let mut doc = blank();
-        let art = crate::svg_art::svg_art(br#"<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><path d="M1 1 L9 9 M1 9 L9 1" stroke="black"/></svg>"#).unwrap();
+        let art = crate::svg_art::svg_art(
+            br#"<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><path d="M1 1 L9 9 M1 9 L9 1" stroke="black"/></svg>"#,
+        )
+        .unwrap();
         let new = NewSymbol {
             page: 0,
             symbol: Symbol::DataJack,

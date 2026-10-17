@@ -283,6 +283,7 @@ pub fn ribbon(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
         ui.add_space(6.0);
     };
     let mut add_svg = false;
+    let mut legend: Option<bool> = None;
     ui.add_enabled_ui(allowed, |ui| {
         ui.horizontal(|ui| {
             ui.spacing_mut().item_spacing.x = 4.0;
@@ -369,6 +370,20 @@ pub fn ribbon(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
                 });
             });
             separator(ui);
+            group(ui, &t, tl!("Legend"), |ui| {
+                let resp = icons::button(ui, "list", 34.0, false, tl!("Place a legend of the symbols used; it keeps itself up to date"));
+                egui::Popup::from_toggle_button_response(&resp).close_behavior(egui::PopupCloseBehavior::CloseOnClickOutside).show(|ui| {
+                    if ui.button(tl!("Symbols on this page")).clicked() {
+                        legend = Some(false);
+                        ui.close();
+                    }
+                    if ui.button(tl!("Symbols in the whole document")).clicked() {
+                        legend = Some(true);
+                        ui.close();
+                    }
+                });
+            });
+            separator(ui);
             group(ui, &t, tl!("Renumber"), |ui| {
                 let resp = icons::button(ui, "list-ordered", 34.0, false, tl!("Renumber symbols in order across the page"));
                 egui::Popup::from_toggle_button_response(&resp).close_behavior(egui::PopupCloseBehavior::CloseOnClickOutside).show(|ui| {
@@ -389,6 +404,9 @@ pub fn ribbon(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
     });
     if add_svg {
         app.add_symbol_from_svg();
+    }
+    if let Some(whole_document) = legend {
+        app.place_legend(whole_document);
     }
 }
 
@@ -841,6 +859,23 @@ impl PdfCraftApp {
                 self.views[index].caption_prompt = Some(CaptionPrompt { page, index: i, text: String::new(), kind: CaptionKind::Callout });
             }
         }
+    }
+
+    /// Symbols tab ▸ Legend: a legend in the top-right corner of the page in view (move it like
+    /// any stamp).
+    pub(crate) fn place_legend(&mut self, whole_document: bool) {
+        let Some((index, id)) = self.active_ids() else { return };
+        let page = self.views[index].current;
+        let Some(info) = self.session.get(id).and_then(|d| d.info.pages.get(page).cloned()) else { return };
+        let corner = info.view_to_user((info.width - 180.0).max(0.0), 36.0f32.min(info.height));
+        let edit = Edit::AddLegend {
+            page,
+            top_left: [f64::from(corner[0]), f64::from(corner[1])],
+            whole_document,
+            title: tl!("Legend").to_string(),
+            author: self.comment_prefs.author.clone(),
+        };
+        self.apply_edit(edit);
     }
 
     /// Symbols tab ▸ Add symbol from SVG: choose an SVG file; it joins your symbols, named
