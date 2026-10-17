@@ -492,6 +492,10 @@ impl CommentView {
     /// Shift/Ctrl-click: add the markup to the selection, or take it out.
     pub(crate) fn toggle(&mut self, page: usize, index: usize) {
         let mut indices: Vec<usize> = self.group().into_iter().filter(|(p, _)| *p == page).map(|(_, i)| i).collect();
+        // The selected one goes last, so it stays the one shown unless it is the one taken out.
+        if !indices.is_empty() {
+            indices.rotate_left(1);
+        }
         match indices.iter().position(|&i| i == index) {
             Some(k) => {
                 indices.remove(k);
