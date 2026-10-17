@@ -165,8 +165,6 @@ pub fn preset_scale(p: &Preset) -> Result<Scale, String> {
     }
     .map_err(|e| e.to_string())
 }
-/// Inch denominators offered for feet-and-inch scales.
-
 pub struct MeasureView {
     pub points: Vec<Point>,
     pub page: Option<usize>,
