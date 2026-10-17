@@ -144,8 +144,11 @@ Markup and measuring
       pages; Create) on the top half and a file browser (places, folder path, search, files, file
       name and type, Open) on the bottom half, after VectorCraft's New Document (mock-up made).
 - [ ] **(Steve, next build)** Tool icons in the theme's accent colour (ribbon, left tools, rail, Draft
-      tools); the chosen tool a solid accent tile with its icon in the accent's contrast colour;
-      captions and text stay neutral (mock-up made).
+      tools, fly-outs, dock and panel buttons); the chosen tool a solid accent tile with its icon in
+      the accent's contrast colour; captions and text stay neutral (mock-up made). An "Icons" setting
+      beside the accent (Display theme / Preferences): Accent, Neutral, or a colour of their own
+      (Amber, Blue, Teal, Green, Red, Violet), the accent staying the chosen tool's highlight. Draft
+      tools: what the tool makes in the icon colour, existing lines grey.
 
 Tablet
 - [ ] **(Steve, later update)** Touch mode: bigger buttons and handles, long-press for the context menu, two-finger tap to
