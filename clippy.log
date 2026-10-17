@@ -1,0 +1,67 @@
+[1m[92m    Updating[0m crates.io index
+[1m[92m     Locking[0m 17 packages to highest Rust 1.90 compatible versions
+[1m[92m      Adding[0m aho-corasick v1.1.5
+[1m[92m      Adding[0m android_log-sys v0.3.2
+[1m[92m      Adding[0m android_logger v0.15.1
+[1m[92m      Adding[0m cesu8 v1.1.0
+[1m[92m      Adding[0m env_filter v0.1.4
+[1m[92m      Adding[0m jni v0.21.1 [1m[33m(available: v0.22.4)[0m
+[1m[92m      Adding[0m regex v1.13.1
+[1m[92m      Adding[0m regex-automata v0.4.18
+[1m[92m      Adding[0m windows-sys v0.45.0
+[1m[92m      Adding[0m windows-targets v0.42.2
+[1m[92m      Adding[0m windows_aarch64_gnullvm v0.42.2
+[1m[92m      Adding[0m windows_aarch64_msvc v0.42.2
+[1m[92m      Adding[0m windows_i686_gnu v0.42.2
+[1m[92m      Adding[0m windows_i686_msvc v0.42.2
+[1m[92m      Adding[0m windows_x86_64_gnu v0.42.2
+[1m[92m      Adding[0m windows_x86_64_gnullvm v0.42.2
+[1m[92m      Adding[0m windows_x86_64_msvc v0.42.2
+[1m[92m    Checking[0m pdfcraft-filters v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/filters)
+[1m[92m    Checking[0m pdfcraft-crypt v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/crypt)
+[1m[92m   Compiling[0m pdfcraft-fonts v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/fonts)
+[1m[92m    Checking[0m hayro-jbig2 v0.3.0 (/home/runner/work/pdfcraft/pdfcraft/vendor/hayro-jbig2)
+[1m[92m    Checking[0m pdfcraft-cos v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/cos)
+[1m[92m    Checking[0m lopdf v0.45.0 (/home/runner/work/pdfcraft/pdfcraft/vendor/lopdf)
+[1m[92m    Checking[0m pdfcraft-js v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/js)
+[1m[92m    Checking[0m pdfcraft-model v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/model)
+[1m[92m    Checking[0m hayro-syntax v0.7.2 (/home/runner/work/pdfcraft/pdfcraft/vendor/hayro-syntax)
+[1m[92m    Checking[0m pdfcraft-annot v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/annot)
+[1m[92m    Checking[0m pdfcraft-content v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/content)
+[1m[92m    Checking[0m pdfcraft-forms v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/forms)
+[1m[92m    Checking[0m hayro-interpret v0.7.0 (/home/runner/work/pdfcraft/pdfcraft/vendor/hayro-interpret)
+[1m[92m    Checking[0m pdfcraft-sign v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/sign)
+[1m[92m    Checking[0m pdfcraft-edit v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/edit)
+[1m[92m    Checking[0m pdfcraft-optimize v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/optimize)
+[1m[92m    Checking[0m pdfcraft-redact v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/redact)
+[1m[92m    Checking[0m pdfcraft-xfdf v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/xfdf)
+[1m[92m    Checking[0m pdfcraft-measure v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/measure)
+[1m[92m    Checking[0m pdfcraft-print v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/print)
+[1m[92m    Checking[0m pdfcraft-a11y v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/a11y)
+[1m[92m    Checking[0m pdfcraft-organize v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/organize)
+[1m[92m    Checking[0m hayro v0.7.1 (/home/runner/work/pdfcraft/pdfcraft/vendor/hayro)
+[1m[92m    Checking[0m pdfcraft-ocr v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/ocr)
+[1m[92m    Checking[0m pdfcraft-create v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/create)
+[1m[92m    Checking[0m pdfcraft-xfa v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/xfa)
+[1m[92m    Checking[0m pdfcraft-preflight v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/preflight)
+[1m[92m    Checking[0m pdfcraft-export v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/export)
+[1m[92m    Checking[0m pdfcraft-render v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/render)
+[1m[92m    Checking[0m pdfcraft-compare v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/compare)
+[1m[92m    Checking[0m pdfcraft-platform v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/platform)
+[1m[92m   Compiling[0m winit v0.30.13 (/home/runner/work/pdfcraft/pdfcraft/vendor/winit)
+[1m[92m   Compiling[0m pdfcraft-ui-egui v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/ui-egui)
+[1m[92m   Compiling[0m pdfcraft-cli v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/apps/pdfcraft-cli)
+[1m[92m   Compiling[0m pdfcraft v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/apps/pdfcraft)
+[1m[92m    Checking[0m pdfcraft-engine v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/engine)
+[1m[92m    Checking[0m pdfcraft-automation v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/automation)
+[1m[92m    Checking[0m accesskit_winit v0.32.2
+[1m[92m    Checking[0m egui-wgpu v0.36.2 (/home/runner/work/pdfcraft/pdfcraft/vendor/egui-wgpu)
+[1m[92m    Checking[0m egui-winit v0.36.2
+[1m[92m    Checking[0m glutin-winit v0.5.0
+[1m[92m    Checking[0m eframe v0.36.2
+[1m[92m    Checking[0m xtask v0.1.0 (/home/runner/work/pdfcraft/pdfcraft/xtask)
+[1m[92m    Checking[0m egui_kittest v0.36.2
+[1m[92m    Checking[0m pdfcraft-web v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/apps/pdfcraft-web)
+[1m[92m    Checking[0m pdfcraft-android v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/apps/pdfcraft-android)
+[1m[92m    Checking[0m pdfcraft-geom v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/geom)
+[1m[92m    Finished[0m `dev` profile [optimized + debuginfo] target(s) in 25.89s

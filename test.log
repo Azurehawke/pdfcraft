@@ -1,0 +1,1725 @@
+[1m[92m   Compiling[0m pdfcraft-crypt v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/crypt)
+[1m[92m   Compiling[0m pdfcraft-filters v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/filters)
+[1m[92m   Compiling[0m pdfcraft-fonts v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/fonts)
+[1m[92m   Compiling[0m hayro-jbig2 v0.3.0 (/home/runner/work/pdfcraft/pdfcraft/vendor/hayro-jbig2)
+[1m[92m   Compiling[0m lopdf v0.45.0 (/home/runner/work/pdfcraft/pdfcraft/vendor/lopdf)
+[1m[92m   Compiling[0m pdfcraft-cos v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/cos)
+[1m[92m   Compiling[0m hayro-syntax v0.7.2 (/home/runner/work/pdfcraft/pdfcraft/vendor/hayro-syntax)
+[1m[92m   Compiling[0m pdfcraft-model v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/model)
+[1m[92m   Compiling[0m pdfcraft-content v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/content)
+[1m[92m   Compiling[0m pdfcraft-annot v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/annot)
+[1m[92m   Compiling[0m hayro-interpret v0.7.0 (/home/runner/work/pdfcraft/pdfcraft/vendor/hayro-interpret)
+[1m[92m   Compiling[0m pdfcraft-forms v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/forms)
+[1m[92m   Compiling[0m hayro v0.7.1 (/home/runner/work/pdfcraft/pdfcraft/vendor/hayro)
+[1m[92m   Compiling[0m pdfcraft-render v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/render)
+[1m[92m   Compiling[0m pdfcraft-edit v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/edit)
+[1m[92m   Compiling[0m pdfcraft-measure v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/measure)
+[1m[92m   Compiling[0m pdfcraft-sign v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/sign)
+[1m[92m   Compiling[0m pdfcraft-redact v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/redact)
+[1m[92m   Compiling[0m pdfcraft-ocr v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/ocr)
+[1m[92m   Compiling[0m pdfcraft-js v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/js)
+[1m[92m   Compiling[0m pdfcraft-xfdf v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/xfdf)
+[1m[92m   Compiling[0m pdfcraft-optimize v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/optimize)
+[1m[92m   Compiling[0m pdfcraft-organize v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/organize)
+[1m[92m   Compiling[0m pdfcraft-print v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/print)
+[1m[92m   Compiling[0m pdfcraft-a11y v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/a11y)
+[1m[92m   Compiling[0m pdfcraft-create v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/create)
+[1m[92m   Compiling[0m pdfcraft-preflight v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/preflight)
+[1m[92m   Compiling[0m pdfcraft-xfa v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/xfa)
+[1m[92m   Compiling[0m pdfcraft-export v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/export)
+[1m[92m   Compiling[0m pdfcraft-compare v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/compare)
+[1m[92m   Compiling[0m pdfcraft-engine v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/engine)
+[1m[92m   Compiling[0m pdfcraft-platform v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/platform)
+[1m[92m   Compiling[0m winit v0.30.13 (/home/runner/work/pdfcraft/pdfcraft/vendor/winit)
+[1m[92m   Compiling[0m pdfcraft-ui-egui v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/ui-egui)
+[1m[92m   Compiling[0m pdfcraft-automation v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/automation)
+[1m[92m   Compiling[0m accesskit_winit v0.32.2
+[1m[92m   Compiling[0m egui-winit v0.36.2
+[1m[92m   Compiling[0m egui-wgpu v0.36.2 (/home/runner/work/pdfcraft/pdfcraft/vendor/egui-wgpu)
+[1m[92m   Compiling[0m eframe v0.36.2
+[1m[92m   Compiling[0m egui_kittest v0.36.2
+[1m[92m    Finished[0m `test` profile [optimized + debuginfo] target(s) in 6m 42s
+[1m[92m     Running[0m unittests src/lib.rs (target/debug/deps/pdfcraft_annot-5a2db4347943dad2)
+
+running 56 tests
+test appearance::readable_tests::dimension_text_reads_upright_on_turned_pages ... ok
+test geometry::tests::boxes_move_with_their_centre ... ok
+test fields::tests::fields_are_set_kept_and_removed ... ok
+test geometry::tests::rotate_and_copy_lines ... ok
+test geometry::tests::shapes_change_kind_with_their_points ... ok
+test geometry::tests::vertices_are_replaced_and_copied ... ok
+test pen::tests::names_round_trip ... ok
+test layers::tests::layers_are_created_named_coloured_and_survive_saving ... ok
+test layers::tests::annotations_go_on_layers_and_locking_the_layer_locks_them ... ok
+test pen::tests::pressure_widens_a_fountain_pen ... ok
+test pen::tests::outlines_are_closed_fills_for_any_input ... ok
+test photo_callout::tests::photo_callouts_hold_the_photo_and_flip_sides ... ok
+test symbols::tests::bad_placements_are_refused ... ok
+test symbols::tests::counts_group_by_symbol_label_and_layer ... ok
+test symbols::tests::every_symbol_has_an_id_name_and_artwork ... ok
+test legend::tests::a_legend_lists_and_follows_the_symbols ... ok
+test svg_art::tests::bad_svgs_are_refused_not_a_crash ... ok
+test symbols::tests::symbols_are_placed_centred_labelled_and_listed ... ok
+test svg_art::tests::an_svg_becomes_artwork_in_the_square ... ok
+test symbols::tests::symbols_turn_and_relabel_in_place ... ok
+test tests::a_locked_text_box_still_refits_its_text ... ok
+test tests::author_subject_and_note_icon_change ... ok
+test symbols::tests::your_own_symbols_place_turn_relabel_and_count ... ok
+test tests::cloud_paths_bulge_outwards_either_way_round ... ok
+test tests::editing_a_callout_refits_the_box_and_keeps_the_leader ... ok
+test tests::editing_a_text_box_refits_its_rectangle ... ok
+test tests::deleting_the_last_comment_removes_annots ... ok
+test tests::delete_takes_popup_and_reply_chain ... ok
+test tests::comments_without_appearances_get_one_for_display_only ... ok
+test tests::files_attach_as_comments ... ok
+test tests::fill_and_sign_items_are_drawn ... ok
+test tests::every_tool_creates_a_drawable_comment ... ok
+test tests::every_line_ending_is_drawn ... ok
+test tests::invalid_geometry_is_rejected ... ok
+test tests::ink_strokes_are_smooth_curves_through_their_points ... ok
+test tests::links_are_added_edited_listed_and_removed ... ok
+test tests::indirect_annots_array_is_updated_in_place ... ok
+test tests::non_markup_annotations_are_not_comments ... ok
+test tests::malformed_optional_interior_color_does_not_hide_shape_strokes ... ok
+test tests::move_shifts_all_geometry_and_the_popup ... ok
+test tests::real_annotation_flags_do_not_lock_comments ... ok
+test tests::polygons_clouds_connected_lines_callouts_and_carets_are_drawn ... ok
+test tests::replace_text_groups_a_strikeout_and_a_caret ... ok
+test tests::replies_and_status_thread_onto_the_parent ... ok
+test tests::restyle_and_resize_redraw_the_appearance ... ok
+test tests::stamps_draw_their_label_and_by_line ... ok
+test tests::shapes_can_be_filled_and_unfilled ... ok
+test tests::text_box_text_and_colour_changes_are_drawn ... ok
+test tests::unknown_keys_survive_edits ... ok
+test tests::url_scheme_and_www_match_case_insensitively ... ok
+test tests::redraw_keeps_shared_annotation_appearances_and_drops_stale_alternates ... ok
+test tests::urls_are_found_after_length_changing_lowercase ... ok
+test tests::urls_are_found_in_text ... ok
+test tests::wrapping_and_widths ... ok
+test tests::the_eraser_cuts_strokes_and_removes_empty_drawings ... ok
+test tests::pen_drawings_keep_their_pen_and_pressure ... ok
+
+test result: ok. 56 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+[1m[92m     Running[0m unittests src/lib.rs (target/debug/deps/pdfcraft_automation-187d6181dbf67b58)
+
+running 13 tests
+test comments::tests::colours_parse_by_hex_and_name ... ok
+test mcp::tests::resource_uris_parse ... ok
+test mcp::tests::first_sentence_skips_abbreviations ... ok
+test tests::dot_dot_resolves_by_name_and_never_climbs_above_the_start ... ok
+test tests::names_from_documents_become_one_plain_file_name ... ok
+test tests::a_folder_at_the_staging_name_is_left_alone ... ok
+test tests::forward_slash_parent_paths_stay_refused ... ok
+test tests::staging_names_differ_between_saves_and_fit_long_names ... ok
+test tests::staging_never_creates_a_file_through_a_dangling_link_at_its_name ... ok
+test tests::staging_gives_up_rather_than_reuse_a_taken_name ... ok
+test tests::staging_never_writes_through_a_symbolic_link_planted_at_its_name ... ok
+test tests::staging_never_writes_through_a_file_planted_at_its_name ... ok
+test mcp::tests::conventions_panic_is_a_tool_error ... ok
+
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.85s
+
+[1m[92m     Running[0m tests/automation.rs (target/debug/deps/automation-b116452b904ad82c)
+
+running 108 tests
+test action_run_keeps_outputs_with_duplicate_input_basenames ... ok
+test accessibility_check_report_and_fixes_through_tools ... ok
+test a_line_split_across_content_streams_is_listed_and_edited ... ok
+test actions_through_tools ... ok
+test auditing_space_through_tools ... ok
+test adding_content_through_tools ... ok
+test bookmarks_from_structure_through_tools ... ok
+test bookmark_split_with_equal_titles_keeps_every_part ... ok
+test close_argument_tests::close_keeps_default_and_boolean_discard_controls ... ok
+test close_argument_tests::close_rejects_invalid_discard_types_without_changing_clean_or_dirty_documents ... ok
+test bookmarks_through_tools ... ok
+test combine_argument_tests::invalid_combine_selectors_preserve_outputs_inputs_and_open_documents ... ok
+test a_deleted_image_is_not_kept_by_reduce_or_optimize ... ok
+test combine_argument_tests::valid_combine_selectors_keep_all_pages_and_selected_order_after_reopen ... ok
+test combine_extract_and_split ... ok
+test command_batch_refuses_more_than_a_thousand_steps ... ok
+test command_list_reports_enablement_and_tools ... ok
+test comment_checkmarks_locks_hiding_and_summaries_through_tools ... ok
+test comments_and_form_data_travel_as_xfdf_fdf_and_text ... ok
+test comments_through_tools ... ok
+test comparing_documents_through_tools ... ok
+test conventions_annotations_and_strict_keys_in_both_modes ... ok
+test creating_and_reducing_through_tools ... ok
+test conventions_core_tools_preserve_root_and_batch_errors ... ok
+test creating_from_multiple_files_through_tools ... ok
+test conventions_resources ... ok
+test cut_stack_printing_through_tools ... ok
+test creating_images_with_dpi_through_tools ... ok
+test doc_info_describes_set_layer_links ... ok
+test detecting_form_fields_through_tools ... ok
+test doc_info_rects_are_displayed_page_coordinates ... ok
+test drawing_comments_through_tools ... ok
+test duplicating_and_cropping_through_tools ... ok
+test edit_undo_redo_and_save_round_trip ... ok
+test digital_ids_signing_and_validation_through_tools ... ok
+test combine_opens_protected_files_with_their_passwords ... ok
+test editing_existing_text_through_tools ... ok
+test editing_page_images_through_tools ... ok
+test errors_are_specific_and_safe ... ok
+test dynamic_xfa_forms_open_render_fill_and_save_through_tools ... ok
+test editing_form_artwork_through_tools ... ok
+test exporting_to_word_html_and_rtf ... ok
+test exporting_all_images_through_tools ... ok
+test file_writing_tools_are_not_read_only ... ok
+test exporting_images_and_text_through_tools ... ok
+test flattening_through_tools ... ok
+test form_formats_and_calculations_through_tools ... ok
+test forms_through_tools ... ok
+test headers_watermarks_and_backgrounds_through_tools ... ok
+test file_names_from_documents_stay_in_the_output_folder ... ok
+test fill_and_sign_through_tools ... ok
+test field_actions_through_tools ... ok
+test initial_view_through_tools ... ok
+test image_signatures_stay_upright_on_rotated_pages ... ok
+test image_signatures_through_tools_preserve_transparency_and_survive_save ... ok
+test line_endings_through_the_tool ... ok
+test links_through_tools ... ok
+test mcp_compact_meta_tools_reject_unknown_arguments ... ok
+test mcp_compact_tool_call_dispatches_to_any_tool ... ok
+test mcp_compact_lists_the_core_tools_and_two_meta_tools ... ok
+test mcp_compact_tool_call_keeps_the_root_confinement ... ok
+test mcp_compact_tool_call_reports_errors_without_panicking ... ok
+test javascript_through_tools ... ok
+test mcp_compact_tool_search_summarizes_the_first_sentence ... ok
+test mcp_errors ... ok
+test mcp_resources_expose_open_documents ... ok
+test mcp_default_lists_every_tool_and_has_no_meta_tools ... ok
+test mcp_session_over_stdio ... ok
+test measurement_snap_tool_covers_all_targets ... ok
+test measurements_bad_arguments_leave_document_and_history_unchanged ... ok
+test merging_form_data_into_a_spreadsheet ... ok
+test mcp_compact_tool_search_filters_by_query_and_category ... ok
+test nested_replies_stay_in_the_listing ... ok
+test note_icons_anchor_at_the_requested_corner_on_rotated_pages ... ok
+test numbering_pages_through_tools ... ok
+test ocr_recognize_files_refuses_paths_outside_the_root ... ok
+test ocr_recognize_files_writes_searchable_copies ... ok
+test measurements_calibrate_draw_save_reopen_and_export ... ok
+test ocr_tools_make_a_scan_searchable ... ok
+test open_inspect_render_and_find ... ok
+test natural_image_stamps_through_tools_on_rotated_pages ... ok
+test organizing_with_filters_bookmark_splits_and_extract_options ... ok
+test orphan_form_fields_through_tools ... ok
+test paragraph_bold_without_font_keeps_the_source_family ... ok
+test pdfa_through_tools ... ok
+test parallel_text_extraction_keeps_page_order_and_follows_edits ... ok
+test preparing_a_form_through_tools ... ok
+test printing_through_tools ... ok
+test image_signature_preview_layers_are_read_only_and_survive_encrypted_save ... ok
+test redacting_through_tools ... ok
+test redacting_with_codes_through_tools ... ok
+test redacting_word_lists_through_tools ... ok
+test removing_hidden_information_through_tools ... ok
+test replacing_pages_through_tools ... ok
+test root_refusals_do_not_reveal_what_exists_outside ... ok
+test rotating_a_field_through_tools ... ok
+test saving_with_flatten_fill_sign_bakes_marks_and_leaves_other_comments ... ok
+test protecting_with_an_open_password_alone_restricts_nothing ... ok
+test stamps_through_tools ... ok
+test protecting_through_tools ... ok
+test tab_order_and_field_appearance_through_tools ... ok
+test tool_table_is_well_formed ... ok
+test text_extract_with_a_rect_takes_one_column ... ok
+test writing_to_a_folder_touches_nothing_beside_it ... ok
+test xfa_scripts_run_for_buttons_and_field_changes_through_tools ... ok
+test signing_an_encrypted_form_through_tools ... ok
+test typed_signatures_stay_upright_on_rotated_pages ... ok
+test optimizing_through_tools ... ok
+
+test result: ok. 108 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.19s
+
+[1m[92m     Running[0m tests/form_bulk.rs (target/debug/deps/form_bulk-c169d2e95cbc126f)
+
+running 4 tests
+test bulk_property_arguments_are_strict_and_fail_without_any_edit ... ok
+test bulk_options_apply_per_field_and_refuse_an_invalid_comb_atomically ... ok
+test a_locked_last_field_rolls_back_earlier_changes_and_unlocks_with_the_batch ... ok
+test bulk_properties_are_one_undo_step_preserve_other_looks_and_survive_save ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.07s
+
+[1m[92m     Running[0m tests/hostile_args.rs (target/debug/deps/hostile_args-01d885e9a6fef5f8)
+
+running 2 tests
+test no_tool_escapes_the_root ... ok
+test no_tool_panics_on_hostile_arguments ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 15.19s
+
+[1m[92m     Running[0m unittests src/lib.rs (target/debug/deps/pdfcraft_engine-613b6d534b84552e)
+
+running 143 tests
+test catalog::tests::commands_are_namespaced ... ok
+test commands::tests::every_ready_catalogue_item_is_a_registered_command ... ok
+test catalog::tests::ids_are_unique_and_every_group_has_items ... ok
+test commands::tests::ids_and_shortcuts_are_unique ... ok
+test commands::tests::shortcut_labels_follow_platform_conventions ... ok
+test dates::tests::czech_and_russian_months_change_after_a_day ... ok
+test dates::tests::escaped_letters_are_shown_as_is ... ok
+test dates::tests::names_follow_the_date_language ... ok
+test dates::tests::hostile_days_and_patterns_do_not_panic ... ok
+test dates::tests::only_whole_date_codes_are_accepted ... ok
+test dates::tests::presets_write_the_day_in_their_own_order ... ok
+test dates::tests::the_session_writes_names_in_its_date_language ... ok
+test dates::tests::dates_the_pdf_cannot_hold_are_refused_not_damaged ... ok
+test dates::tests::the_session_stamps_today_in_its_format ... ok
+test dates::tests::unusable_patterns_are_rejected ... ok
+test links::tests::documents_may_not_offer_other_kinds_of_address ... ok
+test links::tests::addresses_the_url_parser_rejects_are_refused ... ok
+test links::tests::email_links_may_not_ask_for_a_local_file ... ok
+test links::tests::documents_may_offer_web_and_email_addresses ... ok
+test links::tests::the_host_shown_is_the_one_the_address_goes_to ... ok
+test links::tests::urls_point_at_revucraft_and_its_upstream ... ok
+test links::tests::hosts_are_shown_as_the_browser_receives_them ... ok
+test photos::tests::small_photos_keep_their_size_and_junk_is_refused ... ok
+test signature_image::tests::image_signatures_preserve_alpha_and_fit_the_signature_box ... ok
+test commands::tests::enablement_follows_the_document_state ... ok
+test signature_image::tests::jpeg_signature_orientation_is_applied_before_preview_and_embedding ... ok
+test signature_image::tests::jpeg_signatures_are_normalized_to_png ... ok
+test signature_image::tests::oversized_embedded_signature_preview_is_rejected_before_decoding ... ok
+test signature_image::tests::the_signature_box_is_laid_out_as_displayed_on_turned_pages ... ok
+test signature_image::tests::very_wide_image_signatures_keep_the_requested_rectangle ... ok
+test signature_image::tests::embedded_signature_preview_preserves_alpha_without_editing_the_document ... ok
+test signature_image::tests::white_background_becomes_transparent_and_ink_is_kept ... ok
+test tests::a_file_split_around_another_combines_in_order_with_one_bookmark ... ok
+test tests::a_page_with_a_form_field_shown_twice_keeps_one_field ... ok
+test signature_image::tests::invalid_and_oversized_signature_images_are_rejected ... ok
+test tests::actions_run_their_steps_on_files ... ok
+test tests::added_text_and_images_render_and_stay_editable ... ok
+test tests::adopting_page_only_fields_is_noted_as_a_repair ... ok
+test tests::added_images_rotate_flip_and_crop_as_drawn ... ok
+test tests::an_xfa_form_without_a_template_opens_with_its_placeholder_and_a_warning ... ok
+test tests::an_optimize_job_reports_its_stages_and_can_be_cancelled ... ok
+test tests::autosave_snapshots_only_changed_documents ... ok
+test tests::autosave_snapshots_a_new_unsaved_document_once ... ok
+test tests::batch_is_one_undo_step_and_all_or_nothing ... ok
+test tests::a_formcalc_calculate_result_is_cut_before_it_is_saved ... ok
+test tests::backgrounds_and_watermarks_from_files ... ok
+test tests::bookmarks_from_structure_nest_the_headings_and_undo ... ok
+test tests::bookmark_edits_show_in_the_viewer_undo_and_save ... ok
+test tests::cable_runs_add_their_allowance_and_fields_stay_with_the_markup ... ok
+test tests::combine_extract_split_and_insert_from_file ... ok
+test tests::comment_edits_refresh_the_list_exactly_as_a_full_inspection_would ... ok
+test tests::combining_protected_files_is_refused_clearly ... ok
+test tests::comment_summary_includes_replies_to_replies ... ok
+test tests::comments_are_added_drawn_threaded_and_undone ... ok
+test tests::comments_lock_take_checkmarks_hide_and_summarize ... ok
+test tests::comments_without_appearances_are_drawn_but_not_saved ... ok
+test tests::comment_permission_is_enforced ... ok
+test tests::create_and_reduce ... ok
+test tests::crop_and_duplicate_pages_show_in_the_viewer ... ok
+test tests::comparing_two_versions_of_a_document ... ok
+test tests::detecting_fields_on_a_printed_form ... ok
+test tests::drafting_edits_change_points_copy_and_rotate ... ok
+test tests::custom_image_stamp_keeps_displayed_orientation_on_rotated_pages ... ok
+test tests::dynamic_xfa_forms_are_laid_out_on_open_filled_and_saved_incrementally ... ok
+test tests::dynamic_xfa_forms_open_with_the_values_and_rows_of_their_data ... ok
+test tests::combine_source_check_says_why_a_file_cannot_be_combined ... ok
+test tests::edits_to_unknown_documents_are_rejected ... ok
+test tests::edits_update_view_data_and_mark_dirty ... ok
+test tests::edit_history_does_not_replay_field_script_side_effects ... ok
+test tests::export_images_and_text_follow_the_working_file ... ok
+test tests::exporting_office_files_keeps_images ... ok
+test tests::exporting_office_files_keeps_text_colour ... ok
+test tests::exporting_office_files_reads_form_xobjects ... ok
+test tests::failed_edit_changes_nothing ... ok
+test tests::dynamic_xfa_forms_run_formcalc_scripts ... ok
+test tests::field_and_comment_edits_still_rebuild_the_render_pool ... ok
+test tests::filling_a_form_shows_saves_and_undoes ... ok
+test tests::flattening_fill_and_sign_does_nothing_when_there_are_none ... ok
+test tests::files_that_cannot_be_converted_are_refused_clearly ... ok
+test tests::flattening_fill_and_sign_keeps_other_comments_fields_and_undoes ... ok
+test tests::flattening_fill_and_sign_on_a_signed_file_stays_incremental ... ok
+test photos::tests::large_photos_are_scaled_to_a_jpeg ... ok
+test tests::flattening_fill_and_sign_is_refused_without_permission_to_change ... ok
+test tests::flattening_keeps_the_look_and_drops_the_objects ... ok
+test tests::form_edits_refresh_field_values_without_a_full_inspection ... ok
+test tests::full_save_is_readable_and_smaller_after_deletes ... ok
+test tests::encrypted_documents_open_edit_and_save_encrypted ... ok
+test tests::form_javascript_validates_calculates_and_formats ... ok
+test tests::headers_footers_watermarks_and_backgrounds_show_update_and_remove ... ok
+test tests::highlight_multiplies_over_text ... ok
+test tests::flattening_fill_and_sign_reopens_an_encrypted_file ... ok
+test tests::hostile_xfa_scripts_cannot_hang_or_bloat_the_document ... ok
+test tests::insert_blank_between_pages_keeps_both_neighbours ... ok
+test tests::layer_choices_survive_edits ... ok
+test tests::layers_symbols_and_photos ... ok
+test tests::legacy_passwords_with_turkish_characters_open ... ok
+test tests::links_from_urls_and_link_edits ... ok
+test tests::measurement_edits_are_transactional_and_honour_annotation_permissions ... ok
+test tests::metadata_edit_keeps_the_renderer_without_changing_page_content ... ok
+test tests::metadata_edits_and_history_reuse_the_render_pool ... ok
+test tests::mixed_files_convert_and_combine_in_order ... ok
+test tests::number_pages_shows_in_the_viewer_and_undoes ... ok
+test tests::hostile_xfa_open_scripts_are_merged_capped_kept_from_printing_and_noted ... ok
+test tests::owner_password_of_older_revisions_opens_the_viewer_too ... ok
+test tests::pages_export_as_png_jpeg_and_tiff ... ok
+test tests::oversized_exports_clamp_and_report_their_dpi_unless_strict ... ok
+test tests::photo_callouts_place_flip_and_come_from_pins ... ok
+test tests::placeholder_titles_are_recognised ... ok
+test tests::preparing_a_form_adds_renames_and_deletes_fields ... ok
+test tests::printing_lays_out_sheets_that_render ... ok
+test tests::probe_edit_latency_on_a_large_signed_document ... ignored, timing probe
+test tests::permissions_password_restricts_others_but_not_this_session ... ok
+test tests::protection_is_validated_undoable_and_never_logged ... ok
+test tests::recognize_text_makes_a_scanned_page_searchable ... ok
+test tests::recognize_text_reads_the_euro_sign ... ok
+test tests::recovered_documents_reopen_unsaved_at_their_original_path ... ok
+test tests::recovered_user_passwords_reach_the_renderer_byte_for_byte ... ok
+test tests::redaction_marks_apply_for_good_and_undo ... ok
+test tests::protect_with_an_open_password_then_save_reopen_and_undo ... ok
+test tests::revert_goes_back_to_the_saved_version ... ok
+test tests::restricted_documents_refuse_changes_unless_opened_by_the_owner ... ok
+test tests::save_is_incremental_stamps_mod_date_and_rebases ... ok
+test tests::saving_a_password_protected_document_rebases_on_it ... ok
+test tests::set_layer_actions_change_what_renders ... ok
+test tests::set_layer_actions_toggle_in_order_and_keep_radio_groups ... ok
+test tests::signing_saving_trusting_and_commenting_afterwards ... ok
+test tests::split_by_size_and_bookmarks_and_page_filters ... ok
+test tests::static_xfa_forms_take_their_values_from_the_datasets_and_write_them_back ... ok
+test tests::undo_and_redo_restore_exact_states ... ok
+test tests::undo_still_works_after_save ... ok
+test tests::utf16_and_code_page_text_files_convert_to_their_text ... ok
+test tests::xfa_choice_lists_signature_and_picture_fields_open_fill_script_and_save ... ok
+test tests::xfa_data_no_field_binds_to_survives_an_edit_and_save ... ok
+test tests::xfa_rows_in_areas_are_laid_out_read_calculated_and_written_where_adobe_binds_them ... ok
+test tests::guard_turns_a_panic_into_an_error ... ok
+test tests::xfa_scripts_can_remove_rows_twice_and_reset_fields_by_name ... ok
+test tests::xfa_scripts_stay_off_with_javascript_off ... ok
+test upright_image::tests::a_phone_photo_used_as_a_custom_stamp_is_embedded_upright ... ok
+test upright_image::tests::orientation_is_applied_and_plain_images_are_left_alone ... ok
+test xfa::tests::script_names_match_indexed_som_paths ... ok
+test tests::xfa_scripts_initialize_calculate_validate_toggle_and_add_rows ... ok
+test tests::runaway_xfa_calculations_at_open_end_quickly_with_a_report ... ok
+test tests::hostile_formcalc_scripts_cannot_hang_or_bloat_the_document ... ok
+
+test result: ok. 142 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 3.52s
+
+[1m[92m     Running[0m tests/form_rotation.rs (target/debug/deps/form_rotation-9ea1b399585fba3d)
+
+running 1 test
+test a_rotated_field_draws_along_the_vertical_edge ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+[1m[92m     Running[0m unittests src/lib.rs (target/debug/deps/pdfcraft_measure-ead9ce29a8fa68a9)
+
+running 24 tests
+test tests::calibrated_lengths_concave_areas_and_axis_scales ... ok
+test tests::deep_graphics_state_and_unreadable_streams_are_skipped_not_fatal ... ok
+test tests::coordinates_roundtrip_for_crop_rotation_and_user_unit ... ok
+test tests::closed_polygon_with_repeated_first_vertex_is_not_self_intersecting ... ok
+test tests::feet_and_fractional_inches_format_rounds_carries_and_reduces ... ok
+test tests::feet_inch_scale_converts_inches_and_refuses_other_units ... ok
+test tests::dimensions_have_extension_lines_and_an_offset_line ... ok
+test tests::imported_measurement_appearance_is_not_silently_replaced ... ok
+test tests::feet_inch_scale_writes_compound_formats_and_roundtrips ... ok
+test tests::indirect_viewport_array_stays_indirect ... ok
+test tests::filled_open_triangle_snaps_to_closing_edge ... ok
+test tests::measurement_csv_quotes_newlines_and_blocks_formula_cells ... ok
+test tests::perpendicular_snaps_to_the_foot_on_the_segment ... ok
+test tests::non_ascii_units_roundtrip_and_render_in_win_ansi ... ok
+test tests::real_world_sizes_convert_to_points ... ok
+test tests::rejects_invalid_geometry_and_unsupported_scales ... ok
+test tests::snap_paths_endpoints_midpoints_and_intersections ... ok
+test tests::standard_annotations_captions_restyle_move_and_unknown_keys ... ok
+test tests::unsupported_measurements_are_reported_not_fatal ... ok
+test tests::user_unit_is_read_as_acrobat_reads_it ... ok
+test tests::zero_decimal_scale_uses_standard_rounding_format ... ok
+test tests::viewport_precedence_first_point_user_unit_and_roundtrip ... ok
+test tests::nested_forms_transforms_curves_and_cycles_are_bounded ... ok
+test tests::degenerate_and_dense_paths_keep_snap_targets_bounded ... ok
+
+test result: ok. 24 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.13s
+
+[1m[92m     Running[0m unittests src/lib.rs (target/debug/deps/pdfcraft_render-42216e78f146a3d5)
+
+running 195 tests
+test inspect::tests::compressed_length_in_a_container_with_an_indirect_length_still_loads ... ok
+test inspect::tests::attachments_of_both_kinds_are_listed_and_extracted ... ok
+test inspect::tests::bookmarks_and_links_keep_their_destination_view ... ok
+test inspect::tests::compressed_object_mutual_containers_do_not_recurse ... ok
+test inspect::tests::compressed_object_self_container_does_not_recurse ... ok
+test inspect::tests::dates_are_prettified ... ok
+test inspect::tests::destination_operands_become_views ... ok
+test inspect::tests::destination_points_map_to_the_displayed_page ... ok
+test inspect::tests::compressed_objects_and_indirect_stream_length_still_load ... ok
+test inspect::tests::empty_png_predictor_frames_do_not_allocate_rows ... ok
+test inspect::tests::invalid_dates_with_unicode_are_unchanged ... ok
+test inspect::tests::jspdf_high_precision_mediabox_does_not_overflow_dimensions ... ok
+test inspect::tests::fields_listed_only_on_the_pages_are_listed ... ok
+test inspect::tests::links_read_set_layer_actions ... ok
+test inspect::tests::object_stream_length_cycle_does_not_recurse ... ok
+test inspect::tests::compressed_length_chain_does_not_recurse ... ok
+test inspect::tests::object_stream_member_extents_preserve_index_order_and_whitespace ... ok
+test inspect::tests::compressed_object_container_chain_does_not_recurse ... ok
+test inspect::tests::page_label_limits_accept_utf16_ascii_at_the_output_boundary ... ok
+test inspect::tests::outline_titles_decode_every_text_string_encoding ... ok
+test inspect::tests::page_label_limits_bound_roman_and_alpha_output ... ok
+test inspect::tests::object_stream_member_extents_bound_owned_strings ... ok
+test inspect::tests::lazy_structure_matches_the_compatibility_inspector ... ok
+test inspect::tests::page_label_limits_count_decoded_utf8_bytes ... ok
+test inspect::tests::page_label_limits_detect_one_node_cycle ... ok
+test inspect::tests::page_label_limits_handle_prefix_only_and_reference_cycles ... ok
+test inspect::tests::page_label_limits_bound_total_custom_output_atomically ... ok
+test inspect::tests::page_label_limits_keep_normal_pdf_numbering ... ok
+test inspect::tests::page_label_limits_keep_other_ranges_when_one_is_too_long ... ok
+test inspect::tests::page_label_limits_keep_the_later_of_duplicate_ranges ... ok
+test inspect::tests::page_label_limits_refuse_hostile_numbers_before_allocating ... ok
+test inspect::tests::page_label_limits_reject_long_prefixes_without_partial_labels ... ok
+test inspect::tests::png_predictor_rows_longer_than_the_data_are_refused_before_allocating ... ok
+test inspect::tests::radio_button_layer_groups_are_read ... ok
+test inspect::tests::roman_and_alpha_labels ... ok
+test inspect::tests::plain_stream_length_chain_does_not_recurse ... ok
+test inspect::tests::tiff_subbyte_predictor_row_width_overflow_is_refused ... ok
+test inspect::tests::tiff_subbyte_predictor_scratch_is_bounded_by_available_samples ... ok
+test inspect::tests::tiff_subbyte_predictors_keep_components_rows_and_padding ... ok
+test inspect::tests::unicode_annotation_date_does_not_prevent_opening ... ok
+test inspect::tests::view_and_user_space_round_trip_for_every_rotation ... ok
+test inspect::version_tests::version_labels_read_as_numbers ... ok
+test raster::tests::a_failed_page_stays_refused_at_every_scale_and_generation_but_other_pages_render ... ok
+test raster::tests::a_pool_without_replacements_never_runs_a_second_thread ... ok
+test raster::tests::a_request_being_rendered_is_not_rendered_again ... ok
+test inspect::tests::page_label_limits_bound_depth_and_count_combined_work ... ok
+test raster::tests::a_retired_pool_counts_its_threads_until_they_exit ... ok
+test raster::tests::a_slow_parse_is_not_a_timeout_and_its_pages_render ... ok
+test raster::tests::absurd_image_dimensions_are_skipped ... ok
+test raster::tests::absurd_mask_and_fax_sizes_are_refused_before_decoding ... ok
+test raster::tests::absurd_predictor_columns_and_line_widths_render ... ok
+test raster::tests::annotation_appearance_box_maps_onto_rect ... ok
+test raster::tests::annotations_on_a_hidden_layer_are_not_drawn ... ok
+test raster::tests::cids_a_substitute_lacks_are_not_drawn_as_other_glyphs ... ok
+test raster::tests::clipping_path_applies_after_any_painting_operator ... ok
+test inspect::tests::page_label_limits_bound_wide_number_trees ... ok
+test inspect::tests::structure_failure_preserves_renderer_pages ... ok
+test raster::tests::dash_patterns_that_cut_a_stroke_into_billions_of_pieces_render ... ok
+test raster::tests::a_request_cancelled_while_waiting_for_the_parse_leaves_its_worker_usable ... ok
+test raster::tests::degenerate_annotation_appearances_are_skipped ... ok
+test raster::tests::dictionaries_nested_without_keys_are_read_up_to_the_nesting_cap ... ok
+test raster::tests::dictionaries_nested_without_keys_as_marked_content_properties_do_not_overflow_the_stack ... ok
+test raster::tests::dictionaries_nested_without_keys_in_content_do_not_overflow_the_stack ... ok
+test raster::tests::deeply_nested_direct_objects_do_not_overflow_the_stack ... ok
+test raster::tests::dropping_the_pool_cancels_its_renders ... ok
+test raster::tests::effective_scale_never_exceeds_the_caps ... ok
+test raster::tests::exhausted_private_retry_budget_reports_pending_and_future_requests ... ok
+test raster::tests::extracts_text_with_positions ... ok
+test raster::tests::form_cycles_are_bounded_and_finite_nesting_paints ... ok
+test raster::tests::fractional_page_sizes_round_up ... ok
+test raster::tests::function_limits_calculator_arithmetic_and_depth ... ok
+test raster::tests::function_limits_calculator_work_boundary ... ok
+test raster::tests::function_limits_calculator_work_counts_unselected_branches ... ok
+test raster::tests::function_limits_depth_guard_refuses_a_chain_of_references ... ok
+test raster::tests::function_limits_idiv_overflow_is_refused ... ok
+test raster::tests::function_limits_idiv_zero_is_refused ... ok
+test raster::tests::function_limits_invalid_calculator_keeps_the_page_renderable ... ok
+test raster::tests::function_limits_large_indices_are_refused ... ok
+test raster::tests::function_limits_large_logical_shifts_discard_all_bits ... ok
+test raster::tests::function_limits_operand_stack_boundary ... ok
+test raster::tests::function_limits_public_construction_work_and_depth ... ok
+test raster::tests::function_limits_rotation_accepts_the_most_negative_integer ... ok
+test raster::tests::function_limits_shared_references_count_toward_construction_work ... ok
+test raster::tests::function_limits_stitching_cycles_are_refused_and_shared_children_work ... ok
+test raster::tests::content_painted_again_and_again_keeps_drawing ... ok
+test raster::tests::hiding_comments_keeps_fields ... ok
+test raster::tests::highlights_without_an_appearance_are_drawn ... ok
+test raster::tests::heavy_vector_fixture_preserves_trailing_text_and_raster_output ... ok
+test raster::tests::huge_simple_font_first_char_terminates ... ok
+test raster::tests::idle_and_skipped_workers_release_source_without_parsing ... ok
+test raster::tests::image_resampling_bounds_intermediate_before_planning ... ok
+test raster::tests::image_resampling_keeps_valid_sizes_and_exact_limits ... ok
+test raster::tests::image_resampling_mismatched_alpha_mask_keeps_pixels_and_placement ... ok
+test raster::tests::image_resampling_padded_backend_dimensions_stay_checked ... ok
+test raster::tests::image_resampling_rejects_anisotropic_target_growth ... ok
+test raster::tests::image_resampling_rejects_invalid_sources_and_scales ... ok
+test raster::tests::huge_cid_width_ranges_terminate ... ok
+test raster::tests::image_resampling_wide_transparent_sources_still_shrink ... ok
+test raster::tests::indirect_appearance_state_dict_is_not_another_stream ... ok
+test raster::tests::image_resampling_wide_sources_shrink_before_backend_side_limits ... ok
+test raster::tests::inline_images_with_ei_in_their_data_parse_in_linear_time ... ok
+test raster::tests::inline_pool_renders_in_priority_order ... ok
+test raster::tests::invalid_dash_patterns_terminate_and_are_drawn_solid ... ok
+test raster::tests::japanese_font_names_pick_mincho_or_gothic ... ok
+test raster::tests::jbig2_regions_of_billions_of_pixels_are_refused ... ok
+test raster::tests::initializer_panic_publishes_one_failure_and_wakes_waiters ... ok
+test raster::tests::jpx_32_bit_image_does_not_prevent_other_page_content_from_rendering ... ok
+test raster::tests::jpx_gray_rgb_and_alpha_keep_eight_bit_samples ... ok
+test raster::tests::jpx_stream_bit_depth_boundaries_do_not_panic ... ok
+test raster::tests::jpx_streams_reject_out_of_range_bit_depths ... ok
+test raster::tests::large_resource_indexes_preserve_pixels_and_text ... ok
+test raster::tests::layer_override_hides_content ... ok
+test raster::tests::malformed_simple_font_widths_keep_later_widths_and_the_font ... ok
+test raster::tests::jbig2_symbol_dictionaries_that_never_advance_terminate ... ok
+test raster::tests::mesh_shadings_far_off_the_page_render ... ok
+test raster::tests::many_overlapping_mesh_triangles_finish ... ok
+test raster::tests::mincho_substitute_covers_half_width_katakana ... ok
+test raster::tests::missing_page_and_garbage_input_fail_gracefully ... ok
+test raster::tests::nesting_at_the_cap_fits_a_512_kib_stack ... ok
+test raster::tests::non_embedded_japanese_cid_fonts_draw_with_a_craft_fonts_face ... ok
+test raster::tests::decompression_bombs_stop_at_the_stream_limit ... ok
+test raster::tests::page_panic_retires_shared_generation_and_healthy_pages_use_private_parsers ... ok
+test raster::tests::page_pixels_are_invariant_to_render_worker_count ... ok
+test raster::tests::pixels_are_a_plain_renders_bytes_in_a_buffer_a_gui_can_take_over ... ok
+test raster::tests::re_sent_queues_render_each_page_once ... ok
+test raster::tests::render_into_a_buffer_of_the_wrong_length_leaves_it_untouched ... ok
+test raster::tests::renders_a_blue_rectangle ... ok
+test raster::tests::replacing_a_request_during_initialization_skips_its_obsolete_render ... ok
+test raster::tests::replacing_an_in_flight_request_does_not_delay_the_replacement ... ok
+test raster::tests::request_removed_before_busy_publication_skips_parser_acquisition ... ok
+test raster::tests::resampling_fallback_preserves_original_geometry_and_pixels ... ok
+test raster::tests::results_queued_before_invalidation_are_retried_privately ... ok
+test raster::tests::sampled_functions_with_billions_of_samples_are_refused ... ok
+test raster::tests::scale_is_clamped_for_huge_pages ... ok
+test raster::tests::self_referencing_tiling_pattern_terminates ... ok
+test raster::tests::self_referencing_type3_glyph_terminates ... ok
+test raster::tests::shared_form_xobject_uses_each_pages_resource_context ... ok
+test raster::tests::shared_parser_is_lazy_and_initializes_once_under_contention ... ok
+test raster::tests::shared_soft_mask_uses_each_inherited_resource_context ... ok
+test raster::tests::shared_timeouts_retry_healthy_pages_privately_before_blacklisting ... ok
+test raster::tests::skipping_paths_off_the_canvas_changes_no_pixel ... ok
+test raster::tests::soft_mask_without_group_colour_space_is_applied ... ok
+test raster::tests::stitched_render_partitions_match_a_whole_render ... ok
+test raster::tests::strict_whole_page_render_refuses_cap_reduction_but_tiles_remain_available ... ok
+test raster::tests::the_watchdog_stops_the_render_it_gives_up_on ... ok
+test raster::tests::tiles_match_full_render ... ok
+test raster::tests::tiling_cells_stay_small_whatever_the_step ... ok
+test raster::tests::tiling_pattern_form_cycles_are_bounded_and_finite_nesting_paints ... ok
+test raster::tests::type1_font_programs_with_long_runs_of_numbers_load_quickly ... ok
+test raster::tests::type3_glyphs_that_fan_out_into_themselves_finish ... ok
+test raster::tests::user_unit_scales_the_page_and_everything_on_it ... ok
+test raster::tests::variation_sequences_draw_their_kanji_in_a_substitute ... ok
+test raster::tests::waiting_worker_can_cancel_before_initializer_returns ... ok
+test raster::tests::watchdog_skips_a_stuck_page_and_keeps_rendering ... ok
+test raster::tests::widget_appearance_states ... ok
+test raster::tests::worker_reuses_parser_and_releases_source_after_rendering ... ok
+test raster::work_queue::tests::delivery_uses_current_priority_for_buffered_and_later_completions ... ok
+test raster::work_queue::tests::invalid_background_completion_retries_after_pending_visible_work ... ok
+test raster::work_queue::tests::invalid_parser_generations_are_retried_before_or_after_publication ... ok
+test raster::work_queue::tests::oversized_completion_is_admitted_alone_and_cancellation_releases_waiters ... ok
+test raster::work_queue::tests::replacing_demands_deduplicates_active_and_completed_then_allows_eviction_retry ... ok
+test raster::work_queue::tests::request_identity_preserves_distinct_work_and_deduplicates_nan_scales ... ok
+test raster::work_queue::tests::returning_to_active_work_reuses_it_but_cancellation_allows_a_fresh_request ... ok
+test raster::work_queue::tests::stalled_consumer_bounds_storage_and_drop_unblocks_publishers ... ok
+test raster::work_queue::tests::watchdog_eviction_retries_background_work_after_visible_work ... ok
+test structure::tests::inspection_loads_only_requested_objects_in_a_compressed_document ... ok
+test text::tests::a_column_selection_across_columns_reads_row_by_row ... ok
+test text::tests::a_column_selection_takes_one_table_column ... ok
+test text::tests::a_ligature_is_one_glyph_in_every_writing_direction ... ok
+test text::tests::an_empty_or_degenerate_column_selection_is_empty ... ok
+test text::tests::case_folding_keeps_one_character_per_character ... ok
+test text::tests::crossing_turned_lines_stay_apart ... ok
+test text::tests::fake_bold_duplicates_are_removed ... ok
+test text::tests::identity_v_columns_are_searchable_in_reading_order ... ok
+test text::tests::lines_words_and_search ... ok
+test text::tests::narrow_ligatures_keep_every_letter ... ok
+test text::tests::phrase_search_ignores_repeated_spaces ... ok
+test text::tests::right_to_left_ligatures_keep_their_logical_order ... ok
+test text::tests::right_to_left_rows_read_right_to_left ... ok
+test text::tests::rtl_runs_come_out_in_logical_order_and_cjk_has_no_spaces ... ok
+test text::tests::sheared_text_keeps_its_word_gaps ... ok
+test text::tests::text_along_a_curve_is_one_line ... ok
+test text::tests::tracked_text_keeps_letters_together ... ok
+test text::tests::turkish_dotted_and_dotless_i_match_in_any_case ... ok
+test text::tests::turned_glyphs_keep_their_shape_and_direction ... ok
+test text::tests::turned_lines_group_along_their_baseline ... ok
+test text::tests::turned_text_keeps_its_place_in_the_reading_order ... ok
+test text::tests::two_columns_read_left_then_right_even_if_drawn_interleaved ... ok
+test text::tests::upright_mapping_round_trips ... ok
+test text::tests::vertical_ligatures_stay_in_their_column ... ok
+test text::tests::vertical_lines_keep_reading_order ... ok
+test text::tests::words_and_lines_around_a_glyph ... ok
+test raster::tests::dictionaries_nested_without_keys_in_the_trailer_do_not_overflow_the_stack ... ok
+test raster::tests::page_contents_and_nested_forms_share_one_budget ... ok
+test raster::tests::mesh_shadings_with_many_patches_or_no_rows_finish ... ok
+
+test result: ok. 195 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 7.48s
+
+[1m[92m     Running[0m unittests src/lib.rs (target/debug/deps/pdfcraft_ui_egui-0ec769aa055082c2)
+
+running 239 tests
+test autoscroll::tests::chromium_curve_is_gentle_near_the_anchor_and_accelerates_farther_away ... ok
+test autoscroll::tests::fractional_motion_covers_the_same_distance_at_different_frame_rates ... ok
+test autoscroll::tests::speed_has_a_dead_zone_is_symmetric_and_rejects_invalid_input ... ok
+test bidi::tests::arabic_words_swap_and_the_extension_stays_last ... ok
+test bidi::tests::direction_controls_are_not_drawn ... ok
+test bidi::tests::hebrew_and_brackets ... ok
+test bidi::tests::latin_and_numbers_keep_their_own_order ... ok
+test autoscroll::tests::middle_drag_ignores_presses_outside_the_viewport_and_stops_when_focus_is_lost ... ok
+test autoscroll::tests::middle_drag_leaves_escape_to_the_existing_shortcuts ... ok
+test autoscroll::tests::middle_drag_pans_one_to_one_and_owns_the_button_until_release ... ok
+test bidi::tests::rtl_labels_keep_their_edges ... ok
+test bidi::tests::rtl_labels_read_right_to_left ... ok
+test bidi::tests::rtl_labels_keep_placeholders_whole ... ok
+test bidi::tests::text_without_rtl_is_borrowed_unchanged ... ok
+test cable::tests::allowances_read_back_as_typed ... ok
+test canvas::tests::destinations_set_the_zoom_mode_and_the_point_to_show ... ok
+test bidi::tests::odd_input_never_panics ... ok
+test canvas::tests::fit_page_and_height_hold_still_while_mixed_page_sizes_scroll_past ... ok
+test canvas::tests::fit_width_fits_the_shown_page_in_single_page_view_only ... ok
+test canvas::tests::grid_zoom_is_clamped_and_sharp_renders_tolerate_a_pinch ... ok
+test canvas::tests::editing_after_layout_preserves_stale_page_until_replacement ... ok
+test canvas::tests::a_page_turned_back_to_is_still_cached ... ok
+test canvas::tests::navigation_drops_partial_wheel_motion ... ok
+test canvas::tests::notches_turn_pages_and_stop_at_the_ends ... ok
+test canvas::tests::layouts_match_their_commands_and_names ... ok
+test canvas::tests::oversized_thumbnail_viewport_scales_all_admitted_cells_to_one_budget ... ok
+test canvas::tests::page_and_tile_admission_accounts_for_bytes_before_count_limits ... ok
+test canvas::tests::many_open_documents_share_one_raster_allowance_and_close_releases_handles ... ok
+test canvas::tests::on_screen_pages_and_tiles_are_admitted_beyond_the_prefetch_allowance ... ok
+test canvas::tests::reselecting_the_layout_does_not_scroll_to_top ... ok
+test canvas::tests::stale_results_are_rejected_before_conversion_after_dpi_invalidation_and_suspend ... ok
+test canvas::tests::rendered_rasters_become_texture_images_without_a_copy ... ok
+test bidi::tests::rtl_labels_never_panic_on_odd_input ... ok
+test canvas::tests::suspending_a_view_releases_owned_raster_textures_and_queue_state ... ok
+test canvas::tests::ten_thousand_pages_only_demand_viewport_and_prefetch_at_both_densities ... ok
+test canvas::tests::thumbnail_tags_do_not_change_as_a_row_scrolls_in_or_out ... ok
+test canvas::tests::thumbnails_cover_the_panel_on_a_high_dpi_screen ... ok
+test canvas::tests::thumbnails_release_on_scroll_panel_close_and_request_again_after_eviction ... ok
+test canvas::tests::wheel_is_single_page_only ... ok
+test chrome::tab_widths::arrows_only_when_the_narrowest_tabs_overflow ... ok
+test chrome::tab_widths::tabs_stop_at_their_minimum ... ok
+test chrome::tab_widths::tabs_that_fit_do_not_shrink ... ok
+test chrome::tab_widths::wide_tabs_share_what_narrow_ones_leave ... ok
+test canvas::tests::suspended_signature_preview_releases_layers_and_rebuilds_without_editing ... ok
+test columns::tests::columns_round_trip_and_bad_ones_are_skipped ... ok
+test combine_grid::tests::a_page_that_failed_is_not_tried_again_at_another_size ... ok
+test combine_grid::tests::a_thumbnail_that_arrives_is_drawn_without_waiting_for_input ... ok
+test combine_grid::tests::arrow_keys_step_by_file_and_by_row ... ok
+test combine_grid::tests::long_names_keep_their_extension_and_whole_characters ... ok
+test combine_grid::tests::moves_to_a_gap_keep_order_and_report_no_ops ... ok
+test combine_grid::tests::on_the_web_a_render_that_never_answers_fails_and_lets_the_rest_through ... ok
+test combine_grid::tests::on_the_web_one_thumbnail_waits_at_a_time ... ok
+test combine_grid::tests::paper_sizes_fit_the_box_and_bad_sizes_are_refused ... ok
+test combine_grid::tests::a_result_for_a_file_that_changed_is_never_shown ... ok
+test combine_grid::tests::textures_over_budget_go_longest_unseen_first_and_those_in_view_stay ... ok
+test combine_grid::tests::the_next_page_of_a_file_reuses_its_open_document_until_it_closes ... ok
+test combine_grid::tests::zoom_buttons_step_through_round_sizes ... ok
+test combine_ui::tests::a_page_moved_between_another_files_pages_splits_its_file_and_parts_rejoin ... ok
+test canvas::tests::virtualized_organizer_keeps_insert_gaps_at_document_positions ... ok
+test combine_ui::tests::every_read_of_a_file_is_new_even_after_undo ... ok
+test combine_ui::tests::page_lists_become_the_shortest_range ... ok
+test combine_ui::tests::removing_pages_drops_emptied_parts_and_joins_what_meets ... ok
+test commands::tests::localized_shortcut_labels_follow_language_and_platform ... ok
+test comments::tests::drawn_shapes_ignore_slips ... ok
+test comments::tests::proportional_corners_keep_the_opposite_anchor_and_edges_stretch_one_axis ... ok
+test comments::tests::text_boxes_fit_their_text ... ok
+test comments::tests::tools_round_trip_through_their_commands ... ok
+test credits::tests::alphabetical_ignores_at_and_case ... ok
+test credits::tests::delta_and_dates ... ok
+test credits::tests::formatting ... ok
+test credits::tests::names_fall_back_to_the_username ... ok
+test draft::tests::coordinates_parse_relative_absolute_and_polar ... ok
+test draft::tests::lengths_parse_as_cad_users_type_them ... ok
+test draft::tests::walls_are_mitred_quads_of_the_thickness ... ok
+test draft_edit::tests::corners_joins_and_splits ... ok
+test draft_edit::tests::extend_reaches_the_next_line ... ok
+test draft_edit::tests::offsets_and_arcs ... ok
+test draft_edit::tests::segments_cross ... ok
+test draft_edit::tests::shapes_and_matrices ... ok
+test draft_edit::tests::trim_cuts_between_crossings ... ok
+test editing::revert_draft_tests::failed_revert_preserves_focused_and_queued_drafts ... ok
+test editing::revert_draft_tests::successful_revert_clears_focused_or_queued_drafts_only_on_its_document ... ok
+test editing::revert_draft_tests::unsaved_flag_follows_dirty_state ... ok
+test editing::tests::a_folder_at_the_staging_name_is_left_alone ... ok
+test editing::tests::saving_a_long_name_leaves_only_the_saved_file ... ok
+test editing::tests::saving_gives_up_rather_than_reuse_a_taken_name ... ok
+test editing::tests::saving_never_creates_a_file_through_a_dangling_link_at_the_staging_name ... ok
+test editing::tests::saving_never_writes_through_a_file_planted_at_the_staging_name ... ok
+test editing::tests::saving_never_writes_through_a_symbolic_link_at_the_staging_name ... ok
+test files::stem_tests::user_file_names_stay_inside_the_folder_and_writable_everywhere ... ok
+test fill_sign::tests::long_signature_previews_have_clear_margins ... ok
+test folders_ui::tests::a_missing_folder_lists_as_unavailable ... ok
+test folders_ui::tests::folders_from_settings_must_be_absolute_unique_and_few ... ok
+test folders_ui::tests::locations_are_said_in_words ... ok
+test folders_ui::tests::the_root_keeps_its_separator ... ok
+test home::tests::translated_card_description_leaves_room_for_the_action ... ok
+test i18n::tests::arabic_covers_commands_and_catalogue ... ok
+test i18n::tests::arabic_covers_ui_literals ... ok
+test i18n::tests::arabic_is_registered_and_persists ... ok
+test i18n::tests::arabic_labels_have_glyphs ... ok
+test i18n::tests::arabic_lookups_are_in_display_order ... ok
+test i18n::tests::arabic_plurals_follow_the_six_cldr_forms ... ok
+test i18n::tests::brazilian_portuguese_covers_commands_and_catalogue ... ok
+test combine_ui::tests::moves_by_rank_never_lose_or_repeat_a_file ... ok
+test i18n::tests::brazilian_portuguese_is_registered ... ok
+test i18n::tests::broken_catalog_falls_back_to_english ... ok
+test i18n::tests::brazilian_portuguese_covers_ui_literals ... ok
+test i18n::tests::bulgarian_covers_commands_and_catalogue ... ok
+test i18n::tests::bulgarian_diagnostics_preserve_user_values ... ok
+test i18n::tests::bulgarian_is_registered ... ok
+test i18n::tests::bulgarian_covers_ui_literals ... ok
+test combine_grid::tests::render_threads_never_exceed_three_while_files_come_and_go ... ok
+test i18n::tests::candidates_walk_from_specific_to_general ... ok
+test i18n::tests::catalog_kinds_are_parsed_and_looked_up ... ok
+test i18n::tests::catalogs_handle_escapes_crlf_and_distinct_contexts ... ok
+test i18n::tests::contextual_id_and_plural_lookups_have_english_fallbacks ... ok
+test i18n::tests::contextual_labels_fall_back_to_the_plain_translation ... ok
+test i18n::tests::current_language_is_per_thread ... ok
+test i18n::tests::czech_covers_every_menu_label ... ok
+test i18n::tests::date_languages_are_the_interface_languages ... ok
+test i18n::tests::formatting_reorders_parameters_without_reinterpreting_user_text ... ok
+test i18n::tests::french_covers_commands_and_catalogue ... ok
+test i18n::tests::french_covers_ui_literals ... ok
+test i18n::tests::french_history_and_diagnostics_preserve_user_values ... ok
+test i18n::tests::french_is_registered ... ok
+test i18n::tests::german_certificate_subject_has_a_distinct_context ... ok
+test i18n::tests::german_covers_commands_and_catalogue ... ok
+test i18n::tests::bulk_field_properties_labels_are_in_every_full_catalog ... ok
+test i18n::tests::german_history_and_diagnostics_preserve_user_values ... ok
+test i18n::tests::german_is_registered ... ok
+test i18n::tests::history_labels_keep_captured_names ... ok
+test i18n::tests::hungarian_covers_commands_and_catalogue ... ok
+test i18n::tests::german_covers_ui_literals ... ok
+test i18n::tests::hungarian_history_and_diagnostics_preserve_user_values ... ok
+test i18n::tests::hungarian_is_registered ... ok
+test i18n::tests::italian_covers_commands_and_catalogue ... ok
+test i18n::tests::hungarian_covers_ui_literals ... ok
+test i18n::tests::japanese_covers_commands_and_catalogue ... ok
+test i18n::tests::italian_covers_ui_literals ... ok
+test i18n::tests::japanese_labels_have_glyphs ... ok
+test i18n::tests::japanese_covers_ui_literals ... ok
+test i18n::tests::bundled_catalogs_are_consistent ... ok
+test i18n::tests::language_persists_and_invalid_input_keeps_current_language ... ok
+test i18n::tests::keyboard_key_names_have_a_separate_context_and_english_fallback ... ok
+test i18n::tests::lookups_fall_back_to_english ... ok
+test i18n::tests::macos_language_list_is_parsed ... ok
+test i18n::tests::malformed_lines_are_reported_not_fatal ... ok
+test i18n::tests::plurals_and_placeholders ... ok
+test i18n::tests::missing_ocr_models_messages_are_translated ... ok
+test i18n::tests::preferences_resolve_with_fallback ... ok
+test i18n::tests::russian_covers_commands_and_catalogue ... ok
+test i18n::tests::russian_history_and_diagnostics_preserve_user_values ... ok
+test i18n::tests::simplified_chinese_covers_about_credit_labels ... ok
+test i18n::tests::russian_is_registered ... ok
+test i18n::tests::simplified_chinese_covers_commands_and_catalogue ... ok
+test i18n::tests::simplified_chinese_history_and_diagnostics_preserve_user_values ... ok
+test i18n::tests::simplified_chinese_is_registered ... ok
+test i18n::tests::spanish_covers_commands_and_catalogue ... ok
+test i18n::tests::spanish_is_registered ... ok
+test i18n::tests::strict_validation_skips_only_the_bad_line ... ok
+test i18n::tests::tags_map_to_languages ... ok
+test i18n::tests::russian_covers_ui_literals ... ok
+test i18n::tests::telugu_covers_commands_and_catalogue ... ok
+test i18n::tests::simplified_chinese_covers_ui_literals ... ok
+test i18n::tests::telugu_is_registered ... ok
+test i18n::tests::telugu_labels_have_glyphs ... ok
+test i18n::tests::tool_names_inside_sentences_are_lowercased_except_in_german ... ok
+test i18n::tests::ukrainian_calendar_uses_month_case_for_dates ... ok
+test i18n::tests::traditional_chinese_is_registered ... ok
+test i18n::tests::ukrainian_covers_commands_and_catalogue ... ok
+test i18n::tests::ukrainian_history_and_diagnostics_preserve_user_values ... ok
+test i18n::tests::ukrainian_integer_plurals_cover_teens_and_large_counts ... ok
+test i18n::tests::ukrainian_is_registered_and_persists ... ok
+test i18n::tests::undo_and_redo_labels_use_the_catalog_phrase_when_there_is_one ... ok
+test i18n::tests::windows_display_language_resolves_chinese_scripts ... ok
+test icons::tests::every_catalog_icon_exists ... ok
+test icons::tests::every_command_icon_exists ... ok
+test last_session::tests::malformed_sessions_are_skipped_and_capped ... ok
+test i18n::tests::ukrainian_catalog_does_not_leave_english_ui_text ... ok
+test marks_ui::tests::page_ranges_with_subsets ... ok
+test markups_list::tests::sorting_filtering_and_csv ... ok
+test new_dialog::tests::sizes_turn_and_dates_read ... ok
+test openings::tests::a_door_cuts_a_thick_line_and_hinges_on_the_wall_face ... ok
+test openings::tests::a_window_cuts_a_wall_outline_into_two ... ok
+test optimize_ui::tests::a_second_run_is_refused_while_one_is_going ... ok
+test pageboxes::tests::drafts_pick_pages_and_reset_to_default_at_zero ... ok
+test panels::label_column::a_huge_label_is_measured_a_bounded_number_of_times ... ok
+test panels::label_column::long_labels_are_cut_to_their_column_with_an_ellipsis ... ok
+test panels::label_column::multibyte_labels_are_cut_on_char_boundaries ... ok
+test panels::label_column::short_labels_are_not_touched ... ok
+test panels::label_column::the_loop_ends_when_nothing_fits ... ok
+test i18n::tests::ukrainian_covers_ui_literals ... ok
+test panels::page_moves::the_gap_follows_the_nearest_thumbnail ... ok
+test panels::page_moves::pages_keep_their_identity_across_a_move ... ok
+test pickers::tests::a_follow_up_that_asks_again_gets_its_picker_even_if_another_request_came_first ... ok
+test optimize_ui::tests::the_progress_card_shows_the_stage_and_cancels ... ok
+test pickers::tests::a_second_picker_is_refused_while_one_is_showing ... ok
+test pickers::tests::the_follow_up_runs_on_a_later_frame_and_not_when_cancelled ... ok
+test pickers::tests::worker_queues_the_pick_and_keeps_the_flag_until_the_frame_uses_it ... ok
+test portable::tests::a_marker_folder_is_not_a_marker ... ok
+test portable::tests::an_existing_data_folder_is_reused ... ok
+test portable::tests::either_marker_keeps_the_data_beside_the_exe ... ok
+test portable::tests::no_exe_dir_leaves_portable_mode_off ... ok
+test portable::tests::no_marker_leaves_portable_mode_off ... ok
+test portable::tests::unwritable_data_folder_turns_portable_mode_off_and_says_why ... ok
+test print_ui::tests::print_preview_is_sharper_than_a_thumbnail_on_a_high_dpi_screen ... ok
+test print_ui::tests::print_preview_rasters_keep_the_current_sheet_within_the_byte_budget ... ok
+test print_ui::tests::print_preview_rasters_stay_within_the_texture_limit ... ok
+test protect::tests::drafts_validate_and_map_to_the_right_password ... ok
+test ribbon::tests::every_ribbon_button_is_a_command ... ok
+test ribbon::tests::workflows_parse_by_name ... ok
+test sign_ui::tests::a_new_digital_id_is_not_written_through_a_dangling_link ... ok
+test sign_ui::tests::a_new_digital_id_is_readable_by_its_owner_only ... ok
+test sign_ui::tests::a_new_digital_id_skips_names_already_taken_without_writing_through_them ... ok
+test system_fonts::tests::a_face_without_the_probe_is_rejected ... ok
+test system_fonts::tests::broken_and_missing_files_are_skipped ... ok
+test system_fonts::tests::candidates_are_absolute_font_files ... ok
+test theme::tests::accents_round_trip_by_code ... ok
+test theme::tests::an_answerless_system_leaves_the_choice_and_an_explicit_one_stands ... ok
+test theme::tests::every_accent_is_readable_in_both_themes ... ok
+test theme::tests::following_the_system_draws_what_the_system_says ... ok
+test theme::tests::text_is_readable_on_every_surface ... ok
+test tool_chest::tests::recent_tools_put_the_newest_first_once ... ok
+test tool_chest::tests::the_chest_round_trips_and_skips_bad_entries ... ok
+test wheel_pager::tests::a_swipe_turns_one_page_momentum_included ... ok
+test wheel_pager::tests::a_touch_whose_end_was_missed_expires ... ok
+test wheel_pager::tests::each_new_swipe_turns_again_even_during_momentum ... ok
+test wheel_pager::tests::every_notch_turns_one_page_however_fast ... ok
+test wheel_pager::tests::fractional_lines_are_touchpad_motion_off_macos ... ok
+test wheel_pager::tests::hostile_input_never_turns_more_than_once ... ok
+test wheel_pager::tests::nothing_turns_while_it_cannot_and_that_motion_does_not_count_later ... ok
+test wheel_pager::tests::phase_less_streams_turn_once_per_burst ... ok
+test wheel_pager::tests::reversing_mid_gesture_turns_back_but_jitter_does_not ... ok
+test widgets::tests::search_placeholder_never_overlaps_the_shortcut ... ok
+test widgets::tests::toast_width_adapts_to_long_notices_and_narrow_viewports ... ok
+test zoom_snap::tests::ink_bounds_finds_the_marked_area ... ok
+test canvas::tests::real_shell_pages_organizer_and_print_only_collect_current_thumbnail_consumers ... ok
+test pickers::tests::a_panicking_follow_up_is_reported_and_the_next_pick_still_runs ... ok
+test pickers::tests::a_panicking_worker_clears_showing_and_queues_nothing ... ok
+
+test result: ok. 239 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.54s
+
+[1m[92m     Running[0m tests/accessibility.rs (target/debug/deps/accessibility-d751311372e5baf1)
+
+running 2 tests
+test setting_alternate_text_figure_by_figure ... ok
+test checking_fixing_skipping_and_reporting ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.15s
+
+[1m[92m     Running[0m tests/actions.rs (target/debug/deps/actions-9a13e21c6f8d223f)
+
+running 2 tests
+test desktop_actions_preserve_duplicate_names_and_results_from_earlier_runs ... ok
+test run_and_create_actions ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.13s
+
+[1m[92m     Running[0m tests/animate.rs (target/debug/deps/animate-075b188c96a25ca2)
+
+running 2 tests
+test a_fillable_field_beside_push_buttons_still_shows_the_form_bar ... ok
+test push_buttons_alone_show_no_form_bar_and_a_screen_annotation_is_not_a_comment ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.09s
+
+[1m[92m     Running[0m tests/bookmarks.rs (target/debug/deps/bookmarks-3342f84321a20fdc)
+
+running 8 tests
+test escape_cancels_a_rename ... ok
+test expanding_and_collapsing_all_bookmarks ... ok
+test new_bookmarks_from_structure_nest_the_tagged_headings ... ok
+test bookmark_search_is_per_document ... ok
+test number_pages_dialog_labels_the_selected_pages ... ok
+test the_panel_keeps_its_width_while_the_pointer_moves ... ok
+test search_finds_collapsed_bookmarks_and_keeps_original_paths ... ok
+test new_rename_reorder_indent_delete_and_undo ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.17s
+
+[1m[92m     Running[0m tests/bulk_fields.rs (target/debug/deps/bulk_fields-0ae0a0dc9db793a6)
+
+running 13 tests
+test double_clicking_a_field_in_the_panel_opens_its_individual_properties ... ok
+test deleting_a_field_while_properties_are_open_does_not_partly_apply_the_draft ... ok
+test cancelling_shared_properties_discards_only_the_draft ... ok
+test dragging_an_empty_page_area_selects_fields_without_moving_them ... ok
+test escape_cancels_a_selection_rectangle_and_restores_the_previous_selection ... ok
+test select_all_in_prepare_a_form_selects_only_the_current_pages_fields ... ok
+test locked_field_refuses_the_entire_batch_and_keeps_the_draft_for_correction ... ok
+test fields_panel_selects_multiple_fields_and_opens_their_shared_properties ... ok
+test selecting_several_widgets_of_one_radio_group_does_not_duplicate_field_edits ... ok
+test shared_properties_cannot_apply_to_a_different_active_document ... ok
+test shared_properties_preserve_mixed_values_and_undo_the_whole_change ... ok
+test shared_properties_preserve_unchecked_changes_made_after_the_dialog_opened ... ok
+test visiting_shared_property_tabs_without_changes_does_not_dirty_the_document ... ok
+
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.31s
+
+[1m[92m     Running[0m tests/buttons.rs (target/debug/deps/buttons-8b82d4583913a9d6)
+
+running 2 tests
+test hide_actions_hide_and_show_fields ... ok
+test buttons_reset_navigate_and_print ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.12s
+
+[1m[92m     Running[0m tests/column_select.rs (target/debug/deps/column_select-b795181a70cae4c1)
+
+running 4 tests
+test alt_drag_with_the_highlighter_marks_only_the_column ... ok
+test shift_click_clears_a_column_selection ... ok
+test the_column_select_tool_needs_no_modifier ... ok
+test alt_drag_selects_only_the_text_inside_the_rectangle ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.16s
+
+[1m[92m     Running[0m tests/combine_grid.rs (target/debug/deps/combine_grid-7ce73ffc179adb25)
+
+running 56 tests
+test a_bad_page_range_on_a_card_says_where_to_fix_it ... ok
+test a_drag_held_while_the_tab_closes_and_reopens_moves_nothing ... ok
+test a_drag_is_dropped_when_the_list_changes_under_it ... ok
+test a_card_dragged_to_the_bottom_edge_scrolls_the_grid_and_still_drops ... ok
+test a_dragged_selection_moves_together_to_the_first_and_last_gaps ... ok
+test a_drop_that_changes_nothing_or_lands_outside_the_grid_leaves_no_undo_step ... ok
+test a_focused_card_still_takes_the_arrow_keys ... ok
+test a_file_too_long_to_spread_out_offers_no_expand ... ok
+test a_files_parts_join_when_what_was_between_them_goes_and_one_file_cannot_be_combined ... ok
+test a_file_whose_pages_cant_be_measured_says_there_is_no_preview ... ok
+test a_long_file_expanded_renders_only_its_pages_in_view_within_three_threads ... ok
+test a_locked_card_offers_unlock_on_a_right_click ... ok
+test a_page_cards_magnifier_opens_the_preview_on_that_page ... ok
+test a_page_click_selects_that_page_and_the_arrows_step_rows_of_cards ... ok
+test a_right_click_on_a_card_offers_preview_and_remove ... ok
+test arrow_keys_move_by_card_and_by_row_and_shift_extends ... ok
+test cards_select_like_the_list_and_the_selection_survives_switching_views ... ok
+test a_split_file_counts_once_and_combines_with_one_bookmark ... ok
+test a_locked_file_shows_no_page_until_unlocked_and_undo_locks_it_again ... ok
+test combine_follows_the_order_shown_in_the_grid ... ok
+test combine_shows_a_grid_by_default_and_the_view_is_kept_in_the_settings ... ok
+test combining_with_files_expanded_gives_the_same_document ... ok
+test collapsing_brings_the_files_card_into_view ... ok
+test dragging_a_card_moves_it_and_undo_puts_it_back ... ok
+test ctrl_keys_and_ctrl_wheel_size_the_cards_and_leave_the_window_alone ... ok
+test dragging_a_page_moves_that_page_even_between_another_files_pages ... ok
+test expanding_a_file_shows_the_pages_it_adds_in_order_with_their_numbers ... ok
+test dragging_and_arrow_keys_work_at_the_smallest_and_largest_sizes ... ok
+test expand_all_and_collapse_all_from_the_toolbar_and_a_right_click ... ok
+test files_picked_by_automation_let_go_of_the_pages_picked ... ok
+test expanding_is_a_view_kept_across_views_and_zoom_and_never_an_undo_step ... ok
+test long_and_unusual_names_are_shortened_on_the_card_but_kept_whole ... ok
+test flipping_quickly_ends_on_the_page_shown_and_leaving_the_tab_closes_the_preview ... ok
+test long_thin_pages_get_thumbnails_within_the_size_limits ... ok
+test hovering_a_card_shows_its_trash_and_magnifier_and_only_then ... ok
+test removing_pages_from_the_hover_bar_the_toolbar_and_delete_never_touches_the_file ... ok
+test pages_picked_out_of_sight_or_before_an_undo_are_let_go_of ... ok
+test shift_arrows_extend_the_selection_in_the_list_too ... ok
+test removing_a_file_while_it_renders_and_closing_the_tab_leave_nothing_behind ... ok
+test space_on_a_focused_button_presses_it_and_previews_only_what_can_be_shown ... ok
+test space_shows_the_selected_file_large_in_the_grid_and_the_list ... ok
+test the_card_trash_removes_only_that_file_and_undo_brings_it_back ... ok
+test the_magnifier_shows_the_file_large_and_flips_through_the_pages_it_adds ... ok
+test the_size_slider_takes_the_arrow_keys_when_it_has_the_keyboard ... ok
+test the_slider_sizes_the_cards_from_smallest_to_largest ... ok
+test the_toolbar_fits_the_smallest_window ... ok
+test many_files_render_only_what_is_in_view_a_few_at_a_time ... ok
+test the_toolbar_sizes_the_cards_within_limits_and_the_size_is_kept_in_the_settings ... ok
+test thumbnails_show_the_first_page_each_file_takes ... ok
+test switching_to_the_list_lets_renders_under_way_finish ... ok
+test zooming_keeps_the_card_under_the_pointer_in_place_and_thumbnails_never_go_blank ... ok
+test zooming_out_at_the_bottom_leaves_no_gap_below_the_last_card ... ok
+test zooming_from_the_toolbar_while_scrolled_keeps_the_top_cards_in_place ... ok
+test thumbnails_under_way_finish_on_home_and_in_a_document_tab ... ok
+test the_preview_closes_when_its_file_leaves_and_keeps_to_three_render_threads ... ok
+test zooming_quickly_never_runs_more_than_three_render_threads ... ok
+
+test result: ok. 56 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.86s
+
+[1m[92m     Running[0m tests/commands.rs (target/debug/deps/commands-3e059d1fa3deb81a)
+
+running 14 tests
+test clear_recent_files_runs_from_the_palette_and_is_saved ... ok
+test disabled_commands_explain_themselves ... ok
+test full_screen_toggles_by_shortcut_and_command_and_escape_leaves ... ok
+test clear_recent_files_at_the_foot_of_open_recent_empties_the_list ... ok
+test localized_shortcuts_update_immediately_and_keep_command_ids_and_key_bindings ... ok
+test shortcuts_run_registered_commands ... ok
+test the_about_dialog_shows_the_running_version ... ok
+test the_open_recent_menu_is_disabled_while_the_list_is_empty ... ok
+test the_pages_menu_comes_from_the_registry ... ok
+test the_open_recent_menu_lists_files_and_opens_one ... ok
+test the_palette_lists_commands_with_shortcuts_and_runs_them ... ok
+test the_shortcuts_dialog_lists_the_real_bindings ... ok
+test every_registered_command_is_implemented ... ok
+test view_menu_and_tooltips_write_shortcuts_for_the_platform ... ok
+
+test result: ok. 14 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.40s
+
+[1m[92m     Running[0m tests/comments.rs (target/debug/deps/comments-08f597f6424266ee)
+
+running 26 tests
+test a_selection_made_first_is_marked_when_a_tool_is_picked ... ok
+test a_middle_drag_with_a_drawing_tool_scrolls_instead_of_drawing ... ok
+test a_new_highlight_opens_its_note_for_typing ... ok
+test a_closed_comments_panel_stays_closed_when_picking_comment_tools ... ok
+test attaching_a_file_as_a_comment ... ok
+test comment_properties_change_appearance_and_author ... ok
+test comments_are_selected_moved_and_deleted_with_the_select_tool ... ok
+test dragging_over_text_with_the_highlighter_highlights_it ... ok
+test erasing_part_of_a_drawing ... ok
+test highlighting_an_area_off_the_text ... ok
+test hovering_a_comment_shows_its_author_and_text ... ok
+test comments_take_checkmarks_lock_hide_and_summarize ... ok
+test line_ending_properties_change_and_undo ... ok
+test pen_strokes_stay_unselected_so_writing_continues ... ok
+test make_current_properties_default ... ok
+test replacing_text_strikes_it_and_adds_a_caret ... ok
+test shapes_and_ink_are_drawn_by_dragging ... ok
+test polygons_clouds_connected_lines_callouts_and_inserted_text ... ok
+test sticky_note_composer_posts_and_returns_to_select ... ok
+test the_opacity_set_for_a_tool_goes_into_its_new_comments ... ok
+test shapes_take_a_fill_colour_from_the_quick_bar_and_properties ... ok
+test the_panel_filters_and_sorts ... ok
+test the_panel_filters_by_colour_and_checkmark ... ok
+test the_squiggly_tool_marks_selected_text ... ok
+test the_panel_posts_comments_and_replies ... ok
+test the_panel_keeps_its_width_with_a_reply_box_open ... ok
+
+test result: ok. 26 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.47s
+
+[1m[92m     Running[0m tests/compare.rs (target/debug/deps/compare-27187bb2243f4a1d)
+
+running 4 tests
+test compare_panel_screenshot ... ok
+test pdfa_dialog_verifies_and_converts ... ok
+test compare_two_versions ... ok
+test export_to_word_html_and_rtf ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.26s
+
+[1m[92m     Running[0m tests/content.rs (target/debug/deps/content-041a926bae273d48)
+
+running 4 tests
+test text_the_standard_fonts_cant_draw_stays_in_the_editor ... ok
+test a_kept_draft_goes_with_its_deleted_page ... ok
+test clicking_elsewhere_keeps_the_text_and_starts_a_new_box ... ok
+test typing_moving_styling_and_deleting_added_content ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.18s
+
+[1m[92m     Running[0m tests/control.rs (target/debug/deps/control-ece615daacaf2e4e)
+
+running 32 tests
+test autoscroll_uses_the_initial_click_position_when_input_arrives_in_one_frame ... ok
+test autoscroll_cancels_on_click_wheel_focus_loss_and_pointer_exit ... ok
+test autoscroll_is_scoped_to_the_active_view_and_cannot_start_under_a_dialog ... ok
+test bookmark_titles_can_be_searched_over_control ... ok
+test control_default_workspace_and_session_override ... ok
+test commands_keys_and_typing ... ok
+test cover_page_command_needs_two_page_view ... ok
+test escape_stops_autoscroll_without_closing_find ... ok
+test drawing_a_comment_by_drag_and_its_context_menu ... ok
+test inspect_and_click_by_label_and_id ... ok
+test farther_from_the_click_scrolls_faster_in_the_viewer_and_page_grid ... ok
+test german_preferences_and_search_keep_command_ids ... ok
+test japanese_controls_and_search_keep_command_ids ... ok
+test japanese_dialogs_errors_and_custom_action_names ... ok
+test language_switch_preserves_document_and_command_ids ... ok
+test measurement_tools_draw_live_calibrate_save_and_export ... ok
+test loopback_transport_requires_the_token ... ok
+test middle_click_autoscroll_latches_has_a_dead_zone_and_scrolls_both_directions ... ok
+test moving_before_middle_button_release_keeps_scrolling_without_starting_page_tools ... ok
+test saved_signature_can_be_changed_through_the_control_channel ... ok
+test organize_pages_supports_autoscroll_without_selecting_or_reordering_pages ... ok
+test select_all_key_selects_every_page_in_organize ... ok
+test preferences_menu_and_shortcut_allow_switching_interface_languages ... ok
+test simplified_chinese_signature_prompts_and_errors_keep_document_state ... ok
+test state_and_view_options ... ok
+test simplified_chinese_about_tabs_and_credit_controls ... ok
+test state_reports_the_selected_pages ... ok
+test theme_commands_and_options_report_preference_and_effective_colours ... ok
+test the_click_that_stops_autoscroll_preserves_the_page_selection ... ok
+test ukrainian_preferences_and_search_keep_command_ids ... ok
+test autoscroll_uses_elapsed_frame_time_and_preserves_fractional_motion_in_both_views ... ok
+test screenshots_of_window_and_region ... ok
+
+test result: ok. 32 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 6.86s
+
+[1m[92m     Running[0m tests/create.rs (target/debug/deps/create-117b04d92fec4863)
+
+running 8 tests
+test multiple_files_that_cannot_be_converted_open_nothing ... ok
+test clipboard_images_and_text_become_new_pdfs ... ok
+test opening_images_and_text_converts_them_to_new_pdfs ... ok
+test multiple_files_open_as_one_document_in_the_page_grid ... ok
+test reduce_file_size_saves_nothing_when_the_file_is_already_small ... ok
+test reduce_file_size_writes_a_compact_copy ... ok
+test image_import_dialog_chooses_dpi_and_cancels ... ok
+test the_pdf_optimizer_dialog_saves_an_optimized_copy ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.21s
+
+[1m[92m     Running[0m tests/date_format.rs (target/debug/deps/date_format-6e6ce4266490321e)
+
+running 3 tests
+test a_date_the_pdf_cannot_hold_is_refused_with_a_warning_first ... ok
+test month_names_follow_the_date_language_or_else_the_interface_language ... ok
+test fill_and_sign_dates_follow_the_date_format_preference_and_it_is_remembered ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.14s
+
+[1m[92m     Running[0m tests/document_links.rs (target/debug/deps/document_links-e91c261b42cc5773)
+
+running 11 tests
+test a_button_script_cannot_open_a_local_program ... ok
+test a_button_uri_action_asks_first ... ok
+test a_lookalike_host_is_shown_in_punycode_and_flagged ... ok
+test a_link_asks_first_and_opens_when_allowed ... ok
+test a_numeric_host_is_shown_as_the_address_it_goes_to ... ok
+test a_script_asks_first_and_only_once ... ok
+test a_script_cannot_open_other_kinds_of_address ... ok
+test an_email_link_cannot_attach_a_local_file ... ok
+test an_international_host_is_shown_in_punycode_and_marked ... ok
+test cancel_opens_nothing ... ok
+test escape_cancels ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.44s
+
+[1m[92m     Running[0m tests/editing.rs (target/debug/deps/editing-71db2ca3633717ae)
+
+running 80 tests
+test a_bad_range_stops_combine_until_fixed ... ok
+test a_folder_adds_its_pdfs_in_order_and_optionally_its_subfolders ... ok
+test a_thumbnail_drag_that_ends_off_the_panel_or_outlives_the_pages_is_dropped ... ok
+test a_quick_flick_on_either_edge_rewraps_the_paragraph ... ok
+test a_zoomed_page_grid_still_inserts_and_moves_at_the_right_gap ... ok
+test a_file_that_opens_but_forbids_combining_takes_the_permissions_password ... ok
+test alt_arrows_move_the_selected_file ... ok
+test cancelling_properties_discards_the_draft ... ok
+test an_rc4_file_unlocks_with_its_owner_password_too ... ok
+test a_password_protected_file_is_unlocked_with_its_password_and_combined ... ok
+test clean_tabs_close_without_asking ... ok
+test closing_the_combine_tab_forgets_its_list ... ok
+test closing_a_dirty_tab_can_save_first ... ok
+test clicking_existing_text_selects_its_source_font_style ... ok
+test closing_a_dirty_tab_asks_and_cancel_keeps_it ... ok
+test column_headings_sort_the_list_and_flip_on_the_second_click ... ok
+test combine_files_opens_in_its_own_tab ... ok
+test combine_files_takes_chosen_pages_in_the_order_listed ... ok
+test columns_resize_and_the_layout_is_kept_in_the_settings ... ok
+test combining_files_opens_a_new_unsaved_tab ... ok
+test copying_cutting_and_pasting_pages ... ok
+test combine_lists_size_and_warns_before_combining ... ok
+test command_click_toggles_and_rotation_applies_to_selection ... ok
+test ctrl_and_shift_clicks_select_several_files_that_move_and_go_together ... ok
+test document_properties_edit_is_one_undoable_step ... ok
+test deleting_pages_from_the_pages_panel_menu ... ok
+test delete_is_refused_when_it_would_remove_every_page ... ok
+test dragging_thumbnails_reorders_pages ... ok
+test dragging_pages_panel_thumbnails_reorders_pages ... ok
+test editing_existing_form_artwork_on_the_page ... ok
+test edit_menu_names_the_step_to_undo ... ok
+test dragging_a_paragraph_moves_it_and_its_edge_rewraps_it ... ok
+test editing_a_double_drawn_line_replaces_every_copy ... ok
+test editing_existing_images_on_the_page ... ok
+test extract_button_copies_selected_pages_to_a_new_tab ... ok
+test extract_options_and_rotate_pages_dialog ... ok
+test files_dropped_before_the_pointer_is_known_wait_for_it ... ok
+test editing_existing_text_in_place ... ok
+test files_dropped_outside_the_page_grid_still_open_as_documents ... ok
+test files_dropped_between_pages_are_inserted_there ... ok
+test host_dirty_hears_when_unsaved_work_appears_and_goes ... ok
+test insert_blank_page_after_selection ... ok
+test inserting_a_file_goes_after_the_selection_and_undoes ... ok
+test organize_delete_then_undo_and_redo_with_keys ... ok
+test open_documents_can_be_added_to_combine ... ok
+test keys_leave_the_document_under_a_dialog_alone ... ok
+test organize_select_all_applies_operations_to_every_page ... ok
+test organize_select_all_shortcut_preserves_current_page_and_sets_range_anchor ... ok
+test organize_select_all_leaves_focused_text_input_and_dialogs_alone ... ok
+test pages_panel_command_click_picks_pages_without_moving_the_document ... ok
+test pages_panel_escape_clears_and_deleted_pages_leave_the_selection ... ok
+test pages_panel_shift_click_picks_a_range_and_a_plain_click_starts_over ... ok
+test organize_select_all_works_without_page_editing_permission ... ok
+test page_grid_zooms_with_its_buttons_keys_and_pinch ... ok
+test one_password_unlocks_several_selected_files_and_undo_locks_them_again ... ok
+test print_shortcut_offers_the_pages_picked_in_the_pages_panel ... ok
+test plus_between_pages_inserts_picked_files_there_in_order ... ok
+test password_prompt_opens_and_security_tab_reports_the_details ... ok
+test quitting_with_unsaved_changes_asks_for_each_document ... ok
+test quitting_with_unsaved_changes_still_remembers_every_file ... ok
+test protected_files_that_can_be_combined_are_flagged ... ok
+test replace_pages_dialog_swaps_page_content ... ok
+test save_pages_writes_what_the_grid_shows ... ok
+test save_writes_an_incremental_update_and_clears_dirty ... ok
+test save_prompt_stays_inside_the_screen_for_a_long_filename ... ok
+test restricted_documents_show_a_notice_and_block_page_changes ... ok
+test shift_click_selects_a_range_and_moves_it ... ok
+test split_before_selected_pages ... ok
+test split_at_bookmarks_with_equal_titles_keeps_every_part ... ok
+test save_prompt_fits_the_smallest_window_whatever_the_name ... ok
+test split_dialog_writes_one_file_per_part ... ok
+test the_last_session_is_off_by_default_and_skips_missing_and_duplicate_files ... ok
+test the_delete_key_deletes_pages_picked_in_the_pages_panel_but_never_every_page ... ok
+test the_format_panel_restyles_the_paragraph_being_edited ... ok
+test the_last_session_reopens_its_files_pages_and_active_tab ... ok
+test the_whole_heading_sorts_and_dragging_it_moves_the_column ... ok
+test undo_and_redo_restore_the_combine_list ... ok
+test zoomed_pages_in_view_are_rendered_at_the_size_drawn ... ok
+test the_save_prompt_answers_to_the_keyboard ... ok
+test the_security_notice_wraps_beside_its_buttons_and_lines_up_with_them ... ok
+
+test result: ok. 80 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.84s
+
+[1m[92m     Running[0m tests/export.rs (target/debug/deps/export-aa1e1f0729340ec9)
+
+running 1 test
+test export_dialogs_write_images_and_text ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.13s
+
+[1m[92m     Running[0m tests/fill_sign.rs (target/debug/deps/fill_sign-b328667265dfad31)
+
+running 18 tests
+test changing_drawn_signatures_can_be_cancelled_or_switched_to_type ... ok
+test drawn_and_typed_signatures_stay_upright_on_rotated_pages ... ok
+test flatten_on_save_is_off_by_default_and_round_trips ... ok
+test changing_saved_signatures_and_initials_preserves_placed_marks ... ok
+test image_import_cancel_clear_and_errors_preserve_saved_signatures ... ok
+test fill_and_sign_tools_pick_up_placed_marks_to_move_and_resize_them ... ok
+test embedded_image_signature_live_gestures_follow_document_and_view_rotation ... ok
+test image_signature_corners_restore_original_aspect_after_edge_resize_and_reopen ... ok
+test image_signature_live_resize_and_move_preserve_background_and_hide_moving_handles ... ok
+test long_typed_names_fit_the_placed_signature_and_keep_every_outline ... ok
+test saved_signature_cards_remove_and_add_without_changing_the_document ... ok
+test saving_flattens_fill_and_sign_only_when_the_preference_is_on ... ok
+test image_signature_placement_selects_resize_handles_and_requires_reselecting_to_repeat ... ok
+test signing_draws_a_signature_once_and_places_it ... ok
+test text_marks_and_date ... ok
+test typed_signatures_and_initials ... ok
+test image_signature_preview_follows_pointer_at_page_size_with_zoom_and_rotation ... ok
+test image_signatures_and_initials_can_be_imported_placed_and_remembered ... ok
+
+test result: ok. 18 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 4.23s
+
+[1m[92m     Running[0m tests/folders.rs (target/debug/deps/folders-b14b2c1d4850a7e0)
+
+running 9 tests
+test an_unavailable_folder_says_so_and_stays_pinned ... ok
+test a_pinned_folder_lists_its_newest_pdfs_on_home ... ok
+test pinned_folders_survive_a_restart ... ok
+test pinning_is_limited_and_never_duplicates ... ok
+test a_long_pdf_name_is_cut_before_its_date_and_size ... ok
+test clicking_a_pinned_pdf_opens_it_and_adds_it_to_recent ... ok
+test new_scans_appear_without_reopening_home ... ok
+test unpinning_removes_the_folder_but_not_its_files ... ok
+test show_more_reveals_the_older_pdfs ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.19s
+
+[1m[92m     Running[0m tests/fonts.rs (target/debug/deps/fonts-0318a69a947c7d5c)
+
+running 7 tests
+test japanese_ui_text_uses_craft_fonts ... ok
+test arabic_ui_text_uses_craft_fonts ... ok
+test chinese_ui_text_prefers_the_chinese_face ... ok
+test telugu_ui_text_uses_craft_fonts ... ok
+test system_fallback_fills_missing_scripts ... ok
+test ui_fonts_work_without_craft_fonts ... ok
+test primary_ui_fonts_cover_latin_and_cyrillic_catalogs ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.08s
+
+[1m[92m     Running[0m tests/forms.rs (target/debug/deps/forms-11e9c0369ea68135)
+
+running 16 tests
+test an_unrelated_command_leaves_the_field_being_typed_in_alone ... ok
+test a_save_shortcut_pressed_while_typing_saves_only_the_document_it_was_pressed_in ... ok
+test a_rejected_value_keeps_the_typing_and_stops_the_save ... ok
+test a_value_refused_on_enter_keeps_save_in_the_same_frame_from_running ... ok
+test check_boxes_radios_and_choices ... ok
+test closing_while_still_typing_in_a_field_asks_to_save ... ok
+test close_all_saves_text_typed_in_a_tab_that_is_no_longer_active ... ok
+test escape_and_save_in_the_same_frame_discards_the_draft ... ok
+test exporting_form_data_while_typing_includes_the_text ... ok
+test date_fields_offer_a_calendar ... ok
+test flattening_while_typing_flattens_the_typed_text ... ok
+test saving_while_still_typing_in_a_field_saves_the_text ... ok
+test revert_tests::reverting_rejected_input_saves_the_original_field_and_appearance ... ok
+test typing_into_a_text_field_and_tabbing_on ... ok
+test typing_and_saving_in_the_same_frame_saves_the_last_keystrokes ... ok
+test tabbing_into_a_filled_field_selects_it_so_typing_replaces ... ok
+
+test result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.26s
+
+[1m[92m     Running[0m tests/identity.rs (target/debug/deps/identity-7dd44b70f899da8a)
+
+running 1 test
+test the_identity_name_signs_new_comments_and_is_remembered ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+
+[1m[92m     Running[0m tests/javascript.rs (target/debug/deps/javascript-6a5ada3da73183d0)
+
+running 5 tests
+test merge_data_files_into_a_spreadsheet ... ok
+test button_scripts_run_and_alert ... ok
+test prepare_a_form_detects_fields_on_a_paper_form ... ok
+test console_runs_scripts_against_the_document ... ok
+test document_scripts_and_preferences ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.09s
+
+[1m[92m     Running[0m tests/layer_actions.rs (target/debug/deps/layer_actions-24b22bfa451e2a6f)
+
+running 2 tests
+test push_buttons_set_layer_visibility ... ok
+test links_set_layer_visibility ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.11s
+
+[1m[92m     Running[0m tests/links.rs (target/debug/deps/links-8e1b572241c78843)
+
+running 4 tests
+test about_dialog_shows_the_mark_and_links ... ok
+test help_commands_open_each_link ... ok
+test home_screen_links ... ok
+test about_dialog_has_contributors_and_models_tabs ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.21s
+
+[1m[92m     Running[0m tests/marks.rs (target/debug/deps/marks-967e0839c6122fda)
+
+running 3 tests
+test backgrounds_and_watermarks_from_a_file ... ok
+test watermark_and_background_dialogs ... ok
+test header_and_footer_dialog_inserts_tokens_and_applies_to_a_subset ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.16s
+
+[1m[92m     Running[0m tests/ocr.rs (target/debug/deps/ocr-b26d3212ee2f4e8a)
+
+running 2 tests
+test recognize_text_in_multiple_files_writes_searchable_copies ... ok
+test recognize_text_dialog_adds_searchable_text ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.11s
+
+[1m[92m     Running[0m tests/pageboxes.rs (target/debug/deps/pageboxes-fd8a3b2c6afe0557)
+
+running 3 tests
+test the_crop_tool_crops_to_the_dragged_rectangle_then_returns_to_select ... ok
+test duplicate_pages_copies_the_current_page ... ok
+test set_page_boxes_dialog_applies_margins_to_the_chosen_pages ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
+
+[1m[92m     Running[0m tests/pdf_links.rs (target/debug/deps/pdf_links-32cce79022182de4)
+
+running 1 test
+test drawing_editing_and_deleting_links ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+
+[1m[92m     Running[0m tests/perf.rs (target/debug/deps/perf-241ed070f8f9fc54)
+
+running 2 tests
+test scrolling_a_500_page_document_stays_within_the_frame_budget ... ok
+test panels_with_hundreds_of_items_stay_within_the_frame_budget ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 8.14s
+
+[1m[92m     Running[0m tests/pickers.rs (target/debug/deps/pickers-162a6a5392a29971)
+
+running 34 tests
+test a_browser_insert_into_a_document_edited_meanwhile_is_refused ... ok
+test a_broken_late_startup_file_reports_its_error_without_changing_the_active_document ... ok
+test a_browser_insert_goes_into_the_document_it_was_started_on ... ok
+test a_browser_insert_that_arrives_after_switching_documents_changes_neither ... ok
+test a_cancelled_folder_pick_extracts_and_deletes_nothing ... ok
+test a_cancelled_save_on_close_keeps_the_tab_open ... ok
+test a_close_prompt_still_means_its_own_document_after_a_pending_save_closes_another_tab ... ok
+test a_late_startup_text_file_is_still_converted_without_stealing_focus ... ok
+test a_failed_startup_url_is_reported_in_the_app ... ok
+test a_background_startup_forms_script_notice_waits_until_its_tab_is_selected ... ok
+test a_late_startup_url_preserves_the_current_edit_workspace_and_save_target ... ok
+test a_late_startup_url_preserves_the_combine_files_tab ... ok
+test a_late_startup_url_waits_for_an_existing_dialog_to_close ... ok
+test a_pick_for_a_document_that_is_no_longer_active_is_dropped ... ok
+test a_startup_url_opens_in_front_when_the_user_has_not_started_working ... ok
+test an_image_pick_for_a_document_that_is_no_longer_active_changes_nothing ... ok
+test a_watermark_file_from_browse_lands_only_in_the_dialog_that_asked ... ok
+test an_image_pick_is_dropped_if_the_document_was_edited_meanwhile ... ok
+test a_late_startup_url_preserves_home_even_after_all_other_tabs_are_closed ... ok
+test deliberate_browser_file_opens_still_activate_the_new_tab ... ok
+test export_comments_writes_on_a_later_frame ... ok
+test close_all_saves_each_untitled_document_in_turn ... ok
+test extract_and_delete_deletes_the_pages_only_after_their_files_are_written ... ok
+test extract_pages_keeps_the_usual_names_when_the_file_name_is_unchanged ... ok
+test extracted_pages_are_not_deleted_if_the_document_was_edited_while_choosing_the_folder ... ok
+test extract_pages_saves_under_the_file_name_typed_in_the_dialog ... ok
+test file_open_returns_at_once_and_opens_the_pick_on_the_next_frame ... ok
+test insert_from_file_uses_the_pick_on_the_next_frame ... ok
+test a_startup_url_does_not_replace_another_documents_password_prompt ... ok
+test opening_a_file_picker_supersedes_the_startup_url_even_if_the_picker_is_cancelled ... ok
+test save_as_writes_on_a_later_frame_including_edits_made_meanwhile ... ok
+test save_on_close_closes_the_tab_only_once_the_file_is_written ... ok
+test replace_pages_applies_only_to_the_document_its_dialog_was_opened_on ... ok
+test unlocking_a_late_startup_url_keeps_it_in_the_background ... ok
+
+test result: ok. 34 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.69s
+
+[1m[92m     Running[0m tests/prepare.rs (target/debug/deps/prepare-2baec9307b655e18)
+
+running 13 tests
+test aligning_distributing_and_sizing_several_fields ... ok
+test deleting_several_selected_fields_and_detecting_fields_from_the_panel ... ok
+test appearance_tab_restyles_the_field ... ok
+test actions_tab_adds_and_removes_actions ... ok
+test duplicating_a_field_onto_every_page ... ok
+test format_validate_and_calculate_tabs ... ok
+test options_tab_sets_flags_alignment_and_defaults ... ok
+test image_fields_take_a_picture_when_clicked ... ok
+test options_tab_sets_the_check_box_style ... ok
+test position_tab_rotates_a_field ... ok
+test placing_moving_editing_and_deleting_a_field ... ok
+test the_fields_panel_orders_tabs_manually ... ok
+test preview_fills_the_form_and_locked_fields_keep_their_properties ... ok
+
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.31s
+
+[1m[92m     Running[0m tests/print.rs (target/debug/deps/print-37bfed79c3c56945)
+
+running 6 tests
+test invalid_ranges_are_explained_in_the_preview ... ok
+test a_failed_save_as_pdf_keeps_the_dialog_open ... ok
+test print_dialog_lays_out_sheets_and_saves_a_pdf ... ok
+test cut_stack_dialog_previews_saves_and_refuses_duplex ... ok
+test print_dialog_shows_the_printer_driver_options ... ok
+test print_dialog_prints_the_selected_pages ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.15s
+
+[1m[92m     Running[0m tests/protect.rs (target/debug/deps/protect-8cabaa5d6dd197e8)
+
+running 2 tests
+test editing_restrictions_via_advanced_options ... ok
+test protecting_for_viewing_requires_matching_passwords_and_saves_encrypted ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.16s
+
+[1m[92m     Running[0m tests/recovery.rs (target/debug/deps/recovery-e980d954bcf7a607)
+
+running 8 tests
+test discarding_removes_the_autosaves ... ok
+test control_click_effects_are_visible_when_the_reply_arrives ... ok
+test incomplete_entries_are_ignored_and_cleaned_up ... ok
+test a_crashed_session_is_offered_and_recovered_unsaved ... ok
+test saving_or_closing_clears_the_entry_and_nothing_is_written_for_clean_documents ... ok
+test quitting_cleanly_leaves_nothing_behind ... ok
+test encrypted_documents_are_autosaved_encrypted_and_recovered_with_the_password ... ok
+test a_cancelled_recovery_password_does_not_attach_to_the_next_unlocked_document ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.21s
+
+[1m[92m     Running[0m tests/redact.rs (target/debug/deps/redact-0192eeda4c9a89b3)
+
+running 4 tests
+test redacting_an_imported_word_list ... ok
+test redaction_codes_become_the_overlay_text ... ok
+test removing_hidden_information_and_sanitizing ... ok
+test marking_applying_and_clearing ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.14s
+
+[1m[92m     Running[0m tests/signing.rs (target/debug/deps/signing-e68457681597ce85)
+
+running 7 tests
+test an_unusable_id_is_shown_with_its_reason_and_cannot_be_chosen ... ok
+test clicking_an_empty_signature_field_signs_it ... ok
+test certifying_without_a_visible_signature ... ok
+test os_store_identities_are_not_persisted ... ok
+test long_digital_id_names_stay_inside_the_picker ... ok
+test windows_store_identity_does_not_ask_for_a_file_password ... ok
+test drawing_a_signature_creating_an_id_signing_and_trusting ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.21s
+
+[1m[92m     Running[0m tests/stamps.rs (target/debug/deps/stamps-9239632e5342cf6e)
+
+running 3 tests
+test creating_placing_and_keeping_custom_stamps ... ok
+test natural_image_stamps_keep_displayed_bounds_on_rotated_pages ... ok
+test choosing_and_placing_stamps ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.46s
+
+[1m[92m     Running[0m tests/text_select.rs (target/debug/deps/text_select-6cfa270b99e053fa)
+
+running 3 tests
+test quick_clicks_with_the_highlighter_mark_only_the_word ... ok
+test quick_clicks_select_a_word_then_the_line_then_the_page ... ok
+test shift_click_extends_the_selection_from_its_anchor ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.18s
+
+[1m[92m     Running[0m tests/theme.rs (target/debug/deps/theme-6dafbcdd9225a890)
+
+running 3 tests
+test commands_and_options_apply_before_the_first_frame ... ok
+test saved_preferences_restore_with_legacy_light_dark_settings ... ok
+test toolbar_and_view_menu_share_three_state_preferences ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.14s
+
+[1m[92m     Running[0m tests/ui.rs (target/debug/deps/ui-c7cebb3691a34b30)
+
+running 33 tests
+test a_saved_no_fill_clears_a_comment_tool_default_fill ... ok
+test a_tab_with_an_arabic_file_name_keeps_its_logical_accessible_name ... ok
+test a_folder_dropped_on_the_combine_tab_adds_its_pdfs ... ok
+test comment_style_settings_clamp_and_refuse_hostile_values ... ok
+test cancelling_then_discarding_an_earlier_dirty_tab_preserves_the_selected_document ... ok
+test default_workspace_mode_persists_and_tolerates_invalid_settings ... ok
+test drag_selects_text_and_copy_returns_it ... ok
+test dropping_a_pdf_on_the_window_opens_it ... ok
+test closing_the_last_active_tab_selects_the_previous_one_then_home ... ok
+test explicit_mode_preserves_independent_tool_and_panel_options ... ok
+test closing_tabs_keeps_the_selected_document_or_selects_its_neighbor ... ok
+test explicit_mode_overrides_default_before_and_after_open ... ok
+test every_catalog_tool_is_listed_after_view_more ... ok
+test garbage_input_is_rejected_without_panicking ... ok
+test files_and_quit_from_the_operating_system ... ok
+test find_reports_no_matches ... ok
+test find_counts_matches_across_pages ... ok
+test home_removes_one_recent_file_or_clears_them_all ... ok
+test home_shows_welcome_and_tools ... ok
+test newly_opened_pdfs_use_the_default_workspace ... ok
+test opening_a_pdf_keeps_a_closed_left_panel_and_the_chosen_tool ... ok
+test long_recent_names_and_paths_are_cut_before_the_page_count ... ok
+test opening_a_pdf_shows_comments_and_bookmarks ... ok
+test new_dialog_makes_a_drawing_at_a_size ... ok
+test persistence_round_trips_and_tolerates_garbage ... ok
+test pdfs_dropped_on_the_combine_tab_join_its_list ... ok
+test preferences_selects_default_workspace_for_next_open ... ok
+test selection_works_in_every_view_rotation ... ok
+test overflowing_tabs_can_be_reached_by_scrolling ... ok
+test tabs_shrink_to_fit_then_arrows_step_through_them_and_open_stays_in_sight ... ok
+test theme_and_view_options_apply ... ok
+test zoom_keeps_the_point_under_the_cursor_still ... ok
+test narrow_tab_strips_accept_vertical_wheel_scrolling ... ok
+
+test result: ok. 33 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.54s
+
+[1m[92m     Running[0m tests/updates.rs (target/debug/deps/updates-b14c85a78defe015)
+
+running 5 tests
+test builds_compare_by_number_and_releases_are_read_from_their_title ... ok
+test versions_compare_by_number ... ok
+test a_newer_release_is_offered_for_download ... ok
+test the_start_check_is_quiet_unless_a_newer_build_exists ... ok
+test an_up_to_date_or_failed_check_says_so ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.12s
+
+[1m[92m     Running[0m tests/view.rs (target/debug/deps/view-ffd5e4ff6c7f39cc)
+
+running 32 tests
+test continuous_layout_stacks_pages_vertically ... ok
+test clicking_a_link_goes_to_its_destination ... ok
+test actual_size_fit_width_and_fit_page ... ok
+test bookmark_destinations_scroll_to_their_position ... ok
+test default_page_display_is_used_for_new_documents ... ok
+test default_zoom_is_used_for_new_documents ... ok
+test field_list_jumps_to_a_fields_page ... ok
+test field_highlighting_is_remembered ... ok
+test fit_page_holds_zoom_across_mixed_page_sizes ... ok
+test layout_option_rejects_typos ... ok
+test fonts_tab_lists_fonts_and_embedding ... ok
+test link_destinations_scroll_to_their_position ... ok
+test page_display_commands_switch_layouts ... ok
+test palette_runs_page_display_commands_from_the_keyboard ... ok
+test precise_touchpad_wheel_scrolls_one_to_one ... ok
+test preferences_set_the_default_zoom ... ok
+test rail_page_display_button_switches_layouts ... ok
+test rail_page_display_menu_offers_acrobats_view_choices ... ok
+test highlight_fields_tints_the_field_area ... ok
+test middle_button_scrolling_keeps_page_colours_in_both_themes ... ok
+test single_page_fit_page_fits_the_shown_page ... ok
+test single_page_layout_shows_one_page_at_a_time ... ok
+test single_page_wheel_pans_instead_when_zoomed_in ... ok
+test the_hand_tool_pans_by_dragging ... ok
+test two_up_layout_places_pages_side_by_side ... ok
+test view_menu_page_display_uses_the_same_commands ... ok
+test view_options_without_a_document ... ok
+test wheel_turns_one_page_per_notch_and_per_trackpad_swipe ... ok
+test page_raster_maps_one_to_one_onto_screen_pixels ... ok
+test required_fields_get_a_red_border_when_highlighting ... ok
+test required_radio_buttons_get_a_round_red_border ... ok
+test zooming_a_tiled_page_shows_its_earlier_tiles_until_new_ones_arrive ... ok
+
+test result: ok. 32 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.45s
+
+[1m[92m     Running[0m tests/viewer.rs (target/debug/deps/viewer-48951c20d002f082)
+
+running 23 tests
+test a_placeholder_title_leaves_the_file_name_on_the_tab_and_window ... ok
+test a_short_page_gone_to_from_the_pages_panel_stays_current ... ok
+test advanced_search_lists_results_with_context ... ok
+test a_new_document_opens_at_the_top_after_a_relaunch ... ok
+test close_all_asks_only_for_changed_documents ... ok
+test an_earlier_revision_opens_from_document_properties ... ok
+test damaged_files_say_they_were_repaired ... ok
+test fit_visible_zooms_to_the_content_width ... ok
+test find_shortcuts_advance_and_retreat_matches ... ok
+test each_document_keeps_its_own_scroll_position ... ok
+test layouts_fit_height_labels_and_system_theme ... ok
+test initial_view_is_edited_and_honoured_on_open ... ok
+test marquee_zoom_and_snapshot ... ok
+test arrow_and_page_keys_move_through_a_scrolling_document ... ok
+test pages_panel_thumbnails_have_a_context_menu ... ok
+test optimizer_audits_space_usage ... ok
+test revert_after_confirming ... ok
+test tab_and_window_show_the_document_title_when_asked ... ok
+test two_page_view_steps_a_spread_at_a_time ... ok
+test v_h_and_space_pick_the_quick_tools ... ok
+test view_history_select_all_and_find_options ... ok
+test up_and_down_turn_pages_in_single_page_view ... ok
+test page_down_steps_every_spread_when_several_fit_on_screen ... ok
+
+test result: ok. 23 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.59s
+
+[1m[92m     Running[0m tests/xfa.rs (target/debug/deps/xfa-2617e40fed68f52a)
+
+running 6 tests
+test a_dynamic_xfa_form_is_laid_out_and_filled ... ok
+test messages_from_scripts_run_on_open_show_right_away ... ok
+test a_dynamic_xfa_form_says_its_page_is_a_placeholder ... ok
+test a_static_xfa_form_is_filled_from_its_data_and_says_so ... ok
+test ordinary_forms_and_documents_have_no_xfa_notice ... ok
+test xfa_buttons_run_their_scripts_in_the_app ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.23s
+
+[1m[92m   Doc-tests[0m pdfcraft_annot
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+[1m[92m   Doc-tests[0m pdfcraft_automation
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+[1m[92m   Doc-tests[0m pdfcraft_engine
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+[1m[92m   Doc-tests[0m pdfcraft_measure
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+[1m[92m   Doc-tests[0m pdfcraft_render
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+[1m[92m   Doc-tests[0m pdfcraft_ui_egui
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
