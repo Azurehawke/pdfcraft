@@ -484,6 +484,8 @@ pub struct PdfCraftApp {
     pub(crate) markups: markups_list::MarkupsState,
     /// RevuCraft's Tool chest (saved and recent tools) and workspaces.
     pub(crate) chest: tool_chest::ToolChest,
+    /// RevuCraft: your own symbols (from SVG files), kept with the app.
+    pub(crate) my_symbols: Vec<pdfcraft_engine::symbols::CustomArt>,
     /// RevuCraft: the side panels open in the dock, in the order opened.
     pub(crate) dock: Vec<RightPanel>,
     /// Dock boxes collapsed to their title bar.
@@ -808,6 +810,7 @@ impl PdfCraftApp {
             photo_viewer: None,
             markups: Default::default(),
             chest: Default::default(),
+            my_symbols: Vec::new(),
             dock: Vec::new(),
             dock_collapsed: Vec::new(),
             dock_order: Vec::new(),
@@ -1531,6 +1534,7 @@ impl PdfCraftApp {
             "comments_panel_closed": self.comments_panel_closed,
             "dock": self.dock_layout(),
             "tool_chest": self.chest.to_json(),
+            "my_symbols": self.my_symbols.iter().map(|s| serde_json::json!({ "name": s.name, "art": s.art })).collect::<Vec<_>>(),
         })
         .to_string()
     }
@@ -1625,6 +1629,19 @@ impl PdfCraftApp {
         }
         if v["dock"].is_object() {
             self.restore_dock_layout(&v["dock"]);
+        }
+        // Your own symbols: capped, and each one's artwork limited (settings are untrusted).
+        if let Some(list) = v["my_symbols"].as_array() {
+            self.my_symbols = list
+                .iter()
+                .take(revu::MAX_MY_SYMBOLS)
+                .filter_map(|s| {
+                    let name = pdfcraft_engine::symbols::clean_label(s["name"].as_str()?);
+                    let art = s["art"].as_str()?;
+                    (!name.is_empty() && !art.is_empty() && art.len() <= pdfcraft_engine::svg_art::MAX_ART)
+                        .then(|| pdfcraft_engine::symbols::CustomArt { name, art: art.to_string() })
+                })
+                .collect();
         }
         if v["tool_chest"].is_object() {
             self.chest = tool_chest::ToolChest::from_json(&v["tool_chest"]);

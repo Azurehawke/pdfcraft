@@ -101,7 +101,7 @@ pub use pdfcraft_annot::{
     AttachIcon, FillMark, LineEnding, Markup, NOTE_SIZE, NewAnnotation, NoteIcon, OverlayFont, OverlayLook, PenKind, Props as CommentProps,
     ReviewState, Rgb, Shape, StampGroup, StampKind, Style, rect_quad,
 };
-pub use pdfcraft_annot::{geometry, layers, photo_callout, symbols};
+pub use pdfcraft_annot::{geometry, layers, photo_callout, svg_art, symbols};
 pub use pdfcraft_forms::detect;
 pub use pdfcraft_optimize as optimize;
 pub use pdfcraft_preflight as pdfa;
@@ -1315,7 +1315,7 @@ impl Edit {
             Edit::SetLayerLocked { locked: true, .. } => "Lock layer".into(),
             Edit::SetLayerLocked { .. } => "Unlock layer".into(),
             Edit::SetAnnotationLayer { .. } => "Move to layer".into(),
-            Edit::AddSymbol(s) => format!("Add {}", s.symbol.name()),
+            Edit::AddSymbol(s) => format!("Add {}", s.custom.as_ref().map_or(s.symbol.name(), |c| c.name.as_str())),
             Edit::AddPhoto { .. } => "Pin photo".into(),
             Edit::DeleteAnnotation { .. } => "Delete comment".into(),
             Edit::SetAnnotationContents { .. } => "Edit comment".into(),

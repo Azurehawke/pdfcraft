@@ -2880,6 +2880,7 @@ fn layers_symbols_and_photos() {
             color: [0.0, 0.4, 0.9],
             author: "Steve".into(),
             rotation: 0.0,
+            custom: None,
         })
     };
     s.apply(id, jack("PC", 50.0)).unwrap();

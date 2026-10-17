@@ -350,6 +350,18 @@ impl Art {
     }
 }
 
+/// One of your own symbols: its name and its artwork (from an SVG, [`crate::svg_art::svg_art`]).
+#[derive(Clone, Debug, PartialEq)]
+pub struct CustomArt {
+    pub name: String,
+    pub art: String,
+}
+
+/// The id a symbol of your own is recorded under (`/PCSymbol`).
+pub fn custom_id(name: &str) -> String {
+    format!("custom:{}", clean_label(name))
+}
+
 /// A symbol to place.
 #[derive(Clone, Debug, PartialEq)]
 pub struct NewSymbol {
@@ -365,6 +377,8 @@ pub struct NewSymbol {
     pub author: String,
     /// Its turn in degrees anticlockwise (0: level).
     pub rotation: f64,
+    /// One of your own symbols, drawn instead of `symbol`.
+    pub custom: Option<CustomArt>,
 }
 
 fn rg(c: Rgb) -> String {
@@ -387,7 +401,7 @@ fn art_side(degrees: f64) -> f64 {
 
 /// The picture of `symbol` with `label`, its artwork turned `degrees` anticlockwise (the label
 /// stays level): a form XObject, and its width and height in its units.
-fn picture(symbol: Symbol, label: &str, color: Rgb, degrees: f64) -> (Stream, f64, f64) {
+fn picture(art: &str, label: &str, color: Rgb, degrees: f64) -> (Stream, f64, f64) {
     let label_width = if label.is_empty() { 0.0 } else { pdfcraft_fonts::helvetica_width(label, LABEL_SIZE) * 1.04 + 8.0 };
     let side = art_side(degrees);
     let width = side.max(label_width);
@@ -411,7 +425,7 @@ fn picture(symbol: Symbol, label: &str, color: Rgb, degrees: f64) -> (Stream, f6
         )
         .as_bytes(),
     );
-    content.extend_from_slice(symbol.art().as_bytes());
+    content.extend_from_slice(art.as_bytes());
     content.extend_from_slice(b"Q\n");
     if !label.is_empty() {
         let text = pdfcraft_fonts::win_ansi(label);
@@ -457,21 +471,37 @@ pub fn add_symbol(doc: &mut Document, new: &NewSymbol, meta: &Meta) -> Result<us
         return Err(AnnotError::Invalid("invalid symbol turn".into()));
     }
     let turn = new.rotation.rem_euclid(360.0);
-    let (stream, width, height) = picture(new.symbol, &label, new.color, turn);
+    let (id, name, art) = match &new.custom {
+        Some(c) => {
+            let name = clean_label(&c.name);
+            if name.is_empty() || c.art.is_empty() || c.art.len() > crate::svg_art::MAX_ART {
+                return Err(AnnotError::Invalid("that symbol of your own can't be drawn".into()));
+            }
+            (custom_id(&name), name, c.art.clone())
+        }
+        None => (new.symbol.id().to_string(), new.symbol.name().to_string(), new.symbol.art()),
+    };
+    let (stream, width, height) = picture(&art, &label, new.color, turn);
     let picture = doc.add(Object::Stream(stream));
+    // Your own symbol keeps its artwork, so it can be turned and relabelled later.
+    let art_ref = new.custom.is_some().then(|| doc.add(Object::Stream(Stream::flate(Dict::new(), art.as_bytes()))));
     let k = new.size / BOX;
     let band = if label.is_empty() { 0.0 } else { LABEL_BAND };
     // The symbol's centre (not the label's) lands on the point.
     let x0 = new.center[0] - width / 2.0 * k;
     let y0 = new.center[1] - (band + art_side(turn) / 2.0) * k;
     let rect = [x0, y0, x0 + width * k, y0 + height * k];
-    let shape = Shape::CustomStamp { rect, name: format!("Symbol{}", new.symbol.id()), picture, image: false, size: (width, height) };
+    let stamp_name = if new.custom.is_some() { "SymbolCustom".to_string() } else { format!("Symbol{}", new.symbol.id()) };
+    let shape = Shape::CustomStamp { rect, name: stamp_name, picture, image: false, size: (width, height) };
     let annotation = NewAnnotation { page: new.page, style: Style::default_for(&shape), shape, contents: label.clone(), author: new.author.clone() };
     let index = add_annotation(doc, &annotation, meta)?;
     let (_, r) = annot_ref(doc, new.page, index)?;
     doc.update_dict(r, |d| {
-        d.set(b"Subj".to_vec(), PdfString::text(new.symbol.name()));
-        d.set(b"PCSymbol".to_vec(), PdfString::text(new.symbol.id()));
+        d.set(b"Subj".to_vec(), PdfString::text(&name));
+        d.set(b"PCSymbol".to_vec(), PdfString::text(&id));
+        if let Some(r) = art_ref {
+            d.set(b"PCArt".to_vec(), Object::Ref(r));
+        }
         d.set(b"PCLabel".to_vec(), PdfString::text(&label));
         d.set(b"PCSize".to_vec(), Object::Real(new.size));
         if turn != 0.0 {
@@ -489,8 +519,22 @@ pub fn edit_symbol(doc: &mut Document, page: usize, index: usize, label: Option<
     crate::unlocked(doc, r)?;
     let d = crate::annot_dict(doc, r);
     let text = |k: &[u8]| d.get(k).map(|o| doc.resolve(o)).and_then(|o| o.as_string().map(PdfString::to_text));
-    let Some(symbol) = text(b"PCSymbol").as_deref().and_then(Symbol::from_id) else {
-        return Err(AnnotError::Invalid("not a symbol from the library".into()));
+    let id = text(b"PCSymbol").unwrap_or_default();
+    let art = match Symbol::from_id(&id) {
+        Some(symbol) => symbol.art(),
+        // Your own symbol: the artwork kept with it.
+        None if id.starts_with("custom:") => {
+            let stored = d.get(b"PCArt").map(|o| doc.resolve(o));
+            match stored.as_deref() {
+                Some(Object::Stream(s)) => s
+                    .decoded_within(crate::svg_art::MAX_ART)
+                    .ok()
+                    .and_then(|b| String::from_utf8(b).ok())
+                    .ok_or_else(|| AnnotError::Invalid("the symbol's artwork can't be read".into()))?,
+                _ => return Err(AnnotError::Invalid("the symbol's artwork is missing".into())),
+            }
+        }
+        None => return Err(AnnotError::Invalid("not a symbol from the library".into())),
     };
     let nums = |k: &[u8]| -> Vec<f64> {
         d.get(k).map(|o| doc.resolve(o)).and_then(|o| o.as_array().map(|a| a.iter().filter_map(|x| x.as_f64()).collect())).unwrap_or_default()
@@ -520,7 +564,7 @@ pub fn edit_symbol(doc: &mut Document, page: usize, index: usize, label: Option<
         Some(_) => return Err(AnnotError::Invalid("invalid turn".into())),
         None => old_turn,
     };
-    let (stream, width, height) = picture(symbol, &label, color, turn);
+    let (stream, width, height) = picture(&art, &label, color, turn);
     let pic = doc.add(Object::Stream(stream));
     let band = if label.is_empty() { 0.0 } else { LABEL_BAND };
     let nx0 = center[0] - width / 2.0 * k;
@@ -641,6 +685,9 @@ fn cell(text: &str) -> String {
 
 /// The name a symbol id is shown by: the library's, or the id when this build doesn't know it.
 pub fn display_name(id: &str) -> String {
+    if let Some(name) = id.strip_prefix("custom:") {
+        return name.to_string();
+    }
     Symbol::from_id(id).map_or_else(|| id.to_string(), |s| s.name().to_string())
 }
 
@@ -721,6 +768,7 @@ mod tests {
             color: [0.0, 0.4, 0.9],
             author: "Steve".into(),
             rotation: 0.0,
+            custom: None,
         };
         let i = add_symbol(&mut doc, &new, &Meta::default()).unwrap();
         crate::layers::assign(&mut doc, 0, i, Some(layer)).unwrap();
@@ -775,6 +823,7 @@ mod tests {
             color: [0.0, 0.4, 0.9],
             author: String::new(),
             rotation: 0.0,
+            custom: None,
         };
         let i = add_symbol(&mut doc, &new, &Meta::default()).unwrap();
         let centre = |doc: &Document| {
@@ -810,6 +859,7 @@ mod tests {
             color: [0.0; 3],
             author: String::new(),
             rotation: 0.0,
+            custom: None,
         };
         for bad in [
             NewSymbol { size: f64::NAN, ..base.clone() },
@@ -821,5 +871,34 @@ mod tests {
             assert!(add_symbol(&mut doc, &bad, &Meta::default()).is_err(), "{bad:?}");
         }
         assert_eq!(clean_label(&"x".repeat(100)).len(), MAX_LABEL);
+        // Your own symbol with no artwork is refused.
+        let empty = CustomArt { name: "Mine".into(), art: String::new() };
+        assert!(add_symbol(&mut doc, &NewSymbol { custom: Some(empty), ..base.clone() }, &Meta::default()).is_err());
+    }
+
+    #[test]
+    fn your_own_symbols_place_turn_relabel_and_count() {
+        let mut doc = blank();
+        let art = crate::svg_art::svg_art(br#"<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><path d="M1 1 L9 9 M1 9 L9 1" stroke="black"/></svg>"#).unwrap();
+        let new = NewSymbol {
+            page: 0,
+            symbol: Symbol::DataJack,
+            center: [200.0, 200.0],
+            size: 24.0,
+            label: "X-1".into(),
+            color: [0.8, 0.1, 0.1],
+            author: "Steve".into(),
+            rotation: 0.0,
+            custom: Some(CustomArt { name: "Duplex outlet".into(), art }),
+        };
+        let i = add_symbol(&mut doc, &new, &Meta::default()).unwrap();
+        edit_symbol(&mut doc, 0, i, Some("X-2"), Some(45.0), &Meta::default()).unwrap();
+        let bytes = write_full(&doc, &SaveOptions::default()).unwrap();
+        let doc = Document::open(Arc::new(bytes)).unwrap();
+        let list = placed(&doc);
+        assert_eq!(list.len(), 1);
+        assert_eq!((list[0].symbol.as_str(), list[0].label.as_str()), ("custom:Duplex outlet", "X-2"));
+        assert_eq!(display_name(&list[0].symbol), "Duplex outlet");
+        assert_eq!(rotation_at(&doc, 0, i), 45.0);
     }
 }

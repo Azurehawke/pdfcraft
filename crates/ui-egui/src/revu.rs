@@ -3,11 +3,14 @@
 //! and photo callouts (pin a picture to the plan; tapping the pin shows it).
 
 use egui::{Align2, Color32, CornerRadius, Pos2, Rect, Sense, Stroke, pos2, vec2};
-use pdfcraft_engine::symbols::{NewSymbol, Symbol};
+use pdfcraft_engine::symbols::{CustomArt, NewSymbol, Symbol};
 use pdfcraft_engine::{DocId, Edit};
 
 use crate::theme::{self, Tokens};
 use crate::{PdfCraftApp, QuickTool, icons};
+
+/// Your own symbols kept at most.
+pub const MAX_MY_SYMBOLS: usize = 64;
 
 /// Layer colours offered when making or recolouring a layer (CAD-style primaries first).
 pub const LAYER_COLORS: [[f64; 3]; 10] = [
@@ -54,6 +57,9 @@ pub struct SymbolSettings {
     pub callout_side: pdfcraft_engine::photo_callout::TextSide,
     pub callout_inches: f64,
     pub callout_spot: Option<(usize, [f64; 2])>,
+    /// One of your own symbols, chosen instead of `symbol` (shared: the settings are copied
+    /// every frame and artwork can be large).
+    pub custom: Option<std::sync::Arc<CustomArt>>,
 }
 
 impl Default for SymbolSettings {
@@ -74,6 +80,7 @@ impl Default for SymbolSettings {
             callout_side: pdfcraft_engine::photo_callout::TextSide::Right,
             callout_inches: 1.5,
             callout_spot: None,
+            custom: None,
         }
     }
 }
@@ -142,17 +149,29 @@ fn layer_color(app: &PdfCraftApp, id: DocId) -> [f64; 3] {
 /// Draw a library symbol's artwork in `rect` (a preview of what is stamped), from its content
 /// operators: paths (`m l c re h`), strokes and fills, and its tags.
 pub fn paint_symbol(painter: &egui::Painter, rect: Rect, symbol: Symbol, color: Color32) {
+    paint_art(painter, rect, &symbol.artwork(), color);
+}
+
+/// The symbol chosen on the Symbols tab, drawn small: your own, or the library's.
+fn paint_chosen(painter: &egui::Painter, rect: Rect, s: &SymbolSettings, color: Color32) {
+    match &s.custom {
+        Some(c) => paint_art(painter, rect, &c.art, color),
+        None => paint_symbol(painter, rect, s.symbol, color),
+    }
+}
+
+/// Symbol artwork (PDF path operators in the 100-unit square) drawn into `rect` on screen.
+pub fn paint_art(painter: &egui::Painter, rect: Rect, art: &str, color: Color32) {
     let k = rect.width().min(rect.height()) / 100.0;
     let origin = pos2(rect.center().x - 50.0 * k, rect.center().y + 50.0 * k);
     let at = |x: f32, y: f32| pos2(origin.x + x * k, origin.y - y * k);
-    let stroke = Stroke::new((6.0 * k).max(1.0), color);
+    let mut stroke = Stroke::new((6.0 * k).max(1.0), color);
     let mut nums: Vec<f32> = Vec::new();
     let mut paths: Vec<(Vec<Pos2>, bool)> = Vec::new();
     let mut current: Vec<Pos2> = Vec::new();
     let mut font = 20.0f32;
     let mut text_at = pos2(0.0, 0.0);
-    let art = symbol.artwork();
-    let mut rest = art.as_str();
+    let mut rest = art;
     loop {
         rest = rest.trim_start();
         if rest.is_empty() {
@@ -214,12 +233,18 @@ pub fn paint_symbol(painter: &egui::Painter, rect: Rect, symbol: Symbol, color: 
                     paths.push((std::mem::take(&mut current), true));
                 }
             }
-            "S" | "f" => {
+            "w" => {
+                if let Some(v) = take(&mut nums, 1) {
+                    stroke.width = (v[0] * k).max(1.0);
+                }
+            }
+            "S" | "f" | "f*" | "B" | "B*" => {
+                let fill = matches!(token, "f" | "f*");
                 if current.len() > 1 {
-                    paths.push((std::mem::take(&mut current), token == "f"));
+                    paths.push((std::mem::take(&mut current), fill || token.starts_with('B')));
                 }
                 for (points, closed) in paths.drain(..) {
-                    if token == "f" {
+                    if fill {
                         painter.add(egui::Shape::convex_polygon(points, color, Stroke::NONE));
                     } else if closed {
                         painter.add(egui::Shape::closed_line(points, stroke));
@@ -257,6 +282,7 @@ pub fn ribbon(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
         ui.painter().vline(x, ui.max_rect().y_range().shrink(6.0), Stroke::new(1.0, t.divider));
         ui.add_space(6.0);
     };
+    let mut add_svg = false;
     ui.add_enabled_ui(allowed, |ui| {
         ui.horizontal(|ui| {
             ui.spacing_mut().item_spacing.x = 4.0;
@@ -269,10 +295,16 @@ pub fn ribbon(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
                         let (rect, resp) = ui.allocate_exact_size(vec2(34.0, 34.0), Sense::click());
                         let fill = if placing { t.accent_soft } else if resp.hovered() { t.hover } else { Color32::TRANSPARENT };
                         ui.painter().rect_filled(rect, CornerRadius::same(6), fill);
-                        paint_symbol(ui.painter(), rect.shrink(5.0), current, color);
-                        let name = egui::RichText::new(crate::i18n::t(current.name())).font(theme::regular(12.0));
+                        paint_chosen(ui.painter(), rect.shrink(5.0), &app.symbols, color);
+                        let shown = match &app.symbols.custom {
+                            Some(c) => c.name.clone(),
+                            None => crate::i18n::t(current.name()).to_string(),
+                        };
+                        let name = egui::RichText::new(shown).font(theme::regular(12.0));
                         let _ = ui.menu_button(name, |ui| {
-                            library(ui, &t, current, color, &mut app.symbols.symbol, &mut app.quick_tool);
+                            if library(ui, &t, color, &mut app.symbols, &mut app.my_symbols, &mut app.quick_tool) {
+                                add_svg = true;
+                            }
                         });
                         resp.on_hover_text(tl!("Tap the drawing to place this symbol")).clicked()
                     })
@@ -355,6 +387,9 @@ pub fn ribbon(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
             });
         });
     });
+    if add_svg {
+        app.add_symbol_from_svg();
+    }
 }
 
 /// A ribbon group: its controls, with the caption underneath.
@@ -368,12 +403,16 @@ fn group(ui: &mut egui::Ui, t: &Tokens, caption: &str, body: impl FnOnce(&mut eg
 }
 
 /// The symbol library: a grid of previews.
-fn library(ui: &mut egui::Ui, t: &Tokens, current: Symbol, color: Color32, chosen: &mut Symbol, tool: &mut QuickTool) {
+/// Returns whether "Add symbol from SVG" was chosen.
+fn library(ui: &mut egui::Ui, t: &Tokens, color: Color32, s: &mut SymbolSettings, mine: &mut Vec<CustomArt>, tool: &mut QuickTool) -> bool {
+    let current = if s.custom.is_some() { None } else { Some(s.symbol) };
+    let mut chosen: Option<Symbol> = None;
+    let mut add = false;
     ui.label(egui::RichText::new(tl!("Networking")).font(theme::semibold(12.0)).color(t.text_muted));
     egui::Grid::new("symbol-library").spacing(vec2(4.0, 4.0)).show(ui, |ui| {
         for (i, symbol) in Symbol::ALL.into_iter().enumerate() {
             let (rect, resp) = ui.allocate_exact_size(vec2(64.0, 60.0), Sense::click());
-            let fill = if symbol == current {
+            let fill = if Some(symbol) == current {
                 t.accent_soft
             } else if resp.hovered() {
                 t.hover
@@ -386,15 +425,74 @@ fn library(ui: &mut egui::Ui, t: &Tokens, current: Symbol, color: Color32, chose
             let short: String = name.chars().take(11).collect();
             ui.painter().text(rect.center_bottom() - vec2(0.0, 3.0), Align2::CENTER_BOTTOM, short, theme::regular(10.0), t.text_muted);
             if resp.on_hover_text(name).clicked() {
-                *chosen = symbol;
-                *tool = QuickTool::Symbol;
-                ui.close();
+                chosen = Some(symbol);
             }
             if i % 5 == 4 {
                 ui.end_row();
             }
         }
     });
+    // Your own symbols, from SVG files.
+    ui.add_space(6.0);
+    ui.label(egui::RichText::new(tl!("My symbols")).font(theme::semibold(12.0)).color(t.text_muted));
+    let mut pick_mine: Option<usize> = None;
+    let mut remove: Option<usize> = None;
+    if !mine.is_empty() {
+        egui::Grid::new("symbol-library-mine").spacing(vec2(4.0, 4.0)).show(ui, |ui| {
+            for (i, art) in mine.iter().enumerate() {
+                let (rect, resp) = ui.allocate_exact_size(vec2(64.0, 60.0), Sense::click());
+                let selected = s.custom.as_ref().is_some_and(|c| c.name == art.name);
+                let fill = if selected {
+                    t.accent_soft
+                } else if resp.hovered() {
+                    t.hover
+                } else {
+                    Color32::TRANSPARENT
+                };
+                ui.painter().rect_filled(rect, CornerRadius::same(6), fill);
+                paint_art(ui.painter(), Rect::from_center_size(rect.center() - vec2(0.0, 7.0), vec2(36.0, 36.0)), &art.art, color);
+                let short: String = art.name.chars().take(11).collect();
+                ui.painter().text(rect.center_bottom() - vec2(0.0, 3.0), Align2::CENTER_BOTTOM, short, theme::regular(10.0), t.text_muted);
+                let resp = resp.on_hover_text(art.name.as_str());
+                resp.context_menu(|ui| {
+                    if ui.button(tl!("Remove from my symbols")).clicked() {
+                        remove = Some(i);
+                        ui.close();
+                    }
+                });
+                if resp.clicked() {
+                    pick_mine = Some(i);
+                }
+                if i % 5 == 4 {
+                    ui.end_row();
+                }
+            }
+        });
+    }
+    if ui.button(tl!("Add symbol from SVG…")).on_hover_text(tl!("Use a line drawing saved as SVG as a symbol of your own")).clicked() {
+        add = true;
+        ui.close();
+    }
+    if let Some(symbol) = chosen {
+        s.symbol = symbol;
+        s.custom = None;
+        *tool = QuickTool::Symbol;
+        ui.close();
+    }
+    if let Some(art) = pick_mine.and_then(|i| mine.get(i)) {
+        s.custom = Some(std::sync::Arc::new(art.clone()));
+        *tool = QuickTool::Symbol;
+        ui.close();
+    }
+    if let Some(i) = remove
+        && i < mine.len()
+    {
+        let gone = mine.remove(i);
+        if s.custom.as_ref().is_some_and(|c| c.name == gone.name) {
+            s.custom = None;
+        }
+    }
+    add
 }
 
 /// The current layer, as a drop-down.
@@ -443,6 +541,7 @@ pub fn symbol_edit(s: &SymbolSettings, doc: &pdfcraft_engine::Document, page: us
         } else {
             0.0
         },
+        custom: s.custom.as_deref().cloned(),
     })
 }
 
@@ -741,6 +840,46 @@ impl PdfCraftApp {
             if let Some(i) = new {
                 self.views[index].caption_prompt = Some(CaptionPrompt { page, index: i, text: String::new(), kind: CaptionKind::Callout });
             }
+        }
+    }
+
+    /// Symbols tab ▸ Add symbol from SVG: choose an SVG file; it joins your symbols, named
+    /// after the file, and is chosen to place.
+    pub(crate) fn add_symbol_from_svg(&mut self) {
+        #[cfg(not(target_arch = "wasm32"))]
+        {
+            let target = self.active_ids().map(|(_, id)| id);
+            let dialog = crate::dialog::AsyncFileDialog::new().set_title(tl!("Add symbol from SVG…")).add_filter(tl!("SVG drawings"), &["svg"]);
+            self.ask_one(crate::pickers::Ask::File(dialog), target, move |app, path| {
+                let name = path.file_stem().map(|s| s.to_string_lossy().replace(['_', '-'], " ")).unwrap_or_default();
+                match std::fs::read(&path) {
+                    Ok(data) => app.add_my_symbol(&name, &data),
+                    Err(e) => app.notify_fmt("Couldn't read {name}: {e}", &[("name", &path.display().to_string()), ("e", &e.to_string())]),
+                }
+            });
+        }
+    }
+
+    /// Add an SVG drawing to your symbols as `name` (replacing one of the same name) and choose it.
+    pub(crate) fn add_my_symbol(&mut self, name: &str, svg: &[u8]) {
+        let name = pdfcraft_engine::symbols::clean_label(name);
+        let name = if name.is_empty() { tl!("My symbol").to_string() } else { name };
+        match pdfcraft_engine::svg_art::svg_art(svg) {
+            Ok(art) => {
+                let new = CustomArt { name: name.clone(), art };
+                if let Some(slot) = self.my_symbols.iter_mut().find(|s| s.name == name) {
+                    *slot = new.clone();
+                } else if self.my_symbols.len() < MAX_MY_SYMBOLS {
+                    self.my_symbols.push(new.clone());
+                } else {
+                    self.notify(tl!("You have as many symbols of your own as can be kept; remove one first.").to_string());
+                    return;
+                }
+                self.symbols.custom = Some(std::sync::Arc::new(new));
+                self.quick_tool = QuickTool::Symbol;
+                self.notify_fmt("Added {name} to your symbols.", &[("name", &name)]);
+            }
+            Err(e) => self.notify(e.to_string()),
         }
     }
 
