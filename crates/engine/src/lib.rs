@@ -103,6 +103,7 @@ pub use pdfcraft_annot::{
 };
 pub use pdfcraft_annot::{fields, geometry, layers, photo_callout, svg_art, symbols};
 pub use pdfcraft_forms::detect;
+pub use pdfcraft_create::report;
 pub use pdfcraft_optimize as optimize;
 pub use pdfcraft_preflight as pdfa;
 pub use pdfcraft_print as print;
@@ -3455,6 +3456,36 @@ impl Session {
         doc.renderer = RenderPool::new(doc.display.clone(), render_threads(), doc.config.clone());
         doc.generation += 1;
         true
+    }
+
+    /// RevuCraft's summary report: the entries (composed by the caller, in the user's language)
+    /// as a new PDF, with the photo of each pin or photo callout listed (`photo`: its page and
+    /// index in this document) embedded under it.
+    pub fn markup_report(
+        &self,
+        id: DocId,
+        title: &str,
+        subtitle: &str,
+        summary: &[String],
+        entries: Vec<(pdfcraft_create::report::ReportEntry, Option<(usize, usize)>)>,
+        page_label: impl Fn(usize, usize) -> String,
+    ) -> Result<Arc<Vec<u8>>, EditError> {
+        let doc = self.get(id).ok_or(EditError::NoDocument)?;
+        let cos = doc.editor.as_ref().map(|e| &e.cos);
+        let entries: Vec<pdfcraft_create::report::ReportEntry> = entries
+            .into_iter()
+            .map(|(mut e, photo)| {
+                if let (Some((page, index)), Some(cos)) = (photo, cos) {
+                    e.photo = pdfcraft_annot::photo_callout::photo_jpeg(cos, page, index)
+                        .or_else(|| pdfcraft_annot::photo_callout::attachment_bytes(cos, page, index))
+                        .filter(|b| b.starts_with(&[0xFF, 0xD8]));
+                }
+                e
+            })
+            .collect();
+        let created = guard(|| pdfcraft_create::report::report(title, subtitle, summary, &entries, page_label))
+            .map_err(|m| EditError::Invalid(format!("the report failed unexpectedly ({m})")))??;
+        self.write_new(&created)
     }
 
     /// Acrobat's Summarize Comments ("Comments only" layout): a new PDF listing every comment

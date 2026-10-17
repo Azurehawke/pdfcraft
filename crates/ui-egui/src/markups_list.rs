@@ -280,6 +280,7 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
     let custom: Vec<String> = app.markup_columns.iter().map(|c| c.name.clone()).collect();
     let cols = all_columns(&custom);
     let mut export = false;
+    let mut report = false;
     ui.horizontal(|ui| {
         ui.add(egui::TextEdit::singleline(&mut state.query).hint_text(tl!("Search markups")).desired_width(130.0));
         egui::ComboBox::from_id_salt("markups-kind")
@@ -304,6 +305,9 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
         }
         if icons::button(ui, "file-spreadsheet", 26.0, false, tl!("Export the list as a spreadsheet (CSV)")).clicked() {
             export = true;
+        }
+        if icons::button(ui, "file-text", 26.0, false, tl!("Summary report (PDF): the markups shown, with photos, by layer")).clicked() {
+            report = true;
         }
         let r = icons::button(ui, "columns-3", 26.0, false, tl!("Your columns: drop ID, progress and others"));
         egui::Popup::from_toggle_button_response(&r)
@@ -378,6 +382,103 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
     }
     if export {
         export_csv(app, csv(&shown, &custom));
+    }
+    if report {
+        summary_report(app, &shown, &custom);
+    }
+}
+
+/// The summary report of the rows shown (filters apply): grouped by layer, with each markup's
+/// facts, your columns, its comment and its photo; cable totals and counts at the top.
+fn summary_report(app: &mut PdfCraftApp, shown: &[Row], custom: &[String]) {
+    let Some((_, id)) = app.active_ids() else { return };
+    let Some(doc) = app.session.get(id) else { return };
+    let no_layer = tl!("No layer").to_string();
+    // Layers in name order, markups without one last; the list's order within each.
+    let mut groups: Vec<String> = shown.iter().map(|r| if r.layer.is_empty() { no_layer.clone() } else { r.layer.clone() }).collect();
+    groups.sort();
+    groups.dedup();
+    if let Some(i) = groups.iter().position(|g| *g == no_layer) {
+        let g = groups.remove(i);
+        groups.push(g);
+    }
+    let mut entries = Vec::new();
+    let mut n = 0usize;
+    for g in &groups {
+        for r in shown.iter().filter(|r| (if r.layer.is_empty() { &no_layer } else { &r.layer }) == g) {
+            n += 1;
+            let a = doc.info.annotations.iter().find(|a| a.page == r.page && a.index == r.index);
+            let text = a.and_then(|a| a.contents.clone()).unwrap_or_default();
+            let heading = if r.label.is_empty() { format!("{n}. {}", r.kind) } else { format!("{n}. {} — {}", r.kind, r.label) };
+            let mut details = vec![
+                crate::i18n::fmt(tl!("Page {n}"), &[("n", &(r.page + 1).to_string())]),
+                r.value.clone(),
+                r.status.clone(),
+                r.author.clone(),
+                r.date.clone(),
+            ];
+            for name in custom {
+                let v = r.field(name);
+                if !v.is_empty() {
+                    details.push(format!("{name}: {v}"));
+                }
+            }
+            let photo = a.is_some_and(|a| a.photo) || doc.callout_side(r.page, r.index).is_some();
+            // A measurement's comment is its value; it isn't repeated.
+            let text = if text.trim() == r.value.trim() { String::new() } else { text };
+            entries.push((
+                pdfcraft_engine::report::ReportEntry { group: g.clone(), heading, details, text, photo: None },
+                photo.then_some((r.page, r.index)),
+            ));
+        }
+    }
+    let mut summary = vec![crate::i18n::fmt(tl!("Markups: {n}"), &[("n", &n.to_string())])];
+    let mut kinds: Vec<(String, usize)> = Vec::new();
+    for r in shown {
+        match kinds.iter_mut().find(|k| k.0 == r.kind) {
+            Some(k) => k.1 += 1,
+            None => kinds.push((r.kind.clone(), 1)),
+        }
+    }
+    kinds.sort_by(|a, b| b.1.cmp(&a.1).then_with(|| a.0.cmp(&b.0)));
+    if !kinds.is_empty() {
+        summary.push(kinds.iter().map(|(k, c)| format!("{k}: {c}")).collect::<Vec<_>>().join("   "));
+    }
+    for t in crate::cable::totals(doc) {
+        summary.push(crate::i18n::fmt(
+            tl!("Cable ({layer}): {runs} runs, {length}"),
+            &[("layer", &t.layer), ("runs", &t.runs.to_string()), ("length", &t.length)],
+        ));
+    }
+    let title = crate::i18n::fmt(tl!("{name} — Markup report"), &[("name", &doc.name)]);
+    let subtitle = pdf_date(&app.session.signing_date());
+    let page_label = |p: usize, total: usize| crate::i18n::fmt(tl!("Page {n} of {total}"), &[("n", &p.to_string()), ("total", &total.to_string())]);
+    let stem = doc.name.rsplit_once('.').map_or(doc.name.as_str(), |(s, _)| s).to_string();
+    match app.session.markup_report(id, &title, &subtitle, &summary, entries, page_label) {
+        Ok(bytes) => save_report(app, format!("{stem}-report.pdf"), bytes),
+        Err(e) => app.notify(e.to_string()),
+    }
+}
+
+/// Save the report where the user chooses.
+fn save_report(app: &mut PdfCraftApp, name: String, bytes: std::sync::Arc<Vec<u8>>) {
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+        let write = move |app: &mut PdfCraftApp, path: std::path::PathBuf| match crate::editing::write_atomically(&path.to_string_lossy(), &bytes) {
+            Ok(()) => app.notify(tl!("Saved the summary report.")),
+            Err(e) => app.notify(e.to_string()),
+        };
+        match app.export_dir_override.as_ref().map(|d| std::path::PathBuf::from(d).join(&name)) {
+            Some(path) => write(app, path),
+            None => {
+                let dialog = crate::dialog::AsyncFileDialog::new().set_file_name(&name).add_filter("PDF", &["pdf"]);
+                app.ask_one(crate::pickers::Ask::Save(dialog), None, write);
+            }
+        }
+    }
+    #[cfg(target_arch = "wasm32")]
+    if let Err(e) = crate::editing::download(&name, &bytes) {
+        app.notify(&e);
     }
 }
 
