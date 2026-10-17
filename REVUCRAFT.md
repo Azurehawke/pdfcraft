@@ -115,23 +115,23 @@ Markup and measuring
 
 - [x] **(Steve)** Calibrate on the Measure tab: click two ends of a known length, type it in the
       value box beside the point (12'6", 150, 3.5m), on this page or every page.
-- [ ] **(Steve, next build)** One way to type values everywhere: click on the drawing, the value
+- [x] **(Steve)** One way to type values everywhere: click on the drawing, the value
       box opens at the pointer, type, Enter (as Calibrate does). For Scale (factor), Rotate (angle),
       Move/Copy (distance or @x,y), Offset (distance), line/polyline/wall lengths while drawing,
       photo pin and callout captions, and a symbol's label after placing. The ribbon entry stays.
-- [ ] **(Steve, next build)** Snapping: perpendicular (the foot of a line from the last point, for
+- [x] **(Steve)** Snapping: perpendicular (the foot of a line from the last point, for
       drafting and measuring), and midpoints of drawn markup lines (the PDF's own lines already
       snap to midpoints); the snap kind shown at the pointer while drafting, as measuring does.
-- [ ] **(Steve, next build)** Custom columns and statuses: your own fields on markups (drop ID, port,
+- [x] **(Steve)** Custom columns and statuses: your own fields on markups (drop ID, port,
       patch panel, cable type) and a status list (Pulled / Terminated / Tested), set in Properties,
       shown in the Markups list and exported with it.
-- [ ] **(Steve, next build)** Cable runs: a run measured along its route plus a fixed allowance per
+- [x] **(Steve)** Cable runs: a run measured along its route plus a fixed allowance per
       run (drop down the wall, service loop at the rack), with totals by layer for ordering.
-- [ ] **(Steve, next build)** Legends that build themselves: a legend box on the sheet listing every
+- [x] **(Steve)** Legends that build themselves: a legend box on the sheet listing every
       symbol used, with its picture and count, kept up to date.
-- [ ] **(Steve, next build)** Summary report: markups, photos, comments, statuses and custom fields as
+- [x] **(Steve)** Summary report: markups, photos, comments, statuses and custom fields as
       a PDF report grouped by layer, with the photos in it (the customer report).
-- [ ] **(Steve, next build)** Your own symbols: import SVG files into the symbol library (Symbols
+- [x] **(Steve)** Your own symbols: import SVG files into the symbol library (Symbols
       tab), placed, sized, rotated, labelled and counted like the built-in ones; kept with the app.
 
 Tablet
