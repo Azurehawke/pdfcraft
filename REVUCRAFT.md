@@ -139,6 +139,10 @@ Markup and measuring
 - [ ] **(Steve, later update)** Turn angles while drafting: `@2<<90` turns 90° from the previous line
       (anticlockwise; `<<-90` turns the other way) and goes 2, for walking around a room; `@2<90`
       stays the absolute angle (0 right, 90 up).
+- [ ] **(Steve, next build)** "Open" becomes "New": one dialog with a new drawing from a page size
+      (Recent, ANSI, ARCH, ISO, Saved; Custom; width, height, units, orientation, drawing scale,
+      pages; Create) on the top half and a file browser (places, folder path, search, files, file
+      name and type, Open) on the bottom half, after VectorCraft's New Document (mock-up made).
 
 Tablet
 - [ ] **(Steve, later update)** Touch mode: bigger buttons and handles, long-press for the context menu, two-finger tap to
