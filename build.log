@@ -1,0 +1,126 @@
+== libpdfcraft_android.so
+warning: Environment variable `ANDROID_NDK_HOME = "/usr/local/lib/android/sdk/ndk/30.0.16248370"` doesn't match `ANDROID_NDK_ROOT = "/usr/local/lib/android/sdk/ndk/27.3.13750724"`
+    Building arm64-v8a (aarch64-linux-android)
+[1m[92m   Compiling[0m pdfcraft-crypt v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/crypt)
+[1m[92m   Compiling[0m pdfcraft-filters v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/filters)
+[1m[92m   Compiling[0m pdfcraft-fonts v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/fonts)
+[1m[92m   Compiling[0m hayro-jbig2 v0.3.0 (/home/runner/work/pdfcraft/pdfcraft/vendor/hayro-jbig2)
+[1m[92m   Compiling[0m winit v0.30.13 (/home/runner/work/pdfcraft/pdfcraft/vendor/winit)
+[1m[92m   Compiling[0m pdfcraft-cos v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/cos)
+[1m[92m   Compiling[0m pdfcraft-model v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/model)
+[1m[92m   Compiling[0m pdfcraft-content v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/content)
+[1m[92m   Compiling[0m pdfcraft-annot v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/annot)
+[1m[92m   Compiling[0m hayro-syntax v0.7.2 (/home/runner/work/pdfcraft/pdfcraft/vendor/hayro-syntax)
+[1m[92m   Compiling[0m pdfcraft-forms v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/forms)
+[1m[92m   Compiling[0m hayro-interpret v0.7.0 (/home/runner/work/pdfcraft/pdfcraft/vendor/hayro-interpret)
+[1m[92m   Compiling[0m lopdf v0.45.0 (/home/runner/work/pdfcraft/pdfcraft/vendor/lopdf)
+[1m[92m   Compiling[0m hayro v0.7.1 (/home/runner/work/pdfcraft/pdfcraft/vendor/hayro)
+[1m[92m   Compiling[0m pdfcraft-edit v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/edit)
+[1m[92m   Compiling[0m pdfcraft-sign v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/sign)
+[1m[92m   Compiling[0m egui-wgpu v0.36.2 (/home/runner/work/pdfcraft/pdfcraft/vendor/egui-wgpu)
+[1m[92m   Compiling[0m pdfcraft-redact v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/redact)
+[1m[92m   Compiling[0m pdfcraft-render v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/render)
+[1m[92m   Compiling[0m egui-winit v0.36.2
+[1m[92m   Compiling[0m pdfcraft-ocr v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/ocr)
+[1m[92m   Compiling[0m pdfcraft-ui-egui v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/ui-egui)
+[1m[92m   Compiling[0m pdfcraft-js v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/js)
+[1m[92m   Compiling[0m pdfcraft-xfdf v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/xfdf)
+[1m[92m   Compiling[0m pdfcraft-create v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/create)
+[1m[92m   Compiling[0m pdfcraft-measure v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/measure)
+[1m[92m   Compiling[0m pdfcraft-optimize v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/optimize)
+[1m[92m   Compiling[0m pdfcraft-a11y v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/a11y)
+[1m[92m   Compiling[0m pdfcraft-print v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/print)
+[1m[92m   Compiling[0m pdfcraft-organize v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/organize)
+[1m[92m   Compiling[0m pdfcraft-xfa v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/xfa)
+[1m[92m   Compiling[0m pdfcraft-preflight v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/preflight)
+[1m[92m   Compiling[0m pdfcraft-export v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/export)
+[1m[92m   Compiling[0m pdfcraft-compare v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/compare)
+[1m[92m   Compiling[0m eframe v0.36.2
+[1m[92m   Compiling[0m pdfcraft-engine v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/engine)
+[1m[92m   Compiling[0m pdfcraft-platform v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/crates/platform)
+[1m[33mwarning[0m[1m: constant `MAX_ENTRIES` is never used[0m
+  [1m[94m--> [0mcrates/ui-egui/src/new_dialog.rs:22:7
+   [1m[94m|[0m
+[1m[94m22[0m [1m[94m|[0m const MAX_ENTRIES: usize = 5_000;
+   [1m[94m|[0m       [1m[33m^^^^^^^^^^^[0m
+   [1m[94m|[0m
+   [1m[94m= [0m[1mnote[0m: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+[1m[33mwarning[0m[1m: variants `RecentFiles`, `Folder`, and `Computer` are never constructed[0m
+  [1m[94m--> [0mcrates/ui-egui/src/new_dialog.rs:75:5
+   [1m[94m|[0m
+[1m[94m74[0m [1m[94m|[0m enum Place {
+   [1m[94m|[0m      [1m[94m-----[0m [1m[94mvariants in this enum[0m
+[1m[94m75[0m [1m[94m|[0m     RecentFiles,
+   [1m[94m|[0m     [1m[33m^^^^^^^^^^^[0m
+[1m[94m76[0m [1m[94m|[0m     Folder(std::path::PathBuf),
+   [1m[94m|[0m     [1m[33m^^^^^^[0m
+[1m[94m77[0m [1m[94m|[0m     /// The computer's drives (Windows) or its root.
+[1m[94m78[0m [1m[94m|[0m     Computer,
+   [1m[94m|[0m     [1m[33m^^^^^^^^[0m
+   [1m[94m|[0m
+   [1m[94m= [0m[1mnote[0m: `Place` has derived impls for the traits `Debug` and `Clone`, but these are intentionally ignored during dead code analysis
+
+[1m[33mwarning[0m[1m: fields `place`, `back`, `all_files`, and `listing` are never read[0m
+   [1m[94m--> [0mcrates/ui-egui/src/new_dialog.rs:109:5
+    [1m[94m|[0m
+[1m[94m 93[0m [1m[94m|[0m pub struct NewDialog {
+    [1m[94m|[0m            [1m[94m---------[0m [1m[94mfields in this struct[0m
+[1m[94m...[0m
+[1m[94m109[0m [1m[94m|[0m     place: Option<Place>,
+    [1m[94m|[0m     [1m[33m^^^^^[0m
+[1m[94m110[0m [1m[94m|[0m     back: Vec<Place>,
+    [1m[94m|[0m     [1m[33m^^^^[0m
+[1m[94m...[0m
+[1m[94m113[0m [1m[94m|[0m     all_files: bool,
+    [1m[94m|[0m     [1m[33m^^^^^^^^^[0m
+[1m[94m114[0m [1m[94m|[0m     listing: Option<(Place, bool, Result<Vec<Entry>, String>)>,
+    [1m[94m|[0m     [1m[33m^^^^^^^[0m
+    [1m[94m|[0m
+    [1m[94m= [0m[1mnote[0m: `NewDialog` has derived impls for the traits `Debug` and `Clone`, but these are intentionally ignored during dead code analysis
+
+[1m[33mwarning[0m[1m: variant `Open` is never constructed[0m
+   [1m[94m--> [0mcrates/ui-egui/src/new_dialog.rs:203:5
+    [1m[94m|[0m
+[1m[94m201[0m [1m[94m|[0m enum Act {
+    [1m[94m|[0m      [1m[94m---[0m [1m[94mvariant in this enum[0m
+[1m[94m202[0m [1m[94m|[0m     Create,
+[1m[94m203[0m [1m[94m|[0m     Open(std::path::PathBuf),
+    [1m[94m|[0m     [1m[33m^^^^[0m
+
+[1m[33mwarning[0m[1m: struct `Showing` is never constructed[0m
+  [1m[94m--> [0mcrates/ui-egui/src/pickers.rs:87:8
+   [1m[94m|[0m
+[1m[94m87[0m [1m[94m|[0m struct Showing(Option<Arc<AtomicBool>>);
+   [1m[94m|[0m        [1m[33m^^^^^^^[0m
+
+[1m[33mwarning[0m[1m: method `hand_over` is never used[0m
+  [1m[94m--> [0mcrates/ui-egui/src/pickers.rs:91:8
+   [1m[94m|[0m
+[1m[94m89[0m [1m[94m|[0m impl Showing {
+   [1m[94m|[0m [1m[94m------------[0m [1m[94mmethod in this implementation[0m
+[1m[94m90[0m [1m[94m|[0m     /// The pick is queued: the frame that uses it clears the flag.
+[1m[94m91[0m [1m[94m|[0m     fn hand_over(mut self) {
+   [1m[94m|[0m        [1m[33m^^^^^^^^^[0m
+
+[1m[33mwarning[0m[1m: methods `spawn` and `spawn_worker` are never used[0m
+   [1m[94m--> [0mcrates/ui-egui/src/pickers.rs:108:8
+    [1m[94m|[0m
+[1m[94m104[0m [1m[94m|[0m impl Pickers {
+    [1m[94m|[0m [1m[94m------------[0m [1m[94mmethods in this implementation[0m
+[1m[94m...[0m
+[1m[94m108[0m [1m[94m|[0m     fn spawn<F>(&self, target: Option<PickTarget>, ctx: Option<egui::Context>, pick: F, then: Then) -> bool
+    [1m[94m|[0m        [1m[33m^^^^^[0m
+[1m[94m...[0m
+[1m[94m116[0m [1m[94m|[0m     fn spawn_worker<F>(&self, target: Option<PickTarget>, ctx: Option<egui::Context>, pick: F, then: Then) -> Option<std::thread::J[1m[94m...[0m
+    [1m[94m|[0m        [1m[33m^^^^^^^^^^^^[0m
+
+[1m[33mwarning[0m: `pdfcraft-ui-egui` (lib) generated 7 warnings
+[1m[92m   Compiling[0m pdfcraft-android v0.5.0 (/home/runner/work/pdfcraft/pdfcraft/apps/pdfcraft-android)
+[1m[92m    Finished[0m `release` profile [optimized] target(s) in 2m 18s
+     Copying libraries to /home/runner/work/pdfcraft/pdfcraft/target/android-apk/jniLibs
+== resources and manifest
+== activity class
+== native library
+== align and sign
+-rw-r--r-- 1 runner runner 25260919 Oct 17 13:03 /home/runner/work/pdfcraft/pdfcraft/target/android-apk/revucraft.apk
