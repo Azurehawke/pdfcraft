@@ -144,6 +144,10 @@ Markup and measuring
       pages; Create) on the top half and a file browser (places, folder path, search, files, file
       name and type, Open) on the bottom half, after VectorCraft's New Document. Home's New or open and
       Draft's New sheet open it too; Android shows recent files and Open from device… instead of the browser.
+- [ ] **(Steve, next build)** Select several markups at once (pen strokes, shapes, symbols, Draft lines):
+      drag a box on empty page with the Select tool to pick everything inside it; Shift+click adds
+      to the selection and Ctrl+click (⌘ on a Mac) toggles a markup in or out. The group moves,
+      deletes, copies and takes property changes together, with one handle box around it.
 - [ ] **(later)** The New dialog's Saved tab: page sizes of your own, kept by name.
 - [x] **(Steve, build 65)** Tool icons in the theme's accent colour (ribbon, left tools, rail, Draft
       tools, fly-outs, dock and panel buttons); the chosen tool a solid accent tile with its icon in
