@@ -560,6 +560,43 @@ pub fn add(doc: &mut Document, new: &NewMeasurement, meta: &Meta) -> Result<usiz
 /// Recompute the reading of the measurement at `(page_index, index)` after its points changed
 /// (moved grips, a trim): the value and, when it still shows the old value, the comment text.
 /// Returns whether the annotation is a measurement. Other annotations are left alone.
+/// The largest cable allowance (in the scale's unit).
+const MAX_EXTRA: f64 = 1e7;
+
+/// How many of `unit` make an inch, for lengths typed in feet and inches.
+pub fn per_inch(unit: &str) -> Option<f64> {
+    Some(match unit.trim() {
+        "in" | "\"" | "inch" | "inches" => 1.0,
+        "ft" | "'" | "feet" | "foot" => 1.0 / 12.0,
+        "yd" => 1.0 / 36.0,
+        "mi" => 1.0 / 63_360.0,
+        "mm" => 25.4,
+        "cm" => 2.54,
+        "m" => 0.0254,
+        "km" => 0.000_025_4,
+        _ => return None,
+    })
+}
+
+/// RevuCraft: make the run measured at `(page, index)` a cable run with `extra_inches` added for
+/// the drop down the wall and the service loop; its reading and label include it.
+pub fn set_cable(doc: &mut Document, page_index: usize, index: usize, extra_inches: f64) -> Result<()> {
+    let (r, mut d) = annot(doc, page_index, index)?;
+    if d.name(b"IT") != Some(b"PolyLineDimension") {
+        return Err(invalid("a cable run is measured along its route"));
+    }
+    if !extra_inches.is_finite() || !(0.0..=1e7).contains(&extra_inches) {
+        return Err(invalid("invalid cable allowance"));
+    }
+    let scale = Scale::read(doc, d.get(b"Measure").ok_or_else(|| invalid("measurement has no scale"))?)?;
+    let k = per_inch(&scale.unit).ok_or_else(|| invalid("the page's scale isn't in a length unit the allowance can be added in"))?;
+    d.set(b"PCExtra".to_vec(), Object::Real(extra_inches * k));
+    d.set(b"PCCableRun".to_vec(), Object::Bool(true));
+    d.set(b"Subj".to_vec(), PdfString::text("Cable run"));
+    doc.update_dict(r, |target| *target = d).map_err(|e| invalid(&e.to_string()))?;
+    refresh(doc, page_index, index).map(|_| ())
+}
+
 pub fn refresh(doc: &mut Document, page_index: usize, index: usize) -> Result<bool> {
     let (r, mut d) = annot(doc, page_index, index)?;
     let kind = match d.name(b"IT") {
@@ -588,6 +625,9 @@ pub struct Measurement {
     pub points: Vec<Point>,
     pub scale: Scale,
     pub reading: Reading,
+    /// RevuCraft: a cable run (its allowance, in the scale's unit, is in the reading).
+    pub cable: bool,
+    pub extra: f64,
 }
 /// A measurement annotation that couldn't be read (unsupported scale format, invalid
 /// geometry). Its PDF data is left untouched.
@@ -617,8 +657,31 @@ fn read_measurement(doc: &Document, d: &Dict, kind: Kind, page: usize, index: us
     let v: Vec<f64> = a.iter().map(|n| doc.resolve(n).as_f64().ok_or_else(|| invalid("invalid vertex"))).collect::<Result<_>>()?;
     let points: Vec<Point> = v.as_chunks::<2>().0.to_vec();
     validate_geometry(kind, &points)?;
-    let reading = reading(kind, &points, &scale)?;
-    Ok(Measurement { page, index, id: text(d, b"NM"), author: text(d, b"T"), label: text(d, b"PCMeasureLabel"), points, scale, reading })
+    let mut reading = reading(kind, &points, &scale)?;
+    // A cable run's allowance (drop down the wall, service loop) is part of its length.
+    let extra = if kind == Kind::Perimeter {
+        d.get(b"PCExtra").and_then(Object::as_f64).filter(|v| v.is_finite() && (0.0..=MAX_EXTRA).contains(v)).unwrap_or(0.0)
+    } else {
+        0.0
+    };
+    if extra > 0.0 {
+        reading.value += extra;
+        reading.length += extra;
+        reading.label = scale.format_length(reading.value)?;
+    }
+    let cable = matches!(d.get(b"PCCableRun"), Some(Object::Bool(true)));
+    Ok(Measurement {
+        page,
+        index,
+        id: text(d, b"NM"),
+        author: text(d, b"T"),
+        label: text(d, b"PCMeasureLabel"),
+        points,
+        scale,
+        reading,
+        cable,
+        extra,
+    })
 }
 /// Every measurement annotation. One that can't be read is reported in `unsupported`
 /// rather than failing the whole list.

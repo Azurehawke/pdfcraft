@@ -3033,3 +3033,32 @@ fn drafting_edits_change_points_copy_and_rotate() {
     assert_eq!(doc.can_undo(), Some("Rotate markup"));
     assert!(session.apply(id, Edit::SetVertices { page: 0, index: 5, vertices: vec![[0.0, 0.0], [9.0, 9.0]], copy: false }).is_err());
 }
+
+#[test]
+fn cable_runs_add_their_allowance_and_fields_stay_with_the_markup() {
+    let mut session = Session::default();
+    let id = session.open("plan.pdf", None, Arc::new(fixture(1)), None).unwrap();
+    // 30 + 40 user units at 0.1 m each: 7 m along the route, plus 1 m of allowance (39.37").
+    let new = measure::NewMeasurement {
+        page: 0,
+        kind: measure::Kind::Perimeter,
+        points: vec![[10.0, 20.0], [40.0, 20.0], [40.0, 60.0]],
+        scale: measure::Scale::new(0.1, "m", 2).unwrap(),
+        style: Style::default(),
+        label: "Drop 101".into(),
+        author: "Steve".into(),
+        dimension: None,
+    };
+    session.apply(id, Edit::AddCableRun { new: new.clone(), extra_inches: 1.0 / 0.0254 }).unwrap();
+    let doc = session.get(id).unwrap();
+    let runs = doc.measurements().unwrap().measurements;
+    assert_eq!(runs.len(), 1);
+    assert!(runs[0].cable);
+    assert_eq!(runs[0].reading.label, "8.00 m");
+    let index = runs[0].index;
+    session.apply(id, Edit::SetAnnotationField { page: 0, index, name: "Progress".into(), value: "Pulled".into() }).unwrap();
+    assert_eq!(session.get(id).unwrap().annotation_fields(0, index), vec![("Progress".to_string(), "Pulled".to_string())]);
+    // A distance can't be a cable run; a bad allowance is refused.
+    assert!(session.apply(id, Edit::AddCableRun { new: measure::NewMeasurement { kind: measure::Kind::Distance, ..new.clone() }, extra_inches: 12.0 }).is_err());
+    assert!(session.apply(id, Edit::AddCableRun { new, extra_inches: f64::NAN }).is_err());
+}

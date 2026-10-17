@@ -193,6 +193,7 @@ pub fn tool_name(app: &PdfCraftApp, id: &str) -> String {
             "rectangle" => "Rectangle area",
             "angle" => "Angle",
             "radius" => "Radius",
+            "cable" => "Cable run",
             _ => "Measure",
         };
         return format!("{} · {}", tl_str("Measure"), tl_str(label));

@@ -124,6 +124,7 @@ fn icon(id: &str, registry: &'static str) -> &'static str {
         "measure.angle" => "chevron-left",
         "measure.radius" => "circle-dot",
         "measure.calibrate" => "maximize-2",
+        "measure.cable" => "move-right",
         "measure.snap" => "grid-3x3",
         "measure.info" => "info",
         "measure.export" => "file-spreadsheet",
@@ -225,6 +226,10 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
                             });
                             ui.label(egui::RichText::new(crate::i18n::t("Dimensions")).font(theme::regular(11.0)).color(t.text_faint));
                         });
+                    }
+                    // RevuCraft: a cable run's allowance and the totals, beside its button.
+                    if app.workflow == Workflow::Measure {
+                        crate::cable::ribbon_group(app, ui, &t);
                     }
                     if let Some(id) = run {
                         app.execute(id);

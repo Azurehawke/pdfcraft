@@ -343,6 +343,8 @@ pub struct DraftSettings {
     pub panel_collapsed: bool,
     /// The tool each fly-out group shows, by group.
     pub group_tool: Vec<DraftTool>,
+    /// What a cable run adds for the drop down the wall and the service loop (inches).
+    pub cable_inches: f64,
 }
 
 impl Default for DraftSettings {
@@ -373,6 +375,7 @@ impl Default for DraftSettings {
             line_width: LineWidth::Paper(1.0),
             panel_collapsed: false,
             group_tool: Vec::new(),
+            cable_inches: 120.0,
         }
     }
 }

@@ -2258,6 +2258,7 @@ pub fn document_area(app: &mut PdfCraftApp, index: usize, ui: &mut egui::Ui) {
             }
             if let QuickTool::Measure(measure_tool) = tool {
                 view.measure.bare = draft_settings.bare;
+                view.measure.cable_inches = draft_settings.cable_inches;
                 crate::measure_ui::page_input(ui, &resp, doc, view, &pcx, measure_tool);
             }
             if let QuickTool::Draft(draft_tool) = tool {

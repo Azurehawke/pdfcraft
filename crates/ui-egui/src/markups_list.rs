@@ -144,6 +144,8 @@ pub fn rows(doc: &Document) -> Vec<Row> {
             pdfcraft_engine::symbols::display_name(s)
         } else if a.photo {
             tl!("Photo").to_string()
+        } else if measurement.is_some_and(|m| m.cable) {
+            tl!("Cable run").to_string()
         } else if let Some(m) = measurement {
             match m.reading.kind {
                 pdfcraft_engine::measure::Kind::Distance => tl!("Distance"),

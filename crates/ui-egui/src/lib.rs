@@ -67,6 +67,7 @@ mod android_picker;
 mod autoscroll;
 mod bidi;
 pub mod bulk_fields;
+mod cable;
 mod cad_icons;
 mod columns;
 /// rfd, or on Android the builder `android_picker` reads.

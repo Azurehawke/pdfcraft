@@ -162,6 +162,7 @@ pub const COMMANDS: &[CommandSpec] = &[
     c("file.pin_folder", "Pin folder to Home…", FILE, None, Nothing, "folder-plus"),
     c("create.blank", "New blank PDF", FILE, None, Nothing, "file-plus-2"),
     c("measure.calibrate", "Calibrate scale", None, None, Annotate, "ruler"),
+    c("measure.cable", "Measure cable run", None, None, Annotate, "ruler"),
     c("measure.distance", "Measure distance", None, None, Annotate, "ruler"),
     c("measure.perimeter", "Measure perimeter", None, None, Annotate, "ruler"),
     c("measure.area", "Measure area", None, None, Annotate, "ruler"),

@@ -176,6 +176,7 @@ fn scope_of(edit: &Edit) -> Scope {
         Edit::AddPhoto { .. } => Scope::Full,
         Edit::SetAnnotationLayer { .. } | Edit::AddSymbol(_) | Edit::SetLayerColor { .. } | Edit::SetLayerLocked { .. } => Scope::Comments,
         Edit::AddMeasurement(_)
+        | Edit::AddCableRun { .. }
         | Edit::AddAnnotation(_)
         | Edit::AddDraftShape { .. }
         | Edit::AddCustomStamp { .. }
@@ -1013,6 +1014,12 @@ pub enum Edit {
         side: pdfcraft_annot::photo_callout::TextSide,
         photo_height: f64,
     },
+    /// RevuCraft: a cable run: measured along its route, plus `extra_inches` for the drop down
+    /// the wall and the service loop.
+    AddCableRun {
+        new: measure::NewMeasurement,
+        extra_inches: f64,
+    },
     /// RevuCraft: set one of your own columns on a markup (an empty value clears it).
     SetAnnotationField {
         page: usize,
@@ -1323,6 +1330,7 @@ impl Edit {
             Edit::BookmarksFromStructure => "New bookmarks from structure".into(),
             Edit::NumberPages { .. } => "Number pages".into(),
             Edit::AddMeasurement(m) => format!("Measure {}", m.kind.name()),
+            Edit::AddCableRun { .. } => "Measure cable run".into(),
             Edit::SetMeasurementScale { .. } => "Set measurement scale".into(),
             Edit::AddAnnotation(a) => format!("Add {}", annotation_noun(&a.shape)),
             Edit::AddDraftShape { caption: Some((_, subject)), .. } => format!("Measure {}", subject.to_lowercase()),
@@ -1486,6 +1494,7 @@ fn check_permission(edit: &Edit, p: &pdfcraft_cos::Permissions) -> Result<(), Ed
             }
         }
         Edit::AddMeasurement(_)
+        | Edit::AddCableRun { .. }
         | Edit::AddAnnotation(_)
         | Edit::AddDraftShape { .. }
         | Edit::AddCustomStamp { .. }
@@ -1738,6 +1747,11 @@ fn run_edit(doc: &mut pdfcraft_cos::Document, edit: &Edit, cx: &mut EditCtx) -> 
         Edit::AddMeasurement(m) => {
             let index = measure::add(doc, m, &cx.meta())?;
             cx.place_on_layer(doc, m.page, index)?;
+        }
+        Edit::AddCableRun { new, extra_inches } => {
+            let index = measure::add(doc, new, &cx.meta())?;
+            measure::set_cable(doc, new.page, index, *extra_inches)?;
+            cx.place_on_layer(doc, new.page, index)?;
         }
         Edit::SetMeasurementScale { page, bbox, name, scale } => measure::set_scale(doc, *page, *bbox, name, scale)?,
         Edit::AddAnnotation(a) => {

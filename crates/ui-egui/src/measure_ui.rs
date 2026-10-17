@@ -18,6 +18,8 @@ pub enum Tool {
     Angle,
     /// The radius of a circle or arc through three points on it.
     Radius,
+    /// A cable run: along its route, plus the allowance for the drop and the service loop.
+    CableRun,
 }
 impl Tool {
     pub fn name(self) -> &'static str {
@@ -29,6 +31,7 @@ impl Tool {
             Self::Rectangle => "rectangle",
             Self::Angle => "angle",
             Self::Radius => "radius",
+            Self::CableRun => "cable",
         }
     }
     pub fn from_name(s: &str) -> Option<Self> {
@@ -40,13 +43,14 @@ impl Tool {
             "rectangle" => Some(Self::Rectangle),
             "angle" => Some(Self::Angle),
             "radius" => Some(Self::Radius),
+            "cable" => Some(Self::CableRun),
             _ => None,
         }
     }
     fn kind(self) -> Kind {
         match self {
             Self::Area | Self::Rectangle => Kind::Area,
-            Self::Perimeter => Kind::Perimeter,
+            Self::Perimeter | Self::CableRun => Kind::Perimeter,
             _ => Kind::Distance,
         }
     }
@@ -56,7 +60,7 @@ fn clicks(tool: Tool) -> Option<usize> {
     match tool {
         Tool::Distance | Tool::Calibrate | Tool::Rectangle => Some(2),
         Tool::Angle | Tool::Radius => Some(3),
-        Tool::Perimeter | Tool::Area => None,
+        Tool::Perimeter | Tool::Area | Tool::CableRun => None,
     }
 }
 
@@ -191,6 +195,8 @@ pub struct MeasureView {
     pub bare: crate::draft::BareUnit,
     /// A scale was just set by calibrating (the canvas puts the tool down).
     pub calibrated: bool,
+    /// The allowance a cable run adds (inches; Draft's setting).
+    pub cable_inches: f64,
     /// Snapping geometry (or why it failed) per (page, edit generation): extraction is not
     /// repeated on every hover frame.
     paths: Option<(usize, u64, Result<measure::snap::Geometry, String>)>,
@@ -234,6 +240,7 @@ impl Default for MeasureView {
             calibration: None,
             bare: crate::draft::BareUnit::Feet,
             calibrated: false,
+            cable_inches: 0.0,
             paths: None,
             listing: None,
         }
@@ -436,7 +443,9 @@ pub(crate) fn page_input(ui: &egui::Ui, resp: &egui::Response, doc: &Document, v
         }
     }
     if state.page == Some(page) && !state.points.is_empty() {
-        if (resp.double_clicked() || !typing && ui.input(|i| i.key_pressed(egui::Key::Enter))) && matches!(tool, Tool::Perimeter | Tool::Area) {
+        if (resp.double_clicked() || !typing && ui.input(|i| i.key_pressed(egui::Key::Enter)))
+            && matches!(tool, Tool::Perimeter | Tool::Area | Tool::CableRun)
+        {
             finish(state, &mut view.pending_edit, doc, page, tool, author);
         }
         if !typing && ui.input(|i| i.key_pressed(egui::Key::Backspace)) {
@@ -459,6 +468,13 @@ pub(crate) fn page_input(ui: &egui::Ui, resp: &egui::Response, doc: &Document, v
                     }
                     if tool == Tool::Radius && points.len() < 3 {
                         reading.label = String::new();
+                    }
+                    // A cable run reads with its allowance added.
+                    if tool == Tool::CableRun
+                        && let Some(k) = measure::per_inch(&scale.unit)
+                        && let Ok(text) = scale.format_length(reading.value + state.cable_inches * k)
+                    {
+                        reading.label = text;
                     }
                     state.reading = Some(reading)
                 }
@@ -514,7 +530,7 @@ pub(crate) fn page_input(ui: &egui::Ui, resp: &egui::Response, doc: &Document, v
             ui.painter().circle_stroke(at, if near { crate::point_bar::CLOSE_RADIUS } else { 7.0 }, Stroke::new(1.5, stroke.color));
         }
         // Finish, close, undo and cancel as buttons: the way to end the shape on a tablet.
-        if matches!(tool, Tool::Perimeter | Tool::Area)
+        if matches!(tool, Tool::Perimeter | Tool::Area | Tool::CableRun)
             && let Some(last) = state.points.last().copied()
         {
             let n = state.points.len();
@@ -619,7 +635,7 @@ fn calibration_edit(
 fn enough_points(tool: Tool, n: usize) -> bool {
     match tool {
         Tool::Area => n >= 3,
-        Tool::Perimeter => n >= 2,
+        Tool::Perimeter | Tool::CableRun => n >= 2,
         _ => false,
     }
 }
@@ -683,7 +699,7 @@ fn finish(state: &mut MeasureView, pending: &mut Option<Edit>, doc: &Document, p
             return;
         }
         let label = if tool == Tool::Radius && state.label.is_empty() { "R".to_string() } else { state.label.clone() };
-        *pending = Some(Edit::AddMeasurement(NewMeasurement {
+        let new = NewMeasurement {
             page,
             kind: tool.kind(),
             points,
@@ -692,7 +708,12 @@ fn finish(state: &mut MeasureView, pending: &mut Option<Edit>, doc: &Document, p
             label,
             author: author.into(),
             dimension: None,
-        }));
+        };
+        *pending = Some(if tool == Tool::CableRun {
+            Edit::AddCableRun { new, extra_inches: state.cable_inches.clamp(0.0, 1e6) }
+        } else {
+            Edit::AddMeasurement(new)
+        });
         state.cancel();
     }
 }
