@@ -38,7 +38,8 @@ pub fn paint(ui: &egui::Ui, rect: Rect, name: &str, size: f32, tint: Color32) {
     image(name, size, tint).paint_at(ui, Rect::from_center_size(rect.center(), Vec2::splat(size)));
 }
 
-/// Square icon button: transparent until hovered; `selected` gets the accent treatment.
+/// Square icon button: transparent until hovered, its icon in the tool icon colour; `selected` is
+/// a solid accent tile with the icon in the accent's contrast colour.
 pub fn button(ui: &mut egui::Ui, name: &str, box_size: f32, selected: bool, tooltip: &str) -> Response {
     let t = Tokens::get(ui.ctx());
     let (rect, resp) = ui.allocate_exact_size(Vec2::splat(box_size), Sense::click());
@@ -46,13 +47,19 @@ pub fn button(ui: &mut egui::Ui, name: &str, box_size: f32, selected: bool, tool
     resp.widget_info(|| egui::WidgetInfo::selected(egui::WidgetType::Button, ui.is_enabled(), selected, label));
     let hovered = resp.hovered();
     if selected {
-        ui.painter().rect_filled(rect, t.radius, t.accent_soft);
+        ui.painter().rect_filled(rect, t.radius, t.accent);
     } else if resp.is_pointer_button_down_on() {
         ui.painter().rect_filled(rect, t.radius, t.pressed);
     } else if hovered {
         ui.painter().rect_filled(rect, t.radius, t.hover);
     }
-    let tint = if selected { t.accent_text } else { t.icon };
+    let tint = if selected {
+        t.on_accent
+    } else if ui.is_enabled() {
+        t.tool_icon
+    } else {
+        t.tool_icon.gamma_multiply(0.45)
+    };
     paint(ui, rect, name, (box_size * 0.5).round(), tint);
     if tooltip.is_empty() { resp } else { resp.on_hover_text(tooltip) }
 }

@@ -474,6 +474,8 @@ pub struct PdfCraftApp {
     pub theme_preference: ThemePreference,
     /// The interface accent colour, saved with the theme.
     pub accent: theme::Accent,
+    /// RevuCraft: the tool icons' colour (the accent, neutral or their own), saved with the theme.
+    pub icon_color: theme::IconColor,
     /// The ribbon's workflow tab.
     pub workflow: ribbon::Workflow,
     /// The Symbols tab's settings.
@@ -807,6 +809,7 @@ impl PdfCraftApp {
             theme: ThemeKind::Dark,
             theme_preference: ThemePreference::Dark,
             accent: theme::Accent::default(),
+            icon_color: theme::IconColor::default(),
             workflow: ribbon::Workflow::default(),
             symbols: Default::default(),
             draft: Default::default(),
@@ -1423,6 +1426,15 @@ impl PdfCraftApp {
         }
     }
 
+    /// Draw the tool icons in `c` from now on (saved with the settings).
+    pub fn set_icon_color(&mut self, c: theme::IconColor) {
+        self.icon_color = c;
+        if let Some(ctx) = &self.ctx {
+            theme::set_icon_color(ctx, c);
+            theme::apply(ctx, self.theme);
+        }
+    }
+
     /// Draw the running job's progress card and pass a Cancel click on to the job.
     fn show_progress(&mut self, ctx: &egui::Context) {
         if widgets::progress_notice(self, ctx) {
@@ -1502,6 +1514,7 @@ impl PdfCraftApp {
             "pinned_folders": self.pinned.folders,
             "theme": self.theme_preference,
             "accent": self.accent,
+            "icon_color": self.icon_color.code(),
             "default_mode": self.default_mode,
             "default_layout": self.view_defaults.layout.as_str(),
             "default_zoom": self.view_defaults.zoom_name(),
@@ -1623,6 +1636,9 @@ impl PdfCraftApp {
         self.pinned.restore(&v["pinned_folders"]);
         if let Ok(accent) = serde_json::from_value::<theme::Accent>(v["accent"].clone()) {
             self.set_accent(accent);
+        }
+        if let Some(c) = v["icon_color"].as_str().and_then(theme::IconColor::from_code) {
+            self.set_icon_color(c);
         }
         if let Ok(preference) = serde_json::from_value::<ThemePreference>(v["theme"].clone()) {
             self.set_theme_preference(preference);
@@ -1771,6 +1787,11 @@ impl PdfCraftApp {
             },
             ("workflow", _) => {
                 self.workflow = ribbon::Workflow::parse(value).ok_or("workflow must be markup, draft, symbols, measure, review or document")?;
+            }
+            ("icon-color", _) => {
+                let c = theme::IconColor::from_code(value)
+                    .ok_or("icon-color must be accent, neutral or a colour (amber, blue, teal, green, red, violet)")?;
+                self.set_icon_color(c);
             }
             ("accent", _) => {
                 let accent = theme::Accent::from_code(value).ok_or_else(|| {
@@ -2115,6 +2136,7 @@ impl eframe::App for PdfCraftApp {
             theme::install_fonts_for(ctx, hans);
             self.fonts_hans = hans;
             theme::set_accent(ctx, self.accent);
+            theme::set_icon_color(ctx, self.icon_color);
             theme::apply(ctx, self.theme);
             self.styled = true;
             // RevuCraft looks for a newer build once per start, quietly.

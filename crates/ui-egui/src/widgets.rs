@@ -51,7 +51,7 @@ pub fn ghost_button(ui: &mut egui::Ui, icon: &str, label: &str) -> Response {
     if resp.hovered() {
         ui.painter().rect_filled(rect, CornerRadius::same(6), t.hover);
     }
-    icons::paint(ui, Rect::from_min_size(rect.min + vec2(6.0, 6.0), vec2(18.0, 18.0)), icon, 17.0, t.icon);
+    icons::paint(ui, Rect::from_min_size(rect.min + vec2(6.0, 6.0), vec2(18.0, 18.0)), icon, 17.0, t.tool_icon);
     ui.painter().text(rect.left_center() + vec2(30.0, 0.0), Align2::LEFT_CENTER, label, font, t.text);
     resp
 }

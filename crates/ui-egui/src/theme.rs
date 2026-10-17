@@ -86,6 +86,60 @@ impl Accent {
     }
 }
 
+/// RevuCraft: the colour of the tool icons: the theme's accent, neutral grey, or a colour of their
+/// own. The chosen tool's tile is the accent whichever it is.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
+pub enum IconColor {
+    #[default]
+    Accent,
+    Neutral,
+    Own(Accent),
+}
+
+impl IconColor {
+    /// `accent`, `neutral` or a colour's code (`blue`…), as settings and the control channel write it.
+    pub fn code(self) -> &'static str {
+        match self {
+            Self::Accent => "accent",
+            Self::Neutral => "neutral",
+            Self::Own(a) => a.code(),
+        }
+    }
+
+    pub fn from_code(code: &str) -> Option<Self> {
+        match code {
+            "accent" => Some(Self::Accent),
+            "neutral" => Some(Self::Neutral),
+            other => Accent::from_code(other).map(Self::Own),
+        }
+    }
+
+    /// The English name, translated where it is shown.
+    pub fn label(self) -> &'static str {
+        match self {
+            Self::Accent => "Accent color",
+            Self::Neutral => "Neutral",
+            Self::Own(a) => a.label(),
+        }
+    }
+
+    /// Every choice, for menus.
+    pub fn all() -> Vec<Self> {
+        let mut out = vec![Self::Accent, Self::Neutral];
+        out.extend(Accent::ALL.into_iter().map(Self::Own));
+        out
+    }
+}
+
+/// Remember the tool icons' colour for this context; the next [`apply`] uses it.
+pub fn set_icon_color(ctx: &egui::Context, c: IconColor) {
+    ctx.data_mut(|d| d.insert_temp(egui::Id::new("pdfcraft-icon-color"), c));
+}
+
+fn icon_color(ctx: &egui::Context) -> IconColor {
+    ctx.data(|d| d.get_temp::<IconColor>(egui::Id::new("pdfcraft-icon-color"))).unwrap_or_default()
+}
+
 impl ThemePreference {
     /// The colours to draw. `system` is what the operating system says, `None` when it says
     /// nothing; `fallback` is then what the app last drew, so an unanswering desktop leaves the
@@ -120,6 +174,9 @@ pub struct Tokens {
     pub text_muted: Color32,
     pub text_faint: Color32,
     pub icon: Color32,
+    /// RevuCraft: tool icons (ribbon, tool strips, rail, panel buttons): the accent, neutral or
+    /// a colour of their own ([`IconColor`]).
+    pub tool_icon: Color32,
     pub hover: Color32,
     pub pressed: Color32,
     pub selected: Color32,
@@ -149,7 +206,21 @@ impl Tokens {
         t.selected = selected;
         t.on_accent = on;
         t.badge_new = a;
+        t.tool_icon = if kind == ThemeKind::Dark { a } else { text };
         t
+    }
+
+    /// The tokens with the tool icons in `c`.
+    pub fn with_icon_color(mut self, c: IconColor) -> Self {
+        self.tool_icon = match c {
+            IconColor::Accent => self.tool_icon,
+            IconColor::Neutral => self.icon,
+            IconColor::Own(a) => {
+                let (own, text, ..) = a.colors(self.kind);
+                if self.kind == ThemeKind::Dark { own } else { text }
+            }
+        };
+        self
     }
 
     fn base(kind: ThemeKind) -> Self {
@@ -167,6 +238,7 @@ impl Tokens {
                 text_muted: Color32::from_rgb(0x5E, 0x5E, 0x66),
                 text_faint: Color32::from_rgb(0x6B, 0x6B, 0x73),
                 icon: Color32::from_rgb(0x44, 0x44, 0x4B),
+                tool_icon: Color32::from_rgb(0x44, 0x44, 0x4B),
                 hover: Color32::from_rgb(0xF0, 0xF0, 0xF3),
                 pressed: Color32::from_rgb(0xE4, 0xE4, 0xE9),
                 selected: Color32::from_rgb(0xE6, 0xEE, 0xFD),
@@ -194,6 +266,7 @@ impl Tokens {
                 text_muted: Color32::from_rgb(0xAE, 0xB4, 0xBD),
                 text_faint: Color32::from_rgb(0x9A, 0xA0, 0xAA),
                 icon: Color32::from_rgb(0xCD, 0xD1, 0xD8),
+                tool_icon: Color32::from_rgb(0xCD, 0xD1, 0xD8),
                 hover: Color32::from_rgb(0x2B, 0x2F, 0x35),
                 pressed: Color32::from_rgb(0x35, 0x3A, 0x41),
                 selected: Color32::from_rgb(0x23, 0x3A, 0x63),
@@ -329,7 +402,7 @@ pub fn set_accent(ctx: &egui::Context, accent: Accent) {
 pub fn apply(ctx: &egui::Context, kind: ThemeKind) {
     // egui must use the same theme for popup/menu styles as our custom chrome.
     ctx.set_theme(if kind == ThemeKind::Dark { egui::Theme::Dark } else { egui::Theme::Light });
-    let t = Tokens::new(kind, accent(ctx));
+    let t = Tokens::new(kind, accent(ctx)).with_icon_color(icon_color(ctx));
     ctx.data_mut(|d| d.insert_temp(egui::Id::new("pdfcraft-theme"), t));
     let mut v = if t.dark() { Visuals::dark() } else { Visuals::light() };
     v.panel_fill = t.panel;

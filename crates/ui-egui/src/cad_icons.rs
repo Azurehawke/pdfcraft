@@ -339,12 +339,18 @@ pub fn paint(p: &Painter, rect: Rect, icon: CadIcon, base: Color32, accent: Colo
 }
 
 /// An icon button like [`crate::icons::button`], with a drafting icon.
+/// The colour of what a drafting tool makes in its icon: the tool icon colour, or the accent when
+/// tool icons are neutral (grey on grey would hide it).
+pub fn made_color(t: &Tokens) -> Color32 {
+    if t.tool_icon == t.icon { t.accent } else { t.tool_icon }
+}
+
 pub fn button(ui: &mut egui::Ui, icon: CadIcon, box_size: f32, selected: bool, tooltip: &str) -> Response {
     let t = Tokens::get(ui.ctx());
     let (rect, resp) = ui.allocate_exact_size(Vec2::splat(box_size), Sense::click());
     resp.widget_info(|| egui::WidgetInfo::selected(egui::WidgetType::Button, ui.is_enabled(), selected, tooltip));
     if selected {
-        ui.painter().rect_filled(rect, t.radius, t.accent_soft);
+        ui.painter().rect_filled(rect, t.radius, t.accent);
     } else if resp.is_pointer_button_down_on() {
         ui.painter().rect_filled(rect, t.radius, t.pressed);
     } else if resp.hovered() {
@@ -353,6 +359,9 @@ pub fn button(ui: &mut egui::Ui, icon: CadIcon, box_size: f32, selected: bool, t
     let dim = !ui.is_enabled();
     let fade = |c: Color32| if dim { c.gamma_multiply(0.4) } else { c };
     let inner = Rect::from_center_size(rect.center(), Vec2::splat((box_size * 0.62).round()));
-    paint(ui.painter(), inner, icon, fade(if selected { t.accent_text } else { t.icon }), fade(t.accent));
+    // Existing lines in grey, what the tool makes in the tool icon colour; on the chosen tool's
+    // accent tile, both in its contrast colour.
+    let (base, made) = if selected { (t.on_accent.gamma_multiply(0.6), t.on_accent) } else { (t.icon, made_color(&t)) };
+    paint(ui.painter(), inner, icon, fade(base), fade(made));
     if tooltip.is_empty() { resp } else { resp.on_hover_text(tooltip) }
 }

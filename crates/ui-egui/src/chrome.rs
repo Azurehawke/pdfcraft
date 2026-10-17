@@ -165,6 +165,21 @@ fn theme_menu(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
             ui.close();
         }
     }
+    // RevuCraft: the tool icons' colour; the chosen tool stays an accent tile.
+    ui.separator();
+    ui.label(egui::RichText::new(tl!("Tool icons")).color(crate::theme::Tokens::get(ui.ctx()).text_muted));
+    for c in crate::theme::IconColor::all() {
+        let t = crate::theme::Tokens::get(ui.ctx());
+        let swatch = crate::theme::Tokens::new(app.theme, app.accent).with_icon_color(c).tool_icon;
+        let font = egui::TextStyle::Body.resolve(ui.style());
+        let mut job = egui::text::LayoutJob::default();
+        job.append("\u{25CF}  ", 0.0, egui::TextFormat::simple(font.clone(), swatch));
+        job.append(tl!(c.label()), 0.0, egui::TextFormat::simple(font, t.text));
+        if ui.radio(app.icon_color == c, job).clicked() {
+            app.set_icon_color(c);
+            ui.close();
+        }
+    }
 }
 
 /// A tab's chrome around its name: the icon on the left, the close button on the right.

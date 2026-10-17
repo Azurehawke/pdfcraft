@@ -235,7 +235,7 @@ fn flyout_row(ui: &mut egui::Ui, t: &Tokens, e: Entry, selected: bool) -> egui::
         ui.painter().rect_filled(rect, t.radius, t.hover);
     }
     let icon = Rect::from_center_size(pos2(rect.left() + 16.0, rect.center().y), Vec2::splat(20.0));
-    cad_icons::paint(ui.painter(), icon, e.icon(), if selected { t.accent_text } else { t.icon }, t.accent);
+    cad_icons::paint(ui.painter(), icon, e.icon(), if selected { t.accent_text } else { t.icon }, cad_icons::made_color(t));
     ui.painter().galley(Pos2::new(rect.left() + 34.0, rect.center().y - galley.size().y / 2.0), galley, t.text);
     resp
 }
