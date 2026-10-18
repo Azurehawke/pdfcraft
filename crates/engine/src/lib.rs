@@ -199,7 +199,8 @@ fn scope_of(edit: &Edit) -> Scope {
         | Edit::SetAnnotationField { .. }
         | Edit::StyleAnnotation { .. }
         | Edit::FillAnnotation { .. }
-        | Edit::SetAnnotationInfo { .. } => Scope::Comments,
+        | Edit::SetAnnotationInfo { .. }
+        | Edit::SetLineWidth { .. } => Scope::Comments,
         Edit::AddPhotoCallout { .. } | Edit::PinToCallout { .. } => Scope::Full,
         Edit::SetFieldValue { .. } | Edit::ResetForm { .. } | Edit::SetFieldImage { .. } | Edit::ApplyScriptChanges { .. } => Scope::Form,
         Edit::Batch { edits, .. } => {
@@ -1059,6 +1060,14 @@ pub enum Edit {
         matrix: [f64; 6],
         copy: bool,
     },
+    /// RevuCraft: how wide a line, polyline, polygon or drawing is drawn: `width` points, and its
+    /// real-world width in inches when it is drawn to scale (`None`: a pen width).
+    SetLineWidth {
+        page: usize,
+        index: usize,
+        width: f64,
+        real_inches: Option<f64>,
+    },
     StyleAnnotation {
         page: usize,
         index: usize,
@@ -1380,6 +1389,7 @@ impl Edit {
             Edit::TransformAnnotation { matrix, .. } if matrix[..4] == [1.0, 0.0, 0.0, 1.0] => "Move markup".into(),
             Edit::TransformAnnotation { .. } => "Rotate markup".into(),
             Edit::StyleAnnotation { .. } | Edit::FillAnnotation { .. } | Edit::SetAnnotationInfo { .. } => "Change comment properties".into(),
+            Edit::SetLineWidth { .. } => "Change line width".into(),
             Edit::SetFieldValue { name, .. } => format!("Fill in {name}"),
             Edit::SetFieldImage { name, .. } => format!("Set the image of {name}"),
             Edit::ResetForm { .. } => "Clear form".into(),
@@ -1538,6 +1548,7 @@ fn check_permission(edit: &Edit, p: &pdfcraft_cos::Permissions) -> Result<(), Ed
         | Edit::StyleAnnotation { .. }
         | Edit::FillAnnotation { .. }
         | Edit::SetAnnotationInfo { .. }
+        | Edit::SetLineWidth { .. }
         | Edit::SetMeasurementScale { .. } => {
             if p.annotate() {
                 Ok(())
@@ -1917,6 +1928,9 @@ fn run_edit(doc: &mut pdfcraft_cos::Document, edit: &Edit, cx: &mut EditCtx) -> 
             pdfcraft_annot::set_style(doc, *page, *index, *color, *opacity, *width, endings.as_deref(), &cx.meta())?;
         }
         Edit::FillAnnotation { page, index, fill } => pdfcraft_annot::set_fill(doc, *page, *index, *fill, &cx.meta())?,
+        Edit::SetLineWidth { page, index, width, real_inches } => {
+            pdfcraft_annot::geometry::set_line_width(doc, *page, *index, *width, *real_inches, &cx.meta())?;
+        }
         Edit::SetAnnotationInfo { page, index, author, subject, icon } => {
             pdfcraft_annot::set_info(doc, *page, *index, author.as_deref(), subject.as_deref(), *icon, &cx.meta())?;
         }

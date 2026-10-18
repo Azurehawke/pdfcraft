@@ -3035,6 +3035,32 @@ fn drafting_edits_change_points_copy_and_rotate() {
 }
 
 #[test]
+fn line_widths_change_after_drawing_on_paper_and_to_scale() {
+    let mut session = Session::default();
+    let id = session.open("plan.pdf", None, Arc::new(fixture(1)), None).unwrap();
+    let line = NewAnnotation {
+        page: 0,
+        shape: Shape::Line { from: [10.0, 20.0], to: [60.0, 20.0], start: LineEnding::None, end: LineEnding::None },
+        style: Style::default(),
+        contents: String::new(),
+        author: "Tester".into(),
+    };
+    session.apply(id, Edit::AddAnnotation(line)).unwrap();
+    session.apply(id, Edit::SetLineWidth { page: 0, index: 0, width: 4.0, real_inches: None }).unwrap();
+    let g = session.get(id).unwrap().markup_geometry(0);
+    assert!((g[0].width - 4.0).abs() < 1e-9 && !g[0].real_width, "{:?}", g[0]);
+    assert_eq!(session.get(id).unwrap().can_undo(), Some("Change line width"));
+    // Drawn to scale: a 6 in wall, then back to a pen width.
+    session.apply(id, Edit::SetLineWidth { page: 0, index: 0, width: 9.0, real_inches: Some(6.0) }).unwrap();
+    let g = session.get(id).unwrap().markup_geometry(0);
+    assert!((g[0].width - 9.0).abs() < 1e-9 && g[0].real_width, "{:?}", g[0]);
+    session.apply(id, Edit::SetLineWidth { page: 0, index: 0, width: 1.0, real_inches: None }).unwrap();
+    assert!(!session.get(id).unwrap().markup_geometry(0)[0].real_width);
+    assert!(session.apply(id, Edit::SetLineWidth { page: 0, index: 0, width: f64::NAN, real_inches: None }).is_err());
+    assert!(session.apply(id, Edit::SetLineWidth { page: 0, index: 9, width: 2.0, real_inches: None }).is_err());
+}
+
+#[test]
 fn cable_runs_add_their_allowance_and_fields_stay_with_the_markup() {
     let mut session = Session::default();
     let id = session.open("plan.pdf", None, Arc::new(fixture(1)), None).unwrap();

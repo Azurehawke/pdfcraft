@@ -1357,6 +1357,7 @@ pub fn ribbon(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
     let t = Tokens::get(ui.ctx());
     let active = app.active_ids();
     let allowed = active.and_then(|(_, id)| app.session.get(id)).is_some_and(|d| d.allows_annotation() && d.read_only_reason.is_none());
+    let mut restyle = false;
     egui::ScrollArea::horizontal().id_salt("draft-ribbon").scroll_bar_visibility(egui::scroll_area::ScrollBarVisibility::AlwaysHidden).show(
         ui,
         |ui| {
@@ -1368,7 +1369,11 @@ pub fn ribbon(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
                     }
                 });
                 separator(ui, &t);
-                group(ui, &t, tl!("Line width"), |ui| line_width(ui, &mut app.draft.line_width));
+                group(ui, &t, tl!("Line width"), |ui| {
+                    if line_width(ui, &mut app.draft.line_width) {
+                        restyle = true;
+                    }
+                });
                 separator(ui, &t);
                 ui.add_enabled_ui(allowed, |ui| tool_options(app, ui, &t));
                 separator(ui, &t);
@@ -1429,11 +1434,48 @@ pub fn ribbon(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
         app.notify(e);
         app.views[index].draft.error = None;
     }
+    // As in CAD programs, a new line width also goes to the lines selected.
+    if restyle
+        && allowed
+        && let Some(edit) = restyle_selected(app)
+    {
+        app.apply_edit(edit);
+    }
+}
+
+/// The selected lines, polylines, polygons and drawings at the ribbon's line width (`None` when
+/// none of the selection has a line width).
+fn restyle_selected(app: &PdfCraftApp) -> Option<Edit> {
+    let (index, id) = app.active_ids()?;
+    let doc = app.session.get(id)?;
+    let group = app.views.get(index)?.comments.group();
+    let mut edits: Vec<Edit> = group
+        .iter()
+        .filter_map(|&(page, i)| {
+            let a = doc.info.annotations.iter().find(|a| a.page == page && a.index == i)?;
+            let ink = match a.subtype.as_str() {
+                "Line" | "PolyLine" | "Polygon" => false,
+                "Ink" => true,
+                _ => return None,
+            };
+            let at = [f64::from(a.rect[0] + a.rect[2]) / 2.0, f64::from(a.rect[1] + a.rect[3]) / 2.0];
+            let (width, real_inches) = pen(doc, page, at, &app.draft);
+            // A pen drawing has no real-world width; it takes the width on paper.
+            (!ink || real_inches.is_none()).then_some(Edit::SetLineWidth { page, index: i, width, real_inches })
+        })
+        .collect();
+    match edits.len() {
+        0 => None,
+        1 => edits.pop(),
+        _ => Some(Edit::Batch { label: "Change line width".into(), edits }),
+    }
 }
 
 /// The ribbon's line width: presets, the number, and whether it is a real-world size (drawn to the
 /// page's scale) or a pen width on paper.
-fn line_width(ui: &mut egui::Ui, w: &mut LineWidth) {
+/// Returns `true` when the width was set (a preset, a typed or dragged number let go, or To scale).
+fn line_width(ui: &mut egui::Ui, w: &mut LineWidth) -> bool {
+    let mut set = false;
     let presets: [(LineWidth, &str); 5] = [
         (LineWidth::Paper(0.5), "Fine (1/2 pt)"),
         (LineWidth::Paper(1.0), "Thin (1 pt)"),
@@ -1446,23 +1488,25 @@ fn line_width(ui: &mut egui::Ui, w: &mut LineWidth) {
         let current = presets.iter().find(|(p, _)| p == w).map(|(_, l)| tl!(l)).unwrap_or_else(|| tl!("Custom"));
         egui::ComboBox::from_id_salt("draft-line-width").selected_text(current).width(150.0).show_ui(ui, |ui| {
             for (p, label) in presets {
-                ui.selectable_value(w, p, tl!(label));
+                set |= ui.selectable_value(w, p, tl!(label)).clicked();
             }
         });
-        match w {
+        let r = match w {
             LineWidth::Paper(pt) => {
-                ui.add(egui::DragValue::new(pt).range(0.1..=72.0).speed(0.1).suffix(" pt")).on_hover_text(tl!("Pen width on paper"));
+                ui.add(egui::DragValue::new(pt).range(0.1..=72.0).speed(0.1).suffix(" pt")).on_hover_text(tl!("Pen width on paper"))
             }
-            LineWidth::Real(inches) => {
-                ui.add(egui::DragValue::new(inches).range(0.25..=1200.0).speed(0.25).suffix(" in"))
-                    .on_hover_text(tl!("Real-world width, drawn to the page's scale"));
-            }
-        }
+            LineWidth::Real(inches) => ui
+                .add(egui::DragValue::new(inches).range(0.25..=1200.0).speed(0.25).suffix(" in"))
+                .on_hover_text(tl!("Real-world width, drawn to the page's scale")),
+        };
+        set |= r.drag_stopped() || r.lost_focus() || (r.changed() && !r.dragged() && !r.has_focus());
         let mut real = matches!(w, LineWidth::Real(_));
         if ui.checkbox(&mut real, tl!("To scale")).on_hover_text(tl!("Width in real-world inches, drawn to the page's scale (walls)")).changed() {
             *w = if real { LineWidth::Real(6.0) } else { LineWidth::Paper(1.0) };
+            set = true;
         }
     });
+    set
 }
 
 /// A labelled number in the ribbon.

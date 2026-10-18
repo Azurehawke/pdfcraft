@@ -247,6 +247,55 @@ pub fn mark_real_width(doc: &mut Document, page: usize, index: usize, inches: f6
     set_appearance(doc, r)
 }
 
+/// Set how wide the line, polyline, polygon or drawing at `(page, index)` is drawn: `width` points
+/// on paper and, for a width drawn to scale, `real_inches` in the real world (`None` takes the
+/// real-world mark off, so it is a pen width again). `/Rect` grows to hold the wider line.
+pub fn set_line_width(doc: &mut Document, page: usize, index: usize, width: f64, real_inches: Option<f64>, meta: &Meta) -> Result<(), AnnotError> {
+    if !width.is_finite() || width <= 0.0 || width > 1e4 || real_inches.is_some_and(|i| !i.is_finite() || i <= 0.0 || i > 1e5) {
+        return Err(AnnotError::Invalid("invalid width".into()));
+    }
+    let (_, r) = annot_ref(doc, page, index)?;
+    unlocked(doc, r)?;
+    let d = annot_dict(doc, r);
+    let points = match d.name(b"Subtype") {
+        Some(b"Line") => points_of(&numbers(doc, &d, b"L")),
+        Some(b"PolyLine" | b"Polygon") => points_of(&numbers(doc, &d, b"Vertices")),
+        Some(b"Ink") if real_inches.is_none() => match d.get(b"InkList").map(|o| doc.resolve(o)).as_deref() {
+            Some(Object::Array(list)) => list
+                .iter()
+                .flat_map(|s| {
+                    doc.resolve(s).as_array().map(|a| points_of(&a.iter().filter_map(|x| x.as_f64()).collect::<Vec<_>>())).unwrap_or_default()
+                })
+                .collect(),
+            _ => Vec::new(),
+        },
+        _ => return Err(AnnotError::Invalid("only lines, shapes made of lines and drawings have a line width".into())),
+    };
+    let old = numbers(doc, &d, b"Rect");
+    let mut changed = d;
+    crate::set_border_width(&mut changed, width);
+    match real_inches {
+        Some(inches) => changed.set(b"PCRealWidth".to_vec(), Object::Real(inches)),
+        None => {
+            changed.remove(b"PCRealWidth");
+        }
+    }
+    // Room for the line's half width, and a whole width at sharp corners; never smaller than before
+    // (a dimension's leaders and text sit outside its points).
+    if let Some(b) = bounds(points.into_iter()) {
+        let grow = width + 1.0;
+        let mut rect = [b[0] - grow, b[1] - grow, b[2] + grow, b[3] + grow];
+        if let [x0, y0, x1, y1] = old[..] {
+            rect = [rect[0].min(x0.min(x1)), rect[1].min(y0.min(y1)), rect[2].max(x0.max(x1)), rect[3].max(y0.max(y1))];
+        }
+        changed.set(b"Rect".to_vec(), num_array(&rect));
+    }
+    crate::ensure_ending_room(&mut changed);
+    touch(&mut changed, meta);
+    doc.update_dict(r, |t| *t = changed)?;
+    set_appearance(doc, r)
+}
+
 /// Write `text` as the caption a line or polyline shows (an angle's reading), as its comment and
 /// subject too, and redraw it.
 pub fn set_caption(doc: &mut Document, page: usize, index: usize, text: &str, subject: &str) -> Result<(), AnnotError> {
