@@ -40,6 +40,20 @@ fn home_shows_welcome_and_tools() {
 }
 
 #[test]
+fn the_tab_strip_new_button_opens_the_new_dialog_over_a_document() {
+    let mut h = harness(|app| {
+        app.open_bytes("plan.pdf", None, FIXTURE.to_vec()).unwrap();
+    });
+    h.get_by_label("New").click();
+    h.run_steps(3);
+    h.get_by_label("Start a new drawing");
+    h.get_by_label("Add to the open document");
+    // It stays open on the frames after the click.
+    h.run_steps(6);
+    h.get_by_label("Start a new drawing");
+}
+
+#[test]
 fn new_dialog_makes_a_drawing_at_a_size() {
     let mut h = harness(|_| {});
     h.get_by_label("New or open").click();
