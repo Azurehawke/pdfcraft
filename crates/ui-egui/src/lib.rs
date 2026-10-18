@@ -1278,6 +1278,7 @@ impl PdfCraftApp {
             pickers::PickFor::Open,
             crate::dialog::AsyncFileDialog::new()
                 .add_filter("PDF", &["pdf"])
+                .add_filter(tl!("Drawings (DWG, DXF)"), &pdfcraft_engine::CAD_EXTENSIONS)
                 .add_filter(tl!("Images and text (converted to PDF)"), &create_ui::CONVERTIBLE),
             false,
         );
@@ -1289,6 +1290,7 @@ impl PdfCraftApp {
             wasm_bindgen_futures::spawn_local(async move {
                 if let Some(h) = crate::dialog::AsyncFileDialog::new()
                     .add_filter("PDF", &["pdf"])
+                    .add_filter(tl!("Drawings (DWG, DXF)"), &pdfcraft_engine::CAD_EXTENSIONS)
                     .add_filter(tl!("Images and text"), &create_ui::CONVERTIBLE)
                     .pick_file()
                     .await

@@ -209,6 +209,11 @@ than rewritten.
       geometry in drawing units).
 
 DWG/DXF round trip
+- [ ] **(Steve, fast-tracked)** Open a DWG or DXF like a PDF (New dialog, Recent, drag and drop):
+      each layout (title-block sheet) a page in tab order at 1:1, model space fitted to a sheet
+      when there are no layouts; CAD layers as PDF layers; every viewport's scale as a
+      measurement viewport (1/8" = 1'-0", 1:100), so measuring needs no calibrating. Through
+      CADCraft's reader and plotter (cadcraft-io).
 - [ ] Export: drawn geometry, layers (names, colours), symbols as blocks with their labels,
       text and dimensions to DXF and DWG, at real-world size (drawing units from the page
       scale).

@@ -55,7 +55,7 @@ jobs:
         if: always()
         run: |
           set -o pipefail
-          cargo test --no-fail-fast -p pdfcraft-annot -p pdfcraft-render -p pdfcraft-measure -p pdfcraft-automation -p pdfcraft-engine -p pdfcraft-ui-egui 2>&1 | tee "$RUNNER_TEMP/test.log"
+          cargo test --no-fail-fast -p pdfcraft-create -p pdfcraft-annot -p pdfcraft-render -p pdfcraft-measure -p pdfcraft-automation -p pdfcraft-engine -p pdfcraft-ui-egui 2>&1 | tee "$RUNNER_TEMP/test.log"
 
       - name: Screenshots
         if: always()

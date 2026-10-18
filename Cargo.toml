@@ -51,6 +51,12 @@ lopdf = "0.45"
 flate2 = { version = "1.1", default-features = false, features = ["rust_backend"] }
 weezl = "0.2"
 
+# RevuCraft: DWG and DXF drawings, through CADCraft's reader and plotter (MIT OR Apache-2.0; DWG
+# through acadrust, MPL-2.0, used unmodified).
+cadcraft-io = { git = "https://github.com/Azurehawke/cadcraft", rev = "e707ab4d7cc10102e550ad4c5bcecef1084a9baa" }
+cadcraft-doc = { git = "https://github.com/Azurehawke/cadcraft", rev = "e707ab4d7cc10102e550ad4c5bcecef1084a9baa" }
+cadcraft-render = { git = "https://github.com/Azurehawke/cadcraft", rev = "e707ab4d7cc10102e550ad4c5bcecef1084a9baa" }
+
 # foundation
 thiserror = "2"
 # RevuCraft: your own symbols from SVG (already in the tree through egui_extras; no text support).

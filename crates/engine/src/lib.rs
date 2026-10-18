@@ -36,6 +36,7 @@ pub use pdfcraft_organize::LabelStyle;
 pub use pdfcraft_organize::view::{InitialView, Layout as InitialLayout, Magnification, Navigation};
 
 pub use pdfcraft_cos::Algorithm;
+pub use pdfcraft_create::cad::EXTENSIONS as CAD_EXTENSIONS;
 pub use pdfcraft_create::{CONVERTIBLE, ImageResolution, SourceKind, decode_text, source_kind};
 pub use pdfcraft_edit::{
     Added, AddedImage, AddedText, Align as TextAlign, Background, Content as AddedContent, Family as FontFamily, HeaderFooter, MarkKind, Watermark,
@@ -3127,6 +3128,25 @@ impl Session {
         self.write_new(&pdfcraft_create::from_images_with_resolution(images, resolution)?)
     }
 
+    /// RevuCraft: a DWG or DXF drawing as a new document, one page per layout (or model space),
+    /// with each viewport's scale as a measurement viewport over it.
+    pub fn create_from_cad(&self, name: &str, bytes: &[u8]) -> Result<Arc<Vec<u8>>, EditError> {
+        let sheets = pdfcraft_create::cad::to_pdf(bytes, name)?;
+        let pdf = Arc::new(sheets.pdf);
+        let mut doc = open_source(name, &pdf)?;
+        for vp in &sheets.viewports {
+            let feet = vp.unit == "ft";
+            let scale = measure::Scale::new(vp.real_per_point, vp.unit, if feet { 2 } else { 0 });
+            let scale = if feet { scale.and_then(|s| s.with_feet_inches(16)) } else { scale };
+            // A viewport whose scale can't be written is left to calibrate by hand.
+            if let Ok(mut scale) = scale {
+                scale.ratio = vp.ratio.clone();
+                let _ = measure::set_scale(&mut doc, vp.page, vp.bbox, &vp.name, &scale);
+            }
+        }
+        self.write_new(&doc)
+    }
+
     /// A new document from plain text (US Letter, 11 pt Helvetica).
     pub fn create_from_text(&self, title: &str, text: &str) -> Result<Arc<Vec<u8>>, EditError> {
         self.write_new(&pdfcraft_create::from_text(title, text, pdfcraft_create::LETTER, 11.0)?)
@@ -3144,6 +3164,7 @@ impl Session {
             SourceKind::Pdf => open_source(name, bytes).map(|_| bytes.clone()),
             SourceKind::Image => self.create_from_images(&[(name.to_string(), bytes.to_vec())]),
             SourceKind::Text => self.create_from_text(title, &decode_text(bytes)),
+            SourceKind::Cad => self.create_from_cad(name, bytes),
         })
         .map_err(|_| EditError::Source(format!("{name}: the file could not be read")))?;
         Ok((kind, created?))

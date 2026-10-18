@@ -485,7 +485,9 @@ fn home() -> Option<std::path::PathBuf> {
 /// Files the browser lists unless "All files" is chosen: PDFs and what converts to PDF.
 fn openable(name: &str) -> bool {
     let lower = name.to_ascii_lowercase();
-    lower.rsplit_once('.').is_some_and(|(_, ext)| ext == "pdf" || pdfcraft_engine::CONVERTIBLE.contains(&ext))
+    lower
+        .rsplit_once('.')
+        .is_some_and(|(_, ext)| ext == "pdf" || pdfcraft_engine::CONVERTIBLE.contains(&ext) || pdfcraft_engine::CAD_EXTENSIONS.contains(&ext))
 }
 
 #[cfg(not(any(target_os = "android", target_arch = "wasm32")))]
@@ -693,13 +695,12 @@ fn browser(ui: &mut egui::Ui, t: &Tokens, d: &mut NewDialog, recent: &[(String, 
         ui.label(tl!("File"));
         let r = ui.add(egui::TextEdit::singleline(&mut d.file_name).desired_width(320.0));
         let enter = r.lost_focus() && ui.input(|i| i.key_pressed(egui::Key::Enter));
-        egui::ComboBox::from_id_salt("new-filter").selected_text(if d.all_files { tl!("All files") } else { tl!("PDF and images") }).show_ui(
-            ui,
-            |ui| {
-                ui.selectable_value(&mut d.all_files, false, tl!("PDF and images"));
+        egui::ComboBox::from_id_salt("new-filter")
+            .selected_text(if d.all_files { tl!("All files") } else { tl!("PDF, drawings and images") })
+            .show_ui(ui, |ui| {
+                ui.selectable_value(&mut d.all_files, false, tl!("PDF, drawings and images"));
                 ui.selectable_value(&mut d.all_files, true, tl!("All files"));
-            },
-        );
+            });
         ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
             let open = widgets::pill_button(ui, tl!("Open"), true).clicked();
             if widgets::pill_button(ui, tl!("Cancel"), false).clicked() {

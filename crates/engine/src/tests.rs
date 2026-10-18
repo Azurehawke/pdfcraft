@@ -3035,6 +3035,26 @@ fn drafting_edits_change_points_copy_and_rotate() {
 }
 
 #[test]
+fn a_dxf_drawing_opens_as_a_measurable_sheet() {
+    // Model space only: one 120-inch line, inch units.
+    let dxf = "0\nSECTION\n2\nHEADER\n9\n$INSUNITS\n70\n1\n0\nENDSEC\n0\nSECTION\n2\nENTITIES\n0\nLINE\n8\n0\n10\n0.0\n20\n0.0\n30\n0.0\n11\n120.0\n21\n0.0\n31\n0.0\n0\nENDSEC\n0\nEOF\n";
+    assert_eq!(source_kind("plan.dxf", dxf.as_bytes()), Some(SourceKind::Cad));
+    let mut session = Session::default();
+    let (kind, pdf) = session.convert_to_pdf("plan.dxf", &Arc::new(dxf.as_bytes().to_vec())).unwrap();
+    assert_eq!(kind, SourceKind::Cad);
+    let id = session.open("plan.pdf", None, pdf, None).unwrap();
+    let doc = session.get(id).unwrap();
+    assert_eq!(doc.info.pages.len(), 1);
+    let page = &doc.info.pages[0];
+    let centre = doc.measurement_to_user(0, [page.width as f64 / 2.0, page.height as f64 / 2.0]).unwrap();
+    let scale = doc.measurement_scale(0, centre).unwrap();
+    assert!(scale.ratio.starts_with("1"), "the fitted scale is written: {}", scale.ratio);
+    assert!(doc.real_size_points(0, centre, 1.0).is_some(), "the sheet measures without calibrating");
+    // Not a drawing: an error, not a crash.
+    assert!(session.convert_to_pdf("broken.dwg", &Arc::new(b"AC1032 not really".to_vec())).is_err());
+}
+
+#[test]
 fn line_widths_change_after_drawing_on_paper_and_to_scale() {
     let mut session = Session::default();
     let id = session.open("plan.pdf", None, Arc::new(fixture(1)), None).unwrap();

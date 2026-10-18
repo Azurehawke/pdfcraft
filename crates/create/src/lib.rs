@@ -4,6 +4,7 @@
 
 use pdfcraft_cos::{Dict, Document, ObjRef, Object, PdfString, Stream};
 
+pub mod cad;
 mod extract;
 pub mod report;
 pub use extract::{ExtractedImage, ImageExport, extract_images, image_file};
@@ -471,6 +472,8 @@ pub enum SourceKind {
     Pdf,
     Image,
     Text,
+    /// RevuCraft: a DWG or DXF drawing ([`cad`]).
+    Cad,
 }
 
 /// File extensions Create converts to PDF (images and plain text).
@@ -499,6 +502,9 @@ pub fn source_kind(name: &str, bytes: &[u8]) -> Option<SourceKind> {
     }
     if is_image(bytes) {
         return Some(SourceKind::Image);
+    }
+    if cad::is_cad(name, bytes) {
+        return Some(SourceKind::Cad);
     }
     let lower = name.to_ascii_lowercase();
     (lower.ends_with(".txt") || lower.ends_with(".text")).then_some(SourceKind::Text)
