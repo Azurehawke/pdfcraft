@@ -157,7 +157,10 @@ fn sections(app: &mut PdfCraftApp, ui: &mut egui::Ui, t: &Tokens, run: &mut Opti
             if *sec != section {
                 continue;
             }
-            ui.label(egui::RichText::new(tl!(caption)).font(theme::regular(11.0)).color(t.text_faint));
+            ui.add(
+                egui::Label::new(egui::RichText::new(tl!(caption)).font(theme::regular(11.0)).color(t.text_faint))
+                    .wrap_mode(egui::TextWrapMode::Extend),
+            );
             ui.horizontal_wrapped(|ui| {
                 ui.spacing_mut().item_spacing = vec2(2.0, 2.0);
                 for e in entries.iter().copied() {

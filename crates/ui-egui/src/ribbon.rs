@@ -203,7 +203,10 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
                                     }
                                 }
                             });
-                            ui.label(egui::RichText::new(crate::i18n::t(caption)).font(theme::regular(11.0)).color(t.text_faint));
+                            ui.add(
+                                egui::Label::new(egui::RichText::new(crate::i18n::t(caption)).font(theme::regular(11.0)).color(t.text_faint))
+                                    .wrap_mode(egui::TextWrapMode::Extend),
+                            );
                         });
                     }
                     // RevuCraft: dimensions are added to existing drawings too, so Markup has them
@@ -224,7 +227,10 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
                                     }
                                 }
                             });
-                            ui.label(egui::RichText::new(crate::i18n::t("Dimensions")).font(theme::regular(11.0)).color(t.text_faint));
+                            ui.add(
+                                egui::Label::new(egui::RichText::new(crate::i18n::t("Dimensions")).font(theme::regular(11.0)).color(t.text_faint))
+                                    .wrap_mode(egui::TextWrapMode::Extend),
+                            );
                         });
                     }
                     // RevuCraft: a cable run's allowance and the totals, beside its button.
