@@ -226,7 +226,9 @@ mod tests {
         let back = Document::open(Arc::new(bytes)).unwrap();
         let pages = pdfcraft_model::pages(&back);
         assert!(pages.len() >= 3, "{} pages", pages.len());
-        let text = String::from_utf8_lossy(&write_full(&back, &SaveOptions::default()).unwrap()).to_string();
+        // Without object streams, so the page resources are readable as text.
+        let plain = SaveOptions { object_streams: false, ..SaveOptions::default() };
+        let text = String::from_utf8_lossy(&write_full(&back, &plain).unwrap()).to_string();
         assert!(text.contains("/Im1"), "the photo is drawn");
         // Nothing at all still makes a page.
         assert!(report("Empty", "", &[], &[], |n, t| format!("{n}/{t}")).is_ok());

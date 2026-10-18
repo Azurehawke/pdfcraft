@@ -163,10 +163,11 @@ pub fn to_pdf(bytes: &[u8], name: &str) -> Result<CadSheets, CreateError> {
                 let Ok(setup) = cadcraft_io::pdf::page_for(&d, space, &opts) else { continue };
                 let sheet = cadcraft_render::Sheet::from_page(&setup, unit_mm);
                 let b = d.extents(space);
-                if b.is_empty() || b.width() <= 0.0 || b.height() <= 0.0 {
+                // A drawing one line thick (or tall) fits by its other side, as the plotter does.
+                if b.is_empty() || (b.width() <= 0.0 && b.height() <= 0.0) {
                     continue;
                 }
-                let s = (sheet.printable.width() / b.width()).min(sheet.printable.height() / b.height());
+                let s = (sheet.printable.width() / b.width().max(1e-12)).min(sheet.printable.height() / b.height().max(1e-12));
                 let Some(real_per_point) = real(1.0 / (s * k)) else { continue };
                 let size = sheet.size * k;
                 let ratio = ratio_label(real_per_point, unit);
