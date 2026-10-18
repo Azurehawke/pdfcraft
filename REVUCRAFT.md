@@ -209,7 +209,7 @@ than rewritten.
       geometry in drawing units).
 
 DWG/DXF round trip
-- [ ] **(Steve, fast-tracked)** Open a DWG or DXF like a PDF (New dialog, Recent, drag and drop):
+- [x] **(Steve, build 82)** Open a DWG or DXF like a PDF (New dialog, Recent, drag and drop):
       each layout (title-block sheet) a page in tab order at 1:1, model space fitted to a sheet
       when there are no layouts; CAD layers as PDF layers; every viewport's scale as a
       measurement viewport (1/8" = 1'-0", 1:100), so measuring needs no calibrating. Through
