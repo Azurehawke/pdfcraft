@@ -46,21 +46,25 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
         .exact_size(28.0)
         .frame(egui::Frame::NONE.fill(t.chrome).inner_margin(egui::Margin::symmetric(10, 0)).stroke(Stroke::new(1.0, t.divider)))
         .show(ui, |ui| {
+            // A phone's width: no hints, so the switches on the right keep their room.
+            let compact = ui.available_width() < 600.0;
             ui.horizontal_centered(|ui| {
-                ui.spacing_mut().item_spacing.x = 14.0;
+                ui.spacing_mut().item_spacing.x = if compact { 8.0 } else { 14.0 };
                 let font = theme::regular(12.0);
                 match &pos {
                     Some((x, y, ratio)) => {
                         ui.label(egui::RichText::new(format!("X {x}")).font(theme::medium(12.0)).color(t.text));
                         ui.label(egui::RichText::new(format!("Y {y}")).font(theme::medium(12.0)).color(t.text));
-                        ui.label(egui::RichText::new(ratio).font(font.clone()).color(t.text_muted));
+                        if !compact {
+                            ui.label(egui::RichText::new(ratio).font(font.clone()).color(t.text_muted));
+                        }
                     }
-                    None if hint.is_none() => {
+                    None if hint.is_none() && !compact => {
                         ui.label(egui::RichText::new(tl!("Point at the drawing to see coordinates")).font(font.clone()).color(t.text_faint));
                     }
                     None => {}
                 }
-                if let Some(hint) = hint {
+                if let Some(hint) = hint.filter(|_| !compact) {
                     ui.label(egui::RichText::new(hint).font(font.clone()).color(t.text_muted));
                 }
                 ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
