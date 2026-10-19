@@ -2633,3 +2633,4 @@ key	Space	Leertaste
 	{name} was saved in CADCraft: the sheet is updated, and the markups stayed put.	{name} wurde in CADCraft gespeichert: Das Blatt ist aktualisiert, die Markierungen sind geblieben.
 	{n} linked drawings	{n} verknüpfte Zeichnungen
 	{when} (newer than the sheet)	{when} (neuer als das Blatt)
+	Sheets opened from a DWG or DXF are linked to it and show here, so you can update them when the drawing changes.	Aus einer DWG oder DXF geöffnete Blätter sind mit ihr verknüpft und erscheinen hier, damit Sie sie aktualisieren können, wenn sich die Zeichnung ändert.

@@ -2631,3 +2631,4 @@ key	Space	Szóköz
 	{name} was saved in CADCraft: the sheet is updated, and the markups stayed put.	{name} mentve a CADCraftban: a lap frissült, a jelölések a helyükön maradtak.
 	{n} linked drawings	{n} csatolt rajz
 	{when} (newer than the sheet)	{when} (újabb a lapnál)
+	Sheets opened from a DWG or DXF are linked to it and show here, so you can update them when the drawing changes.	A DWG- vagy DXF-fájlból megnyitott lapok hozzá vannak csatolva, és itt jelennek meg, hogy frissíthesse őket, ha a rajz változik.

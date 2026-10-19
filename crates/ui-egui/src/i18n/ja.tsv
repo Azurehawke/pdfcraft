@@ -2633,3 +2633,4 @@ key	Space	スペース
 	{name} was saved in CADCraft: the sheet is updated, and the markups stayed put.	{name} が CADCraft で保存されました。シートを更新し、マークアップはそのままです。
 	{n} linked drawings	リンクされた図面 {n} 件
 	{when} (newer than the sheet)	{when}（シートより新しい）
+	Sheets opened from a DWG or DXF are linked to it and show here, so you can update them when the drawing changes.	DWG や DXF から開いたシートはそのファイルにリンクされ、ここに表示されます。図面が変わったら更新できます。

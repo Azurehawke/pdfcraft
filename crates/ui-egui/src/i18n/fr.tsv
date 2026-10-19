@@ -2633,3 +2633,4 @@ key	Space	Espace
 	{name} was saved in CADCraft: the sheet is updated, and the markups stayed put.	{name} a été enregistré dans CADCraft : la feuille est à jour et les annotations n’ont pas bougé.
 	{n} linked drawings	{n} dessins liés
 	{when} (newer than the sheet)	{when} (plus récent que la feuille)
+	Sheets opened from a DWG or DXF are linked to it and show here, so you can update them when the drawing changes.	Les feuilles ouvertes depuis un DWG ou un DXF y sont liées et apparaissent ici, pour les mettre à jour quand le dessin change.

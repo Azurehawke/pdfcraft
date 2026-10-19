@@ -2655,3 +2655,4 @@ key	Space	مسافة
 	{name} was saved in CADCraft: the sheet is updated, and the markups stayed put.	حُفظ {name} في CADCraft: تم تحديث الورقة وبقيت التعليقات في مكانها.
 	{n} linked drawings	رسومات مرتبطة: {n}
 	{when} (newer than the sheet)	{when} (أحدث من الورقة)
+	Sheets opened from a DWG or DXF are linked to it and show here, so you can update them when the drawing changes.	الأوراق المفتوحة من ملف DWG أو DXF مرتبطة به وتظهر هنا، لتحديثها عند تغيّر الرسم.

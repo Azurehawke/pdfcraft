@@ -2657,3 +2657,4 @@ key	Space	Пробіл
 	{name} was saved in CADCraft: the sheet is updated, and the markups stayed put.	{name} збережено в CADCraft: аркуш оновлено, позначки лишилися на місці.
 	{n} linked drawings	Пов’язаних креслень: {n}
 	{when} (newer than the sheet)	{when} (новіше за аркуш)
+	Sheets opened from a DWG or DXF are linked to it and show here, so you can update them when the drawing changes.	Аркуші, відкриті з DWG або DXF, пов’язані з ним і показані тут, щоб їх можна було оновити, коли креслення зміниться.

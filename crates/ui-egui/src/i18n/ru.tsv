@@ -2546,3 +2546,4 @@ key	Space	Пробел
 	{name} was saved in CADCraft: the sheet is updated, and the markups stayed put.	{name} сохранён в CADCraft: лист обновлён, пометки остались на месте.
 	{n} linked drawings	Связанных чертежей: {n}
 	{when} (newer than the sheet)	{when} (новее листа)
+	Sheets opened from a DWG or DXF are linked to it and show here, so you can update them when the drawing changes.	Листы, открытые из DWG или DXF, связаны с ним и показаны здесь, чтобы их можно было обновить, когда чертёж изменится.

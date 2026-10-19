@@ -2598,3 +2598,4 @@ key	Space	空格
 	{name} was saved in CADCraft: the sheet is updated, and the markups stayed put.	{name} 已在 CADCraft 中保存：图页已更新，标记保持原位。
 	{n} linked drawings	{n} 个链接图纸
 	{when} (newer than the sheet)	{when}（比图页新）
+	Sheets opened from a DWG or DXF are linked to it and show here, so you can update them when the drawing changes.	从 DWG 或 DXF 打开的图页会链接到该文件并显示在这里，图纸变更时可随时更新。

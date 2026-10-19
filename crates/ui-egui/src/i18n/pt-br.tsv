@@ -2635,3 +2635,4 @@ key	Space	Espaço
 	{name} was saved in CADCraft: the sheet is updated, and the markups stayed put.	{name} foi salvo no CADCraft: a folha está atualizada e as marcações ficaram no lugar.
 	{n} linked drawings	{n} desenhos vinculados
 	{when} (newer than the sheet)	{when} (mais recente que a folha)
+	Sheets opened from a DWG or DXF are linked to it and show here, so you can update them when the drawing changes.	As folhas abertas de um DWG ou DXF ficam vinculadas a ele e aparecem aqui, para você atualizá-las quando o desenho mudar.
