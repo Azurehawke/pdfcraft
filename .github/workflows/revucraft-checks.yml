@@ -101,6 +101,7 @@ jobs:
             done
             printf '0\nENDSEC\n0\nEOF\n'; } > "$dxf"
           shot dxf-open "$dxf" --workflow measure --tool measure
+          shot dxf-links "$dxf" --dock links,layers
           shot plan-symbols "$plan" --workflow symbols
           shot plan-layers "$plan" --workflow symbols --panel layers
           shot plan-dock "$plan" --workflow measure --tool measure --dock layers,comments
