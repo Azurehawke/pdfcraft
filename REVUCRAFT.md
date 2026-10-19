@@ -217,6 +217,17 @@ DWG/DXF round trip
 - [ ] Export: drawn geometry, layers (names, colours), symbols as blocks with their labels,
       text and dimensions to DXF and DWG, at real-world size (drawing units from the page
       scale).
+- [ ] **(Steve, planned)** Linked drawings, as InDesign links: a sheet opened from a DWG/DXF
+      remembers its file, layout, date and fingerprint, with the plotted drawing as the backdrop
+      under the markups (and a copy kept in the PDF). Place linked drawing puts one under an
+      existing PDF sheet, lined up once by two points. A Links pane (right rail) lists each link:
+      Up to date / Modified / Missing, with Update, Update all, Edit original (opens CADCraft on
+      that layout), Relink, Reveal file; a badge on its icon when one is out of date. Edits
+      started with Edit original update the sheet automatically when CADCraft saves; changes made
+      elsewhere (the server, Syncthing) only show as Modified until Update. Markups, photos and
+      counts stay put; viewport scales follow. Option (off by default): keep each previous
+      drawing as a hidden Rev layer. Files live on Steve's server and in Syncthing folders for
+      now; other storage is for the public release.
 - [ ] Import: a DXF or DWG (changed in CAD) placed back on the PDF sheet at the same scale and
       origin, as a new revision under the existing markup, so markups, photos and counts stay
       put; or as a fresh sheet.
