@@ -55,6 +55,22 @@ pub fn ghost_button(ui: &mut egui::Ui, icon: &str, label: &str) -> Response {
     resp
 }
 
+/// [`ghost_button`], or only its icon when space is short (`compact`, on a phone); the label
+/// stays its name for screen readers and its tooltip.
+pub fn ghost_button_fit(ui: &mut egui::Ui, icon: &str, label: &str, compact: bool) -> Response {
+    if !compact {
+        return ghost_button(ui, icon, label);
+    }
+    let t = Tokens::get(ui.ctx());
+    let (rect, resp) = ui.allocate_exact_size(vec2(32.0, 30.0), Sense::click());
+    resp.widget_info(|| egui::WidgetInfo::labeled(egui::WidgetType::Button, ui.is_enabled(), label));
+    if resp.hovered() {
+        ui.painter().rect_filled(rect, CornerRadius::same(6), t.hover);
+    }
+    icons::paint(ui, Rect::from_center_size(rect.center(), vec2(18.0, 18.0)), icon, 17.0, t.icon);
+    resp.on_hover_text(label)
+}
+
 /// A search-field lookalike that opens the command palette.
 pub fn search_box(ui: &mut egui::Ui, placeholder: &str, width: f32) -> Response {
     let t = Tokens::get(ui.ctx());
