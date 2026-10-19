@@ -201,6 +201,64 @@ pub fn to_pdf_layout(bytes: &[u8], name: &str, only: Option<&str>) -> Result<Cad
     Ok(CadSheets { pdf, viewports, layouts: layout_names, notes: d.read_notes.clone() })
 }
 
+/// A drawing's model space plotted at a sheet's scale, to place on that sheet.
+#[derive(Clone, Debug)]
+pub struct PlacedPlot {
+    /// One page, exactly the drawing's extents (with a small margin) at the scale.
+    pub pdf: Vec<u8>,
+    /// The drawing point (drawing units) at the page's lower-left corner.
+    pub model_min: [f64; 2],
+    /// PDF points per drawing unit.
+    pub points_per_unit: f64,
+    /// The page's size in points.
+    pub size: [f64; 2],
+    pub notes: Vec<String>,
+}
+
+/// Plot the drawing's model space so that one point is `real_inches_per_point` real inches (the
+/// sheet's scale), on a page just big enough for it, to be placed on a sheet.
+pub fn plot_model_to_scale(bytes: &[u8], name: &str, real_inches_per_point: f64) -> Result<PlacedPlot, CreateError> {
+    if bytes.len() > MAX_BYTES {
+        return Err(CreateError::Invalid(format!("{name}: the drawing is larger than 512 MB")));
+    }
+    if !real_inches_per_point.is_finite() || real_inches_per_point <= 0.0 {
+        return Err(CreateError::Invalid("the sheet's scale isn't usable".into()));
+    }
+    let d = cadcraft_io::read(bytes, name).map_err(|e| CreateError::Invalid(format!("{name}: {e}")))?;
+    let b = d.extents(&Space::Model);
+    if b.is_empty() || !(b.width().is_finite() && b.height().is_finite()) {
+        return Err(CreateError::Invalid(format!("{name}: the drawing's model space is empty")));
+    }
+    // A small margin for line ends and text that reach past the geometry.
+    let pad = (b.width().max(b.height()) * 0.02).max(1e-6);
+    let (x0, y0) = (b.min.x - pad, b.min.y - pad);
+    let (w, h) = (b.width() + 2.0 * pad, b.height() + 2.0 * pad);
+    let ppu = unit_inches(&d) / real_inches_per_point;
+    let size = [w * ppu, h * ppu];
+    if !(size[0].is_finite() && size[1].is_finite()) || size[0] > 14_400.0 || size[1] > 14_400.0 || size[0] < 1.0 || size[1] < 1.0 {
+        return Err(CreateError::Invalid(format!("{name}: the drawing doesn't fit a sheet at this scale")));
+    }
+    let unit_mm = cadcraft_render::paper::paper_unit_mm(&d);
+    let k = unit_mm * PT_PER_MM;
+    let (wmm, hmm) = (size[0] / PT_PER_MM, size[1] / PT_PER_MM);
+    let window = cadcraft_doc::geom::Bounds2::new(cadcraft_doc::geom::Vec2::new(x0, y0), cadcraft_doc::geom::Vec2::new(x0 + w, y0 + h));
+    let opts = cadcraft_io::PdfOptions {
+        paper_mm: Some((wmm.min(hmm), wmm.max(hmm))),
+        landscape: Some(wmm > hmm),
+        fit: Some(false),
+        scale: Some(ppu / k),
+        center: Some(false),
+        offset: Some([0.0, 0.0]),
+        margins: Some([0.0; 4]),
+        window: Some(window),
+        compress: true,
+        title: name.rsplit_once('.').map_or(name, |(s, _)| s).to_string(),
+        ..cadcraft_io::PdfOptions::default()
+    };
+    let pdf = cadcraft_io::pdf::pdf_sheets(&d, &[Space::Model], &opts).map_err(|e| CreateError::Invalid(format!("{name}: {e}")))?;
+    Ok(PlacedPlot { pdf, model_min: [x0, y0], points_per_unit: ppu, size, notes: d.read_notes.clone() })
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -226,6 +284,16 @@ mod tests {
         assert_eq!(ratio_label(8.0 / 72.0 / 12.0, "ft"), "1 1/2\" = 1'-0\"");
         assert_eq!(ratio_label(20.0 / 72.0, "ft"), "1\" = 20'");
         assert_eq!(ratio_label(100.0 / PT_PER_MM, "mm"), "1:100");
+    }
+
+    #[test]
+    fn model_space_plots_at_the_sheet_scale() {
+        // 1/8" = 1'-0": a point is 96/72 real inches; the 120-inch line is 90 points long.
+        let p = plot_model_to_scale(LINE_DXF.as_bytes(), "room.dxf", 96.0 / 72.0).expect("it plots");
+        assert!(p.pdf.starts_with(b"%PDF-"));
+        assert!((p.points_per_unit - 0.75).abs() < 1e-9, "{}", p.points_per_unit);
+        assert!(p.size[0] > 90.0 && p.size[0] < 100.0, "{:?}", p.size);
+        assert!(plot_model_to_scale(LINE_DXF.as_bytes(), "room.dxf", 0.0).is_err());
     }
 
     #[test]

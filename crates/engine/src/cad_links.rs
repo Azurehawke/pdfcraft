@@ -43,6 +43,10 @@ pub struct CadLink {
     pub updated: i64,
     /// Earlier drawings kept as hidden layers.
     pub revisions: usize,
+    /// Placed on a sheet (one of several drawings on it), not the whole sheet.
+    pub placed: bool,
+    /// Where a placed drawing is on its sheet (user space: x0, y0, x1, y1).
+    pub rect: Option<[f64; 4]>,
 }
 
 /// The file a sheet is linked to, as read from disk by the app.
@@ -92,6 +96,36 @@ fn text(d: &Dict, key: &[u8]) -> String {
     d.get(key).and_then(Object::as_string).map(PdfString::to_text).unwrap_or_default()
 }
 
+fn num(doc: &Document, d: &Dict, key: &[u8]) -> f64 {
+    d.get(key).and_then(|o| doc.resolve(o).as_f64()).filter(|v| v.is_finite()).unwrap_or(0.0)
+}
+
+fn nums(doc: &Document, d: &Dict, key: &[u8]) -> Vec<f64> {
+    d.get(key)
+        .and_then(|o| doc.resolve(o).as_array().map(|a| a.iter().filter_map(|x| doc.resolve(x).as_f64()).filter(|v| v.is_finite()).collect()))
+        .unwrap_or_default()
+}
+
+fn num_array(v: &[f64]) -> Object {
+    Object::Array(v.iter().map(|x| Object::Real(*x)).collect())
+}
+
+fn placed(d: &Dict) -> bool {
+    matches!(d.get(b"Placed"), Some(Object::Bool(true)))
+}
+
+/// A placed drawing's placement (a translation), identity otherwise.
+fn matrix(doc: &Document, d: &Dict) -> [f64; 6] {
+    match nums(doc, d, b"Matrix").as_slice() {
+        [a, b, c, e, f, g] => [*a, *b, *c, *e, *f, *g],
+        _ => [1.0, 0.0, 0.0, 1.0, 0.0, 0.0],
+    }
+}
+
+fn cm(m: &[f64; 6]) -> String {
+    format!("{:.4} {:.4} {:.4} {:.4} {:.4} {:.4} cm ", m[0], m[1], m[2], m[3], m[4], m[5])
+}
+
 fn int(doc: &Document, d: &Dict, key: &[u8]) -> i64 {
     d.get(key).and_then(|o| doc.resolve(o).as_int()).unwrap_or(0)
 }
@@ -114,6 +148,12 @@ pub fn list(doc: &Document) -> Vec<CadLink> {
                 fingerprint: text(r, b"Hash"),
                 updated: int(doc, r, b"Updated"),
                 revisions: r.get(b"Revs").and_then(|o| doc.resolve(o).as_array().map(Vec::len)).unwrap_or(0),
+                placed: placed(r),
+                rect: placed(r).then(|| {
+                    let m = matrix(doc, r);
+                    let (w, h) = (num(doc, r, b"W"), num(doc, r, b"H"));
+                    [m[4], m[5], m[4] + w, m[5] + h]
+                }),
             })
         })
         .collect()
@@ -157,21 +197,37 @@ fn redraw_page(doc: &mut Document, page: ObjRef) -> Result<(), EditError> {
     let mut content = String::new();
     let mut xobjects = Dict::new();
     let mut props = Dict::new();
+    // What the sheet had before drawings were placed on it.
+    if let Some(base) = doc.get(page).as_dict().and_then(|d| d.reference(b"PCBase")) {
+        xobjects.set(b"PCBase".to_vec(), Object::Ref(base));
+        content.push_str("q /PCBase Do Q\n");
+    }
     for r in records(doc).iter().filter(|r| r.reference(b"Page") == Some(page)) {
         let name = r.name(b"XName").map(|n| String::from_utf8_lossy(n).into_owned()).unwrap_or_else(|| "PCLink".into());
+        let m = matrix(doc, r);
         if let Some(Object::Array(revs)) = r.get(b"Revs").map(|o| (*doc.resolve(o)).clone()) {
             for (k, rev) in revs.iter().enumerate() {
                 let Some(rev) = doc.resolve(rev).as_dict().cloned() else { continue };
                 let (Some(form), Some(ocg)) = (rev.reference(b"Form"), rev.reference(b"OCG")) else { continue };
                 let (x, o) = (format!("{name}R{k}"), format!("{name}O{k}"));
+                // An earlier drawing stays where it was drawn.
+                let rm = if rev.contains(b"Matrix") { matrix(doc, &rev) } else { m };
                 xobjects.set(x.clone().into_bytes(), Object::Ref(form));
                 props.set(o.clone().into_bytes(), Object::Ref(ocg));
-                content.push_str(&format!("/OC /{o} BDC q /{x} Do Q EMC\n"));
+                content.push_str(&format!("/OC /{o} BDC q {}/{x} Do Q EMC\n", cm(&rm)));
             }
         }
         if let Some(form) = r.reference(b"Form") {
             xobjects.set(name.clone().into_bytes(), Object::Ref(form));
-            content.push_str(&format!("q /{name} Do Q\n"));
+            // A placed drawing is on its own layer, named after its file.
+            match r.reference(b"OCG").filter(|_| placed(r)) {
+                Some(ocg) => {
+                    let o = format!("{name}L");
+                    props.set(o.clone().into_bytes(), Object::Ref(ocg));
+                    content.push_str(&format!("/OC /{o} BDC q {}/{name} Do Q EMC\n", cm(&m)));
+                }
+                None => content.push_str(&format!("q {}/{name} Do Q\n", cm(&m))),
+            }
         }
     }
     let mut res = Dict::new();
@@ -398,8 +454,16 @@ pub(crate) fn update(doc: &mut Document, index: usize, name: &str, bytes: &[u8],
     let page_obj = rec.reference(b"Page").ok_or_else(|| invalid("that link has no sheet"))?;
     let page = pdfcraft_model::pages(doc).iter().position(|p| p.obj == page_obj).ok_or_else(|| invalid("that link's sheet is gone"))?;
     let layout = text(&rec, b"Layout");
-    let sheets = pdfcraft_create::cad::to_pdf_layout(bytes, name, Some(&layout))?;
-    let plotted = Document::open(std::sync::Arc::new(sheets.pdf.clone())).map_err(|e| invalid(&format!("{name}: {e}")))?;
+    let is_placed = placed(&rec);
+    // A placed drawing is plotted again at its sheet's scale; a sheet, its layout.
+    let (pdf, sheets, plot) = if is_placed {
+        let plot = pdfcraft_create::cad::plot_model_to_scale(bytes, name, num(doc, &rec, b"RIP"))?;
+        (plot.pdf.clone(), None, Some(plot))
+    } else {
+        let sheets = pdfcraft_create::cad::to_pdf_layout(bytes, name, Some(&layout))?;
+        (sheets.pdf.clone(), Some(sheets), None)
+    };
+    let plotted = Document::open(std::sync::Arc::new(pdf)).map_err(|e| invalid(&format!("{name}: {e}")))?;
     let before: HashMap<String, ObjRef> = pdfcraft_annot::layers::list(doc).into_iter().map(|l| (l.name, l.id)).collect();
     let (form, _) = pdfcraft_organize::page_as_form(doc, &plotted, 0)?;
     reuse_layers(doc, form, &before)?;
@@ -412,10 +476,27 @@ pub(crate) fn update(doc: &mut Document, index: usize, name: &str, bytes: &[u8],
             hide_layer(doc, ocg)?;
             let mut rev = Dict::new();
             rev.set(b"Form".to_vec(), Object::Ref(old));
+            rev.set(b"Matrix".to_vec(), num_array(&matrix(doc, &rec)));
             rev.set(b"OCG".to_vec(), Object::Ref(ocg));
             revs.push(Object::Dict(rev));
             rec.set(b"Revs".to_vec(), Object::Array(revs));
         }
+    }
+    // A placed drawing keeps its place: the same drawing point lands on the same sheet point,
+    // however its extents changed.
+    if let Some(plot) = &plot {
+        let m = matrix(doc, &rec);
+        let old_min = nums(doc, &rec, b"ModelMin");
+        let old_ppu = num(doc, &rec, b"PPU");
+        if let [mx, my] = old_min.as_slice() {
+            let origin = [m[4] - mx * old_ppu, m[5] - my * old_ppu];
+            let ppu = plot.points_per_unit;
+            rec.set(b"Matrix".to_vec(), num_array(&[1.0, 0.0, 0.0, 1.0, origin[0] + plot.model_min[0] * ppu, origin[1] + plot.model_min[1] * ppu]));
+        }
+        rec.set(b"ModelMin".to_vec(), num_array(&plot.model_min));
+        rec.set(b"PPU".to_vec(), Object::Real(plot.points_per_unit));
+        rec.set(b"W".to_vec(), Object::Real(plot.size[0]));
+        rec.set(b"H".to_vec(), Object::Real(plot.size[1]));
     }
     rec.set(b"Form".to_vec(), Object::Ref(form));
     rec.set(b"Size".to_vec(), Object::Int(i64::try_from(file.size).unwrap_or(i64::MAX)));
@@ -427,8 +508,155 @@ pub(crate) fn update(doc: &mut Document, index: usize, name: &str, bytes: &[u8],
     }
     write_records(doc, list)?;
     redraw_page(doc, page_obj)?;
-    let vps: Vec<&pdfcraft_create::cad::CadViewport> = sheets.viewports.iter().filter(|v| v.page == 0).collect();
-    set_viewports(doc, page, &vps)
+    match &sheets {
+        Some(sheets) => {
+            let vps: Vec<&pdfcraft_create::cad::CadViewport> = sheets.viewports.iter().filter(|v| v.page == 0).collect();
+            set_viewports(doc, page, &vps)
+        }
+        // A placed drawing is at the sheet's scale already.
+        None => Ok(()),
+    }
+}
+
+/// Keep what a sheet showed before drawings were placed on it, as a form drawn first.
+fn ensure_base(doc: &mut Document, page: ObjRef, page_dict: &Dict) -> Result<(), EditError> {
+    let own = doc.get(page).as_dict().cloned().unwrap_or_default();
+    if own.contains(b"PCBase") || records(doc).iter().any(|r| r.reference(b"Page") == Some(page)) {
+        return Ok(());
+    }
+    let content = decoded_contents(doc, page_dict)?;
+    let resources = page_dict.get(b"Resources").map(|o| (*doc.resolve(o)).clone()).unwrap_or(Object::Dict(Dict::new()));
+    let bbox = media_box(doc, page_dict);
+    let mut fd = Dict::new();
+    fd.set(b"Type".to_vec(), Object::name("XObject"));
+    fd.set(b"Subtype".to_vec(), Object::name("Form"));
+    fd.set(b"BBox".to_vec(), num_array(&bbox));
+    fd.set(b"Resources".to_vec(), resources);
+    let form = doc.add(Object::Stream(Stream::flate(fd, &content)));
+    doc.update_dict(page, |d| d.set(b"PCBase".to_vec(), Object::Ref(form))).map_err(|e| invalid(&e.to_string()))
+}
+
+fn overlap(a: &[f64; 4], b: &[f64; 4]) -> f64 {
+    let w = (a[2].min(b[2]) - a[0].max(b[0])).max(0.0);
+    let h = (a[3].min(b[3]) - a[1].max(b[1])).max(0.0);
+    w * h
+}
+
+/// Place the model space of drawing `name` (`bytes`, from `file`) on sheet `page`, at the sheet's
+/// scale (1/8" = 1'-0" when the sheet has none), on its own layer. Drawings placed on one sheet
+/// share its drawing coordinates, so rooms drawn where they are in the building land in place;
+/// one that would cover another goes beside them instead. Returns the new link's index.
+pub(crate) fn place(doc: &mut Document, page: usize, name: &str, bytes: &[u8], file: &LinkedFile) -> Result<usize, EditError> {
+    let pages = pdfcraft_model::pages(doc);
+    let p = pages.get(page).ok_or_else(|| invalid("no such sheet"))?;
+    let (page_obj, page_dict) = (p.obj, p.dict.clone());
+    let mbox = media_box(doc, &page_dict);
+    let centre = [(mbox[0] + mbox[2]) / 2.0, (mbox[1] + mbox[3]) / 2.0];
+    let sheet_scale = measure::viewport_scale_at(doc, page, centre).ok().flatten();
+    let rip = sheet_scale.as_ref().and_then(|s| s.points_for_inches(1.0)).filter(|p| p.is_finite() && *p > 0.0).map_or(96.0 / 72.0, |p| 1.0 / p);
+    let plot = pdfcraft_create::cad::plot_model_to_scale(bytes, name, rip)?;
+    let plotted = Document::open(std::sync::Arc::new(plot.pdf.clone())).map_err(|e| invalid(&format!("{name}: {e}")))?;
+    let mut list = records(doc);
+    if list.len() >= MAX_LINKS {
+        return Err(invalid("the document has too many linked drawings"));
+    }
+    ensure_base(doc, page_obj, &page_dict)?;
+    let before: HashMap<String, ObjRef> = pdfcraft_annot::layers::list(doc).into_iter().map(|l| (l.name, l.id)).collect();
+    let (form, _) = pdfcraft_organize::page_as_form(doc, &plotted, 0)?;
+    reuse_layers(doc, form, &before)?;
+    let layer_name: String = std::path::Path::new(&file.path)
+        .file_name()
+        .map(|n| n.to_string_lossy().into_owned())
+        .unwrap_or_else(|| name.to_string())
+        .chars()
+        .filter(|c| !c.is_control())
+        .take(100)
+        .collect();
+    let ocg = pdfcraft_annot::layers::add(doc, if layer_name.trim().is_empty() { "Drawing" } else { &layer_name }, [0.25, 0.25, 0.25])?;
+    // Where drawing (0, 0) is on this sheet: shared by every drawing placed on it.
+    let ppu = plot.points_per_unit;
+    let own = doc.get(page_obj).as_dict().cloned().unwrap_or_default();
+    let origin = match nums(doc, &own, b"PCOrigin").as_slice() {
+        [x, y] => [*x, *y],
+        _ => {
+            let o = [centre[0] - plot.size[0] / 2.0 - plot.model_min[0] * ppu, centre[1] - plot.size[1] / 2.0 - plot.model_min[1] * ppu];
+            doc.update_dict(page_obj, |d| d.set(b"PCOrigin".to_vec(), num_array(&o))).map_err(|e| invalid(&e.to_string()))?;
+            o
+        }
+    };
+    let (w, h) = (plot.size[0], plot.size[1]);
+    let mut at = [origin[0] + plot.model_min[0] * ppu, origin[1] + plot.model_min[1] * ppu];
+    let others: Vec<[f64; 4]> = list
+        .iter()
+        .filter(|r| r.reference(b"Page") == Some(page_obj) && placed(r))
+        .map(|r| {
+            let m = matrix(doc, r);
+            [m[4], m[5], m[4] + num(doc, r, b"W"), m[5] + num(doc, r, b"H")]
+        })
+        .collect();
+    let rect = [at[0], at[1], at[0] + w, at[1] + h];
+    if others.iter().any(|o| overlap(o, &rect) > 0.5 * (w * h).min((o[2] - o[0]) * (o[3] - o[1]))) {
+        // Drawn around their own origins: beside the others, along their bottom edge.
+        let right = others.iter().map(|o| o[2]).fold(f64::MIN, f64::max);
+        let bottom = others.iter().map(|o| o[1]).fold(f64::MAX, f64::min);
+        at = [right + 18.0, bottom];
+    }
+    let index = list.len();
+    let mut r = Dict::new();
+    r.set(b"Path".to_vec(), PdfString::text(&file.path));
+    r.set(b"Layout".to_vec(), PdfString::text("Model"));
+    r.set(b"Page".to_vec(), Object::Ref(page_obj));
+    r.set(b"Form".to_vec(), Object::Ref(form));
+    r.set(b"XName".to_vec(), Object::name(&format!("PCLink{index}")));
+    r.set(b"Size".to_vec(), Object::Int(i64::try_from(file.size).unwrap_or(i64::MAX)));
+    r.set(b"MTime".to_vec(), Object::Int(file.mtime));
+    r.set(b"Hash".to_vec(), PdfString::text(&fingerprint(bytes)));
+    r.set(b"Updated".to_vec(), Object::Int(file.now));
+    r.set(b"Placed".to_vec(), Object::Bool(true));
+    r.set(b"OCG".to_vec(), Object::Ref(ocg));
+    r.set(b"RIP".to_vec(), Object::Real(rip));
+    r.set(b"PPU".to_vec(), Object::Real(ppu));
+    r.set(b"ModelMin".to_vec(), num_array(&plot.model_min));
+    r.set(b"W".to_vec(), Object::Real(w));
+    r.set(b"H".to_vec(), Object::Real(h));
+    r.set(b"Matrix".to_vec(), num_array(&[1.0, 0.0, 0.0, 1.0, at[0], at[1]]));
+    list.push(r);
+    write_records(doc, list)?;
+    redraw_page(doc, page_obj)?;
+    // A sheet without a scale takes the drawings' scale, so it measures.
+    if sheet_scale.is_none() {
+        let feet = rip / 12.0;
+        let vp = pdfcraft_create::cad::CadViewport {
+            page,
+            bbox: mbox,
+            name: "Drawings".into(),
+            real_per_point: feet,
+            unit: "ft",
+            ratio: pdfcraft_create::cad::ratio_label(feet, "ft"),
+        };
+        set_viewports(doc, page, &[&vp])?;
+    }
+    Ok(index)
+}
+
+/// Move placed drawing `index` by (`dx`, `dy`) points on its sheet.
+pub(crate) fn move_link(doc: &mut Document, index: usize, dx: f64, dy: f64) -> Result<(), EditError> {
+    if !(dx.is_finite() && dy.is_finite()) || dx.abs() > 1e5 || dy.abs() > 1e5 {
+        return Err(invalid("that move is out of range"));
+    }
+    let mut list = records(doc);
+    let rec = list.get(index).cloned().ok_or_else(|| invalid("that link doesn't exist"))?;
+    if !placed(&rec) {
+        return Err(invalid("only a drawing placed on a sheet can move"));
+    }
+    let page = rec.reference(b"Page").ok_or_else(|| invalid("that link has no sheet"))?;
+    let m = matrix(doc, &rec);
+    let moved = [m[0], m[1], m[2], m[3], m[4] + dx, m[5] + dy];
+    if let Some(r) = list.get_mut(index) {
+        r.set(b"Matrix".to_vec(), num_array(&moved));
+    }
+    write_records(doc, list)?;
+    redraw_page(doc, page)
 }
 
 /// Point link `index` at a file somewhere else.

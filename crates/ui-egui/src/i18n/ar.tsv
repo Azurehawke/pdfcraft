@@ -2656,3 +2656,9 @@ key	Space	مسافة
 	{n} linked drawings	رسومات مرتبطة: {n}
 	{when} (newer than the sheet)	{when} (أحدث من الورقة)
 	Sheets opened from a DWG or DXF are linked to it and show here, so you can update them when the drawing changes.	الأوراق المفتوحة من ملف DWG أو DXF مرتبطة به وتظهر هنا، لتحديثها عند تغيّر الرسم.
+	Done moving	تم النقل
+	Drag to move · Esc when done	اسحب للنقل · Esc للإنهاء
+	Move on the sheet	نقل على الورقة
+	Place a DWG or DXF on this sheet at its scale, linked to the file (one per room, say)	ضع ملف DWG أو DXF على هذه الورقة بمقياسها، مرتبطًا بالملف (واحد لكل غرفة مثلًا)
+	Place drawing…	وضع رسم…
+	Sheet {n} · placed	الورقة {n} · موضوع

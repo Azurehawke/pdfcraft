@@ -21,6 +21,121 @@ const POLL: Duration = Duration::from_secs(2);
 /// A changed file counts once it has stayed the same this long.
 const SETTLE: Duration = Duration::from_secs(2);
 
+/// A placed drawing being moved on its sheet: where it is and the other drawings there (user
+/// space), and where the drag started.
+#[derive(Clone, Debug, PartialEq)]
+pub struct LinkMove {
+    pub index: usize,
+    pub page: usize,
+    pub rect: [f64; 4],
+    pub others: Vec<[f64; 4]>,
+    from: Option<egui::Pos2>,
+}
+
+/// How far (screen points) an edge looks for another drawing's edge to line up with.
+const SNAP: f32 = 8.0;
+
+/// The drag `d`, nudged so the moved box's edges line up with the nearest edges of the others.
+fn snapped(rect: egui::Rect, d: egui::Vec2, others: &[egui::Rect]) -> egui::Vec2 {
+    let moved = rect.translate(d);
+    let best = |mine: [f32; 2], theirs: &dyn Fn(&egui::Rect) -> [f32; 2]| {
+        let mut best: Option<f32> = None;
+        for o in others {
+            for a in mine {
+                for b in theirs(o) {
+                    let diff = b - a;
+                    if diff.abs() < SNAP && best.is_none_or(|x| diff.abs() < x.abs()) {
+                        best = Some(diff);
+                    }
+                }
+            }
+        }
+        best.unwrap_or(0.0)
+    };
+    let dx = best([moved.left(), moved.right()], &|o| [o.left(), o.right()]);
+    let dy = best([moved.top(), moved.bottom()], &|o| [o.top(), o.bottom()]);
+    d + egui::vec2(dx, dy)
+}
+
+/// Moving a placed drawing on the sheet: drag its box; its edges snap to the other drawings'.
+/// Returns true while the pointer belongs to it.
+pub(crate) fn page_input(ui: &egui::Ui, resp: &egui::Response, cx: &crate::comments::PageCx<'_>, view: &mut crate::canvas::DocView) -> bool {
+    if view.link_move.is_some() && ui.input(|i| i.key_pressed(egui::Key::Escape)) {
+        view.link_move = None;
+        return false;
+    }
+    let Some(mv) = view.link_move.as_mut() else { return false };
+    if mv.page != cx.page {
+        return false;
+    }
+    let screen = |r: &[f64; 4]| cx.xf.user_rect(cx.info, cx.page, r.map(|v| v as f32));
+    let rect = screen(&mv.rect);
+    let others: Vec<egui::Rect> = mv.others.iter().map(screen).collect();
+    let (pointer, origin) = ui.input(|i| (i.pointer.hover_pos(), i.pointer.press_origin()));
+    if resp.drag_started()
+        && let Some(o) = origin.filter(|o| rect.expand(4.0).contains(*o))
+    {
+        mv.from = Some(o);
+    }
+    let offset = match (mv.from, pointer) {
+        (Some(from), Some(p)) => snapped(rect, p - from, &others),
+        _ => egui::Vec2::ZERO,
+    };
+    let t = Tokens::get(ui.ctx());
+    let painter = ui.painter();
+    for o in &others {
+        painter.rect_stroke(*o, CornerRadius::ZERO, Stroke::new(1.0, t.text_faint), egui::StrokeKind::Outside);
+    }
+    let shown = rect.translate(offset);
+    painter.rect(shown, CornerRadius::ZERO, t.accent.gamma_multiply(0.08), Stroke::new(2.0, t.accent), egui::StrokeKind::Outside);
+    painter.text(
+        shown.left_top() + egui::vec2(4.0, -6.0),
+        egui::Align2::LEFT_BOTTOM,
+        tl!("Drag to move · Esc when done"),
+        theme::medium(11.5),
+        t.accent,
+    );
+    let over = pointer.is_some_and(|p| rect.expand(4.0).contains(p));
+    if over || mv.from.is_some() {
+        ui.ctx().set_cursor_icon(egui::CursorIcon::Move);
+    }
+    if resp.drag_stopped()
+        && let Some(from) = mv.from.take()
+    {
+        let (a, b) = (cx.to_user(from), cx.to_user(from + offset));
+        let (dx, dy) = (b[0] - a[0], b[1] - a[1]);
+        if dx.abs() > 0.01 || dy.abs() > 0.01 {
+            mv.rect = [mv.rect[0] + dx, mv.rect[1] + dy, mv.rect[2] + dx, mv.rect[3] + dy];
+            let index = mv.index;
+            view.pending_edit = Some(Edit::MoveCadLink { index, dx, dy });
+        }
+        return true;
+    }
+    over || mv.from.is_some()
+}
+
+/// Place the drawings at `paths` on the current sheet, linked to their files.
+fn place(app: &mut PdfCraftApp, paths: Vec<std::path::PathBuf>) {
+    let Some((index, _)) = app.active_ids() else { return };
+    let page = app.views.get(index).map_or(0, |v| v.current);
+    for p in paths {
+        let path = p.to_string_lossy().into_owned();
+        let name = file_name(&path);
+        let bytes = match std::fs::read(&p) {
+            Ok(b) => b,
+            Err(e) => {
+                app.notify(crate::i18n::fmt(tl!("Couldn't read {name}: {e}"), &[("name", &name), ("e", &e.to_string())]));
+                continue;
+            }
+        };
+        let size = u64::try_from(bytes.len()).unwrap_or(0);
+        let file = linked_file(&path).unwrap_or(LinkedFile { path: path.clone(), size, mtime: 0, now: now_secs() });
+        if !app.apply_edit(Edit::PlaceCadLink { page, name, bytes: Arc::new(bytes), file }) {
+            break;
+        }
+    }
+}
+
 /// A link's state, as the pane shows it.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Status {
@@ -266,6 +381,8 @@ enum Act {
     Edit(String),
     Reveal(String),
     Relink(usize, String),
+    /// Start (or, `true`, finish) moving a placed drawing: index, page, where it is, the others.
+    Move(usize, usize, [f64; 4], Vec<[f64; 4]>, bool),
 }
 
 /// The pane.
@@ -279,6 +396,10 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
     let state = &mut app.links;
     let status = |l: &CadLink| state.status.get(&l.path).copied().unwrap_or(Status::UpToDate);
     let mut act = None;
+    let place_now = ui
+        .add_enabled(editable, egui::Button::new(tl!("Place drawing…")))
+        .on_hover_text(tl!("Place a DWG or DXF on this sheet at its scale, linked to the file (one per room, say)"))
+        .clicked();
     if links.is_empty() {
         ui.label(
             egui::RichText::new(tl!(
@@ -286,6 +407,13 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
             ))
             .color(t.text_muted),
         );
+    }
+    if place_now {
+        let dialog = crate::dialog::AsyncFileDialog::new().add_filter(tl!("Drawings (DWG, DXF)"), &pdfcraft_engine::CAD_EXTENSIONS);
+        let _ = app.ask(crate::pickers::Ask::Files(dialog), Some(id), place);
+        return;
+    }
+    if links.is_empty() {
         return;
     }
     let any_modified = links.iter().any(|l| status(l) == Status::Modified);
@@ -321,7 +449,11 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
         }
         icons::paint(ui, egui::Rect::from_min_size(rect.min + egui::vec2(6.0, 12.0), egui::vec2(18.0, 18.0)), "file-text", 16.0, t.icon);
         widgets::row_text(ui, rect.min + egui::vec2(32.0, 13.0), name.clone(), theme::medium(13.0), t.text, (rect.width() - 130.0).max(40.0));
-        let sub = crate::i18n::fmt(tl!("Sheet {n} · {layout}"), &[("n", &(l.page + 1).to_string()), ("layout", &l.layout)]);
+        let sub = if l.placed {
+            crate::i18n::fmt(tl!("Sheet {n} · placed"), &[("n", &(l.page + 1).to_string())])
+        } else {
+            crate::i18n::fmt(tl!("Sheet {n} · {layout}"), &[("n", &(l.page + 1).to_string()), ("layout", &l.layout)])
+        };
         widgets::row_text(ui, rect.min + egui::vec2(32.0, 30.0), sub, theme::regular(11.5), t.text_muted, (rect.width() - 130.0).max(40.0));
         let mut chip_ui = ui.new_child(
             egui::UiBuilder::new()
@@ -399,6 +531,17 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
             }
         });
     });
+    let moving = sel.placed && app.views.iter().any(|v| v.link_move.as_ref().is_some_and(|m| m.index == sel.index));
+    if sel.placed
+        && let Some(rect) = sel.rect
+    {
+        let label = if moving { tl!("Done moving") } else { tl!("Move on the sheet") };
+        if ui.add_enabled(editable, egui::Button::new(label)).clicked() {
+            let others = links.iter().filter(|o| o.page == sel.page && o.index != sel.index).filter_map(|o| o.rect).collect();
+            act = Some(Act::Move(sel.index, sel.page, rect, others, moving));
+        }
+    }
+    let state = &mut app.links;
     if let Some((index, path)) = state.relink.as_mut() {
         ui.add_space(4.0);
         ui.label(egui::RichText::new(tl!("Where the drawing is now")).color(t.text_muted));
@@ -448,6 +591,16 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
         Some(Act::Reveal(path)) => {
             if let Err(e) = reveal(&path) {
                 app.notify(e);
+            }
+        }
+        Some(Act::Move(index, page, rect, others, done)) => {
+            if let Some((vi, _)) = app.active_ids()
+                && let Some(view) = app.views.get_mut(vi)
+            {
+                view.link_move = (!done).then(|| LinkMove { index, page, rect, others, from: None });
+                if !done {
+                    view.go_to_page(page);
+                }
             }
         }
         Some(Act::Relink(index, path)) => {

@@ -312,6 +312,8 @@ pub struct DocView {
     tiles: HashMap<(usize, u64, u32, u32), TextureHandle>,
     /// Text layers, extracted in the background on demand (selection, find, copy).
     pub(crate) texts: HashMap<usize, Arc<PageText>>,
+    /// RevuCraft: a placed drawing being moved on its sheet (Links pane ▸ Move on the sheet).
+    pub(crate) link_move: Option<crate::links_ui::LinkMove>,
     pub(crate) text_failed: HashSet<usize>,
     pub find: Option<Find>,
     selection: Option<Selection>,
@@ -533,6 +535,7 @@ impl DocView {
             print_pages: HashMap::new(),
             tiles: HashMap::new(),
             texts: HashMap::new(),
+            link_move: None,
             text_failed: HashSet::new(),
             find: None,
             selection: None,
@@ -2487,7 +2490,8 @@ pub fn document_area(app: &mut PdfCraftApp, index: usize, ui: &mut egui::Ui) {
                 }
             };
             let on_link = tool == QuickTool::Link && can_modify && crate::link_ui::page_input(ui, &resp, &xf, i, info, &doc_links, view);
-            let consumed = on_edit_text
+            let consumed = crate::links_ui::page_input(ui, &resp, &pcx, view)
+                || on_edit_text
                 || on_link
                 || on_content
                 || boxing

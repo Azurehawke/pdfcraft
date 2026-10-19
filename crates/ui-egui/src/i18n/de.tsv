@@ -2634,3 +2634,9 @@ key	Space	Leertaste
 	{n} linked drawings	{n} verknüpfte Zeichnungen
 	{when} (newer than the sheet)	{when} (neuer als das Blatt)
 	Sheets opened from a DWG or DXF are linked to it and show here, so you can update them when the drawing changes.	Aus einer DWG oder DXF geöffnete Blätter sind mit ihr verknüpft und erscheinen hier, damit Sie sie aktualisieren können, wenn sich die Zeichnung ändert.
+	Done moving	Verschieben beenden
+	Drag to move · Esc when done	Zum Verschieben ziehen · Esc zum Beenden
+	Move on the sheet	Auf dem Blatt verschieben
+	Place a DWG or DXF on this sheet at its scale, linked to the file (one per room, say)	Eine DWG oder DXF im Maßstab dieses Blatts platzieren, mit der Datei verknüpft (z. B. eine pro Raum)
+	Place drawing…	Zeichnung platzieren…
+	Sheet {n} · placed	Blatt {n} · platziert

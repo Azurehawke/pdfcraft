@@ -2634,3 +2634,9 @@ key	Space	Espace
 	{n} linked drawings	{n} dessins liés
 	{when} (newer than the sheet)	{when} (plus récent que la feuille)
 	Sheets opened from a DWG or DXF are linked to it and show here, so you can update them when the drawing changes.	Les feuilles ouvertes depuis un DWG ou un DXF y sont liées et apparaissent ici, pour les mettre à jour quand le dessin change.
+	Done moving	Déplacement terminé
+	Drag to move · Esc when done	Faites glisser pour déplacer · Échap pour finir
+	Move on the sheet	Déplacer sur la feuille
+	Place a DWG or DXF on this sheet at its scale, linked to the file (one per room, say)	Placer un DWG ou DXF sur cette feuille à son échelle, lié au fichier (un par pièce, par exemple)
+	Place drawing…	Placer un dessin…
+	Sheet {n} · placed	Feuille {n} · placé

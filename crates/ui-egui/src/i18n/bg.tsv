@@ -2596,3 +2596,9 @@ key	Space	Интервал
 	{n} linked drawings	Свързани чертежи: {n}
 	{when} (newer than the sheet)	{when} (по-нов от листа)
 	Sheets opened from a DWG or DXF are linked to it and show here, so you can update them when the drawing changes.	Листовете, отворени от DWG или DXF, са свързани с него и се показват тук, за да ги обновите, когато чертежът се промени.
+	Done moving	Готово
+	Drag to move · Esc when done	Плъзнете за преместване · Esc за край
+	Move on the sheet	Преместване на листа
+	Place a DWG or DXF on this sheet at its scale, linked to the file (one per room, say)	Поставяне на DWG или DXF на този лист в мащаба му, свързан с файла (например по един за стая)
+	Place drawing…	Поставяне на чертеж…
+	Sheet {n} · placed	Лист {n} · поставен

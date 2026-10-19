@@ -3107,6 +3107,55 @@ fn a_linked_drawing_updates_under_its_markups() {
 }
 
 #[test]
+fn rooms_are_placed_on_one_sheet_and_move_and_update_on_their_own() {
+    // Two rooms, each a 120" x 96" rectangle drawn around its own origin.
+    let room = |w: f64| {
+        let mut s = String::from("0\nSECTION\n2\nHEADER\n9\n$INSUNITS\n70\n1\n0\nENDSEC\n0\nSECTION\n2\nENTITIES\n");
+        for (a, b) in [((0.0, 0.0), (w, 0.0)), ((w, 0.0), (w, 96.0)), ((w, 96.0), (0.0, 96.0)), ((0.0, 96.0), (0.0, 0.0))] {
+            s.push_str(&format!("0\nLINE\n8\nWALLS\n10\n{}\n20\n{}\n30\n0\n11\n{}\n21\n{}\n31\n0\n", a.0, a.1, b.0, b.1));
+        }
+        s.push_str("0\nENDSEC\n0\nEOF\n");
+        s.into_bytes()
+    };
+    let mut session = Session::default();
+    let id = session.open("suite.pdf", None, Arc::new(fixture(1)), None).unwrap();
+    let file = |p: &str| cad_links::LinkedFile { path: p.into(), size: 1, mtime: 1, now: 1 };
+    session
+        .apply(id, Edit::PlaceCadLink { page: 0, name: "room1.dxf".into(), bytes: Arc::new(room(120.0)), file: file("/suite/room1.dxf") })
+        .unwrap();
+    session
+        .apply(id, Edit::PlaceCadLink { page: 0, name: "room2.dxf".into(), bytes: Arc::new(room(120.0)), file: file("/suite/room2.dxf") })
+        .unwrap();
+    let links = session.get(id).unwrap().cad_links();
+    assert_eq!(links.len(), 2);
+    let (a, b) = (links[0].rect.unwrap(), links[1].rect.unwrap());
+    // At 1/8" = 1'-0" a 120" wall is 90 points (plus the margin).
+    assert!((a[2] - a[0]) > 90.0 && (a[2] - a[0]) < 100.0, "{a:?}");
+    assert!(b[0] >= a[2], "the second room, drawn around the same origin, goes beside the first: {a:?} {b:?}");
+    let names: Vec<String> = session.layer_details(id).into_iter().map(|l| l.name).collect();
+    assert!(names.contains(&"room1.dxf".to_string()) && names.contains(&"room2.dxf".to_string()), "{names:?}");
+    // The sheet had no scale: it takes the drawings'.
+    let doc = session.get(id).unwrap();
+    assert!(doc.real_size_points(0, [(a[0] + a[2]) / 2.0, (a[1] + a[3]) / 2.0], 12.0).is_some());
+    // Move the second room against the first; then it grows in CAD and keeps its place.
+    session.apply(id, Edit::MoveCadLink { index: 1, dx: a[2] - b[0], dy: 0.0 }).unwrap();
+    let moved = session.get(id).unwrap().cad_links()[1].rect.unwrap();
+    assert!((moved[0] - a[2]).abs() < 1e-6, "{moved:?}");
+    let edit = Edit::UpdateCadLink {
+        index: 1,
+        name: "room2.dxf".into(),
+        bytes: Arc::new(room(240.0)),
+        file: file("/suite/room2.dxf"),
+        keep_revision: false,
+    };
+    session.apply(id, edit).unwrap();
+    let grown = session.get(id).unwrap().cad_links()[1].rect.unwrap();
+    assert!((grown[0] - moved[0]).abs() < 2.5 && (grown[2] - grown[0]) > 180.0, "it grows from where it was: {moved:?} {grown:?}");
+    assert_eq!(session.get(id).unwrap().cad_links()[0].rect.unwrap(), a, "the other room stays put");
+    assert!(session.apply(id, Edit::MoveCadLink { index: 0, dx: f64::NAN, dy: 0.0 }).is_err());
+}
+
+#[test]
 fn line_widths_change_after_drawing_on_paper_and_to_scale() {
     let mut session = Session::default();
     let id = session.open("plan.pdf", None, Arc::new(fixture(1)), None).unwrap();

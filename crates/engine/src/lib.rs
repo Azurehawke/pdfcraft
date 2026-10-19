@@ -828,6 +828,20 @@ pub enum Edit {
         index: usize,
         path: String,
     },
+    /// RevuCraft: place the model space of a drawing (`bytes`, named `name`, from `file`) on
+    /// sheet `page` at its scale, linked to the file, on its own layer.
+    PlaceCadLink {
+        page: usize,
+        name: String,
+        bytes: Arc<Vec<u8>>,
+        file: cad_links::LinkedFile,
+    },
+    /// RevuCraft: move placed drawing `index` by (`dx`, `dy`) points on its sheet.
+    MoveCadLink {
+        index: usize,
+        dx: f64,
+        dy: f64,
+    },
     /// Set Page Boxes / Crop: set (or reset) one box on `pages`.
     SetPageBox {
         pages: Vec<usize>,
@@ -1361,6 +1375,8 @@ impl Edit {
             Edit::ReplacePages { pages, .. } => plural("Replace page", pages.len()),
             Edit::UpdateCadLink { .. } => "Update linked drawing".into(),
             Edit::RelinkCad { .. } => "Relink drawing".into(),
+            Edit::PlaceCadLink { .. } => "Place linked drawing".into(),
+            Edit::MoveCadLink { .. } => "Move linked drawing".into(),
             Edit::SetPageBox { pages, which: PageBox::Crop, .. } => plural("Crop page", pages.len()),
             Edit::SetPageBox { .. } => "Set page boxes".into(),
             Edit::SetInfo { key, .. } => format!("Change {key}"),
@@ -1631,6 +1647,8 @@ fn check_permission(edit: &Edit, p: &pdfcraft_cos::Permissions) -> Result<(), Ed
         | Edit::EditPageImage { .. }
         | Edit::UpdateCadLink { .. }
         | Edit::RelinkCad { .. }
+        | Edit::PlaceCadLink { .. }
+        | Edit::MoveCadLink { .. }
         | Edit::Flatten { .. }
         | Edit::UnpackTextForms { .. }
         | Edit::FlattenFillSign => {
@@ -1770,6 +1788,10 @@ fn run_edit(doc: &mut pdfcraft_cos::Document, edit: &Edit, cx: &mut EditCtx) -> 
             cad_links::update(doc, *index, name, bytes, file, *keep_revision)?;
         }
         Edit::RelinkCad { index, path } => cad_links::relink(doc, *index, path)?,
+        Edit::PlaceCadLink { page, name, bytes, file } => {
+            cad_links::place(doc, *page, name, bytes, file)?;
+        }
+        Edit::MoveCadLink { index, dx, dy } => cad_links::move_link(doc, *index, *dx, *dy)?,
         Edit::ReplacePages { pages, name, bytes, src_pages } => {
             let src = open_source(name, bytes)?;
             pdfcraft_organize::replace_pages(doc, pages, &src, src_pages)?;
