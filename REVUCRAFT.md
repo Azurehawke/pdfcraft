@@ -170,8 +170,9 @@ Markup and measuring
 
 - [ ] **(Steve, next build)** Windows and Linux: choosing Download in Check for updates starts the
       download and then closes RevuCraft, so the installer can replace it. Unsaved work asks first
-      (Save / Don't save / Cancel, as when quitting); Cancel keeps RevuCraft open. Android is
-      unchanged (it asks before installing).
+      (Save / Don't save / Cancel, as when quitting); Cancel keeps RevuCraft open. Android: the
+      same unsaved-work prompt before the download starts, but RevuCraft stays open (Android's
+      installer stops it when it replaces the app, which would otherwise lose unsaved changes).
 
 Tablet
 - [ ] **(Steve, later update)** Touch mode: bigger buttons and handles, long-press for the context menu, two-finger tap to
