@@ -168,6 +168,11 @@ Markup and measuring
       reports, Cable runs, and New / Open (the New dialog); a tagline about plans, markup and
       takeoff.
 
+- [ ] **(Steve, next build)** Windows and Linux: choosing Download in Check for updates starts the
+      download and then closes RevuCraft, so the installer can replace it. Unsaved work asks first
+      (Save / Don't save / Cancel, as when quitting); Cancel keeps RevuCraft open. Android is
+      unchanged (it asks before installing).
+
 Tablet
 - [ ] **(Steve, later update)** Touch mode: bigger buttons and handles, long-press for the context menu, two-finger tap to
       undo.
