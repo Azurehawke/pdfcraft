@@ -22,6 +22,8 @@ pub fn tab_strip(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
                 let max = ui.ctx().input(|i| i.viewport().maximized.unwrap_or(false));
                 ui.ctx().send_viewport_cmd(egui::ViewportCommand::Maximized(!max));
             }
+            // A phone's width: Open and Discord show only their icons.
+            let compact = ui.available_width() < 640.0;
             ui.horizontal_centered(|ui| {
                 ui.spacing_mut().item_spacing.x = 4.0;
                 if icons::button(ui, "house", 28.0, app.active.is_none() && !app.combine_showing(), tl!("Home")).clicked() {
@@ -29,9 +31,14 @@ pub fn tab_strip(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
                     app.combine_tab.focused = false;
                 }
                 // Keep the two 28-point buttons, Discord's text/padding and three gaps outside the scrolling tabs.
-                let controls_width = ui.fonts_mut(|f| f.layout_no_wrap("Discord".into(), theme::medium(13.0), t.text).size().x) + 106.0;
+                let controls_width =
+                    if compact { 100.0 } else { ui.fonts_mut(|f| f.layout_no_wrap("Discord".into(), theme::medium(13.0), t.text).size().x) + 106.0 };
                 // Open stays in sight after the tabs: its icon, text and padding, and the gaps around it.
-                let open_width = ui.fonts_mut(|f| f.layout_no_wrap(tl!("New").into(), theme::medium(13.0), t.text).size().x) + 38.0 + 12.0;
+                let open_width = if compact {
+                    32.0 + 12.0
+                } else {
+                    ui.fonts_mut(|f| f.layout_no_wrap(tl!("New").into(), theme::medium(13.0), t.text).size().x) + 38.0 + 12.0
+                };
                 let mut tabs_width = (ui.available_width() - controls_width - open_width).max(0.0);
                 // Tabs shrink to share the strip (names end in "…") and scroll only once they reach
                 // their narrowest; then arrows either side say so and step through them.
@@ -117,7 +124,7 @@ pub fn tab_strip(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
                     ui.ctx().request_repaint();
                 }
                 ui.add_space(4.0);
-                if widgets::ghost_button(ui, "plus", tl!("New")).on_hover_text(tl!("Start a drawing or open a file")).clicked() {
+                if widgets::ghost_button_fit(ui, "plus", tl!("New"), compact).on_hover_text(tl!("Start a drawing or open a file")).clicked() {
                     app.open_new();
                 }
                 ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
@@ -309,29 +316,45 @@ pub fn mode_bar(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
         .exact_size(48.0)
         .frame(egui::Frame::NONE.fill(t.chrome).inner_margin(egui::Margin::symmetric(10, 0)).stroke(Stroke::new(1.0, t.divider)))
         .show(ui, |ui| {
+            // Narrow windows (a phone): Menu and search shrink to icons and the modes scroll
+            // sideways, so nothing overlaps.
+            let compact = ui.available_width() < 820.0;
             ui.horizontal_centered(|ui| {
                 ui.spacing_mut().item_spacing.x = 2.0;
-                main_menu(app, ui);
-                ui.add_space(6.0);
+                main_menu(app, ui, compact);
+                ui.add_space(if compact { 2.0 } else { 6.0 });
                 ui.painter().vline(ui.cursor().left(), ui.max_rect().y_range().shrink(12.0), Stroke::new(1.0, t.divider));
-                ui.add_space(10.0);
-                // RevuCraft: workflow tabs drive the ribbon below; the full tool catalogue and
-                // reading mode stay one click away.
-                crate::ribbon::tabs(app, ui);
-                ui.add_space(10.0);
-                ui.painter().vline(ui.cursor().left(), ui.max_rect().y_range().shrink(12.0), Stroke::new(1.0, t.divider));
-                ui.add_space(6.0);
-                let all = widgets::ghost_button(ui, "layout-grid", tl!("All tools"));
-                if app.show_ribbon {
-                    // RevuCraft: every tool in a drop-down menu, grouped as in the catalogue;
-                    // a group's options open in the dock.
-                    egui::Popup::menu(&all).show(|ui| all_tools_menu(app, ui));
-                } else if all.clicked() {
-                    app.select_mode(Mode::AllTools);
-                }
-                if widgets::ghost_button(ui, "book-open", tl!("Read")).clicked() {
-                    app.select_mode(Mode::Read);
-                }
+                ui.add_space(if compact { 4.0 } else { 10.0 });
+                // Room for the buttons on the right: three 32-point icons and the search. On a
+                // phone the workflow tabs, All tools and Read scroll sideways in what is left.
+                let right = 3.0 * 36.0 + 8.0 + if compact { 36.0 } else { 268.0 };
+                let tabs_width = (ui.available_width() - right).max(48.0);
+                egui::ScrollArea::horizontal()
+                    .id_salt("mode_tabs")
+                    .max_width(tabs_width)
+                    .scroll_bar_visibility(egui::scroll_area::ScrollBarVisibility::AlwaysHidden)
+                    .show(ui, |ui| {
+                        ui.horizontal_centered(|ui| {
+                            ui.spacing_mut().item_spacing.x = 2.0;
+                            // RevuCraft: workflow tabs drive the ribbon below; the full tool
+                            // catalogue and reading mode stay one click away.
+                            crate::ribbon::tabs(app, ui);
+                            ui.add_space(if compact { 4.0 } else { 10.0 });
+                            ui.painter().vline(ui.cursor().left(), ui.max_rect().y_range().shrink(12.0), Stroke::new(1.0, t.divider));
+                            ui.add_space(6.0);
+                            let all = widgets::ghost_button_fit(ui, "layout-grid", tl!("All tools"), compact);
+                            if app.show_ribbon {
+                                // RevuCraft: every tool in a drop-down menu, grouped as in the
+                                // catalogue; a group's options open in the dock.
+                                egui::Popup::menu(&all).show(|ui| all_tools_menu(app, ui));
+                            } else if all.clicked() {
+                                app.select_mode(Mode::AllTools);
+                            }
+                            if widgets::ghost_button_fit(ui, "book-open", tl!("Read"), compact).clicked() {
+                                app.select_mode(Mode::Read);
+                            }
+                        });
+                    });
                 ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
                     ui.spacing_mut().item_spacing.x = 4.0;
                     let has_doc = app.active.is_some();
@@ -349,7 +372,12 @@ pub fn mode_bar(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
                         }
                     });
                     ui.add_space(8.0);
-                    if widgets::search_box(ui, tl!("Find tools and commands"), 260.0).clicked() {
+                    let search = if compact {
+                        icons::button(ui, "search", 32.0, false, tl!("Find tools and commands"))
+                    } else {
+                        widgets::search_box(ui, tl!("Find tools and commands"), 260.0)
+                    };
+                    if search.clicked() {
                         app.palette_open = true;
                     }
                 });
@@ -357,9 +385,9 @@ pub fn mode_bar(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
         });
 }
 
-fn main_menu(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
+fn main_menu(app: &mut PdfCraftApp, ui: &mut egui::Ui, compact: bool) {
     let t = Tokens::get(ui.ctx());
-    let resp = widgets::ghost_button(ui, "panel-left", tl!("Menu"));
+    let resp = widgets::ghost_button_fit(ui, "panel-left", tl!("Menu"), compact);
     egui::Popup::menu(&resp).show(|ui| {
         ui.set_min_width(230.0);
         ui.menu_button(tl!("File"), |ui| crate::commands::registry_menu(app, ui, "File"));

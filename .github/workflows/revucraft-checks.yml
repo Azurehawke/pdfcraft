@@ -116,6 +116,8 @@ jobs:
           shot plan-review "$plan" --workflow review
           shot plan-document "$plan" --workflow document
           shot plan-teal "$plan" --accent teal
+          shot phone "$plan" --size 430x900 --scale 2
+          shot phone-home --size 430x900 --scale 2
           shot plan-icons-neutral "$plan" --workflow markup --icon-color neutral
           shot all-tools "$plan" --mode all
 
