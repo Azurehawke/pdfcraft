@@ -217,7 +217,7 @@ DWG/DXF round trip
 - [ ] Export: drawn geometry, layers (names, colours), symbols as blocks with their labels,
       text and dimensions to DXF and DWG, at real-world size (drawing units from the page
       scale).
-- [ ] **(Steve, next build)** Linked drawings, as InDesign links (mock-up approved): a sheet opened from a DWG/DXF
+- [x] **(Steve, build 93)** Linked drawings, as InDesign links (mock-up approved): a sheet opened from a DWG/DXF
       remembers its file, layout, date and fingerprint, with the plotted drawing as the backdrop
       under the markups (and a copy kept in the PDF). Place linked drawing puts one under an
       existing PDF sheet, lined up once by two points. A Links pane (right rail) lists each link:
