@@ -529,7 +529,7 @@ fn read_place(place: &Place, all: bool, recent: &[(String, String)]) -> Result<V
 }
 
 #[cfg_attr(any(target_os = "android", target_arch = "wasm32"), allow(dead_code))]
-fn modified_label(m: Option<std::time::SystemTime>) -> String {
+pub(crate) fn modified_label(m: Option<std::time::SystemTime>) -> String {
     let Some(secs) = m.and_then(|m| m.duration_since(std::time::UNIX_EPOCH).ok()).map(|d| d.as_secs() as i64) else { return String::new() };
     // Days since 1970 to a calendar date (civil-from-days).
     let days = secs.div_euclid(86_400);

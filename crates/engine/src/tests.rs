@@ -3055,6 +3055,58 @@ fn a_dxf_drawing_opens_as_a_measurable_sheet() {
 }
 
 #[test]
+fn a_linked_drawing_updates_under_its_markups() {
+    let dxf = |len: &str| {
+        format!(
+            "0\nSECTION\n2\nHEADER\n9\n$INSUNITS\n70\n1\n0\nENDSEC\n0\nSECTION\n2\nENTITIES\n0\nLINE\n8\nWALLS\n10\n0.0\n20\n0.0\n30\n0.0\n11\n{len}\n21\n0.0\n31\n0.0\n0\nLINE\n8\nWALLS\n10\n0.0\n20\n0.0\n30\n0.0\n11\n0.0\n21\n80.0\n31\n0.0\n0\nENDSEC\n0\nEOF\n"
+        )
+        .into_bytes()
+    };
+    let mut session = Session::default();
+    let file = cad_links::LinkedFile { path: "/jobs/riverside/plan.dxf".into(), size: 10, mtime: 1_000, now: 2_000 };
+    let pdf = session.create_from_cad_linked("plan.dxf", &dxf("120.0"), Some(&file)).unwrap();
+    let id = session.open("plan.pdf", None, pdf, None).unwrap();
+    let links = session.get(id).unwrap().cad_links();
+    assert_eq!(links.len(), 1);
+    assert_eq!((links[0].page, links[0].layout.as_str(), links[0].path.as_str(), links[0].mtime), (0, "Model", "/jobs/riverside/plan.dxf", 1_000));
+    // A markup on the sheet, then the drawing changes and the sheet is updated, keeping the old
+    // drawing as a hidden layer.
+    let shape = Shape::Rectangle { rect: [20.0, 20.0, 60.0, 60.0] };
+    session
+        .apply(
+            id,
+            Edit::AddAnnotation(NewAnnotation { page: 0, style: Style::default_for(&shape), shape, contents: String::new(), author: "Test".into() }),
+        )
+        .unwrap();
+    let file2 = cad_links::LinkedFile { path: file.path.clone(), size: 12, mtime: 3_000, now: 4_000 };
+    let edit = Edit::UpdateCadLink { index: 0, name: "plan.dxf".into(), bytes: Arc::new(dxf("240.0")), file: file2, keep_revision: true };
+    session.apply(id, edit).unwrap();
+    let doc = session.get(id).unwrap();
+    let links = doc.cad_links();
+    assert_eq!((links[0].mtime, links[0].updated, links[0].revisions), (3_000, 4_000, 1));
+    assert_eq!(doc.info.annotations.iter().filter(|a| a.subtype == "Square").count(), 1, "the markup stays");
+    let names: Vec<String> = session.layer_details(id).into_iter().map(|l| l.name).collect();
+    assert!(names.iter().any(|n| n == "Rev A · Model"), "{names:?}");
+    assert_eq!(names.iter().filter(|n| *n == "WALLS").count(), 1, "the CAD layer isn't doubled: {names:?}");
+    let page = &doc.info.pages[0];
+    let centre = doc.measurement_to_user(0, [page.width as f64 / 2.0, page.height as f64 / 2.0]).unwrap();
+    assert!(doc.real_size_points(0, centre, 1.0).is_some(), "the new drawing brings its scale");
+    // Relink, and a link that isn't there.
+    session.apply(id, Edit::RelinkCad { index: 0, path: "//nas/jobs/plan.dxf".into() }).unwrap();
+    assert_eq!(session.get(id).unwrap().cad_links()[0].path, "//nas/jobs/plan.dxf");
+    assert!(session.apply(id, Edit::RelinkCad { index: 7, path: "x.dxf".into() }).is_err());
+    let bad = cad_links::LinkedFile { path: "x".into(), size: 1, mtime: 1, now: 1 };
+    assert!(
+        session
+            .apply(
+                id,
+                Edit::UpdateCadLink { index: 0, name: "plan.dxf".into(), bytes: Arc::new(b"nonsense".to_vec()), file: bad, keep_revision: false }
+            )
+            .is_err()
+    );
+}
+
+#[test]
 fn line_widths_change_after_drawing_on_paper_and_to_scale() {
     let mut session = Session::default();
     let id = session.open("plan.pdf", None, Arc::new(fixture(1)), None).unwrap();

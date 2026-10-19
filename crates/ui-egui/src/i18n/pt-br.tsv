@@ -2608,3 +2608,30 @@ key	Space	Espaço
 	Change line width	Alterar espessura da linha
 	Drawings (DWG, DXF)	Desenhos (DWG, DXF)
 	PDF, drawings and images	PDF, desenhos e imagens
+	Drawings opened with Edit original update their sheets by themselves when you save them in CADCraft.	Desenhos abertos com Editar original atualizam a folha sozinhos quando você salva no CADCraft.
+	Edit original	Editar original
+	File saved	Arquivo salvo
+	In CADCraft	No CADCraft
+	Keep previous drawings as hidden Rev layers	Manter desenhos anteriores como camadas Rev ocultas
+	Layout	Layout
+	Links	Vínculos
+	Missing	Ausente
+	Not found at this path	Não encontrado neste caminho
+	Off: an update replaces the drawing. On: the drawing it replaces stays as a hidden layer, to compare.	Desligado: a atualização substitui o desenho. Ligado: o desenho substituído fica como camada oculta, para comparar.
+	On sheet	Na folha
+	Open the drawing in CADCraft yourself; this sheet updates when it is saved.	Abra o desenho no CADCraft você mesmo; esta folha se atualiza ao salvar.
+	Previous drawings: {n} (hidden layers)	Desenhos anteriores: {n} (camadas ocultas)
+	Relink	Revincular
+	Relink…	Revincular…
+	Reveal file	Mostrar arquivo
+	Sheet {n} of {total}	Folha {n} de {total}
+	Sheet {n} · {layout}	Folha {n} · {layout}
+	Showing files isn't available here.	Mostrar arquivos não está disponível aqui.
+	Up to date	Atualizado
+	Update all	Atualizar tudo
+	Updated	Atualizado em
+	Where the drawing is now	Onde o desenho está agora
+	{name} is updated on the sheet; the markups stayed put.	{name} está atualizado na folha; as marcações ficaram no lugar.
+	{name} was saved in CADCraft: the sheet is updated, and the markups stayed put.	{name} foi salvo no CADCraft: a folha está atualizada e as marcações ficaram no lugar.
+	{n} linked drawings	{n} desenhos vinculados
+	{when} (newer than the sheet)	{when} (mais recente que a folha)

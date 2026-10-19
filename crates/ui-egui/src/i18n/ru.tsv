@@ -2519,3 +2519,30 @@ key	Space	Пробел
 	Change line width	Изменить толщину линии
 	Drawings (DWG, DXF)	Чертежи (DWG, DXF)
 	PDF, drawings and images	PDF, чертежи и изображения
+	Drawings opened with Edit original update their sheets by themselves when you save them in CADCraft.	Чертежи, открытые через «Изменить оригинал», сами обновляют свой лист, когда вы сохраняете их в CADCraft.
+	Edit original	Изменить оригинал
+	File saved	Файл сохранён
+	In CADCraft	В CADCraft
+	Keep previous drawings as hidden Rev layers	Сохранять прежние чертежи как скрытые слои Rev
+	Layout	Макет
+	Links	Связи
+	Missing	Отсутствует
+	Not found at this path	Не найден по этому пути
+	Off: an update replaces the drawing. On: the drawing it replaces stays as a hidden layer, to compare.	Выкл.: обновление заменяет чертёж. Вкл.: заменённый чертёж остаётся скрытым слоем для сравнения.
+	On sheet	На листе
+	Open the drawing in CADCraft yourself; this sheet updates when it is saved.	Откройте чертёж в CADCraft сами; этот лист обновится при сохранении.
+	Previous drawings: {n} (hidden layers)	Прежние чертежи: {n} (скрытые слои)
+	Relink	Переподключить
+	Relink…	Переподключить…
+	Reveal file	Показать файл
+	Sheet {n} of {total}	Лист {n} из {total}
+	Sheet {n} · {layout}	Лист {n} · {layout}
+	Showing files isn't available here.	Показ файлов здесь недоступен.
+	Up to date	Актуально
+	Update all	Обновить все
+	Updated	Обновлено
+	Where the drawing is now	Где теперь чертёж
+	{name} is updated on the sheet; the markups stayed put.	{name} обновлён на листе; пометки остались на месте.
+	{name} was saved in CADCraft: the sheet is updated, and the markups stayed put.	{name} сохранён в CADCraft: лист обновлён, пометки остались на месте.
+	{n} linked drawings	Связанных чертежей: {n}
+	{when} (newer than the sheet)	{when} (новее листа)

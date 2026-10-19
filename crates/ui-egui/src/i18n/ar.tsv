@@ -2628,3 +2628,30 @@ key	Space	مسافة
 	Change line width	تغيير سُمك الخط
 	Drawings (DWG, DXF)	رسومات (DWG، DXF)
 	PDF, drawings and images	PDF ورسومات وصور
+	Drawings opened with Edit original update their sheets by themselves when you save them in CADCraft.	الرسومات المفتوحة بـ«تحرير الأصل» تحدّث ورقتها تلقائيًا عند حفظها في CADCraft.
+	Edit original	تحرير الأصل
+	File saved	حُفظ الملف
+	In CADCraft	في CADCraft
+	Keep previous drawings as hidden Rev layers	الاحتفاظ بالرسومات السابقة كطبقات Rev مخفية
+	Layout	المخطط
+	Links	الروابط
+	Missing	مفقود
+	Not found at this path	غير موجود في هذا المسار
+	Off: an update replaces the drawing. On: the drawing it replaces stays as a hidden layer, to compare.	إيقاف: يستبدل التحديث الرسم. تشغيل: يبقى الرسم المستبدل طبقة مخفية للمقارنة.
+	On sheet	على الورقة
+	Open the drawing in CADCraft yourself; this sheet updates when it is saved.	افتح الرسم في CADCraft بنفسك؛ تتحدث هذه الورقة عند الحفظ.
+	Previous drawings: {n} (hidden layers)	الرسومات السابقة: {n} (طبقات مخفية)
+	Relink	إعادة الربط
+	Relink…	إعادة الربط…
+	Reveal file	إظهار الملف
+	Sheet {n} of {total}	الورقة {n} من {total}
+	Sheet {n} · {layout}	الورقة {n} · {layout}
+	Showing files isn't available here.	إظهار الملفات غير متاح هنا.
+	Up to date	محدّث
+	Update all	تحديث الكل
+	Updated	آخر تحديث
+	Where the drawing is now	مكان الرسم الآن
+	{name} is updated on the sheet; the markups stayed put.	تم تحديث {name} على الورقة؛ وبقيت التعليقات في مكانها.
+	{name} was saved in CADCraft: the sheet is updated, and the markups stayed put.	حُفظ {name} في CADCraft: تم تحديث الورقة وبقيت التعليقات في مكانها.
+	{n} linked drawings	رسومات مرتبطة: {n}
+	{when} (newer than the sheet)	{when} (أحدث من الورقة)

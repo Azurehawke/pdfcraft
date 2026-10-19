@@ -2630,3 +2630,30 @@ key	Space	Пробіл
 	Change line width	Змінити товщину лінії
 	Drawings (DWG, DXF)	Креслення (DWG, DXF)
 	PDF, drawings and images	PDF, креслення і зображення
+	Drawings opened with Edit original update their sheets by themselves when you save them in CADCraft.	Креслення, відкриті через «Змінити оригінал», самі оновлюють свій аркуш, коли ви зберігаєте їх у CADCraft.
+	Edit original	Змінити оригінал
+	File saved	Файл збережено
+	In CADCraft	У CADCraft
+	Keep previous drawings as hidden Rev layers	Зберігати попередні креслення як приховані шари Rev
+	Layout	Макет
+	Links	Зв’язки
+	Missing	Відсутній
+	Not found at this path	Не знайдено за цим шляхом
+	Off: an update replaces the drawing. On: the drawing it replaces stays as a hidden layer, to compare.	Вимк.: оновлення замінює креслення. Увімк.: замінене креслення лишається прихованим шаром для порівняння.
+	On sheet	На аркуші
+	Open the drawing in CADCraft yourself; this sheet updates when it is saved.	Відкрийте креслення в CADCraft самі; цей аркуш оновиться під час збереження.
+	Previous drawings: {n} (hidden layers)	Попередні креслення: {n} (приховані шари)
+	Relink	Перепід’єднати
+	Relink…	Перепід’єднати…
+	Reveal file	Показати файл
+	Sheet {n} of {total}	Аркуш {n} з {total}
+	Sheet {n} · {layout}	Аркуш {n} · {layout}
+	Showing files isn't available here.	Показ файлів тут недоступний.
+	Up to date	Актуально
+	Update all	Оновити все
+	Updated	Оновлено
+	Where the drawing is now	Де тепер креслення
+	{name} is updated on the sheet; the markups stayed put.	{name} оновлено на аркуші; позначки лишилися на місці.
+	{name} was saved in CADCraft: the sheet is updated, and the markups stayed put.	{name} збережено в CADCraft: аркуш оновлено, позначки лишилися на місці.
+	{n} linked drawings	Пов’язаних креслень: {n}
+	{when} (newer than the sheet)	{when} (новіше за аркуш)

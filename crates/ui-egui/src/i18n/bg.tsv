@@ -2568,3 +2568,30 @@ key	Space	Интервал
 	Change line width	Промяна на дебелината на линията
 	Drawings (DWG, DXF)	Чертежи (DWG, DXF)
 	PDF, drawings and images	PDF, чертежи и изображения
+	Drawings opened with Edit original update their sheets by themselves when you save them in CADCraft.	Чертежите, отворени с „Редактиране на оригинала“, сами обновяват листа си, когато ги запишете в CADCraft.
+	Edit original	Редактиране на оригинала
+	File saved	Файлът е записан
+	In CADCraft	В CADCraft
+	Keep previous drawings as hidden Rev layers	Запазване на предишните чертежи като скрити слоеве Rev
+	Layout	Оформление
+	Links	Връзки
+	Missing	Липсва
+	Not found at this path	Не е намерен на този път
+	Off: an update replaces the drawing. On: the drawing it replaces stays as a hidden layer, to compare.	Изкл.: обновяването заменя чертежа. Вкл.: замененият чертеж остава като скрит слой за сравнение.
+	On sheet	На листа
+	Open the drawing in CADCraft yourself; this sheet updates when it is saved.	Отворете чертежа в CADCraft сами; този лист се обновява при запис.
+	Previous drawings: {n} (hidden layers)	Предишни чертежи: {n} (скрити слоеве)
+	Relink	Повторно свързване
+	Relink…	Повторно свързване…
+	Reveal file	Показване на файла
+	Sheet {n} of {total}	Лист {n} от {total}
+	Sheet {n} · {layout}	Лист {n} · {layout}
+	Showing files isn't available here.	Показването на файлове не е налично тук.
+	Up to date	Актуален
+	Update all	Обновяване на всички
+	Updated	Обновен
+	Where the drawing is now	Къде е чертежът сега
+	{name} is updated on the sheet; the markups stayed put.	{name} е обновен на листа; бележките останаха на място.
+	{name} was saved in CADCraft: the sheet is updated, and the markups stayed put.	{name} е записан в CADCraft: листът е обновен, бележките останаха на място.
+	{n} linked drawings	Свързани чертежи: {n}
+	{when} (newer than the sheet)	{when} (по-нов от листа)

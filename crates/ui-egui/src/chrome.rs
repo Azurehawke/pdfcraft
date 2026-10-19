@@ -461,6 +461,7 @@ fn main_menu(app: &mut PdfCraftApp, ui: &mut egui::Ui, compact: bool) {
                     (RightPanel::Compare, tl!("Compare")),
                     (RightPanel::Markups, tl!("Markups list")),
                     (RightPanel::ToolChest, tl!("Tool chest")),
+                    (RightPanel::Links, tl!("Links")),
                 ] {
                     if ui.radio(app.right == Some(p), tl!(label)).clicked() {
                         app.choose_right_panel(Some(p));
@@ -520,6 +521,8 @@ pub fn right_rail(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
         !doc.info.layers.is_empty(),
         !doc.info.attachments.is_empty(),
     );
+    let has_links = !doc.cad_links().is_empty();
+    let link_attention = crate::links_ui::attention(app);
     let page_count = doc.info.pages.len();
     let labels: Vec<String> = doc.info.pages.iter().map(|p| p.label.clone()).collect();
     egui::Panel::right("rail")
@@ -533,6 +536,18 @@ pub fn right_rail(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
                 // RevuCraft: the rail opens and closes boxes in the dock, several at once.
                 let selected = if docks { app.is_docked(panel) } else { app.right == Some(panel) };
                 let r = icons::button(ui, icon, 34.0, selected, tl!(tip));
+                // Links: how many need attention (modified or missing).
+                if panel == RightPanel::Links && link_attention > 0 {
+                    let c = r.rect.right_top() + vec2(-6.0, 6.0);
+                    ui.painter().circle(c, 8.0, egui::Color32::from_rgb(0xfb, 0xbf, 0x24), Stroke::new(2.0, t.chrome));
+                    ui.painter().text(
+                        c,
+                        egui::Align2::CENTER_CENTER,
+                        link_attention.min(99).to_string(),
+                        theme::semibold(10.0),
+                        egui::Color32::from_rgb(0x1a, 0x12, 0x06),
+                    );
+                }
                 if has && !selected {
                     let c = r.rect.right_top() + vec2(-8.0, 8.0);
                     ui.painter().circle_filled(c, 3.0, t.accent);
@@ -550,6 +565,9 @@ pub fn right_rail(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
             rail_button(ui, RightPanel::Pages, "files", "Page thumbnails", false);
             rail_button(ui, RightPanel::Fields, "text-cursor-input", "Form fields", has_fields);
             rail_button(ui, RightPanel::Layers, "layers", "Layers", has_layers);
+            if has_links {
+                rail_button(ui, RightPanel::Links, "link", "Links", false);
+            }
             rail_button(ui, RightPanel::Markups, "list-checks", "Markups list", false);
             rail_button(ui, RightPanel::ToolChest, "wrench", "Tool chest", false);
             rail_button(ui, RightPanel::Attachments, "paperclip", "Attachments", has_files);

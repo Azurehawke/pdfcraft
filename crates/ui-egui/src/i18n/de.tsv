@@ -2606,3 +2606,30 @@ key	Space	Leertaste
 	Change line width	Linienbreite ändern
 	Drawings (DWG, DXF)	Zeichnungen (DWG, DXF)
 	PDF, drawings and images	PDF, Zeichnungen und Bilder
+	Drawings opened with Edit original update their sheets by themselves when you save them in CADCraft.	Mit „Original bearbeiten“ geöffnete Zeichnungen aktualisieren ihr Blatt von selbst, wenn Sie sie in CADCraft speichern.
+	Edit original	Original bearbeiten
+	File saved	Datei gespeichert
+	In CADCraft	In CADCraft
+	Keep previous drawings as hidden Rev layers	Frühere Zeichnungen als ausgeblendete Rev-Ebenen behalten
+	Layout	Layout
+	Links	Verknüpfungen
+	Missing	Fehlt
+	Not found at this path	An diesem Pfad nicht gefunden
+	Off: an update replaces the drawing. On: the drawing it replaces stays as a hidden layer, to compare.	Aus: Eine Aktualisierung ersetzt die Zeichnung. Ein: Die ersetzte Zeichnung bleibt als ausgeblendete Ebene zum Vergleichen.
+	On sheet	Auf Blatt
+	Open the drawing in CADCraft yourself; this sheet updates when it is saved.	Öffnen Sie die Zeichnung selbst in CADCraft; dieses Blatt wird beim Speichern aktualisiert.
+	Previous drawings: {n} (hidden layers)	Frühere Zeichnungen: {n} (ausgeblendete Ebenen)
+	Relink	Neu verknüpfen
+	Relink…	Neu verknüpfen…
+	Reveal file	Datei anzeigen
+	Sheet {n} of {total}	Blatt {n} von {total}
+	Sheet {n} · {layout}	Blatt {n} · {layout}
+	Showing files isn't available here.	Dateien anzeigen ist hier nicht verfügbar.
+	Up to date	Aktuell
+	Update all	Alle aktualisieren
+	Updated	Aktualisiert
+	Where the drawing is now	Wo die Zeichnung jetzt liegt
+	{name} is updated on the sheet; the markups stayed put.	{name} ist auf dem Blatt aktualisiert; die Markierungen sind geblieben.
+	{name} was saved in CADCraft: the sheet is updated, and the markups stayed put.	{name} wurde in CADCraft gespeichert: Das Blatt ist aktualisiert, die Markierungen sind geblieben.
+	{n} linked drawings	{n} verknüpfte Zeichnungen
+	{when} (newer than the sheet)	{when} (neuer als das Blatt)

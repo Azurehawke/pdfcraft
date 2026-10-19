@@ -87,12 +87,18 @@ fn stem(name: &str) -> &str {
 impl PdfCraftApp {
     /// Convert a non-PDF file (image, text) into a new tab. Returns `None` when `bytes` is not
     /// something Create understands (the caller then tries to open it as a PDF).
-    pub(crate) fn open_converted(&mut self, name: &str, bytes: &[u8]) -> Option<Result<(), String>> {
+    pub(crate) fn open_converted(&mut self, name: &str, bytes: &[u8], path: Option<&str>) -> Option<Result<(), String>> {
         use pdfcraft_engine::SourceKind;
-        if !matches!(pdfcraft_engine::source_kind(name, bytes), Some(SourceKind::Image | SourceKind::Text | SourceKind::Cad)) {
+        let kind = pdfcraft_engine::source_kind(name, bytes);
+        if !matches!(kind, Some(SourceKind::Image | SourceKind::Text | SourceKind::Cad)) {
             return None;
         }
-        let created = self.session.convert_to_pdf(name, &Arc::new(bytes.to_vec())).map(|(_, pdf)| pdf);
+        // RevuCraft: a drawing opened from a file stays linked to it (the Links pane).
+        let link = path.filter(|_| kind == Some(SourceKind::Cad)).and_then(crate::links_ui::linked_file);
+        let created = match &link {
+            Some(file) => self.session.create_from_cad_linked(name, bytes, Some(file)),
+            None => self.session.convert_to_pdf(name, &Arc::new(bytes.to_vec())).map(|(_, pdf)| pdf),
+        };
         Some(self.open_created_bytes(&format!("{}.pdf", stem(name)), created.map_err(|e| e.to_string())))
     }
 

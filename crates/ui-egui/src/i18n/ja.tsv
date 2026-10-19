@@ -2606,3 +2606,30 @@ key	Space	スペース
 	Change line width	線の太さを変更
 	Drawings (DWG, DXF)	図面（DWG、DXF）
 	PDF, drawings and images	PDF、図面、画像
+	Drawings opened with Edit original update their sheets by themselves when you save them in CADCraft.	「元を編集」で開いた図面は、CADCraft で保存するとシートが自動で更新されます。
+	Edit original	元を編集
+	File saved	ファイルの保存
+	In CADCraft	CADCraft で編集中
+	Keep previous drawings as hidden Rev layers	以前の図面を非表示の Rev レイヤーとして残す
+	Layout	レイアウト
+	Links	リンク
+	Missing	見つかりません
+	Not found at this path	このパスに見つかりません
+	Off: an update replaces the drawing. On: the drawing it replaces stays as a hidden layer, to compare.	オフ：更新で図面を置き換えます。オン：置き換えた図面を比較用の非表示レイヤーとして残します。
+	On sheet	シート
+	Open the drawing in CADCraft yourself; this sheet updates when it is saved.	CADCraft で図面をご自身で開いてください。保存するとこのシートが更新されます。
+	Previous drawings: {n} (hidden layers)	以前の図面：{n}（非表示レイヤー）
+	Relink	再リンク
+	Relink…	再リンク…
+	Reveal file	ファイルを表示
+	Sheet {n} of {total}	シート {n} / {total}
+	Sheet {n} · {layout}	シート {n} · {layout}
+	Showing files isn't available here.	ここではファイルを表示できません。
+	Up to date	最新
+	Update all	すべて更新
+	Updated	更新
+	Where the drawing is now	図面の現在の場所
+	{name} is updated on the sheet; the markups stayed put.	{name} をシートで更新しました。マークアップはそのままです。
+	{name} was saved in CADCraft: the sheet is updated, and the markups stayed put.	{name} が CADCraft で保存されました。シートを更新し、マークアップはそのままです。
+	{n} linked drawings	リンクされた図面 {n} 件
+	{when} (newer than the sheet)	{when}（シートより新しい）

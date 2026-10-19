@@ -87,6 +87,7 @@ mod home;
 mod icon_data;
 pub mod icons;
 pub mod last_session;
+mod links_ui;
 mod markups_list;
 mod new_dialog;
 mod openings;
@@ -199,6 +200,8 @@ pub enum RightPanel {
     Markups,
     /// RevuCraft's Tool chest ([`tool_chest`]).
     ToolChest,
+    /// RevuCraft's Links pane ([`links_ui`]): the drawings the sheets are linked to.
+    Links,
 }
 
 /// Quick-action bar tools (the vertical floating strip).
@@ -477,6 +480,8 @@ pub struct PdfCraftApp {
     pub accent: theme::Accent,
     /// RevuCraft: the tool icons' colour (the accent, neutral or their own), saved with the theme.
     pub icon_color: theme::IconColor,
+    /// RevuCraft: the Links pane (drawings the sheets are linked to).
+    pub(crate) links: links_ui::LinksState,
     /// The ribbon's workflow tab.
     pub workflow: ribbon::Workflow,
     /// The Symbols tab's settings.
@@ -812,6 +817,7 @@ impl PdfCraftApp {
             theme_preference: ThemePreference::Dark,
             accent: theme::Accent::default(),
             icon_color: theme::IconColor::default(),
+            links: Default::default(),
             workflow: ribbon::Workflow::default(),
             symbols: Default::default(),
             draft: Default::default(),
@@ -1012,7 +1018,7 @@ impl PdfCraftApp {
     fn open_bytes_with_focus(&mut self, name: &str, path: Option<String>, bytes: Vec<u8>, activate: bool) -> Result<(), String> {
         // Images and text files become new, unsaved PDFs (Create a PDF).
         let active = self.active;
-        if let Some(r) = self.open_converted(name, &bytes) {
+        if let Some(r) = self.open_converted(name, &bytes, path.as_deref()) {
             if !activate {
                 self.active = active;
             }
@@ -1430,6 +1436,11 @@ impl PdfCraftApp {
         }
     }
 
+    /// Keep each drawing a linked sheet replaces as a hidden Rev layer (saved with the settings).
+    pub fn set_keep_link_revisions(&mut self, keep: bool) {
+        self.links.keep_revisions = keep;
+    }
+
     /// Draw the tool icons in `c` from now on (saved with the settings).
     pub fn set_icon_color(&mut self, c: theme::IconColor) {
         self.icon_color = c;
@@ -1519,6 +1530,7 @@ impl PdfCraftApp {
             "theme": self.theme_preference,
             "accent": self.accent,
             "icon_color": self.icon_color.code(),
+            "link_keep_revisions": self.links.keep_revisions,
             "default_mode": self.default_mode,
             "default_layout": self.view_defaults.layout.as_str(),
             "default_zoom": self.view_defaults.zoom_name(),
@@ -1643,6 +1655,9 @@ impl PdfCraftApp {
         }
         if let Some(c) = v["icon_color"].as_str().and_then(theme::IconColor::from_code) {
             self.set_icon_color(c);
+        }
+        if let Some(keep) = v["link_keep_revisions"].as_bool() {
+            self.set_keep_link_revisions(keep);
         }
         if let Ok(preference) = serde_json::from_value::<ThemePreference>(v["theme"].clone()) {
             self.set_theme_preference(preference);
@@ -1832,6 +1847,7 @@ impl PdfCraftApp {
                     "compare" => Some(RightPanel::Compare),
                     "markups" => Some(RightPanel::Markups),
                     "tool-chest" => Some(RightPanel::ToolChest),
+                    "links" => Some(RightPanel::Links),
                     "none" => None,
                     other => return Err(format!("unknown panel {other}")),
                 }
@@ -2351,6 +2367,7 @@ impl eframe::App for PdfCraftApp {
         revu::photo_window(self, &ctx);
         draft::sheet_dialog(self, &ctx);
         new_dialog::show(self, &ctx);
+        links_ui::poll(self, &ctx);
         draft::keypad(self, &ctx);
         #[cfg(target_os = "android")]
         pickers::show_browser(self, &ctx);

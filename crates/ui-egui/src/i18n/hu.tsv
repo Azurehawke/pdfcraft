@@ -2604,3 +2604,30 @@ key	Space	Szóköz
 	Change line width	Vonalvastagság módosítása
 	Drawings (DWG, DXF)	Rajzok (DWG, DXF)
 	PDF, drawings and images	PDF, rajzok és képek
+	Drawings opened with Edit original update their sheets by themselves when you save them in CADCraft.	Az Eredeti szerkesztése paranccsal megnyitott rajzok maguktól frissítik a lapjukat, amikor a CADCraftban menti őket.
+	Edit original	Eredeti szerkesztése
+	File saved	Fájl mentve
+	In CADCraft	A CADCraftban
+	Keep previous drawings as hidden Rev layers	Korábbi rajzok megtartása rejtett Rev rétegként
+	Layout	Elrendezés
+	Links	Csatolások
+	Missing	Hiányzik
+	Not found at this path	Nem található ezen az útvonalon
+	Off: an update replaces the drawing. On: the drawing it replaces stays as a hidden layer, to compare.	Ki: a frissítés lecseréli a rajzot. Be: a lecserélt rajz rejtett rétegként megmarad összehasonlításhoz.
+	On sheet	A lapon
+	Open the drawing in CADCraft yourself; this sheet updates when it is saved.	Nyissa meg a rajzot saját maga a CADCraftban; ez a lap mentéskor frissül.
+	Previous drawings: {n} (hidden layers)	Korábbi rajzok: {n} (rejtett rétegek)
+	Relink	Újracsatolás
+	Relink…	Újracsatolás…
+	Reveal file	Fájl megjelenítése
+	Sheet {n} of {total}	{n}. lap / {total}
+	Sheet {n} · {layout}	{n}. lap · {layout}
+	Showing files isn't available here.	A fájlok megjelenítése itt nem érhető el.
+	Up to date	Naprakész
+	Update all	Összes frissítése
+	Updated	Frissítve
+	Where the drawing is now	Hol van most a rajz
+	{name} is updated on the sheet; the markups stayed put.	{name} frissítve a lapon; a jelölések a helyükön maradtak.
+	{name} was saved in CADCraft: the sheet is updated, and the markups stayed put.	{name} mentve a CADCraftban: a lap frissült, a jelölések a helyükön maradtak.
+	{n} linked drawings	{n} csatolt rajz
+	{when} (newer than the sheet)	{when} (újabb a lapnál)

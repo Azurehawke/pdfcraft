@@ -13,6 +13,7 @@
 #![deny(clippy::unwrap_used, clippy::expect_used, clippy::panic, clippy::unimplemented, clippy::todo, clippy::unreachable)]
 
 pub mod actions;
+pub mod cad_links;
 pub mod catalog;
 pub mod commands;
 pub mod compare;
@@ -315,6 +316,10 @@ impl Document {
 
     /// Saved measurement annotations, calculated from their geometry and PDF scales, plus
     /// the ones that couldn't be read (unsupported formats are skipped, not fatal).
+    /// RevuCraft: the drawings this document's sheets are linked to.
+    pub fn cad_links(&self) -> Vec<cad_links::CadLink> {
+        self.editor.as_ref().map(|e| cad_links::list(&e.cos)).unwrap_or_default()
+    }
     pub fn measurements(&self) -> Result<measure::Listing, String> {
         let e = self.editor.as_ref().ok_or("the document can't be read")?;
         Ok(measure::list(&e.cos))
@@ -807,6 +812,21 @@ pub enum Edit {
         name: String,
         bytes: Arc<Vec<u8>>,
         src_pages: Vec<usize>,
+    },
+    /// RevuCraft: redraw linked drawing `index` from its file (`bytes`, named `name`, as
+    /// `file` describes it now), keeping the markups; `keep_revision` keeps the drawing it
+    /// replaces as a hidden layer.
+    UpdateCadLink {
+        index: usize,
+        name: String,
+        bytes: Arc<Vec<u8>>,
+        file: cad_links::LinkedFile,
+        keep_revision: bool,
+    },
+    /// RevuCraft: point linked drawing `index` at a file somewhere else.
+    RelinkCad {
+        index: usize,
+        path: String,
     },
     /// Set Page Boxes / Crop: set (or reset) one box on `pages`.
     SetPageBox {
@@ -1339,6 +1359,8 @@ impl Edit {
             Edit::InsertBlankPage { .. } => "Insert blank page".into(),
             Edit::DuplicatePages { pages } => plural("Duplicate page", pages.len()),
             Edit::ReplacePages { pages, .. } => plural("Replace page", pages.len()),
+            Edit::UpdateCadLink { .. } => "Update linked drawing".into(),
+            Edit::RelinkCad { .. } => "Relink drawing".into(),
             Edit::SetPageBox { pages, which: PageBox::Crop, .. } => plural("Crop page", pages.len()),
             Edit::SetPageBox { .. } => "Set page boxes".into(),
             Edit::SetInfo { key, .. } => format!("Change {key}"),
@@ -1607,6 +1629,8 @@ fn check_permission(edit: &Edit, p: &pdfcraft_cos::Permissions) -> Result<(), Ed
         | Edit::EditTextLine { .. }
         | Edit::EditTextBlock { .. }
         | Edit::EditPageImage { .. }
+        | Edit::UpdateCadLink { .. }
+        | Edit::RelinkCad { .. }
         | Edit::Flatten { .. }
         | Edit::UnpackTextForms { .. }
         | Edit::FlattenFillSign => {
@@ -1742,6 +1766,10 @@ fn run_edit(doc: &mut pdfcraft_cos::Document, edit: &Edit, cx: &mut EditCtx) -> 
         }
         Edit::SetInfo { key, value } => pdfcraft_organize::set_info(doc, key, value)?,
         Edit::DuplicatePages { pages } => pdfcraft_organize::duplicate_pages(doc, pages)?,
+        Edit::UpdateCadLink { index, name, bytes, file, keep_revision } => {
+            cad_links::update(doc, *index, name, bytes, file, *keep_revision)?;
+        }
+        Edit::RelinkCad { index, path } => cad_links::relink(doc, *index, path)?,
         Edit::ReplacePages { pages, name, bytes, src_pages } => {
             let src = open_source(name, bytes)?;
             pdfcraft_organize::replace_pages(doc, pages, &src, src_pages)?;
@@ -3131,18 +3159,24 @@ impl Session {
     /// RevuCraft: a DWG or DXF drawing as a new document, one page per layout (or model space),
     /// with each viewport's scale as a measurement viewport over it.
     pub fn create_from_cad(&self, name: &str, bytes: &[u8]) -> Result<Arc<Vec<u8>>, EditError> {
-        let sheets = pdfcraft_create::cad::to_pdf(bytes, name)?;
-        let pdf = Arc::new(sheets.pdf);
+        self.create_from_cad_linked(name, bytes, None)
+    }
+
+    /// [`Self::create_from_cad`], with each sheet linked to `file` (the drawing on disk), so the
+    /// Links pane can tell when it changes and redraw the sheet from it.
+    pub fn create_from_cad_linked(&self, name: &str, bytes: &[u8], file: Option<&cad_links::LinkedFile>) -> Result<Arc<Vec<u8>>, EditError> {
+        // Drawing readers read untrusted bytes: a panic in one must not take the app down.
+        let sheets =
+            guard(|| pdfcraft_create::cad::to_pdf(bytes, name)).map_err(|_| EditError::Source(format!("{name}: the file could not be read")))??;
+        let pdf = Arc::new(sheets.pdf.clone());
         let mut doc = open_source(name, &pdf)?;
-        for vp in &sheets.viewports {
-            let feet = vp.unit == "ft";
-            let scale = measure::Scale::new(vp.real_per_point, vp.unit, if feet { 2 } else { 0 });
-            let scale = if feet { scale.and_then(|s| s.with_feet_inches(16)) } else { scale };
-            // A viewport whose scale can't be written is left to calibrate by hand.
-            if let Ok(mut scale) = scale {
-                scale.ratio = vp.ratio.clone();
-                let _ = measure::set_scale(&mut doc, vp.page, vp.bbox, &vp.name, &scale);
+        let hash = cad_links::fingerprint(bytes);
+        for (page, layout) in sheets.layouts.iter().enumerate() {
+            if let Some(file) = file {
+                cad_links::link_page(&mut doc, page, layout, file, &hash)?;
             }
+            let vps: Vec<&pdfcraft_create::cad::CadViewport> = sheets.viewports.iter().filter(|v| v.page == page).collect();
+            cad_links::set_viewports(&mut doc, page, &vps)?;
         }
         self.write_new(&doc)
     }

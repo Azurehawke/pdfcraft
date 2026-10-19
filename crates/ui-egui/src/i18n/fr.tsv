@@ -2606,3 +2606,30 @@ key	Space	Espace
 	Change line width	Modifier l’épaisseur de trait
 	Drawings (DWG, DXF)	Dessins (DWG, DXF)
 	PDF, drawings and images	PDF, dessins et images
+	Drawings opened with Edit original update their sheets by themselves when you save them in CADCraft.	Les dessins ouverts avec Modifier l’original mettent leur feuille à jour d’eux-mêmes quand vous les enregistrez dans CADCraft.
+	Edit original	Modifier l’original
+	File saved	Fichier enregistré
+	In CADCraft	Dans CADCraft
+	Keep previous drawings as hidden Rev layers	Garder les dessins précédents en calques Rév masqués
+	Layout	Présentation
+	Links	Liens
+	Missing	Introuvable
+	Not found at this path	Introuvable à cet emplacement
+	Off: an update replaces the drawing. On: the drawing it replaces stays as a hidden layer, to compare.	Désactivé : une mise à jour remplace le dessin. Activé : le dessin remplacé reste en calque masqué, pour comparer.
+	On sheet	Sur la feuille
+	Open the drawing in CADCraft yourself; this sheet updates when it is saved.	Ouvrez le dessin dans CADCraft vous-même ; cette feuille se met à jour à l’enregistrement.
+	Previous drawings: {n} (hidden layers)	Dessins précédents : {n} (calques masqués)
+	Relink	Relier
+	Relink…	Relier…
+	Reveal file	Afficher le fichier
+	Sheet {n} of {total}	Feuille {n} sur {total}
+	Sheet {n} · {layout}	Feuille {n} · {layout}
+	Showing files isn't available here.	Afficher les fichiers n’est pas disponible ici.
+	Up to date	À jour
+	Update all	Tout mettre à jour
+	Updated	Mis à jour
+	Where the drawing is now	Emplacement actuel du dessin
+	{name} is updated on the sheet; the markups stayed put.	{name} est à jour sur la feuille ; les annotations n’ont pas bougé.
+	{name} was saved in CADCraft: the sheet is updated, and the markups stayed put.	{name} a été enregistré dans CADCraft : la feuille est à jour et les annotations n’ont pas bougé.
+	{n} linked drawings	{n} dessins liés
+	{when} (newer than the sheet)	{when} (plus récent que la feuille)

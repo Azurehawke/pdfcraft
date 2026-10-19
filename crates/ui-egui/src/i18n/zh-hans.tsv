@@ -2571,3 +2571,30 @@ key	Space	空格
 	Change line width	更改线宽
 	Drawings (DWG, DXF)	图纸（DWG、DXF）
 	PDF, drawings and images	PDF、图纸和图片
+	Drawings opened with Edit original update their sheets by themselves when you save them in CADCraft.	用“编辑原件”打开的图纸，在 CADCraft 中保存后会自动更新其图页。
+	Edit original	编辑原件
+	File saved	文件保存时间
+	In CADCraft	在 CADCraft 中
+	Keep previous drawings as hidden Rev layers	将以前的图纸保留为隐藏的 Rev 图层
+	Layout	布局
+	Links	链接
+	Missing	缺失
+	Not found at this path	在此路径找不到
+	Off: an update replaces the drawing. On: the drawing it replaces stays as a hidden layer, to compare.	关闭：更新会替换图纸。开启：被替换的图纸保留为隐藏图层，便于比较。
+	On sheet	所在图页
+	Open the drawing in CADCraft yourself; this sheet updates when it is saved.	请自行在 CADCraft 中打开图纸；保存后此图页会更新。
+	Previous drawings: {n} (hidden layers)	以前的图纸：{n}（隐藏图层）
+	Relink	重新链接
+	Relink…	重新链接…
+	Reveal file	显示文件
+	Sheet {n} of {total}	第 {n} 页，共 {total} 页
+	Sheet {n} · {layout}	第 {n} 页 · {layout}
+	Showing files isn't available here.	此处无法显示文件。
+	Up to date	已是最新
+	Update all	全部更新
+	Updated	更新时间
+	Where the drawing is now	图纸现在的位置
+	{name} is updated on the sheet; the markups stayed put.	{name} 已在图页上更新；标记保持原位。
+	{name} was saved in CADCraft: the sheet is updated, and the markups stayed put.	{name} 已在 CADCraft 中保存：图页已更新，标记保持原位。
+	{n} linked drawings	{n} 个链接图纸
+	{when} (newer than the sheet)	{when}（比图页新）

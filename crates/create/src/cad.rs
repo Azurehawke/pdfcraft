@@ -75,6 +75,8 @@ pub fn ratio_label(real_per_point: f64, unit: &str) -> String {
 pub struct CadSheets {
     pub pdf: Vec<u8>,
     pub viewports: Vec<CadViewport>,
+    /// Each page's layout name (`"Model"` for model space), in page order.
+    pub layouts: Vec<String>,
     /// What reading the drawing could not keep (from the DWG conversion).
     pub notes: Vec<String>,
 }
@@ -103,6 +105,12 @@ fn unit_inches(d: &Drawing) -> f64 {
 
 /// Plot the drawing in `bytes` (named `name`) to PDF.
 pub fn to_pdf(bytes: &[u8], name: &str) -> Result<CadSheets, CreateError> {
+    to_pdf_layout(bytes, name, None)
+}
+
+/// Plot one layout of the drawing (`"Model"`: model space), or, with `None`, its sheets: the
+/// layouts that have something on them, else model space.
+pub fn to_pdf_layout(bytes: &[u8], name: &str, only: Option<&str>) -> Result<CadSheets, CreateError> {
     if bytes.len() > MAX_BYTES {
         return Err(CreateError::Invalid(format!("{name}: the drawing is larger than 512 MB")));
     }
@@ -112,7 +120,22 @@ pub fn to_pdf(bytes: &[u8], name: &str) -> Result<CadSheets, CreateError> {
         d.layouts.iter().filter(|l| !l.entities.is_empty() && !l.name.eq_ignore_ascii_case("model")).collect();
     layouts.sort_by_key(|l| l.tab_order);
     layouts.truncate(cadcraft_io::pdf::MAX_PAGES);
-    let spaces: Vec<Space> = if layouts.is_empty() { vec![Space::Model] } else { layouts.iter().map(|l| Space::Paper(l.name.clone())).collect() };
+    let spaces: Vec<Space> = match only {
+        Some(m) if m.eq_ignore_ascii_case("model") => vec![Space::Model],
+        Some(l) => match d.layouts.iter().find(|x| x.name == l) {
+            Some(x) => vec![Space::Paper(x.name.clone())],
+            None => return Err(CreateError::Invalid(format!("{name}: the drawing has no layout named {l}"))),
+        },
+        None if layouts.is_empty() => vec![Space::Model],
+        None => layouts.iter().map(|l| Space::Paper(l.name.clone())).collect(),
+    };
+    let layout_names: Vec<String> = spaces
+        .iter()
+        .map(|s| match s {
+            Space::Paper(n) => n.clone(),
+            Space::Model => "Model".to_string(),
+        })
+        .collect();
     let title = name.rsplit_once('.').map_or(name, |(s, _)| s).to_string();
     let opts = cadcraft_io::PdfOptions { compress: true, title, ..cadcraft_io::PdfOptions::default() };
     let pdf = cadcraft_io::pdf::pdf_sheets(&d, &spaces, &opts).map_err(|e| CreateError::Invalid(format!("{name}: {e}")))?;
@@ -175,7 +198,7 @@ pub fn to_pdf(bytes: &[u8], name: &str) -> Result<CadSheets, CreateError> {
             }
         }
     }
-    Ok(CadSheets { pdf, viewports, notes: d.read_notes.clone() })
+    Ok(CadSheets { pdf, viewports, layouts: layout_names, notes: d.read_notes.clone() })
 }
 
 #[cfg(test)]
