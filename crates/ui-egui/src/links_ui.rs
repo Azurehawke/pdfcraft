@@ -597,7 +597,7 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
             if let Some((vi, _)) = app.active_ids()
                 && let Some(view) = app.views.get_mut(vi)
             {
-                view.link_move = (!done).then(|| LinkMove { index, page, rect, others, from: None });
+                view.link_move = (!done).then_some(LinkMove { index, page, rect, others, from: None });
                 if !done {
                     view.go_to_page(page);
                 }
