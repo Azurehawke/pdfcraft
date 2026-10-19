@@ -217,7 +217,7 @@ DWG/DXF round trip
 - [ ] Export: drawn geometry, layers (names, colours), symbols as blocks with their labels,
       text and dimensions to DXF and DWG, at real-world size (drawing units from the page
       scale).
-- [ ] **(Steve, planned)** Linked drawings, as InDesign links: a sheet opened from a DWG/DXF
+- [ ] **(Steve, next build)** Linked drawings, as InDesign links (mock-up approved): a sheet opened from a DWG/DXF
       remembers its file, layout, date and fingerprint, with the plotted drawing as the backdrop
       under the markups (and a copy kept in the PDF). Place linked drawing puts one under an
       existing PDF sheet, lined up once by two points. A Links pane (right rail) lists each link:
@@ -228,6 +228,12 @@ DWG/DXF round trip
       counts stay put; viewport scales follow. Option (off by default): keep each previous
       drawing as a hidden Rev layer. Files live on Steve's server and in Syncthing folders for
       now; other storage is for the public release.
+      Several linked drawings on one sheet (a suite pieced together from one DWG per room, like
+      xrefs): each placed from model space at the sheet's scale on its own layer named after the
+      file, placed automatically (by the drawings' own coordinates, else beside the last one),
+      then movable by dragging with snapping to the other drawings' walls and corners; the
+      position is remembered for every update. Updating one room redraws only that piece; the
+      Links pane lists one row per placed drawing.
 - [ ] Import: a DXF or DWG (changed in CAD) placed back on the PDF sheet at the same scale and
       origin, as a new revision under the existing markup, so markups, photos and counts stay
       put; or as a fresh sheet.
