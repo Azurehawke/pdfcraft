@@ -2602,3 +2602,6 @@ key	Space	Интервал
 	Place a DWG or DXF on this sheet at its scale, linked to the file (one per room, say)	Поставяне на DWG или DXF на този лист в мащаба му, свързан с файла (например по един за стая)
 	Place drawing…	Поставяне на чертеж…
 	Sheet {n} · placed	Лист {n} · поставен
+	Android closes RevuCraft when it installs the update, so unsaved work is asked about first.	Android затваря RevuCraft, когато инсталира актуализацията, затова първо се пита за незапазената работа.
+	RevuCraft closes when the download starts, so the installer can replace it. Unsaved work is asked about first.	RevuCraft се затваря, когато изтеглянето започне, за да може инсталаторът да го замени. Първо се пита за незапазената работа.
+	To open and save PDFs anywhere on this device, turn on All files access for RevuCraft. Settings opens on the switch; come back here afterwards.	За да отваряте и запазвате PDF файлове навсякъде на това устройство, включете достъпа до всички файлове за RevuCraft. Настройките се отварят на превключвателя; след това се върнете тук.

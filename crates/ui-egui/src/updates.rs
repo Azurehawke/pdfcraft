@@ -128,6 +128,8 @@ pub(crate) struct Updates {
     pub(crate) quiet: bool,
     /// The Updates dialog is showing.
     pub(crate) open: bool,
+    /// Download was chosen: where from, while unsaved work is being asked about.
+    pub(crate) download: Option<String>,
 }
 
 impl PdfCraftApp {
@@ -189,6 +191,15 @@ impl PdfCraftApp {
     }
 }
 
+/// What happens to RevuCraft when an update downloads, for the Updates dialog and the save prompt.
+pub(crate) fn closes_note() -> &'static str {
+    if crate::editing::UPDATE_STAYS_OPEN {
+        tl!("Android closes RevuCraft when it installs the update, so unsaved work is asked about first.")
+    } else {
+        tl!("RevuCraft closes when the download starts, so the installer can replace it. Unsaved work is asked about first.")
+    }
+}
+
 /// The Updates dialog.
 pub(crate) fn dialog(app: &mut PdfCraftApp, ctx: &egui::Context) {
     if !app.updates.open {
@@ -227,6 +238,7 @@ pub(crate) fn dialog(app: &mut PdfCraftApp, ctx: &egui::Context) {
                     ))
                     .color(t.text_muted),
                 );
+                ui.label(egui::RichText::new(closes_note()).color(t.text_muted));
                 download = Some(r.url.clone());
             }
             Check::Done(Ok(_)) => {
@@ -268,7 +280,7 @@ pub(crate) fn dialog(app: &mut PdfCraftApp, ctx: &egui::Context) {
     if close {
         app.updates.open = false;
         if let Some(url) = download {
-            app.open_url(&url);
+            app.download_update(ctx, url);
         }
     }
 }

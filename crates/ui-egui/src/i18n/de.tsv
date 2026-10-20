@@ -2640,3 +2640,6 @@ key	Space	Leertaste
 	Place a DWG or DXF on this sheet at its scale, linked to the file (one per room, say)	Eine DWG oder DXF im Maßstab dieses Blatts platzieren, mit der Datei verknüpft (z. B. eine pro Raum)
 	Place drawing…	Zeichnung platzieren…
 	Sheet {n} · placed	Blatt {n} · platziert
+	Android closes RevuCraft when it installs the update, so unsaved work is asked about first.	Android schließt RevuCraft, wenn es das Update installiert. Deshalb wird zuerst nach ungespeicherter Arbeit gefragt.
+	RevuCraft closes when the download starts, so the installer can replace it. Unsaved work is asked about first.	RevuCraft wird geschlossen, sobald der Download beginnt, damit das Installationsprogramm es ersetzen kann. Zuerst wird nach ungespeicherter Arbeit gefragt.
+	To open and save PDFs anywhere on this device, turn on All files access for RevuCraft. Settings opens on the switch; come back here afterwards.	Um PDFs überall auf diesem Gerät zu öffnen und zu speichern, aktivieren Sie den Zugriff auf alle Dateien für RevuCraft. Die Einstellungen öffnen sich beim Schalter; kommen Sie danach hierher zurück.

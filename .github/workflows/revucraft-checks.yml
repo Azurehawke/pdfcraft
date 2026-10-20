@@ -121,6 +121,9 @@ jobs:
           shot phone-home --size 430x900 --scale 2
           shot plan-icons-neutral "$plan" --workflow markup --icon-color neutral
           shot all-tools "$plan" --mode all
+          shot plan-links "$plan" --workflow draft --dock links
+          shot update-available "$plan" --update available
+          shot update-prompt "$plan" --update prompt
 
       - name: Publish logs and screenshots
         if: always()

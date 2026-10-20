@@ -2605,3 +2605,5 @@ key	Space	空格
 	Place a DWG or DXF on this sheet at its scale, linked to the file (one per room, say)	按此图页的比例放置 DWG 或 DXF，并链接到文件（例如每个房间一个）
 	Place drawing…	放置图纸…
 	Sheet {n} · placed	第 {n} 页 · 已放置
+	Android closes RevuCraft when it installs the update, so unsaved work is asked about first.	Android 安装更新时会关闭 RevuCraft，因此会先询问未保存的工作。
+	RevuCraft closes when the download starts, so the installer can replace it. Unsaved work is asked about first.	下载开始时 RevuCraft 会关闭，以便安装程序替换它。会先询问未保存的工作。

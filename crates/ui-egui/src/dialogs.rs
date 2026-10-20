@@ -1381,7 +1381,7 @@ fn save_prompt(app: &mut PdfCraftApp, ctx: &egui::Context) {
     let Some(req) = app.close_request else { return };
     let index = match req {
         CloseRequest::Tab(id) => app.views.iter().position(|v| v.id == id),
-        CloseRequest::Quit | CloseRequest::All => app.first_dirty(),
+        CloseRequest::Quit | CloseRequest::All | CloseRequest::Update => app.first_dirty(),
     };
     let Some(name) = index.and_then(|i| app.views.get(i)).and_then(|v| app.session.get(v.id)).map(|d| d.name.clone()) else {
         // Nothing left to ask about (tab already gone or no dirty documents).
@@ -1410,6 +1410,10 @@ fn save_prompt(app: &mut PdfCraftApp, ctx: &egui::Context) {
         });
         ui.add_space(6.0);
         ui.label(egui::RichText::new(tl!("Your changes will be lost if you don't save them.")).color(t.text_muted));
+        if req == CloseRequest::Update {
+            ui.add_space(4.0);
+            ui.label(egui::RichText::new(crate::updates::closes_note()).color(t.text_muted));
+        }
         ui.add_space(14.0);
         ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
             if widgets::pill_button(ui, tl!("Save"), true).clicked() {

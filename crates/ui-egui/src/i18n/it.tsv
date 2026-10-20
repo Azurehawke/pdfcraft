@@ -2649,3 +2649,6 @@ key	Space	Spazio
 	Place a DWG or DXF on this sheet at its scale, linked to the file (one per room, say)	Posiziona un DWG o DXF su questo foglio alla sua scala, collegato al file (uno per stanza, ad esempio)
 	Place drawing…	Posiziona disegno…
 	Sheet {n} · placed	Foglio {n} · posizionato
+	Android closes RevuCraft when it installs the update, so unsaved work is asked about first.	Android chiude RevuCraft quando installa l’aggiornamento, quindi prima viene chiesto del lavoro non salvato.
+	RevuCraft closes when the download starts, so the installer can replace it. Unsaved work is asked about first.	RevuCraft si chiude quando inizia il download, così il programma di installazione può sostituirlo. Prima viene chiesto del lavoro non salvato.
+	To open and save PDFs anywhere on this device, turn on All files access for RevuCraft. Settings opens on the switch; come back here afterwards.	Per aprire e salvare PDF ovunque su questo dispositivo, attiva l’accesso a tutti i file per RevuCraft. Le Impostazioni si aprono sull’interruttore; poi torna qui.

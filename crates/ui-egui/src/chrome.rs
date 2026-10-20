@@ -565,7 +565,8 @@ pub fn right_rail(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
             rail_button(ui, RightPanel::Pages, "files", "Page thumbnails", false);
             rail_button(ui, RightPanel::Fields, "text-cursor-input", "Form fields", has_fields);
             rail_button(ui, RightPanel::Layers, "layers", "Layers", has_layers);
-            if has_links {
+            // RevuCraft always offers Links (Place drawing… is there); PdfCraft only for linked sheets.
+            if docks || has_links {
                 rail_button(ui, RightPanel::Links, "link", "Links", false);
             }
             rail_button(ui, RightPanel::Markups, "list-checks", "Markups list", false);

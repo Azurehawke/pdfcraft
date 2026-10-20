@@ -115,6 +115,21 @@ pub(crate) fn page_input(ui: &egui::Ui, resp: &egui::Response, cx: &crate::comme
 }
 
 /// Place the drawings at `paths` on the current sheet, linked to their files.
+/// File ▸ Place drawing… (also the Draft ribbon and the Links pane): pick DWG or DXF files to
+/// place on the current page, linked to them, and show the Links pane where they are listed.
+pub(crate) fn place_drawing(app: &mut PdfCraftApp) {
+    let Some((_, id)) = app.active_ids() else { return };
+    if app.show_ribbon {
+        if !app.is_docked(crate::RightPanel::Links) {
+            app.toggle_docked(crate::RightPanel::Links);
+        }
+    } else {
+        app.choose_right_panel(Some(crate::RightPanel::Links));
+    }
+    let dialog = crate::dialog::AsyncFileDialog::new().add_filter(tl!("Drawings (DWG, DXF)"), &pdfcraft_engine::CAD_EXTENSIONS);
+    let _ = app.ask(crate::pickers::Ask::Files(dialog), Some(id), place);
+}
+
 fn place(app: &mut PdfCraftApp, paths: Vec<std::path::PathBuf>) {
     let Some((index, _)) = app.active_ids() else { return };
     let page = app.views.get(index).map_or(0, |v| v.current);
@@ -409,8 +424,7 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
         );
     }
     if place_now {
-        let dialog = crate::dialog::AsyncFileDialog::new().add_filter(tl!("Drawings (DWG, DXF)"), &pdfcraft_engine::CAD_EXTENSIONS);
-        let _ = app.ask(crate::pickers::Ask::Files(dialog), Some(id), place);
+        place_drawing(app);
         return;
     }
     if links.is_empty() {

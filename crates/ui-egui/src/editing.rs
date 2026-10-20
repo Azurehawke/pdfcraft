@@ -16,7 +16,15 @@ pub enum CloseRequest {
     Quit,
     /// File ▸ Close all: like Quit, but the application stays open.
     All,
+    /// Help ▸ Check for updates ▸ Download: like Quit, then the download starts and RevuCraft
+    /// closes so the installer can replace it. On Android it is like Close all instead: the
+    /// download starts and RevuCraft stays open (Android's installer stops it).
+    Update,
 }
+
+/// Whether RevuCraft stays open after an update download starts (Android), rather than closing
+/// so the installer can replace it (Windows, Linux).
+pub(crate) const UPDATE_STAYS_OPEN: bool = cfg!(target_os = "android");
 
 /// Where Save writes.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -561,11 +569,13 @@ impl PdfCraftApp {
                 Some(i) => i,
                 None => return, // already closed
             },
-            CloseRequest::Quit | CloseRequest::All => match self.first_dirty() {
+            CloseRequest::Quit | CloseRequest::All | CloseRequest::Update => match self.first_dirty() {
                 Some(i) => i,
                 None => {
-                    if req == CloseRequest::Quit {
-                        self.quit(ctx);
+                    match req {
+                        CloseRequest::Quit => self.quit(ctx),
+                        CloseRequest::Update => self.finish_update(ctx),
+                        _ => {}
                     }
                     return;
                 }
@@ -573,14 +583,19 @@ impl PdfCraftApp {
         };
         // Quitting closes the unsaved tabs one by one (and brings each forward to save it):
         // remember what was open, and which tab was active, before the first one goes (#442).
-        if req == CloseRequest::Quit {
+        if quits(req) {
             match choice {
                 Some(_) => self.note_quit_session(),
                 None => self.forget_quit_session(),
             }
         }
         match choice {
-            None => {} // cancelled: nothing closes
+            // Cancelled: nothing closes, and an update waits for the next Download.
+            None => {
+                if req == CloseRequest::Update {
+                    self.updates.download = None;
+                }
+            }
             Some(false) => self.close_and_continue(ctx, index, req),
             Some(true) => {
                 let Some(id) = self.views.get(index).map(|v| v.id) else { return };
@@ -604,10 +619,11 @@ impl PdfCraftApp {
     fn close_and_continue(&mut self, ctx: &egui::Context, index: usize, req: CloseRequest) {
         self.close_tab(index);
         // A newer prompt wins: the user may have started another close while a save was pending.
-        if (req == CloseRequest::Quit || req == CloseRequest::All) && self.close_request.is_none() {
+        if matches!(req, CloseRequest::Quit | CloseRequest::All | CloseRequest::Update) && self.close_request.is_none() {
             match self.first_dirty() {
                 Some(_) => self.close_request = Some(req),
                 None if req == CloseRequest::Quit => self.quit(ctx),
+                None if req == CloseRequest::Update => self.finish_update(ctx),
                 None => {}
             }
         }
@@ -616,6 +632,30 @@ impl PdfCraftApp {
     fn quit(&mut self, ctx: &egui::Context) {
         self.allow_quit = true;
         ctx.send_viewport_cmd(egui::ViewportCommand::Close);
+    }
+
+    /// Check for updates ▸ Download: ask about unsaved work first (Save / Don't save / Cancel,
+    /// as when quitting), then start the download from `url` and, on Windows and Linux, close
+    /// RevuCraft so the installer can replace it. Cancel keeps RevuCraft open and downloads
+    /// nothing.
+    pub fn download_update(&mut self, ctx: &egui::Context, url: String) {
+        self.updates.download = Some(url);
+        if self.first_dirty().is_some() {
+            self.close_request = Some(CloseRequest::Update);
+        } else {
+            self.finish_update(ctx);
+        }
+    }
+
+    /// Every unsaved document is resolved: start the download, then close (unless Android).
+    fn finish_update(&mut self, ctx: &egui::Context) {
+        let Some(url) = self.updates.download.take() else { return };
+        self.open_url(&url);
+        if !UPDATE_STAYS_OPEN {
+            // What was open reopens after the update, as after any quit.
+            self.note_quit_session();
+            self.quit(ctx);
+        }
     }
 
     /// Publish whether any document has unsaved work, for the browser's reload warning (#812).
@@ -638,6 +678,11 @@ impl PdfCraftApp {
             self.shutdown_recovery();
         }
     }
+}
+
+/// Whether a close request ends with RevuCraft closing.
+fn quits(req: CloseRequest) -> bool {
+    req == CloseRequest::Quit || (req == CloseRequest::Update && !UPDATE_STAYS_OPEN)
 }
 
 /// The page a comment edit changes (`None` for other edits).

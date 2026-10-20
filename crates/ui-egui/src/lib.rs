@@ -1812,6 +1812,25 @@ impl PdfCraftApp {
                 "add" => self.show_new_dialog(true),
                 _ => return Err("new-dialog must be open or add".into()),
             },
+            // Screenshots and automation: the Updates dialog with a newer build, or (prompt) the
+            // unsaved-work question its Download asks, after an edit to the active document.
+            ("update", _) => {
+                let release = updates::Release { version: "999".into(), url: format!("{}/tag/revucraft-latest", updates::RELEASES_PAGE) };
+                match value {
+                    "available" => {
+                        self.updates.check = updates::Check::Done(Ok(release));
+                        self.updates.open = true;
+                    }
+                    "prompt" => {
+                        if !self.apply_edit(pdfcraft_engine::Edit::SetInfo { key: "Title".into(), value: "Unsaved title".into() }) {
+                            return Err("update prompt needs an open, editable document".into());
+                        }
+                        self.updates.download = Some(release.url);
+                        self.close_request = Some(CloseRequest::Update);
+                    }
+                    _ => return Err("update must be available or prompt".into()),
+                }
+            }
             ("icon-color", _) => {
                 let c = theme::IconColor::from_code(value)
                     .ok_or("icon-color must be accent, neutral or a colour (amber, blue, teal, green, red, violet)")?;

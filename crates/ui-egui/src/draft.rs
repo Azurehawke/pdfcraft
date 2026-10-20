@@ -1364,9 +1364,24 @@ pub fn ribbon(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
             ui.horizontal(|ui| {
                 ui.spacing_mut().item_spacing.x = 4.0;
                 group(ui, &t, tl!("Sheet"), |ui| {
-                    if icons::button(ui, "file-plus-2", 34.0, false, tl!("New sheet at a drawing scale")).clicked() {
-                        app.show_new_dialog(active.is_some());
-                    }
+                    ui.horizontal(|ui| {
+                        if icons::button(ui, "file-plus-2", 34.0, false, tl!("New sheet at a drawing scale")).clicked() {
+                            app.show_new_dialog(active.is_some());
+                        }
+                        // Place drawing…: a DWG or DXF linked onto this sheet (Links pane).
+                        let place = ui.add_enabled_ui(active.is_some(), |ui| {
+                            icons::button(
+                                ui,
+                                "link",
+                                34.0,
+                                false,
+                                tl!("Place a DWG or DXF on this sheet at its scale, linked to the file (one per room, say)"),
+                            )
+                        });
+                        if place.inner.clicked() {
+                            crate::links_ui::place_drawing(app);
+                        }
+                    });
                 });
                 separator(ui, &t);
                 group(ui, &t, tl!("Line width"), |ui| {

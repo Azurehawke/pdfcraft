@@ -2664,3 +2664,5 @@ key	Space	Пробіл
 	Place a DWG or DXF on this sheet at its scale, linked to the file (one per room, say)	Розмістити DWG або DXF на цьому аркуші в його масштабі зі зв’язком із файлом (наприклад, по одному на кімнату)
 	Place drawing…	Розмістити креслення…
 	Sheet {n} · placed	Аркуш {n} · розміщено
+	Android closes RevuCraft when it installs the update, so unsaved work is asked about first.	Android закриває RevuCraft, коли встановлює оновлення, тому спершу запитується про незбережену роботу.
+	RevuCraft closes when the download starts, so the installer can replace it. Unsaved work is asked about first.	RevuCraft закривається, коли починається завантаження, щоб інсталятор міг його замінити. Спершу запитується про незбережену роботу.

@@ -818,3 +818,41 @@ fn cancelling_then_discarding_an_earlier_dirty_tab_preserves_the_selected_docume
         assert!(!doc.dirty);
     }
 }
+
+#[test]
+fn an_update_download_asks_about_unsaved_work_first() {
+    let url = "https://github.com/Azurehawke/pdfcraft/releases/download/revucraft-windows-latest/RevuCraft.msi";
+    let mut h = three_tab_harness();
+    let ids: Vec<_> = h.state().views.iter().map(|view| view.id).collect();
+    h.get_by_label("first.pdf").click();
+    h.run_steps(3);
+    assert!(h.state_mut().apply_edit(pdfcraft_engine::Edit::SetInfo { key: "Title".into(), value: "Unsaved title".into() }));
+    h.run_steps(3);
+    let ctx = h.ctx.clone();
+    h.state_mut().download_update(&ctx, url.into());
+    h.run_steps(3);
+    assert_eq!(h.state().close_request, Some(pdfcraft_ui_egui::CloseRequest::Update));
+    assert_eq!(h.state().last_opened_url, None, "nothing downloads before the unsaved work is answered");
+    h.get_by_label("Cancel").click();
+    h.run_steps(3);
+    assert_eq!(h.state().close_request, None);
+    assert_eq!(h.state().last_opened_url, None, "Cancel downloads nothing");
+    assert_eq!(h.state().views.len(), 3, "Cancel keeps everything open");
+    assert!(h.state().session.get(ids[0]).unwrap().dirty);
+    h.state_mut().download_update(&ctx, url.into());
+    h.run_steps(3);
+    h.get_by_label("Don't save").click();
+    h.run_steps(3);
+    assert_eq!(h.state().last_opened_url.as_deref(), Some(url), "the download starts once the unsaved work is answered");
+}
+
+#[test]
+fn an_update_download_with_nothing_unsaved_starts_at_once() {
+    let url = "https://github.com/Azurehawke/pdfcraft/releases/tag/revucraft-linux-latest";
+    let mut h = three_tab_harness();
+    let ctx = h.ctx.clone();
+    h.state_mut().download_update(&ctx, url.into());
+    h.run_steps(2);
+    assert_eq!(h.state().close_request, None);
+    assert_eq!(h.state().last_opened_url.as_deref(), Some(url));
+}

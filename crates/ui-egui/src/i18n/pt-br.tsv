@@ -2642,3 +2642,5 @@ key	Space	Espaço
 	Place a DWG or DXF on this sheet at its scale, linked to the file (one per room, say)	Posicionar um DWG ou DXF nesta folha na escala dela, vinculado ao arquivo (um por ambiente, por exemplo)
 	Place drawing…	Posicionar desenho…
 	Sheet {n} · placed	Folha {n} · posicionado
+	Android closes RevuCraft when it installs the update, so unsaved work is asked about first.	O Android fecha o RevuCraft quando instala a atualização, então o trabalho não salvo é perguntado antes.
+	RevuCraft closes when the download starts, so the installer can replace it. Unsaved work is asked about first.	O RevuCraft fecha quando o download começa, para que o instalador possa substituí-lo. O trabalho não salvo é perguntado antes.

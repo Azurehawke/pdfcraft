@@ -2638,3 +2638,6 @@ key	Space	Szóköz
 	Place a DWG or DXF on this sheet at its scale, linked to the file (one per room, say)	DWG vagy DXF elhelyezése ezen a lapon annak léptékében, a fájlhoz csatolva (például helyiségenként egy)
 	Place drawing…	Rajz elhelyezése…
 	Sheet {n} · placed	{n}. lap · elhelyezve
+	Android closes RevuCraft when it installs the update, so unsaved work is asked about first.	Az Android bezárja a RevuCraftot, amikor telepíti a frissítést, ezért előbb a nem mentett munkáról kérdez.
+	RevuCraft closes when the download starts, so the installer can replace it. Unsaved work is asked about first.	A RevuCraft bezárul, amikor a letöltés elindul, hogy a telepítő lecserélhesse. Előbb a nem mentett munkáról kérdez.
+	To open and save PDFs anywhere on this device, turn on All files access for RevuCraft. Settings opens on the switch; come back here afterwards.	Ha az eszközön bárhol szeretne PDF-eket megnyitni és menteni, kapcsolja be a RevuCraft számára az összes fájlhoz való hozzáférést. A Beállítások a kapcsolónál nyílnak meg; utána térjen vissza ide.
