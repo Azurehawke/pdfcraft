@@ -2643,3 +2643,5 @@ key	Space	Espace
 	Android closes RevuCraft when it installs the update, so unsaved work is asked about first.	Android ferme RevuCraft quand il installe la mise à jour : le travail non enregistré est donc demandé d’abord.
 	RevuCraft closes when the download starts, so the installer can replace it. Unsaved work is asked about first.	RevuCraft se ferme quand le téléchargement commence, pour que le programme d’installation puisse le remplacer. Le travail non enregistré est demandé d’abord.
 	To open and save PDFs anywhere on this device, turn on All files access for RevuCraft. Settings opens on the switch; come back here afterwards.	Pour ouvrir et enregistrer des PDF n’importe où sur cet appareil, activez l’accès à tous les fichiers pour RevuCraft. Les Paramètres s’ouvrent sur l’interrupteur ; revenez ici ensuite.
+	Done editing	Modification terminée
+	Stop watching for saves from CADCraft. This also happens by itself when CADCraft closes.	Ne plus surveiller les enregistrements depuis CADCraft. Cela se fait aussi tout seul quand CADCraft se ferme.

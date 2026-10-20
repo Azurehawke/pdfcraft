@@ -2643,3 +2643,5 @@ key	Space	スペース
 	Android closes RevuCraft when it installs the update, so unsaved work is asked about first.	Android はアップデートのインストール時に RevuCraft を閉じるため、先に未保存の作業について確認します。
 	RevuCraft closes when the download starts, so the installer can replace it. Unsaved work is asked about first.	ダウンロードが始まると、インストーラーが置き換えられるよう RevuCraft は終了します。先に未保存の作業について確認します。
 	To open and save PDFs anywhere on this device, turn on All files access for RevuCraft. Settings opens on the switch; come back here afterwards.	このデバイスのどこでも PDF を開いて保存するには、RevuCraft の「すべてのファイルへのアクセス」をオンにしてください。設定はそのスイッチで開きます。終わったらここに戻ってください。
+	Done editing	編集完了
+	Stop watching for saves from CADCraft. This also happens by itself when CADCraft closes.	CADCraft からの保存の監視をやめます。CADCraft を閉じたときにも自動的にやめます。

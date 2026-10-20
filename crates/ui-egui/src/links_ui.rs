@@ -20,6 +20,9 @@ use crate::{PdfCraftApp, icons, widgets};
 const POLL: Duration = Duration::from_secs(2);
 /// A changed file counts once it has stayed the same this long.
 const SETTLE: Duration = Duration::from_secs(2);
+/// A CADCraft that closes this soon after Edit original started it most likely handed the file
+/// to a CADCraft already running: the drawing is still open there, so it stays watched.
+const HANDOFF: Duration = Duration::from_secs(5);
 
 /// A placed drawing being moved on its sheet: where it is and the other drawings there (user
 /// space), and where the drag started.
@@ -169,6 +172,9 @@ pub struct LinksState {
     selected: usize,
     /// Files opened with Edit original.
     editing: HashSet<String>,
+    /// The CADCraft Edit original started for a file, and when: once it closes, the file is no
+    /// longer being edited (a save made just before is still picked up).
+    editors: HashMap<String, (std::process::Child, Instant)>,
     /// A changed file as last seen: (size, modified, since when it has looked so).
     seen: HashMap<String, (u64, i64, Instant)>,
     status: HashMap<String, Status>,
@@ -244,6 +250,11 @@ pub fn poll(app: &mut PdfCraftApp, ctx: &egui::Context) {
         return;
     }
     app.links.last_poll = Some(now);
+    let closed = closed_editors(&mut app.links, now);
+    if !closed.is_empty() {
+        end_editing(app, &closed);
+    }
+    let Some(links) = app.session.get(id).map(|d| d.cad_links()) else { return };
     let mut auto = Vec::new();
     let state = &mut app.links;
     for l in &links {
@@ -278,6 +289,46 @@ pub fn poll(app: &mut PdfCraftApp, ctx: &egui::Context) {
     for index in auto {
         update(app, index, true);
     }
+}
+
+/// Files whose CADCraft (started by Edit original) has closed since the last look.
+fn closed_editors(state: &mut LinksState, now: Instant) -> Vec<String> {
+    let mut closed = Vec::new();
+    state.editors.retain(|path, (child, started)| match child.try_wait() {
+        Ok(None) => true,
+        // Gone (or no longer answering): editing is over, unless it handed the file on at once.
+        Ok(Some(_)) | Err(_) => {
+            if now.duration_since(*started) >= HANDOFF {
+                closed.push(path.clone());
+            }
+            false
+        }
+    });
+    closed
+}
+
+/// Stop treating `paths` as open in CADCraft (it closed, or Done editing). A save made just
+/// before still updates the sheet; otherwise the drawing simply goes back to Up to date.
+fn end_editing(app: &mut PdfCraftApp, paths: &[String]) {
+    let links = app.active_ids().and_then(|(_, id)| app.session.get(id)).map(|d| d.cad_links()).unwrap_or_default();
+    for path in paths {
+        let saved: Vec<usize> = links
+            .iter()
+            .filter(|l| &l.path == path && file_meta(&l.path).is_some_and(|(size, mtime)| size != l.size || mtime != l.mtime))
+            .map(|l| l.index)
+            .collect();
+        for index in saved {
+            if !update(app, index, true) {
+                break;
+            }
+        }
+        app.links.editing.remove(path);
+        app.links.editors.remove(path);
+        app.links.seen.remove(path);
+        app.links.status.remove(path);
+    }
+    // Look again straight away, so the pane shows each file's real state.
+    app.links.last_poll = None;
 }
 
 /// Redraw link `index` from its file.
@@ -341,19 +392,21 @@ fn cadcraft_program() -> Option<std::path::PathBuf> {
 
 /// Open the drawing in CADCraft (or, without it, in the app the system opens drawings with).
 #[cfg(not(any(target_os = "android", target_arch = "wasm32")))]
-fn edit_original(path: &str) -> Result<(), String> {
+/// Returns CADCraft's process when it was started directly, so its closing can be noticed; the
+/// system's opener hands the file on and exits, so there is nothing to follow then.
+fn edit_original(path: &str) -> Result<Option<std::process::Child>, String> {
     use std::process::Command;
-    let spawned = match cadcraft_program() {
-        Some(p) => Command::new(p).arg(path).spawn(),
-        None if cfg!(windows) => Command::new("cmd").args(["/C", "start", "", path]).spawn(),
-        None if cfg!(target_os = "macos") => Command::new("open").arg(path).spawn(),
-        None => Command::new("xdg-open").arg(path).spawn(),
-    };
-    spawned.map(|_| ()).map_err(|e| e.to_string())
+    match cadcraft_program() {
+        Some(p) => Command::new(p).arg(path).spawn().map(Some),
+        None if cfg!(windows) => Command::new("cmd").args(["/C", "start", "", path]).spawn().map(|_| None),
+        None if cfg!(target_os = "macos") => Command::new("open").arg(path).spawn().map(|_| None),
+        None => Command::new("xdg-open").arg(path).spawn().map(|_| None),
+    }
+    .map_err(|e| e.to_string())
 }
 
 #[cfg(any(target_os = "android", target_arch = "wasm32"))]
-fn edit_original(_path: &str) -> Result<(), String> {
+fn edit_original(_path: &str) -> Result<Option<std::process::Child>, String> {
     Err(tl!("Open the drawing in CADCraft yourself; this sheet updates when it is saved.").to_string())
 }
 
@@ -394,6 +447,8 @@ enum Act {
     Update(usize),
     UpdateAll,
     Edit(String),
+    /// Stop watching the files opened with Edit original.
+    DoneEditing,
     Reveal(String),
     Relink(usize, String),
     /// Start (or, `true`, finish) moving a placed drawing: index, page, where it is, the others.
@@ -448,6 +503,13 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
             .show(ui, |ui| {
                 ui.set_width(ui.available_width());
                 ui.label(tl!("Drawings opened with Edit original update their sheets by themselves when you save them in CADCraft."));
+                if ui
+                    .button(tl!("Done editing"))
+                    .on_hover_text(tl!("Stop watching for saves from CADCraft. This also happens by itself when CADCraft closes."))
+                    .clicked()
+                {
+                    act = Some(Act::DoneEditing);
+                }
             });
     }
     ui.add_space(4.0);
@@ -592,7 +654,15 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
             }
         }
         Some(Act::Edit(path)) => match edit_original(&path) {
-            Ok(()) => {
+            Ok(child) => {
+                match child {
+                    Some(child) => {
+                        app.links.editors.insert(path.clone(), (child, Instant::now()));
+                    }
+                    None => {
+                        app.links.editors.remove(&path);
+                    }
+                }
                 app.links.editing.insert(path.clone());
                 app.links.status.insert(path, Status::Editing);
             }
@@ -602,6 +672,10 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
                 app.notify(e);
             }
         },
+        Some(Act::DoneEditing) => {
+            let paths: Vec<String> = app.links.editing.iter().cloned().collect();
+            end_editing(app, &paths);
+        }
         Some(Act::Reveal(path)) => {
             if let Err(e) = reveal(&path) {
                 app.notify(e);
@@ -625,5 +699,28 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
             }
         }
         None => {}
+    }
+}
+
+#[cfg(all(test, unix))]
+mod tests {
+    use super::*;
+
+    fn finished_child() -> std::process::Child {
+        let mut child = std::process::Command::new("true").spawn().expect("`true` runs");
+        child.wait().expect("`true` finishes");
+        child
+    }
+
+    #[test]
+    fn a_closed_cadcraft_ends_editing_but_a_handoff_does_not() {
+        let now = Instant::now();
+        let mut state = LinksState::default();
+        let long_ago = now.checked_sub(Duration::from_secs(60)).unwrap_or(now);
+        state.editors.insert("closed.dwg".into(), (finished_child(), long_ago));
+        state.editors.insert("handed-on.dwg".into(), (finished_child(), now));
+        let closed = closed_editors(&mut state, now);
+        assert_eq!(closed, vec!["closed.dwg".to_string()], "only the CADCraft that ran for a while counts as closed");
+        assert!(state.editors.is_empty(), "both finished processes are let go");
     }
 }

@@ -2666,3 +2666,5 @@ key	Space	Пробіл
 	Sheet {n} · placed	Аркуш {n} · розміщено
 	Android closes RevuCraft when it installs the update, so unsaved work is asked about first.	Android закриває RevuCraft, коли встановлює оновлення, тому спершу запитується про незбережену роботу.
 	RevuCraft closes when the download starts, so the installer can replace it. Unsaved work is asked about first.	RevuCraft закривається, коли починається завантаження, щоб інсталятор міг його замінити. Спершу запитується про незбережену роботу.
+	Done editing	Редагування завершено
+	Stop watching for saves from CADCraft. This also happens by itself when CADCraft closes.	Більше не стежити за збереженнями з CADCraft. Це відбувається й саме, коли CADCraft закривається.

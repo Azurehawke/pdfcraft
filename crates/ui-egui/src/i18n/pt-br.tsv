@@ -2644,3 +2644,5 @@ key	Space	Espaço
 	Sheet {n} · placed	Folha {n} · posicionado
 	Android closes RevuCraft when it installs the update, so unsaved work is asked about first.	O Android fecha o RevuCraft quando instala a atualização, então o trabalho não salvo é perguntado antes.
 	RevuCraft closes when the download starts, so the installer can replace it. Unsaved work is asked about first.	O RevuCraft fecha quando o download começa, para que o instalador possa substituí-lo. O trabalho não salvo é perguntado antes.
+	Done editing	Edição concluída
+	Stop watching for saves from CADCraft. This also happens by itself when CADCraft closes.	Parar de acompanhar os salvamentos do CADCraft. Isso também acontece sozinho quando o CADCraft fecha.
