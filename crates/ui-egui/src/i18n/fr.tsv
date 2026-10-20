@@ -2645,3 +2645,7 @@ key	Space	Espace
 	To open and save PDFs anywhere on this device, turn on All files access for RevuCraft. Settings opens on the switch; come back here afterwards.	Pour ouvrir et enregistrer des PDF n’importe où sur cet appareil, activez l’accès à tous les fichiers pour RevuCraft. Les Paramètres s’ouvrent sur l’interrupteur ; revenez ici ensuite.
 	Done editing	Modification terminée
 	Stop watching for saves from CADCraft. This also happens by itself when CADCraft closes.	Ne plus surveiller les enregistrements depuis CADCraft. Cela se fait aussi tout seul quand CADCraft se ferme.
+	Found by name in a subfolder of the PDF's folder	Trouvé par son nom dans un sous-dossier du dossier du PDF
+	Found by name next to the PDF	Trouvé par son nom à côté du PDF
+	Found relative to the PDF	Trouvé par rapport au PDF
+	Relinked {n} more drawings found in the same folder.	{n} autres dessins trouvés dans le même dossier ont été reliés.

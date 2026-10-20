@@ -33,6 +33,9 @@ pub struct CadLink {
     /// The sheet (page index) it draws on.
     pub page: usize,
     pub path: String,
+    /// Where the file is relative to the PDF (`/`-separated, such as `rooms/101.dwg`), when it was
+    /// known as the link was made: found again on any device that has both in the same folders.
+    pub relative: Option<String>,
     /// The layout plotted (`Model` for model space).
     pub layout: String,
     /// The file as it was when the sheet was last made from it.
@@ -53,6 +56,8 @@ pub struct CadLink {
 #[derive(Clone, Debug, PartialEq)]
 pub struct LinkedFile {
     pub path: String,
+    /// The file's path relative to the PDF (`/`-separated), when the PDF has a place on disk.
+    pub relative: Option<String>,
     pub size: u64,
     pub mtime: i64,
     /// Now (seconds since 1970), recorded as the update time.
@@ -142,6 +147,7 @@ pub fn list(doc: &Document) -> Vec<CadLink> {
                 index,
                 page,
                 path: text(r, b"Path"),
+                relative: Some(text(r, b"RelPath")).filter(|p| !p.is_empty()),
                 layout: text(r, b"Layout"),
                 size: u64::try_from(int(doc, r, b"Size")).unwrap_or(0),
                 mtime: int(doc, r, b"MTime"),
@@ -263,6 +269,7 @@ pub(crate) fn link_page(doc: &mut Document, page: usize, layout: &str, file: &Li
     }
     let mut r = Dict::new();
     r.set(b"Path".to_vec(), PdfString::text(&file.path));
+    set_relative(&mut r, file.relative.as_deref());
     r.set(b"Layout".to_vec(), PdfString::text(layout));
     r.set(b"Page".to_vec(), Object::Ref(p.obj));
     r.set(b"Form".to_vec(), Object::Ref(form));
@@ -604,6 +611,7 @@ pub(crate) fn place(doc: &mut Document, page: usize, name: &str, bytes: &[u8], f
     let index = list.len();
     let mut r = Dict::new();
     r.set(b"Path".to_vec(), PdfString::text(&file.path));
+    set_relative(&mut r, file.relative.as_deref());
     r.set(b"Layout".to_vec(), PdfString::text("Model"));
     r.set(b"Page".to_vec(), Object::Ref(page_obj));
     r.set(b"Form".to_vec(), Object::Ref(form));
@@ -659,8 +667,23 @@ pub(crate) fn move_link(doc: &mut Document, index: usize, dx: f64, dy: f64) -> R
     redraw_page(doc, page)
 }
 
-/// Point link `index` at a file somewhere else.
-pub(crate) fn relink(doc: &mut Document, index: usize, path: &str) -> Result<(), EditError> {
+/// Record (or, `None`, clear) a link's path relative to the PDF. One that couldn't be a relative
+/// path (empty, absolute, too long, control characters) isn't recorded.
+fn set_relative(r: &mut Dict, relative: Option<&str>) {
+    match relative.map(str::trim).filter(|p| valid_relative(p)) {
+        Some(p) => r.set(b"RelPath".to_vec(), PdfString::text(p)),
+        None => {
+            r.remove(b"RelPath");
+        }
+    }
+}
+
+fn valid_relative(p: &str) -> bool {
+    !p.is_empty() && p.len() <= 4096 && !p.chars().any(char::is_control) && !p.starts_with(['/', '\\']) && !p.contains(':')
+}
+
+/// Point link `index` at a file somewhere else (and, when known, where that is from the PDF).
+pub(crate) fn relink(doc: &mut Document, index: usize, path: &str, relative: Option<&str>) -> Result<(), EditError> {
     let path = path.trim();
     if path.is_empty() || path.len() > 4096 || path.chars().any(char::is_control) {
         return Err(invalid("that isn't a file path"));
@@ -668,5 +691,6 @@ pub(crate) fn relink(doc: &mut Document, index: usize, path: &str) -> Result<(),
     let mut list = records(doc);
     let rec = list.get_mut(index).ok_or_else(|| invalid("that link doesn't exist"))?;
     rec.set(b"Path".to_vec(), PdfString::text(path));
+    set_relative(rec, relative);
     write_records(doc, list)
 }

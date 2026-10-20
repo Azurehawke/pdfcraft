@@ -3063,12 +3063,14 @@ fn a_linked_drawing_updates_under_its_markups() {
         .into_bytes()
     };
     let mut session = Session::default();
-    let file = cad_links::LinkedFile { path: "/jobs/riverside/plan.dxf".into(), size: 10, mtime: 1_000, now: 2_000 };
+    let file =
+        cad_links::LinkedFile { path: "/jobs/riverside/plan.dxf".into(), relative: Some("plan.dxf".into()), size: 10, mtime: 1_000, now: 2_000 };
     let pdf = session.create_from_cad_linked("plan.dxf", &dxf("120.0"), Some(&file)).unwrap();
     let id = session.open("plan.pdf", None, pdf, None).unwrap();
     let links = session.get(id).unwrap().cad_links();
     assert_eq!(links.len(), 1);
     assert_eq!((links[0].page, links[0].layout.as_str(), links[0].path.as_str(), links[0].mtime), (0, "Model", "/jobs/riverside/plan.dxf", 1_000));
+    assert_eq!(links[0].relative.as_deref(), Some("plan.dxf"), "where the drawing is from the PDF is kept");
     // A markup on the sheet, then the drawing changes and the sheet is updated, keeping the old
     // drawing as a hidden layer.
     let shape = Shape::Rectangle { rect: [20.0, 20.0, 60.0, 60.0] };
@@ -3078,7 +3080,7 @@ fn a_linked_drawing_updates_under_its_markups() {
             Edit::AddAnnotation(NewAnnotation { page: 0, style: Style::default_for(&shape), shape, contents: String::new(), author: "Test".into() }),
         )
         .unwrap();
-    let file2 = cad_links::LinkedFile { path: file.path.clone(), size: 12, mtime: 3_000, now: 4_000 };
+    let file2 = cad_links::LinkedFile { path: file.path.clone(), relative: None, size: 12, mtime: 3_000, now: 4_000 };
     let edit = Edit::UpdateCadLink { index: 0, name: "plan.dxf".into(), bytes: Arc::new(dxf("240.0")), file: file2, keep_revision: true };
     session.apply(id, edit).unwrap();
     let doc = session.get(id).unwrap();
@@ -3092,10 +3094,14 @@ fn a_linked_drawing_updates_under_its_markups() {
     let centre = doc.measurement_to_user(0, [page.width as f64 / 2.0, page.height as f64 / 2.0]).unwrap();
     assert!(doc.real_size_points(0, centre, 1.0).is_some(), "the new drawing brings its scale");
     // Relink, and a link that isn't there.
-    session.apply(id, Edit::RelinkCad { index: 0, path: "//nas/jobs/plan.dxf".into() }).unwrap();
-    assert_eq!(session.get(id).unwrap().cad_links()[0].path, "//nas/jobs/plan.dxf");
-    assert!(session.apply(id, Edit::RelinkCad { index: 7, path: "x.dxf".into() }).is_err());
-    let bad = cad_links::LinkedFile { path: "x".into(), size: 1, mtime: 1, now: 1 };
+    session.apply(id, Edit::RelinkCad { index: 0, path: "//nas/jobs/plan.dxf".into(), relative: Some("drawings/plan.dxf".into()) }).unwrap();
+    let relinked = &session.get(id).unwrap().cad_links()[0];
+    assert_eq!((relinked.path.as_str(), relinked.relative.as_deref()), ("//nas/jobs/plan.dxf", Some("drawings/plan.dxf")));
+    // An absolute path isn't kept as the relative one.
+    session.apply(id, Edit::RelinkCad { index: 0, path: "M:\\jobs\\plan.dxf".into(), relative: Some("C:\\plan.dxf".into()) }).unwrap();
+    assert_eq!(session.get(id).unwrap().cad_links()[0].relative, None);
+    assert!(session.apply(id, Edit::RelinkCad { index: 7, path: "x.dxf".into(), relative: None }).is_err());
+    let bad = cad_links::LinkedFile { path: "x".into(), relative: None, size: 1, mtime: 1, now: 1 };
     assert!(
         session
             .apply(
@@ -3119,7 +3125,7 @@ fn rooms_are_placed_on_one_sheet_and_move_and_update_on_their_own() {
     };
     let mut session = Session::default();
     let id = session.open("suite.pdf", None, Arc::new(fixture(1)), None).unwrap();
-    let file = |p: &str| cad_links::LinkedFile { path: p.into(), size: 1, mtime: 1, now: 1 };
+    let file = |p: &str| cad_links::LinkedFile { path: p.into(), relative: None, size: 1, mtime: 1, now: 1 };
     session
         .apply(id, Edit::PlaceCadLink { page: 0, name: "room1.dxf".into(), bytes: Arc::new(room(120.0)), file: file("/suite/room1.dxf") })
         .unwrap();

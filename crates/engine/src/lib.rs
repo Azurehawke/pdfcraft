@@ -827,6 +827,8 @@ pub enum Edit {
     RelinkCad {
         index: usize,
         path: String,
+        /// Where `path` is from the PDF (`/`-separated), when the PDF has a place on disk.
+        relative: Option<String>,
     },
     /// RevuCraft: place the model space of a drawing (`bytes`, named `name`, from `file`) on
     /// sheet `page` at its scale, linked to the file, on its own layer.
@@ -1787,7 +1789,7 @@ fn run_edit(doc: &mut pdfcraft_cos::Document, edit: &Edit, cx: &mut EditCtx) -> 
         Edit::UpdateCadLink { index, name, bytes, file, keep_revision } => {
             cad_links::update(doc, *index, name, bytes, file, *keep_revision)?;
         }
-        Edit::RelinkCad { index, path } => cad_links::relink(doc, *index, path)?,
+        Edit::RelinkCad { index, path, relative } => cad_links::relink(doc, *index, path, relative.as_deref())?,
         Edit::PlaceCadLink { page, name, bytes, file } => {
             cad_links::place(doc, *page, name, bytes, file)?;
         }

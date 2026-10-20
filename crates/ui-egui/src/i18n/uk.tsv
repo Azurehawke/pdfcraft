@@ -2668,3 +2668,7 @@ key	Space	Пробіл
 	RevuCraft closes when the download starts, so the installer can replace it. Unsaved work is asked about first.	RevuCraft закривається, коли починається завантаження, щоб інсталятор міг його замінити. Спершу запитується про незбережену роботу.
 	Done editing	Редагування завершено
 	Stop watching for saves from CADCraft. This also happens by itself when CADCraft closes.	Більше не стежити за збереженнями з CADCraft. Це відбувається й саме, коли CADCraft закривається.
+	Found by name in a subfolder of the PDF's folder	Знайдено за назвою у вкладеній теці теки PDF
+	Found by name next to the PDF	Знайдено за назвою поруч із PDF
+	Found relative to the PDF	Знайдено відносно PDF
+	Relinked {n} more drawings found in the same folder.	Повторно зв’язано ще {n} креслень із тієї ж теки.

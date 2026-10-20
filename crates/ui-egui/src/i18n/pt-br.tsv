@@ -2646,3 +2646,7 @@ key	Space	Espaço
 	RevuCraft closes when the download starts, so the installer can replace it. Unsaved work is asked about first.	O RevuCraft fecha quando o download começa, para que o instalador possa substituí-lo. O trabalho não salvo é perguntado antes.
 	Done editing	Edição concluída
 	Stop watching for saves from CADCraft. This also happens by itself when CADCraft closes.	Parar de acompanhar os salvamentos do CADCraft. Isso também acontece sozinho quando o CADCraft fecha.
+	Found by name in a subfolder of the PDF's folder	Encontrado pelo nome em uma subpasta da pasta do PDF
+	Found by name next to the PDF	Encontrado pelo nome ao lado do PDF
+	Found relative to the PDF	Encontrado em relação ao PDF
+	Relinked {n} more drawings found in the same folder.	Mais {n} desenhos encontrados na mesma pasta foram revinculados.

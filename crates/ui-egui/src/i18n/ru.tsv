@@ -2558,3 +2558,7 @@ key	Space	Пробел
 	To open and save PDFs anywhere on this device, turn on All files access for RevuCraft. Settings opens on the switch; come back here afterwards.	Чтобы открывать и сохранять PDF в любом месте на этом устройстве, включите для RevuCraft доступ ко всем файлам. Настройки откроются на этом переключателе; затем вернитесь сюда.
 	Done editing	Правка завершена
 	Stop watching for saves from CADCraft. This also happens by itself when CADCraft closes.	Больше не следить за сохранениями из CADCraft. Это происходит и само, когда CADCraft закрывается.
+	Found by name in a subfolder of the PDF's folder	Найден по имени во вложенной папке папки PDF
+	Found by name next to the PDF	Найден по имени рядом с PDF
+	Found relative to the PDF	Найден относительно PDF
+	Relinked {n} more drawings found in the same folder.	Перепривязано ещё {n} чертежей из той же папки.
