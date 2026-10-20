@@ -706,21 +706,22 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
 mod tests {
     use super::*;
 
-    fn finished_child() -> std::process::Child {
-        let mut child = std::process::Command::new("true").spawn().expect("`true` runs");
-        child.wait().expect("`true` finishes");
-        child
+    fn finished_child() -> Result<std::process::Child, String> {
+        let mut child = std::process::Command::new("true").spawn().map_err(|e| e.to_string())?;
+        child.wait().map_err(|e| e.to_string())?;
+        Ok(child)
     }
 
     #[test]
-    fn a_closed_cadcraft_ends_editing_but_a_handoff_does_not() {
+    fn a_closed_cadcraft_ends_editing_but_a_handoff_does_not() -> Result<(), String> {
         let now = Instant::now();
         let mut state = LinksState::default();
         let long_ago = now.checked_sub(Duration::from_secs(60)).unwrap_or(now);
-        state.editors.insert("closed.dwg".into(), (finished_child(), long_ago));
-        state.editors.insert("handed-on.dwg".into(), (finished_child(), now));
+        state.editors.insert("closed.dwg".into(), (finished_child()?, long_ago));
+        state.editors.insert("handed-on.dwg".into(), (finished_child()?, now));
         let closed = closed_editors(&mut state, now);
         assert_eq!(closed, vec!["closed.dwg".to_string()], "only the CADCraft that ran for a while counts as closed");
         assert!(state.editors.is_empty(), "both finished processes are let go");
+        Ok(())
     }
 }
