@@ -178,6 +178,12 @@ Markup and measuring
 - [x] **(Steve, build 102)** Closing CADCraft ends Edit original: the drawing goes back to Up to date
       (a save just before still updates the sheet). Done editing in the Links pane ends it by hand
       when CADCraft was already open or the system's opener started it.
+- [x] **(Steve, build 104)** Linked drawings work on any device: links record the path from the PDF,
+      and each device looks there, then at the full path, then by name next to the PDF and in the
+      folders below it. A copy with the same drawing (fingerprint) stays Up to date; Relink also
+      relinks the other missing drawings found in the same folder.
+- [ ] **(Steve, later update)** Folder mappings per device (`M:\Jobs` on the PC = `Sync/Jobs` on the
+      tablet), for drawings kept outside the PDF's folder.
 
 Tablet
 - [ ] **(Steve, later update)** Touch mode: bigger buttons and handles, long-press for the context menu, two-finger tap to
