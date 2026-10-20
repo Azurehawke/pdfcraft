@@ -1815,7 +1815,9 @@ impl PdfCraftApp {
             // Screenshots and automation: the Updates dialog with a newer build, or (prompt) the
             // unsaved-work question its Download asks, after an edit to the active document.
             ("update", _) => {
-                let release = updates::Release { version: "999".into(), url: format!("{}/tag/revucraft-latest", updates::RELEASES_PAGE) };
+                // Newer than this build, numbered (CI) or not (a local build).
+                let version = if updates::current_version().bytes().all(|b| b.is_ascii_digit()) { "99999" } else { "v99.0.0" };
+                let release = updates::Release { version: version.into(), url: format!("{}/tag/revucraft-latest", updates::RELEASES_PAGE) };
                 match value {
                     "available" => {
                         self.updates.check = updates::Check::Done(Ok(release));
