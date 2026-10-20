@@ -168,13 +168,16 @@ Markup and measuring
       reports, Cable runs, and New / Open (the New dialog); a tagline about plans, markup and
       takeoff.
 
-- [x] **(Steve, build 97)** Windows and Linux: choosing Download in Check for updates starts the
+- [x] **(Steve, build 102)** Windows and Linux: choosing Download in Check for updates starts the
       download and then closes RevuCraft, so the installer can replace it. Unsaved work asks first
       (Save / Don't save / Cancel, as when quitting); Cancel keeps RevuCraft open. Android: the
       same unsaved-work prompt before the download starts, but RevuCraft stays open (Android's
       installer stops it when it replaces the app, which would otherwise lose unsaved changes).
-- [x] **(Steve, build 97)** Place drawing… is easy to find: the Links icon is always on the rail,
+- [x] **(Steve, build 102)** Place drawing… is easy to find: the Links icon is always on the rail,
       and Place drawing… is in the File menu, the command palette and the Draft ribbon's Sheet group.
+- [x] **(Steve, build 102)** Closing CADCraft ends Edit original: the drawing goes back to Up to date
+      (a save just before still updates the sheet). Done editing in the Links pane ends it by hand
+      when CADCraft was already open or the system's opener started it.
 
 Tablet
 - [ ] **(Steve, later update)** Touch mode: bigger buttons and handles, long-press for the context menu, two-finger tap to
