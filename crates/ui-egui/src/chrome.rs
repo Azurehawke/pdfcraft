@@ -737,6 +737,10 @@ fn all_tools_menu(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
     }
 }
 
+/// The height of the rail's page navigation at the bottom (page field and count, arrows, zoom,
+/// fit, rotate, page display, zoom buttons), kept clear of the panel buttons above it.
+const RAIL_NAVIGATION: f32 = 380.0;
+
 pub fn right_rail(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
     let t = Tokens::get(ui.ctx());
     let Some((index, id)) = app.active_ids() else { return };
@@ -761,6 +765,7 @@ pub fn right_rail(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
         .show(ui, |ui| {
             ui.spacing_mut().item_spacing.y = 4.0;
             let docks = app.show_ribbon;
+            let props_on = app.dock_properties;
             let mut rail_button = |ui: &mut egui::Ui, panel: RightPanel, icon: &str, tip: &str, has: bool| {
                 // RevuCraft: the rail opens and closes boxes in the dock, several at once.
                 let selected = if docks {
@@ -793,37 +798,43 @@ pub fn right_rail(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
                     }
                 }
             };
-            rail_button(ui, RightPanel::Comments, "message-square-text", "Comments", has_comments);
-            rail_button(ui, RightPanel::Bookmarks, "bookmark", "Bookmarks", has_outline);
-            rail_button(ui, RightPanel::Pages, "files", "Page thumbnails", false);
-            rail_button(ui, RightPanel::Fields, "text-cursor-input", "Form fields", has_fields);
-            rail_button(ui, RightPanel::Layers, "layers", "Layers", has_layers);
-            // RevuCraft always offers Links (Place drawing… is there); PdfCraft only for linked sheets.
-            if docks || has_links {
-                rail_button(ui, RightPanel::Links, "link", "Links", false);
-            }
-            rail_button(ui, RightPanel::Markups, "list-checks", "Markups list", false);
-            rail_button(ui, RightPanel::ToolChest, "wrench", "Tool chest", false);
-            rail_button(ui, RightPanel::Attachments, "paperclip", "Attachments", has_files);
-            rail_button(ui, RightPanel::Signatures, "signature", "Signatures", has_signatures);
-            if has_check {
-                rail_button(ui, RightPanel::Accessibility, "accessibility", "Accessibility Checker", false);
-            }
-            // Structure tags are an accessibility chore, not a plan-review one: RevuCraft keeps
-            // them in View ▸ Side panels.
-            if !docks {
-                rail_button(ui, RightPanel::Tags, "tag", "Tags", false);
-            }
-            // RevuCraft: the selected markup's Properties box.
-            if docks && icons::button(ui, "sliders-horizontal", 34.0, app.dock_properties, tl!("Properties")).clicked() {
+            // The panel buttons scroll when the window is too short for them and the page
+            // navigation below (a laptop screen with RevuCraft's extra panels).
+            let room = (ui.available_height() - RAIL_NAVIGATION).max(2.0 * 38.0);
+            let props_clicked = egui::ScrollArea::vertical()
+                .id_salt("rail-buttons")
+                .max_height(room)
+                .scroll_bar_visibility(egui::scroll_area::ScrollBarVisibility::AlwaysHidden)
+                .show(ui, |ui| {
+                    ui.spacing_mut().item_spacing.y = 4.0;
+                    rail_button(ui, RightPanel::Comments, "message-square-text", "Comments", has_comments);
+                    rail_button(ui, RightPanel::Bookmarks, "bookmark", "Bookmarks", has_outline);
+                    rail_button(ui, RightPanel::Pages, "files", "Page thumbnails", false);
+                    rail_button(ui, RightPanel::Fields, "text-cursor-input", "Form fields", has_fields);
+                    rail_button(ui, RightPanel::Layers, "layers", "Layers", has_layers);
+                    // RevuCraft always offers Links (Place drawing… is there); PdfCraft only for linked sheets.
+                    if docks || has_links {
+                        rail_button(ui, RightPanel::Links, "link", "Links", false);
+                    }
+                    rail_button(ui, RightPanel::Markups, "list-checks", "Markups list", false);
+                    rail_button(ui, RightPanel::ToolChest, "wrench", "Tool chest", false);
+                    rail_button(ui, RightPanel::Attachments, "paperclip", "Attachments", has_files);
+                    rail_button(ui, RightPanel::Signatures, "signature", "Signatures", has_signatures);
+                    if has_check {
+                        rail_button(ui, RightPanel::Accessibility, "accessibility", "Accessibility Checker", false);
+                    }
+                    // Structure tags are an accessibility chore, not a plan-review one: RevuCraft keeps
+                    // them in View ▸ Side panels.
+                    if !docks {
+                        rail_button(ui, RightPanel::Tags, "tag", "Tags", false);
+                    }
+                    // RevuCraft: the selected markup's Properties box (saved dock layouts are in
+                    // View ▸ Workspaces).
+                    docks && icons::button(ui, "sliders-horizontal", 34.0, props_on, tl!("Properties")).clicked()
+                })
+                .inner;
+            if props_clicked {
                 app.toggle_properties();
-            }
-            // RevuCraft: saved dock layouts.
-            if docks {
-                let r = icons::button(ui, "layout-grid", 34.0, false, tl!("Workspaces"));
-                egui::Popup::from_toggle_button_response(&r)
-                    .close_behavior(egui::PopupCloseBehavior::CloseOnClickOutside)
-                    .show(|ui| crate::tool_chest::workspaces_menu(app, ui));
             }
 
             // Page navigation cluster at the bottom (as in Acrobat's rail).
