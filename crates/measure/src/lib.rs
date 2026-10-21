@@ -715,12 +715,18 @@ pub fn list(doc: &Document) -> Listing {
     out
 }
 /// Last containing viewport wins, using the first point of the measurement (ISO 32000-2 §12.9).
+/// Outside every viewport the page measures true size in inches.
 pub fn scale_at(doc: &Document, page_index: usize, at: Point) -> Result<Scale> {
+    scale_at_or(doc, page_index, at, 1.0 / 72.0, "in")
+}
+/// [`scale_at`], but outside every viewport the page measures true size in `unit`, of which there
+/// are `per_point` in a PDF point (25.4 / 72 for millimetres).
+pub fn scale_at_or(doc: &Document, page_index: usize, at: Point, per_point: f64, unit: &str) -> Result<Scale> {
     if let Some(scale) = viewport_scale_at(doc, page_index, at)? {
         return Ok(scale);
     }
     let p = page(doc, page_index)?;
-    Scale::new(p.user_unit(doc) / 72.0, "in", 2)
+    Scale::new(p.user_unit(doc) * per_point, unit, 2)
 }
 /// The scale of the measurement viewport containing `at`, or `None` when no viewport covers it
 /// (the page is not calibrated there).
