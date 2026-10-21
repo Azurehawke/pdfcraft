@@ -48,7 +48,7 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
     // A new selection, or nothing pending: show the markup as it is now.
     let reload = app.props_box.as_ref().is_none_or(|d| d.page != page || d.index != ai || d.edited == d.original);
     if reload {
-        app.props_box = Some(PropsDraft { page, index: ai, tab: PropsTab::Appearance, original: fresh.clone(), edited: fresh });
+        app.props_box = Some(PropsDraft { page, index: ai, tab: PropsTab::Appearance, original: fresh.clone(), edited: fresh, make_default: false });
     }
     let Some(d) = app.props_box.as_mut() else { return };
     let mut commit = false;
