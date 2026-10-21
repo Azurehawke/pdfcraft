@@ -1256,17 +1256,18 @@ pub(crate) fn paint_page(ui: &egui::Ui, painter: &egui::Painter, cx: &PageCx<'_>
 fn paint_gesture(painter: &egui::Painter, cx: &PageCx<'_>, view: &DocView) {
     let now = painter.ctx().input(|i| i.time);
     for s in view.comments.settling.iter().filter(|s| s.page == cx.page && now - s.since < SETTLE_SECS) {
-        paint_draw(painter, cx, &s.tool, &s.points);
+        // A released drawing settles without its pressures: drawn at the pen's even width.
+        paint_draw(painter, cx, &s.tool, &s.points, &[]);
     }
     if let Some(Gesture::Draw { page, tool, points }) = &view.comments.gesture
         && *page == cx.page
     {
-        paint_draw(painter, cx, tool, points);
+        paint_draw(painter, cx, tool, points, &view.comments.pressures);
     }
 }
 
 /// A drawing tool's shape from its points (a live drag, or a released one still settling).
-fn paint_draw(painter: &egui::Painter, cx: &PageCx<'_>, tool: &CommentTool, points: &[[f64; 2]]) {
+fn paint_draw(painter: &egui::Painter, cx: &PageCx<'_>, tool: &CommentTool, points: &[[f64; 2]], pressures: &[Option<f64>]) {
     {
         let style = cx.prefs.style(*tool);
         let zoom = cx.xf.rect.width() / cx.xf.pw.max(1.0);
@@ -1274,11 +1275,11 @@ fn paint_draw(painter: &egui::Painter, cx: &PageCx<'_>, tool: &CommentTool, poin
         let pts: Vec<Pos2> = points.iter().map(|p| cx.to_screen(*p)).collect();
         match tool {
             CommentTool::Ink => {
-                let pressed = view.comments.pressures.iter().any(Option::is_some);
+                let pressed = pressures.iter().any(Option::is_some);
                 if cx.prefs.pen == PenKind::Pen && !pressed {
                     painter.add(egui::Shape::line(pts, stroke));
                 } else {
-                    paint_pen_stroke(painter, &pts, &view.comments.pressures, cx.prefs.pen, style.width, zoom, color32(style.color));
+                    paint_pen_stroke(painter, &pts, pressures, cx.prefs.pen, style.width, zoom, color32(style.color));
                 }
             }
             CommentTool::Eraser => {

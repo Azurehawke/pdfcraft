@@ -527,12 +527,6 @@ fn crop_input(
     true
 }
 
-impl ImageSelection {
-    pub(crate) fn dragging(&self) -> bool {
-        self.drag.is_some()
-    }
-}
-
 /// Once a selected corner is grabbed, text under it cannot take over the gesture. The same
 /// applies after the pointer leaves the image/page while dragging.
 pub(crate) fn image_owns_pointer(ui: &egui::Ui, xf: &PageXform, page: usize, info: &DocInfo, view: &DocView) -> bool {
