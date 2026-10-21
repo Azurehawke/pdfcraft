@@ -188,6 +188,15 @@ Markup and measuring
       faster rendering of heavy pages, and many fixes. RevuCraft keeps its ribbon, dock, rail and
       status bar; its own wording is translated in its 11 languages. Builds are now numbered along
       RevuCraft's own history.
+- [x] **(Steve, build 121)** Linked tables from GridCraft workbooks: Place table… (File menu, Draft
+      ribbon, Links pane) places a sheet's range, named range or print area from an XLSX, XLSM, XLS,
+      ODS, CSV or TSV file, printed by GridCraft's engine with its formulas worked out, on its own
+      layer. It is listed in Links, updates in place (keeping its top-left corner) when the workbook
+      changes, and Edit original opens it in GridCraft. The Workbook box shows the whole workbook
+      read-only; CSV and TSV columns are as wide as their text.
+- [ ] **(Steve, next update)** Send quantities: symbol counts, cable runs and measurement totals
+      written into a Takeoff sheet of the linked workbook (only that sheet is rewritten), offered
+      again when GridCraft saves over it.
 - [ ] **(Steve, later update)** Folder mappings per device (`M:\Jobs` on the PC = `Sync/Jobs` on the
       tablet), for drawings kept outside the PDF's folder.
 

@@ -56,6 +56,45 @@ pub struct SheetGrid {
     pub cut: bool,
 }
 
+/// CSV and TSV files hold no column widths.
+fn is_text(name: &str) -> bool {
+    std::path::Path::new(name).extension().and_then(|e| e.to_str()).is_some_and(|e| e.eq_ignore_ascii_case("csv") || e.eq_ignore_ascii_case("tsv"))
+}
+
+/// The most rows read to fit a text file's columns.
+const FIT_ROWS: u32 = 2000;
+
+/// Widens a text file's columns to their text (as GridCraft's AutoFit does), so a list prints
+/// and shows whole rather than cut at the default width.
+fn fit_columns(wb: &mut Workbook) {
+    for si in 0..wb.sheets.len() {
+        let Some(sh) = wb.sheets.get(si) else { continue };
+        let Some(used) = sh.used_range() else { continue };
+        let last_row = used.end.row.min(used.start.row.saturating_add(FIT_ROWS));
+        let last_col = used.end.col.min(used.start.col.saturating_add(VIEW_COLS));
+        let mut widths = Vec::new();
+        for c in used.start.col..=last_col {
+            let col = RangeRef::new(CellRef::new(used.start.row, c), CellRef::new(last_row, c));
+            let mut max: f32 = 0.0;
+            for (cell, _) in sh.cells.iter_range(col) {
+                let st = wb.styles.get(sh.style_id(cell));
+                let text = gridcraft_engine::display::value_text(wb, sh, cell);
+                for line in text.lines() {
+                    max = max.max(gridcraft_engine::cmd::format::approx_text_width(line, st.font.size, st.font.bold) + 8.0);
+                }
+            }
+            if max > sh.col_width(c) {
+                widths.push((c, max.min(480.0).ceil()));
+            }
+        }
+        if let Some(sh) = wb.sheet_mut(si) {
+            for (c, w) in widths {
+                sh.cols.entry(c).or_default().size = Some(w);
+            }
+        }
+    }
+}
+
 /// A column's letters (0 → `A`, 26 → `AA`), for headings over a [`SheetGrid`].
 pub fn column_letters(col: u32) -> String {
     col_to_letters(col)
@@ -79,6 +118,9 @@ pub fn open(bytes: &[u8], name: &str) -> Result<Book, CreateError> {
     let (mut wb, _) = gridcraft_engine::io::open_bytes(name, bytes).map_err(|e| invalid(format!("{name}: {e}")))?;
     let mut calc = Calc::new();
     calc.recalc_all(&mut wb);
+    if is_text(name) {
+        fit_columns(&mut wb);
+    }
     Ok(Book { wb })
 }
 
@@ -271,6 +313,16 @@ mod tests {
         assert_eq!(grid.rows.len(), 3);
         assert_eq!(grid.rows[1][1], "24");
         assert!(book.plot("", "", "list.csv").is_ok());
+    }
+
+    #[test]
+    fn a_csv_column_is_as_wide_as_its_longest_text() {
+        let csv = "Item,Qty\nFlooring (sq ft) in the east wing,2400\n";
+        let book = open(csv.as_bytes(), "budget.csv").unwrap();
+        let grid = book.grid(0).unwrap();
+        let (item, qty) = (grid.widths[0], grid.widths[1]);
+        assert!(item > 120.0, "the long item fits ({item} pt)");
+        assert!(qty < item, "short columns stay narrow");
     }
 
     #[test]
