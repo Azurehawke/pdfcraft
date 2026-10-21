@@ -2938,3 +2938,24 @@ animation effects	Off	Ki
 	Copy markup	Jelölés másolása
 	Move markup	Jelölés áthelyezése
 	Rotate markup	Jelölés forgatása
+	Cells such as B2:F30, a named range, or leave it empty for the sheet's print area.	Cellák, például B2:F30, egy elnevezett tartomány, vagy hagyja üresen a munkalap nyomtatási területéhez.
+	Drawings and tables opened with Edit original update on the sheet by themselves when you save them in CADCraft or GridCraft.	Az Eredeti szerkesztése paranccsal megnyitott rajzok és táblázatok maguktól frissülnek a lapon, amikor menti őket a CADCraftban vagy a GridCraftban.
+	In GridCraft	GridCraftban
+	Named ranges	Elnevezett tartományok
+	Open the workbook in GridCraft yourself; this sheet updates when it is saved.	Nyissa meg saját maga a munkafüzetet a GridCraftban; ez a lap frissül, amikor menti.
+	Place	Elhelyezés
+	Place a table from a workbook (XLSX, CSV…) on this sheet, linked to the file	Táblázat elhelyezése egy munkafüzetből (XLSX, CSV…) ezen a lapon, a fájlhoz csatolva
+	Place a table from a workbook to see the whole workbook here.	Helyezzen el egy táblázatot egy munkafüzetből, hogy itt lássa az egész munkafüzetet.
+	Place table	Táblázat elhelyezése
+	Place table…	Táblázat elhelyezése…
+	Print area or used range	Nyomtatási terület vagy használt tartomány
+	Range	Tartomány
+	Sheet {n} · table from {sheet}	{n}. lap · táblázat innen: {sheet}
+	Showing the first {rows} rows and {cols} columns.	Az első {rows} sor és {cols} oszlop látható.
+	Stop watching for saves from CADCraft or GridCraft. This also happens by itself when the app closes.	A CADCraft vagy GridCraft mentéseinek figyelése leáll. Ez magától is megtörténik, amikor az alkalmazás bezárul.
+	The first sheet	Az első munkalap
+	The workbook is too large to show here.	A munkafüzet túl nagy ahhoz, hogy itt megjelenjen.
+	This sheet is empty.	Ez a munkalap üres.
+	Workbook	Munkafüzet
+	Workbooks (XLSX, CSV…)	Munkafüzetek (XLSX, CSV…)
+	Place linked table	Csatolt táblázat elhelyezése

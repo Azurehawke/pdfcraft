@@ -562,6 +562,14 @@ pub fn right_panel(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
         });
         return;
     }
+    if panel == RightPanel::Workbook {
+        let t = Tokens::get(ui.ctx());
+        egui::Frame::NONE.fill(t.card).inner_margin(egui::Margin::same(10)).show(ui, |ui| {
+            ui.label(egui::RichText::new(tl!("Workbook")).font(theme::semibold(15.5)));
+            crate::links_ui::workbook_panel(app, ui);
+        });
+        return;
+    }
     if panel == RightPanel::ToolChest {
         let t = Tokens::get(ui.ctx());
         egui::Frame::NONE.fill(t.card).inner_margin(egui::Margin::same(10)).show(ui, |ui| {
@@ -590,6 +598,7 @@ pub fn panel_title(panel: RightPanel) -> &'static str {
         RightPanel::Markups => "Markups list",
         RightPanel::ToolChest => "Tool chest",
         RightPanel::Links => "Links",
+        RightPanel::Workbook => "Workbook",
     }
 }
 
@@ -612,6 +621,10 @@ pub fn docked_panel(app: &mut PdfCraftApp, ui: &mut egui::Ui, panel: RightPanel)
     }
     if panel == RightPanel::Links {
         egui::ScrollArea::vertical().id_salt("links-panel").auto_shrink([false, false]).show(ui, |ui| crate::links_ui::show(app, ui));
+        return;
+    }
+    if panel == RightPanel::Workbook {
+        crate::links_ui::workbook_panel(app, ui);
         return;
     }
     panel_contents(app, ui, panel, true);
@@ -664,6 +677,7 @@ fn panel_contents(app: &mut PdfCraftApp, ui: &mut egui::Ui, panel: RightPanel, d
                 RightPanel::Markups => ("Markups list", None),
                 RightPanel::ToolChest => ("Tool chest", None),
                 RightPanel::Links => ("Links", None),
+                RightPanel::Workbook => ("Workbook", None),
             };
             // Docked, the dock box shows the title and closes; only panels with header
             // controls keep a header row.
@@ -795,7 +809,7 @@ fn panel_contents(app: &mut PdfCraftApp, ui: &mut egui::Ui, panel: RightPanel, d
                 RightPanel::Pages => pages(ui, &t, info, view, modal, bm_editable, &mut nav),
                 RightPanel::Fields => field_properties = fields(ui, &t, info, &doc.form, preparing, &mut view.prepare, &mut nav, &mut panel_edit),
                 // Drawn by `layers_right_panel` and `markups_right_panel`.
-                RightPanel::Layers | RightPanel::Markups | RightPanel::ToolChest | RightPanel::Links => {}
+                RightPanel::Layers | RightPanel::Markups | RightPanel::ToolChest | RightPanel::Links | RightPanel::Workbook => {}
                 RightPanel::Signatures => {
                     sig_action = crate::sign_ui::panel(ui, &t, &doc.signatures, sig_expanded);
                 }

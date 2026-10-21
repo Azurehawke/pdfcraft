@@ -10,6 +10,10 @@
 //!
 //! Optionally, an update keeps the previous drawing as a hidden layer ("Rev A · A-201"), drawn
 //! under the current one.
+//!
+//! A link can also be a table: a range of a workbook (XLSX, CSV…) printed by GridCraft and placed
+//! on a sheet (`/Kind /Table`, with `/Sheet` and `/Range`). It is listed, updated, moved and kept
+//! as revisions the same way; an update keeps its top-left corner where it was.
 
 use std::collections::{HashMap, HashSet};
 
@@ -25,9 +29,23 @@ const MAX_REVISIONS: usize = 26;
 /// Page content decoded at most when a sheet is first linked.
 const MAX_CONTENT: usize = 256 << 20;
 
-/// A linked drawing, as the Links pane shows it.
+/// What a link draws.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum LinkKind {
+    /// A DWG or DXF drawing: a whole sheet, or placed on one.
+    #[default]
+    Drawing,
+    /// A table: a range of a workbook, placed on a sheet.
+    Table,
+}
+
+/// A linked drawing or table, as the Links pane shows it.
 #[derive(Clone, Debug, PartialEq)]
 pub struct CadLink {
+    /// A drawing or a table.
+    pub kind: LinkKind,
+    /// A table's range as asked for (`B2:F30`, a named range, or empty for the print area).
+    pub range: String,
     /// Its position in the document's list of links.
     pub index: usize,
     /// The sheet (page index) it draws on.
@@ -144,6 +162,8 @@ pub fn list(doc: &Document) -> Vec<CadLink> {
         .filter_map(|(index, r)| {
             let page = pages.iter().position(|p| Some(*p) == r.reference(b"Page"))?;
             Some(CadLink {
+                kind: if r.name(b"Kind") == Some(&b"Table"[..]) { LinkKind::Table } else { LinkKind::Drawing },
+                range: text(r, b"Range"),
                 index,
                 page,
                 path: text(r, b"Path"),
@@ -462,6 +482,9 @@ pub(crate) fn update(doc: &mut Document, index: usize, name: &str, bytes: &[u8],
     let page = pdfcraft_model::pages(doc).iter().position(|p| p.obj == page_obj).ok_or_else(|| invalid("that link's sheet is gone"))?;
     let layout = text(&rec, b"Layout");
     let is_placed = placed(&rec);
+    if rec.name(b"Kind") == Some(&b"Table"[..]) {
+        return update_table(doc, list, index, rec, page_obj, name, bytes, file, keep_revision);
+    }
     // A placed drawing is plotted again at its sheet's scale; a sheet, its layout.
     let (pdf, sheets, plot) = if is_placed {
         let plot = pdfcraft_create::cad::plot_model_to_scale(bytes, name, num(doc, &rec, b"RIP"))?;
@@ -523,6 +546,134 @@ pub(crate) fn update(doc: &mut Document, index: usize, name: &str, bytes: &[u8],
         // A placed drawing is at the sheet's scale already.
         None => Ok(()),
     }
+}
+
+/// Keep the form `rec` draws now as a hidden "Rev" layer under the new one.
+fn keep_revision_of(doc: &mut Document, rec: &mut Dict, label: &str) -> Result<(), EditError> {
+    let Some(old) = rec.reference(b"Form") else { return Ok(()) };
+    let mut revs = rec.get(b"Revs").map(|o| (*doc.resolve(o)).clone()).and_then(|o| o.as_array().cloned()).unwrap_or_default();
+    if revs.len() >= MAX_REVISIONS {
+        return Ok(());
+    }
+    let letter = char::from(b'A'.saturating_add(u8::try_from(revs.len()).unwrap_or(25)));
+    let ocg = pdfcraft_annot::layers::add(doc, &format!("Rev {letter} · {label}"), [0.55, 0.55, 0.55])?;
+    hide_layer(doc, ocg)?;
+    let mut rev = Dict::new();
+    rev.set(b"Form".to_vec(), Object::Ref(old));
+    rev.set(b"Matrix".to_vec(), num_array(&matrix(doc, rec)));
+    rev.set(b"OCG".to_vec(), Object::Ref(ocg));
+    revs.push(Object::Dict(rev));
+    rec.set(b"Revs".to_vec(), Object::Array(revs));
+    Ok(())
+}
+
+/// [`update`] for a table: printed again from the workbook, its top-left corner where it was.
+#[allow(clippy::too_many_arguments)]
+fn update_table(
+    doc: &mut Document,
+    mut list: Vec<Dict>,
+    index: usize,
+    mut rec: Dict,
+    page_obj: ObjRef,
+    name: &str,
+    bytes: &[u8],
+    file: &LinkedFile,
+    keep_revision: bool,
+) -> Result<(), EditError> {
+    let (sheet, range) = (text(&rec, b"Sheet"), text(&rec, b"Range"));
+    let plot = pdfcraft_create::table::plot_table(bytes, name, &sheet, &range)?;
+    let plotted = Document::open(std::sync::Arc::new(plot.pdf.clone())).map_err(|e| invalid(&format!("{name}: {e}")))?;
+    let (form, _) = pdfcraft_organize::page_as_form(doc, &plotted, 0)?;
+    if keep_revision {
+        let label = if sheet.is_empty() { name.to_string() } else { sheet.clone() };
+        keep_revision_of(doc, &mut rec, &label)?;
+    }
+    let m = matrix(doc, &rec);
+    let top = m[5] + num(doc, &rec, b"H");
+    rec.set(b"Matrix".to_vec(), num_array(&[1.0, 0.0, 0.0, 1.0, m[4], top - plot.size[1]]));
+    rec.set(b"W".to_vec(), Object::Real(plot.size[0]));
+    rec.set(b"H".to_vec(), Object::Real(plot.size[1]));
+    rec.set(b"Form".to_vec(), Object::Ref(form));
+    rec.set(b"Size".to_vec(), Object::Int(i64::try_from(file.size).unwrap_or(i64::MAX)));
+    rec.set(b"MTime".to_vec(), Object::Int(file.mtime));
+    rec.set(b"Hash".to_vec(), PdfString::text(&fingerprint(bytes)));
+    rec.set(b"Updated".to_vec(), Object::Int(file.now));
+    set_relative(&mut rec, file.relative.as_deref());
+    if let Some(slot) = list.get_mut(index) {
+        *slot = rec;
+    }
+    write_records(doc, list)?;
+    redraw_page(doc, page_obj)
+}
+
+/// Place range `range` of sheet `sheet` of workbook `name` (`bytes`, from `file`) on sheet
+/// `page` as a table, linked to the file, on its own layer: at the sheet's top left, or beside
+/// what is placed there already. Returns the new link's index.
+pub(crate) fn place_table(
+    doc: &mut Document,
+    page: usize,
+    name: &str,
+    bytes: &[u8],
+    file: &LinkedFile,
+    sheet: &str,
+    range: &str,
+) -> Result<usize, EditError> {
+    let pages = pdfcraft_model::pages(doc);
+    let p = pages.get(page).ok_or_else(|| invalid("no such sheet"))?;
+    let (page_obj, page_dict) = (p.obj, p.dict.clone());
+    let mbox = media_box(doc, &page_dict);
+    let plot = pdfcraft_create::table::plot_table(bytes, name, sheet, range)?;
+    let plotted = Document::open(std::sync::Arc::new(plot.pdf.clone())).map_err(|e| invalid(&format!("{name}: {e}")))?;
+    let mut list = records(doc);
+    if list.len() >= MAX_LINKS {
+        return Err(invalid("the document has too many links"));
+    }
+    ensure_base(doc, page_obj, &page_dict)?;
+    let (form, _) = pdfcraft_organize::page_as_form(doc, &plotted, 0)?;
+    let file_name: String = file.path.rsplit(['/', '\\']).next().unwrap_or(name).chars().filter(|c| !c.is_control()).take(100).collect();
+    let ocg = pdfcraft_annot::layers::add(doc, if file_name.trim().is_empty() { "Table" } else { &file_name }, [0.25, 0.25, 0.25])?;
+    let (w, h) = (plot.size[0], plot.size[1]);
+    let margin = 36.0;
+    let mut at = [mbox[0] + margin, mbox[3] - margin - h];
+    let others: Vec<[f64; 4]> = list
+        .iter()
+        .filter(|r| r.reference(b"Page") == Some(page_obj) && placed(r))
+        .map(|r| {
+            let m = matrix(doc, r);
+            [m[4], m[5], m[4] + num(doc, r, b"W"), m[5] + num(doc, r, b"H")]
+        })
+        .collect();
+    let rect = [at[0], at[1], at[0] + w, at[1] + h];
+    if others.iter().any(|o| overlap(o, &rect) > 0.0) {
+        // Beside the others, along their top edge.
+        let right = others.iter().map(|o| o[2]).fold(f64::MIN, f64::max);
+        let top = others.iter().map(|o| o[3]).fold(f64::MIN, f64::max);
+        at = [right + 18.0, top - h];
+    }
+    let index = list.len();
+    let mut r = Dict::new();
+    r.set(b"Kind".to_vec(), Object::name("Table"));
+    r.set(b"Path".to_vec(), PdfString::text(&file.path));
+    set_relative(&mut r, file.relative.as_deref());
+    r.set(b"Layout".to_vec(), PdfString::text(sheet));
+    r.set(b"Sheet".to_vec(), PdfString::text(sheet));
+    r.set(b"Range".to_vec(), PdfString::text(range.trim()));
+    r.set(b"Page".to_vec(), Object::Ref(page_obj));
+    r.set(b"Form".to_vec(), Object::Ref(form));
+    r.set(b"XName".to_vec(), Object::name(&format!("PCLink{index}")));
+    r.set(b"Size".to_vec(), Object::Int(i64::try_from(file.size).unwrap_or(i64::MAX)));
+    r.set(b"MTime".to_vec(), Object::Int(file.mtime));
+    r.set(b"Hash".to_vec(), PdfString::text(&fingerprint(bytes)));
+    r.set(b"Updated".to_vec(), Object::Int(file.now));
+    r.set(b"Placed".to_vec(), Object::Bool(true));
+    r.set(b"OCG".to_vec(), Object::Ref(ocg));
+    r.set(b"W".to_vec(), Object::Real(w));
+    r.set(b"H".to_vec(), Object::Real(h));
+    r.set(b"Matrix".to_vec(), num_array(&[1.0, 0.0, 0.0, 1.0, at[0], at[1]]));
+    list.push(r);
+    write_records(doc, list)?;
+    redraw_page(doc, page_obj)?;
+    Ok(index)
 }
 
 /// Keep what a sheet showed before drawings were placed on it, as a form drawn first.

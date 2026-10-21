@@ -49,6 +49,7 @@ Camera (bullet)
 Camera (dome)
 Caption
 Card reader
+Cells such as B2:F30, a named range, or leave it empty for the sheet's print area.
 Chamfer (two lines: a cut corner)
 Chamfer distance
 Change layer colour
@@ -135,6 +136,7 @@ Draw a floor plan
 Draw again
 Draw only horizontal and vertical lines (hold Shift for the other way)
 Drawings (DWG, DXF)
+Drawings and tables opened with Edit original update on the sheet by themselves when you save them in CADCraft or GridCraft.
 Drawings opened with Edit original update their sheets by themselves when you save them in CADCraft.
 Drop ID
 Dual data jack
@@ -184,6 +186,7 @@ How many in all, the original included
 How many sides a new polygon has
 ISO (A sizes)
 In CADCraft
+In GridCraft
 Inches
 Interior wall (4 1/2 in)
 Internal storage
@@ -240,6 +243,7 @@ Move to layer
 My symbol
 My symbols
 My tools
+Named ranges
 Network switch
 Networking
 New
@@ -273,6 +277,7 @@ Open a file
 Open from Google Drive, Dropbox, OneDrive and other apps with Android's picker. Saving updates the file there.
 Open from device…
 Open the drawing in CADCraft yourself; this sheet updates when it is saved.
+Open the workbook in GridCraft yourself; this sheet updates when it is saved.
 Opening Settings… If nothing appears, use the steps below.
 Opens the tablet's camera app; the photo is also kept in the gallery.
 Options panel
@@ -310,11 +315,17 @@ Pin a photo
 Pin a photo: tap the drawing where it goes
 Pin photo
 Pin your jobs folder to list its newest drawings here.
+Place
 Place a DWG or DXF on this sheet at its scale, linked to the file (one per room, say)
 Place a legend of the symbols used; it keeps itself up to date
+Place a table from a workbook (XLSX, CSV…) on this sheet, linked to the file
+Place a table from a workbook to see the whole workbook here.
 Place drawing…
 Place linked drawing
+Place linked table
 Place symbols
+Place table
+Place table…
 Plain numbers are feet
 Plain numbers are inches
 Plans, markup and takeoff for network jobs and inspections.
@@ -325,6 +336,7 @@ Polygon (centre, then a corner; sides in the ribbon)
 Port
 Preset
 Previous drawings: {n} (hidden layers)
+Print area or used range
 Progress
 Properties
 Pulled
@@ -333,6 +345,7 @@ Rack A, ceiling above room 104…
 Rack A\n24-port switch and patch panel 1…
 Radius
 Radius dimension (click a circle)
+Range
 Real
 Real-world width, drawn to the page's scale
 Real: the symbol's width in the real world, at the page's measurement scale (pages without a scale use 1/4 inch on paper). Paper: its width on the printed sheet.
@@ -394,6 +407,7 @@ Shapes
 Sheet
 Sheet {n} of {total}
 Sheet {n} · placed
+Sheet {n} · table from {sheet}
 Sheet {n} · {layout}
 Sheets opened from a DWG or DXF are linked to it and show here, so you can update them when the drawing changes.
 Shift constrains to 45 degrees. Backspace or the undo button removes a vertex; the cross button cancels.
@@ -402,6 +416,7 @@ Show the author and comment when pointing at a markup
 Show the photo in a box with its description, pointing at this spot
 Show tool names
 Showing files isn't available here.
+Showing the first {rows} rows and {cols} columns.
 Sides
 Sizes you make appear here.
 Snap
@@ -415,6 +430,7 @@ Start a drawing or open a file
 Start a new drawing
 Start at
 Start point (x,y from the origin)
+Stop watching for saves from CADCraft or GridCraft. This also happens by itself when the app closes.
 Stop watching for saves from CADCraft. This also happens by itself when CADCraft closes.
 Summary report (PDF): the markups shown, with photos, by layer
 Symbol
@@ -438,6 +454,7 @@ That tool isn't available in this version.
 That wall is locked
 The angle they fill (360 goes all the way round)
 The first one becomes {label}
+The first sheet
 The form asks to be submitted to {u}; RevuCraft doesn't send form data. Save the document to keep your entries.
 The key is in the Windows certificate store, which may ask to allow RevuCraft to use it.
 The key is in the macOS Keychain, which may ask to allow RevuCraft to use it.
@@ -446,6 +463,7 @@ The photo couldn't be found.
 The photo's height on the sheet
 The two points are in the same place; pick two ends of a length.
 The wall is shorter than the opening
+The workbook is too large to show here.
 There are no symbols of that kind on this page.
 There are no symbols to count yet.
 There are no symbols to renumber yet.
@@ -460,6 +478,7 @@ This folder is empty
 This form also contains XFA data, which RevuCraft doesn't read yet. You can fill its fields, but Acrobat may show the XFA values instead.
 This is a dynamic XFA form, which RevuCraft can't display yet. What you see is the file's placeholder page.
 This page
+This sheet is empty.
 Ticks
 Tips
 To open and save PDFs anywhere on this device, turn on All files access for RevuCraft. Settings opens on the switch; come back here afterwards.
@@ -506,6 +525,8 @@ Width in real-world inches, drawn to the page's scale (walls)
 Window (click a wall where it goes)
 Window width (the opening cut in the wall)
 Wireless access point
+Workbook
+Workbooks (XLSX, CSV…)
 Workspace name
 Workspaces
 You have as many symbols of your own as can be kept; remove one first.

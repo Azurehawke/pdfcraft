@@ -372,6 +372,7 @@ pub const COMMANDS: &[CommandSpec] = &[
     c("page.boxes", "Set page boxes…", PAGES, None, Assembly, "square-dashed-mouse-pointer"),
     c("page.insert", "Insert pages from file…", PAGES, None, Assembly, "file-input"),
     c("file.place_drawing", "Place drawing…", FILE, None, Modification, "link"),
+    c("file.place_table", "Place table…", FILE, None, Modification, "file-spreadsheet"),
     c("page.replace", "Replace pages…", PAGES, None, Assembly, "replace"),
     c("page.extract", "Extract pages…", PAGES, None, Assembly, "file-output"),
     c("page.split", "Split document…", PAGES, None, Assembly, "scissors"),

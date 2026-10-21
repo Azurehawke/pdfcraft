@@ -688,6 +688,7 @@ fn main_menu(app: &mut PdfCraftApp, ui: &mut egui::Ui, compact: bool) {
                                 (RightPanel::Markups, tl!("Markups list")),
                                 (RightPanel::ToolChest, tl!("Tool chest")),
                                 (RightPanel::Links, tl!("Links")),
+                                (RightPanel::Workbook, tl!("Workbook")),
                             ] {
                                 if ui.add(widgets::radio(app.right == Some(p), tl!(label))).clicked() {
                                     app.choose_right_panel(Some(p));
@@ -815,6 +816,9 @@ pub fn right_rail(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
                     // RevuCraft always offers Links (Place drawing… is there); PdfCraft only for linked sheets.
                     if docks || has_links {
                         rail_button(ui, RightPanel::Links, "link", "Links", false);
+                    }
+                    if docks {
+                        rail_button(ui, RightPanel::Workbook, "grid-3x3", "Workbook", false);
                     }
                     rail_button(ui, RightPanel::Markups, "list-checks", "Markups list", false);
                     rail_button(ui, RightPanel::ToolChest, "wrench", "Tool chest", false);

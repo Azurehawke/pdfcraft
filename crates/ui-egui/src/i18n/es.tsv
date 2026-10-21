@@ -2624,3 +2624,24 @@ animation effects	Off	Desactivados
 	Make text editable	Hacer el texto editable
 	Page {n}	Página {n}
 	Page {n} of {total}	Página {n} de {total}
+	Cells such as B2:F30, a named range, or leave it empty for the sheet's print area.	Celdas como B2:F30, un rango con nombre, o déjalo vacío para el área de impresión de la hoja.
+	Drawings and tables opened with Edit original update on the sheet by themselves when you save them in CADCraft or GridCraft.	Los dibujos y tablas abiertos con Editar original se actualizan solos en el plano cuando los guardas en CADCraft o GridCraft.
+	In GridCraft	En GridCraft
+	Named ranges	Rangos con nombre
+	Open the workbook in GridCraft yourself; this sheet updates when it is saved.	Abre tú el libro en GridCraft; este plano se actualiza cuando se guarda.
+	Place	Colocar
+	Place a table from a workbook (XLSX, CSV…) on this sheet, linked to the file	Colocar una tabla de un libro (XLSX, CSV…) en este plano, vinculada al archivo
+	Place a table from a workbook to see the whole workbook here.	Coloca una tabla de un libro para ver aquí el libro entero.
+	Place table	Colocar tabla
+	Place table…	Colocar tabla…
+	Print area or used range	Área de impresión o rango usado
+	Range	Rango
+	Sheet {n} · table from {sheet}	Plano {n} · tabla de {sheet}
+	Showing the first {rows} rows and {cols} columns.	Se muestran las primeras {rows} filas y {cols} columnas.
+	Stop watching for saves from CADCraft or GridCraft. This also happens by itself when the app closes.	Dejar de vigilar los guardados de CADCraft o GridCraft. También ocurre solo cuando se cierra la aplicación.
+	The first sheet	La primera hoja
+	The workbook is too large to show here.	El libro es demasiado grande para mostrarlo aquí.
+	This sheet is empty.	Esta hoja está vacía.
+	Workbook	Libro
+	Workbooks (XLSX, CSV…)	Libros (XLSX, CSV…)
+	Place linked table	Colocar tabla vinculada

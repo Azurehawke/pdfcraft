@@ -3155,3 +3155,24 @@ certificate	SHA-256 digest	Impronta SHA-256
 	Copy markup	Copia annotazione
 	Move markup	Sposta annotazione
 	Rotate markup	Ruota annotazione
+	Cells such as B2:F30, a named range, or leave it empty for the sheet's print area.	Celle come B2:F30, un intervallo denominato, o lascia vuoto per l’area di stampa del foglio.
+	Drawings and tables opened with Edit original update on the sheet by themselves when you save them in CADCraft or GridCraft.	I disegni e le tabelle aperti con Modifica originale si aggiornano da soli sul foglio quando li salvi in CADCraft o GridCraft.
+	In GridCraft	In GridCraft
+	Named ranges	Intervalli denominati
+	Open the workbook in GridCraft yourself; this sheet updates when it is saved.	Apri tu la cartella di lavoro in GridCraft; questo foglio si aggiorna quando viene salvata.
+	Place	Posiziona
+	Place a table from a workbook (XLSX, CSV…) on this sheet, linked to the file	Posiziona una tabella da una cartella di lavoro (XLSX, CSV…) su questo foglio, collegata al file
+	Place a table from a workbook to see the whole workbook here.	Posiziona una tabella da una cartella di lavoro per vedere qui l’intera cartella.
+	Place table	Posiziona tabella
+	Place table…	Posiziona tabella…
+	Print area or used range	Area di stampa o intervallo usato
+	Range	Intervallo
+	Sheet {n} · table from {sheet}	Foglio {n} · tabella da {sheet}
+	Showing the first {rows} rows and {cols} columns.	Vengono mostrate le prime {rows} righe e {cols} colonne.
+	Stop watching for saves from CADCraft or GridCraft. This also happens by itself when the app closes.	Smetti di controllare i salvataggi da CADCraft o GridCraft. Avviene anche da solo quando l’app si chiude.
+	The first sheet	Il primo foglio
+	The workbook is too large to show here.	La cartella di lavoro è troppo grande per essere mostrata qui.
+	This sheet is empty.	Questo foglio è vuoto.
+	Workbook	Cartella di lavoro
+	Workbooks (XLSX, CSV…)	Cartelle di lavoro (XLSX, CSV…)
+	Place linked table	Posiziona tabella collegata

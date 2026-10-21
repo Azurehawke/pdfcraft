@@ -2905,3 +2905,24 @@ animation effects	Off	关
 	Rotate markup	旋转标记
 	{who} in this document tried to open an address RevuCraft won't open: {e}.	此文档中的{who}尝试打开 RevuCraft 不会打开的地址：{e}。
 	{who} in this document tried to open an address RevuCraft won't open: {e}. Only web (http, https) and email (mailto) links open from documents.	此文档中的{who}尝试打开 RevuCraft 不会打开的地址：{e}。文档中只能打开网页（http、https）和电子邮件（mailto）链接。
+	Cells such as B2:F30, a named range, or leave it empty for the sheet's print area.	如 B2:F30 的单元格、命名区域，或留空以使用工作表的打印区域。
+	Drawings and tables opened with Edit original update on the sheet by themselves when you save them in CADCraft or GridCraft.	用“编辑原始文件”打开的图纸和表格，在 CADCraft 或 GridCraft 中保存后会在图纸上自动更新。
+	In GridCraft	在 GridCraft 中
+	Named ranges	命名区域
+	Open the workbook in GridCraft yourself; this sheet updates when it is saved.	请自行在 GridCraft 中打开工作簿；保存后此图纸会更新。
+	Place	放置
+	Place a table from a workbook (XLSX, CSV…) on this sheet, linked to the file	在此图纸上放置工作簿（XLSX、CSV…）中的表格，并链接到该文件
+	Place a table from a workbook to see the whole workbook here.	放置工作簿中的表格后，可在此查看整个工作簿。
+	Place table	放置表格
+	Place table…	放置表格…
+	Print area or used range	打印区域或已用区域
+	Range	区域
+	Sheet {n} · table from {sheet}	图纸 {n} · 来自 {sheet} 的表格
+	Showing the first {rows} rows and {cols} columns.	显示前 {rows} 行和 {cols} 列。
+	Stop watching for saves from CADCraft or GridCraft. This also happens by itself when the app closes.	停止监视来自 CADCraft 或 GridCraft 的保存。应用关闭时也会自动停止。
+	The first sheet	第一个工作表
+	The workbook is too large to show here.	工作簿太大，无法在此显示。
+	This sheet is empty.	此工作表为空。
+	Workbook	工作簿
+	Workbooks (XLSX, CSV…)	工作簿（XLSX、CSV…）
+	Place linked table	放置链接的表格

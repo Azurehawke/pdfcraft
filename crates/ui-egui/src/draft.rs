@@ -1381,6 +1381,19 @@ pub fn ribbon(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
                         if place.inner.clicked() {
                             crate::links_ui::place_drawing(app);
                         }
+                        // Place table…: a range of a workbook linked onto this sheet.
+                        let table = ui.add_enabled_ui(active.is_some(), |ui| {
+                            icons::button(
+                                ui,
+                                "file-spreadsheet",
+                                34.0,
+                                false,
+                                tl!("Place a table from a workbook (XLSX, CSV…) on this sheet, linked to the file"),
+                            )
+                        });
+                        if table.inner.clicked() {
+                            crate::links_ui::place_table(app);
+                        }
                     });
                 });
                 separator(ui, &t);

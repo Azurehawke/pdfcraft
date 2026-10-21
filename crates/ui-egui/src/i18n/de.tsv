@@ -2940,3 +2940,24 @@ animation effects	Off	Aus
 	Copy markup	Markierung kopieren
 	Move markup	Markierung verschieben
 	Rotate markup	Markierung drehen
+	Cells such as B2:F30, a named range, or leave it empty for the sheet's print area.	Zellen wie B2:F30, ein benannter Bereich, oder leer lassen für den Druckbereich des Blatts.
+	Drawings and tables opened with Edit original update on the sheet by themselves when you save them in CADCraft or GridCraft.	Mit „Original bearbeiten“ geöffnete Zeichnungen und Tabellen werden auf dem Blatt von selbst aktualisiert, wenn Sie sie in CADCraft oder GridCraft speichern.
+	In GridCraft	In GridCraft
+	Named ranges	Benannte Bereiche
+	Open the workbook in GridCraft yourself; this sheet updates when it is saved.	Öffnen Sie die Arbeitsmappe selbst in GridCraft; dieses Blatt wird beim Speichern aktualisiert.
+	Place	Platzieren
+	Place a table from a workbook (XLSX, CSV…) on this sheet, linked to the file	Eine Tabelle aus einer Arbeitsmappe (XLSX, CSV…) auf diesem Blatt platzieren, mit der Datei verknüpft
+	Place a table from a workbook to see the whole workbook here.	Platzieren Sie eine Tabelle aus einer Arbeitsmappe, um hier die ganze Arbeitsmappe zu sehen.
+	Place table	Tabelle platzieren
+	Place table…	Tabelle platzieren…
+	Print area or used range	Druckbereich oder verwendeter Bereich
+	Range	Bereich
+	Sheet {n} · table from {sheet}	Blatt {n} · Tabelle aus {sheet}
+	Showing the first {rows} rows and {cols} columns.	Die ersten {rows} Zeilen und {cols} Spalten werden angezeigt.
+	Stop watching for saves from CADCraft or GridCraft. This also happens by itself when the app closes.	Nicht mehr auf Speichervorgänge aus CADCraft oder GridCraft achten. Das geschieht auch von selbst, wenn die App geschlossen wird.
+	The first sheet	Das erste Blatt
+	The workbook is too large to show here.	Die Arbeitsmappe ist zu groß, um sie hier anzuzeigen.
+	This sheet is empty.	Dieses Blatt ist leer.
+	Workbook	Arbeitsmappe
+	Workbooks (XLSX, CSV…)	Arbeitsmappen (XLSX, CSV…)
+	Place linked table	Verknüpfte Tabelle platzieren

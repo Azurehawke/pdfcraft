@@ -2903,3 +2903,24 @@ animation effects	Off	Изключени
 	Rotate markup	Завъртане на маркировка
 	{who} in this document tried to open an address RevuCraft won't open: {e}.	{who} в този документ се опита да отвори адрес, който RevuCraft не отваря: {e}.
 	{who} in this document tried to open an address RevuCraft won't open: {e}. Only web (http, https) and email (mailto) links open from documents.	{who} в този документ се опита да отвори адрес, който RevuCraft не отваря: {e}. От документи се отварят само уеб (http, https) и имейл (mailto) връзки.
+	Cells such as B2:F30, a named range, or leave it empty for the sheet's print area.	Клетки като B2:F30, именуван диапазон, или оставете празно за областта за печат на листа.
+	Drawings and tables opened with Edit original update on the sheet by themselves when you save them in CADCraft or GridCraft.	Чертежите и таблиците, отворени с „Редактиране на оригинала“, се обновяват сами на листа, когато ги запишете в CADCraft или GridCraft.
+	In GridCraft	В GridCraft
+	Named ranges	Именувани диапазони
+	Open the workbook in GridCraft yourself; this sheet updates when it is saved.	Отворете работната книга в GridCraft сами; този лист се обновява, когато тя бъде записана.
+	Place	Поставяне
+	Place a table from a workbook (XLSX, CSV…) on this sheet, linked to the file	Поставяне на таблица от работна книга (XLSX, CSV…) на този лист, свързана с файла
+	Place a table from a workbook to see the whole workbook here.	Поставете таблица от работна книга, за да видите тук цялата книга.
+	Place table	Поставяне на таблица
+	Place table…	Поставяне на таблица…
+	Print area or used range	Област за печат или използван диапазон
+	Range	Диапазон
+	Sheet {n} · table from {sheet}	Лист {n} · таблица от {sheet}
+	Showing the first {rows} rows and {cols} columns.	Показани са първите {rows} реда и {cols} колони.
+	Stop watching for saves from CADCraft or GridCraft. This also happens by itself when the app closes.	Спиране на следенето за записи от CADCraft или GridCraft. Това става и само, когато приложението се затвори.
+	The first sheet	Първият лист
+	The workbook is too large to show here.	Работната книга е твърде голяма, за да се покаже тук.
+	This sheet is empty.	Този лист е празен.
+	Workbook	Работна книга
+	Workbooks (XLSX, CSV…)	Работни книги (XLSX, CSV…)
+	Place linked table	Поставяне на свързана таблица

@@ -3214,3 +3214,24 @@ certificate	Version	الإصدار
 	Copy markup	نسخ العلامة
 	Move markup	نقل العلامة
 	Rotate markup	تدوير العلامة
+	Cells such as B2:F30, a named range, or leave it empty for the sheet's print area.	خلايا مثل B2:F30، أو نطاق مسمّى، أو اتركه فارغًا لاستخدام ناحية الطباعة في الورقة.
+	Drawings and tables opened with Edit original update on the sheet by themselves when you save them in CADCraft or GridCraft.	الرسومات والجداول المفتوحة بأمر تحرير الأصل تتحدّث على اللوحة تلقائيًا عند حفظها في CADCraft أو GridCraft.
+	In GridCraft	في GridCraft
+	Named ranges	النطاقات المسمّاة
+	Open the workbook in GridCraft yourself; this sheet updates when it is saved.	افتح المصنف في GridCraft بنفسك؛ تتحدّث هذه اللوحة عند حفظه.
+	Place	وضع
+	Place a table from a workbook (XLSX, CSV…) on this sheet, linked to the file	وضع جدول من مصنف (XLSX أو CSV…) على هذه اللوحة، مرتبط بالملف
+	Place a table from a workbook to see the whole workbook here.	ضع جدولًا من مصنف لترى المصنف كاملًا هنا.
+	Place table	وضع جدول
+	Place table…	وضع جدول…
+	Print area or used range	ناحية الطباعة أو النطاق المستخدم
+	Range	النطاق
+	Sheet {n} · table from {sheet}	اللوحة {n} · جدول من {sheet}
+	Showing the first {rows} rows and {cols} columns.	يُعرض أول {rows} صف و{cols} عمود.
+	Stop watching for saves from CADCraft or GridCraft. This also happens by itself when the app closes.	إيقاف مراقبة الحفظ من CADCraft أو GridCraft. يحدث هذا تلقائيًا أيضًا عند إغلاق التطبيق.
+	The first sheet	الورقة الأولى
+	The workbook is too large to show here.	المصنف أكبر من أن يُعرض هنا.
+	This sheet is empty.	هذه الورقة فارغة.
+	Workbook	المصنف
+	Workbooks (XLSX, CSV…)	المصنفات (XLSX، CSV…)
+	Place linked table	وضع جدول مرتبط

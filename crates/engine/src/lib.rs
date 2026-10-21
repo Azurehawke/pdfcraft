@@ -53,6 +53,8 @@ pub use pdfcraft_organize::view::{InitialView, Layout as InitialLayout, Magnific
 
 pub use pdfcraft_cos::Algorithm;
 pub use pdfcraft_create::cad::EXTENSIONS as CAD_EXTENSIONS;
+pub use pdfcraft_create::table as workbook;
+pub use pdfcraft_create::table::EXTENSIONS as WORKBOOK_EXTENSIONS;
 pub use pdfcraft_create::{CONVERTIBLE, CreateError, ImageResolution, SourceKind, decode_text, source_kind};
 pub use pdfcraft_edit::added::{text_rect as added_text_rect, text_width as added_text_width};
 pub use pdfcraft_edit::{
@@ -1401,6 +1403,17 @@ pub enum Edit {
         bytes: Arc<Vec<u8>>,
         file: cad_links::LinkedFile,
     },
+    /// RevuCraft: place range `range` of sheet `sheet` of workbook `name` (`bytes`, from `file`)
+    /// on sheet `page` as a table, linked to the file, on its own layer. An empty `sheet` is the
+    /// first sheet; an empty `range` its print area or used range.
+    PlaceTableLink {
+        page: usize,
+        name: String,
+        bytes: Arc<Vec<u8>>,
+        file: cad_links::LinkedFile,
+        sheet: String,
+        range: String,
+    },
     /// RevuCraft: move placed drawing `index` by (`dx`, `dy`) points on its sheet.
     MoveCadLink {
         index: usize,
@@ -2178,6 +2191,7 @@ pub const EDIT_LABELS: &[&str] = &[
     "Update linked drawing",
     "Relink drawing",
     "Place linked drawing",
+    "Place linked table",
     "Move linked drawing",
     "Measure cable run",
     "Add legend",
@@ -2342,6 +2356,7 @@ impl Edit {
             Edit::UpdateCadLink { .. } => Label::of("Update linked drawing"),
             Edit::RelinkCad { .. } => Label::of("Relink drawing"),
             Edit::PlaceCadLink { .. } => Label::of("Place linked drawing"),
+            Edit::PlaceTableLink { .. } => Label::of("Place linked table"),
             Edit::MoveCadLink { .. } => Label::of("Move linked drawing"),
             Edit::AddCableRun { .. } => Label::of("Measure cable run"),
             Edit::AddLegend { .. } => Label::of("Add legend"),
@@ -2544,6 +2559,7 @@ fn check_permission(edit: &Edit, p: &pdfcraft_cos::Permissions) -> Result<(), Ed
         | Edit::UpdateCadLink { .. }
         | Edit::RelinkCad { .. }
         | Edit::PlaceCadLink { .. }
+        | Edit::PlaceTableLink { .. }
         | Edit::MoveCadLink { .. }
         | Edit::Flatten { .. }
         | Edit::UnpackTextForms { .. }
@@ -2694,6 +2710,9 @@ fn run_edit(doc: &mut pdfcraft_cos::Document, edit: &Edit, cx: &mut EditCtx) -> 
         Edit::RelinkCad { index, path, relative } => cad_links::relink(doc, *index, path, relative.as_deref())?,
         Edit::PlaceCadLink { page, name, bytes, file } => {
             cad_links::place(doc, *page, name, bytes, file)?;
+        }
+        Edit::PlaceTableLink { page, name, bytes, file, sheet, range } => {
+            cad_links::place_table(doc, *page, name, bytes, file, sheet, range)?;
         }
         Edit::MoveCadLink { index, dx, dy } => cad_links::move_link(doc, *index, *dx, *dy)?,
         Edit::ReplacePages { pages, name, bytes, src_pages } => {

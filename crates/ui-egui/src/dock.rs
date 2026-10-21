@@ -33,7 +33,7 @@ impl Item {
 }
 
 /// Every side panel, for reading saved layouts.
-const PANELS: [RightPanel; 14] = [
+const PANELS: [RightPanel; 15] = [
     RightPanel::Comments,
     RightPanel::Bookmarks,
     RightPanel::Pages,
@@ -48,6 +48,7 @@ const PANELS: [RightPanel; 14] = [
     RightPanel::Markups,
     RightPanel::ToolChest,
     RightPanel::Links,
+    RightPanel::Workbook,
 ];
 
 /// A side panel by its saved name (`Comments`, `Layers`…).

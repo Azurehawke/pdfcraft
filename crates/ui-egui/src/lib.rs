@@ -238,6 +238,8 @@ pub enum RightPanel {
     ToolChest,
     /// RevuCraft's Links pane ([`links_ui`]): the drawings the sheets are linked to.
     Links,
+    /// RevuCraft's Workbook box ([`links_ui::workbook_panel`]): a linked table's workbook.
+    Workbook,
 }
 
 /// Quick-action bar tools (the vertical floating strip).
@@ -2773,6 +2775,10 @@ impl PdfCraftApp {
             ("workflow", _) => {
                 self.workflow = ribbon::Workflow::parse(value).ok_or("workflow must be markup, draft, symbols, measure, review or document")?;
             }
+            // Screenshots and automation: place a linked table (`book.xlsx#B2:F9`) on the
+            // current page, or show it in the Place table dialog.
+            ("place-table", _) => links_ui::table_option(self, value, true)?,
+            ("table-dialog", _) => links_ui::table_option(self, value, false)?,
             ("new-dialog", _) => match value {
                 "open" => self.show_new_dialog(false),
                 "add" => self.show_new_dialog(true),
@@ -2842,6 +2848,7 @@ impl PdfCraftApp {
                     "markups" => Some(RightPanel::Markups),
                     "tool-chest" => Some(RightPanel::ToolChest),
                     "links" => Some(RightPanel::Links),
+                    "workbook" => Some(RightPanel::Workbook),
                     "none" => None,
                     other => return Err(format!("unknown panel {other}")),
                 }
@@ -3537,6 +3544,7 @@ impl eframe::App for PdfCraftApp {
         draft::sheet_dialog(self, &ctx);
         new_dialog::show(self, &ctx);
         links_ui::poll(self, &ctx);
+        links_ui::table_dialog(self, &ctx);
         draft::keypad(self, &ctx);
         #[cfg(target_os = "android")]
         pickers::show_browser(self, &ctx);

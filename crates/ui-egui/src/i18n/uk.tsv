@@ -2962,3 +2962,24 @@ animation effects	Off	Вимкнено
 	Copy markup	Копіювати позначку
 	Move markup	Перемістити позначку
 	Rotate markup	Повернути позначку
+	Cells such as B2:F30, a named range, or leave it empty for the sheet's print area.	Клітинки на кшталт B2:F30, іменований діапазон, або залиште порожнім для області друку аркуша.
+	Drawings and tables opened with Edit original update on the sheet by themselves when you save them in CADCraft or GridCraft.	Креслення й таблиці, відкриті через «Редагувати оригінал», самі оновлюються на аркуші, коли ви зберігаєте їх у CADCraft або GridCraft.
+	In GridCraft	У GridCraft
+	Named ranges	Іменовані діапазони
+	Open the workbook in GridCraft yourself; this sheet updates when it is saved.	Відкрийте книгу в GridCraft самі; цей аркуш оновиться, коли її буде збережено.
+	Place	Розмістити
+	Place a table from a workbook (XLSX, CSV…) on this sheet, linked to the file	Розмістити на цьому аркуші таблицю з книги (XLSX, CSV…), пов’язану з файлом
+	Place a table from a workbook to see the whole workbook here.	Розмістіть таблицю з книги, щоб бачити тут усю книгу.
+	Place table	Розмістити таблицю
+	Place table…	Розмістити таблицю…
+	Print area or used range	Область друку або використаний діапазон
+	Range	Діапазон
+	Sheet {n} · table from {sheet}	Аркуш {n} · таблиця з {sheet}
+	Showing the first {rows} rows and {cols} columns.	Показано перші {rows} рядків і {cols} стовпців.
+	Stop watching for saves from CADCraft or GridCraft. This also happens by itself when the app closes.	Припинити стежити за збереженнями з CADCraft або GridCraft. Це також відбувається само, коли застосунок закривається.
+	The first sheet	Перший аркуш
+	The workbook is too large to show here.	Книга завелика, щоб показати її тут.
+	This sheet is empty.	Цей аркуш порожній.
+	Workbook	Книга
+	Workbooks (XLSX, CSV…)	Книги (XLSX, CSV…)
+	Place linked table	Розмістити пов’язану таблицю

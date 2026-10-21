@@ -6472,3 +6472,61 @@ fn undo_never_makes_an_unsaved_document_clean() {
     s.undo(new).unwrap();
     assert!(!s.get(new).unwrap().dirty, "once saved, undo back to the saved state is clean");
 }
+
+#[test]
+fn a_linked_table_is_placed_updated_and_kept_at_its_top_left() {
+    let mut session = Session::default();
+    let id = session.open("suite.pdf", None, Arc::new(fixture(1)), None).unwrap();
+    let csv = |rows: usize| {
+        let mut s = String::from("Item,Qty,Unit cost\n");
+        for i in 0..rows {
+            s.push_str(&format!("Drop {i},{},{}\n", i + 1, 85));
+        }
+        Arc::new(s.into_bytes())
+    };
+    let file = |size: u64, mtime: i64| cad_links::LinkedFile {
+        path: "/suite/budget.csv".into(),
+        relative: Some("budget.csv".into()),
+        size,
+        mtime,
+        now: mtime,
+    };
+    session
+        .apply(
+            id,
+            Edit::PlaceTableLink { page: 0, name: "budget.csv".into(), bytes: csv(3), file: file(10, 1), sheet: String::new(), range: String::new() },
+        )
+        .unwrap();
+    let links = session.get(id).unwrap().cad_links();
+    assert_eq!(links.len(), 1);
+    assert_eq!(links[0].kind, cad_links::LinkKind::Table);
+    let before = links[0].rect.unwrap();
+    // Two more rows: the table grows down from the same top-left corner.
+    let edit = Edit::UpdateCadLink { index: 0, name: "budget.csv".into(), bytes: csv(5), file: file(20, 2), keep_revision: true };
+    session.apply(id, edit).unwrap();
+    let after = session.get(id).unwrap().cad_links()[0].clone();
+    let r = after.rect.unwrap();
+    assert!((r[0] - before[0]).abs() < 0.01 && (r[3] - before[3]).abs() < 0.01, "{before:?} -> {r:?}");
+    assert!(r[3] - r[1] > before[3] - before[1], "taller");
+    assert_eq!((after.mtime, after.revisions), (2, 1));
+    session.apply(id, Edit::MoveCadLink { index: 0, dx: 20.0, dy: -10.0 }).unwrap();
+    let moved = session.get(id).unwrap().cad_links()[0].rect.unwrap();
+    assert!((moved[0] - r[0] - 20.0).abs() < 0.01);
+    // A range that isn't one is refused, and nothing changes.
+    assert!(
+        session
+            .apply(
+                id,
+                Edit::PlaceTableLink {
+                    page: 0,
+                    name: "budget.csv".into(),
+                    bytes: csv(1),
+                    file: file(1, 1),
+                    sheet: String::new(),
+                    range: "nope".into()
+                }
+            )
+            .is_err()
+    );
+    assert_eq!(session.get(id).unwrap().cad_links().len(), 1);
+}

@@ -2942,3 +2942,24 @@ animation effects	Off	オフ
 	Copy markup	マークアップをコピー
 	Move markup	マークアップを移動
 	Rotate markup	マークアップを回転
+	Cells such as B2:F30, a named range, or leave it empty for the sheet's print area.	B2:F30 のようなセル、名前付き範囲、または空欄でシートの印刷範囲を使います。
+	Drawings and tables opened with Edit original update on the sheet by themselves when you save them in CADCraft or GridCraft.	「元のファイルを編集」で開いた図面や表は、CADCraft または GridCraft で保存すると図面上で自動的に更新されます。
+	In GridCraft	GridCraft で編集中
+	Named ranges	名前付き範囲
+	Open the workbook in GridCraft yourself; this sheet updates when it is saved.	GridCraft でブックをご自分で開いてください。保存するとこの図面が更新されます。
+	Place	配置
+	Place a table from a workbook (XLSX, CSV…) on this sheet, linked to the file	ブック (XLSX、CSV…) の表をファイルにリンクしてこの図面に配置
+	Place a table from a workbook to see the whole workbook here.	ブックの表を配置すると、ここにブック全体が表示されます。
+	Place table	表を配置
+	Place table…	表を配置…
+	Print area or used range	印刷範囲または使用範囲
+	Range	範囲
+	Sheet {n} · table from {sheet}	図面 {n} · {sheet} の表
+	Showing the first {rows} rows and {cols} columns.	最初の {rows} 行と {cols} 列を表示しています。
+	Stop watching for saves from CADCraft or GridCraft. This also happens by itself when the app closes.	CADCraft や GridCraft からの保存の監視をやめます。アプリを閉じたときにも自動的にやめます。
+	The first sheet	最初のシート
+	The workbook is too large to show here.	ブックが大きすぎるため、ここには表示できません。
+	This sheet is empty.	このシートは空です。
+	Workbook	ブック
+	Workbooks (XLSX, CSV…)	ブック (XLSX、CSV…)
+	Place linked table	リンクした表を配置

@@ -2856,3 +2856,24 @@ animation effects	Off	Выкл
 	RevuCraft is drawing without a graphics processor, so it may be slow. Updating the graphics driver may help.	RevuCraft рисует без графического процессора, поэтому может работать медленно. Обновление графического драйвера может помочь.
 	{who} in this document tried to open an address RevuCraft won't open: {e}.	{who} в этом документе пытается открыть адрес, который RevuCraft не открывает: {e}.
 	{who} in this document tried to open an address RevuCraft won't open: {e}. Only web (http, https) and email (mailto) links open from documents.	{who} в этом документе пытается открыть адрес, который RevuCraft не открывает: {e}. Из документов открываются только веб-ссылки (http, https) и ссылки на почту (mailto).
+	Cells such as B2:F30, a named range, or leave it empty for the sheet's print area.	Ячейки вроде B2:F30, именованный диапазон, или оставьте пустым для области печати листа.
+	Drawings and tables opened with Edit original update on the sheet by themselves when you save them in CADCraft or GridCraft.	Чертежи и таблицы, открытые через «Изменить оригинал», сами обновляются на листе, когда вы сохраняете их в CADCraft или GridCraft.
+	In GridCraft	В GridCraft
+	Named ranges	Именованные диапазоны
+	Open the workbook in GridCraft yourself; this sheet updates when it is saved.	Откройте книгу в GridCraft сами; этот лист обновится, когда она будет сохранена.
+	Place	Разместить
+	Place a table from a workbook (XLSX, CSV…) on this sheet, linked to the file	Разместить на этом листе таблицу из книги (XLSX, CSV…), связанную с файлом
+	Place a table from a workbook to see the whole workbook here.	Разместите таблицу из книги, чтобы видеть здесь всю книгу.
+	Place table	Разместить таблицу
+	Place table…	Разместить таблицу…
+	Print area or used range	Область печати или используемый диапазон
+	Range	Диапазон
+	Sheet {n} · table from {sheet}	Лист {n} · таблица из {sheet}
+	Showing the first {rows} rows and {cols} columns.	Показаны первые {rows} строк и {cols} столбцов.
+	Stop watching for saves from CADCraft or GridCraft. This also happens by itself when the app closes.	Перестать следить за сохранениями из CADCraft или GridCraft. Это также происходит само, когда приложение закрывается.
+	The first sheet	Первый лист
+	The workbook is too large to show here.	Книга слишком велика, чтобы показать её здесь.
+	This sheet is empty.	Этот лист пуст.
+	Workbook	Книга
+	Workbooks (XLSX, CSV…)	Книги (XLSX, CSV…)
+	Place linked table	Разместить связанную таблицу

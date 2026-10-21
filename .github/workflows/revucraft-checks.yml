@@ -122,6 +122,11 @@ jobs:
           shot plan-icons-neutral "$plan" --workflow markup --icon-color neutral
           shot all-tools "$plan" --mode all
           shot plan-links "$plan" --workflow draft --dock links
+          # A synthetic budget workbook (CSV) placed as a linked table, and the Place table dialog.
+          csv="$RUNNER_TEMP/budget.csv"
+          printf 'Item,Qty,Unit cost,Total\nDoors,12,450,5400\nWindows,18,620,11160\nFlooring (sq ft),2400,6.5,15600\nPaint (gal),40,38,1520\nTotal,,,33680\n' > "$csv"
+          shot plan-table "$plan" --workflow draft --place-table "$csv"
+          shot plan-table-dialog "$plan" --table-dialog "$csv"
           shot update-available "$plan" --update available
           shot update-prompt "$plan" --update prompt
 

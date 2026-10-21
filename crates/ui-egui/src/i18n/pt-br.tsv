@@ -2952,3 +2952,24 @@ animation effects	Off	Desativados
 	Copy markup	Copiar marcação
 	Move markup	Mover marcação
 	Rotate markup	Girar marcação
+	Cells such as B2:F30, a named range, or leave it empty for the sheet's print area.	Células como B2:F30, um intervalo nomeado, ou deixe vazio para a área de impressão da planilha.
+	Drawings and tables opened with Edit original update on the sheet by themselves when you save them in CADCraft or GridCraft.	Desenhos e tabelas abertos com Editar original se atualizam sozinhos na folha quando você os salva no CADCraft ou no GridCraft.
+	In GridCraft	No GridCraft
+	Named ranges	Intervalos nomeados
+	Open the workbook in GridCraft yourself; this sheet updates when it is saved.	Abra você mesmo a pasta de trabalho no GridCraft; esta folha se atualiza quando ela for salva.
+	Place	Posicionar
+	Place a table from a workbook (XLSX, CSV…) on this sheet, linked to the file	Posicionar uma tabela de uma pasta de trabalho (XLSX, CSV…) nesta folha, vinculada ao arquivo
+	Place a table from a workbook to see the whole workbook here.	Posicione uma tabela de uma pasta de trabalho para ver aqui a pasta inteira.
+	Place table	Posicionar tabela
+	Place table…	Posicionar tabela…
+	Print area or used range	Área de impressão ou intervalo usado
+	Range	Intervalo
+	Sheet {n} · table from {sheet}	Folha {n} · tabela de {sheet}
+	Showing the first {rows} rows and {cols} columns.	Mostrando as primeiras {rows} linhas e {cols} colunas.
+	Stop watching for saves from CADCraft or GridCraft. This also happens by itself when the app closes.	Parar de acompanhar salvamentos do CADCraft ou do GridCraft. Isso também acontece sozinho quando o app fecha.
+	The first sheet	A primeira planilha
+	The workbook is too large to show here.	A pasta de trabalho é grande demais para ser mostrada aqui.
+	This sheet is empty.	Esta planilha está vazia.
+	Workbook	Pasta de trabalho
+	Workbooks (XLSX, CSV…)	Pastas de trabalho (XLSX, CSV…)
+	Place linked table	Posicionar tabela vinculada

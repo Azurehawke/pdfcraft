@@ -2940,3 +2940,24 @@ animation effects	Off	Désactivés
 	Copy markup	Copier l’annotation
 	Move markup	Déplacer l’annotation
 	Rotate markup	Faire pivoter l’annotation
+	Cells such as B2:F30, a named range, or leave it empty for the sheet's print area.	Des cellules comme B2:F30, une plage nommée, ou laissez vide pour la zone d’impression de la feuille.
+	Drawings and tables opened with Edit original update on the sheet by themselves when you save them in CADCraft or GridCraft.	Les dessins et tableaux ouverts avec Modifier l’original se mettent à jour d’eux-mêmes sur la feuille quand vous les enregistrez dans CADCraft ou GridCraft.
+	In GridCraft	Dans GridCraft
+	Named ranges	Plages nommées
+	Open the workbook in GridCraft yourself; this sheet updates when it is saved.	Ouvrez vous-même le classeur dans GridCraft ; cette feuille se met à jour à son enregistrement.
+	Place	Placer
+	Place a table from a workbook (XLSX, CSV…) on this sheet, linked to the file	Placer un tableau d’un classeur (XLSX, CSV…) sur cette feuille, lié au fichier
+	Place a table from a workbook to see the whole workbook here.	Placez un tableau d’un classeur pour voir ici le classeur entier.
+	Place table	Placer un tableau
+	Place table…	Placer un tableau…
+	Print area or used range	Zone d’impression ou plage utilisée
+	Range	Plage
+	Sheet {n} · table from {sheet}	Feuille {n} · tableau de {sheet}
+	Showing the first {rows} rows and {cols} columns.	Affichage des {rows} premières lignes et {cols} premières colonnes.
+	Stop watching for saves from CADCraft or GridCraft. This also happens by itself when the app closes.	Ne plus surveiller les enregistrements de CADCraft ou GridCraft. Cela se fait aussi de soi-même à la fermeture de l’application.
+	The first sheet	La première feuille
+	The workbook is too large to show here.	Le classeur est trop volumineux pour être affiché ici.
+	This sheet is empty.	Cette feuille est vide.
+	Workbook	Classeur
+	Workbooks (XLSX, CSV…)	Classeurs (XLSX, CSV…)
+	Place linked table	Placer un tableau lié

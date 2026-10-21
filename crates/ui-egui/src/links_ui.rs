@@ -16,7 +16,7 @@ use std::time::{Duration, Instant};
 
 use egui::{CornerRadius, Stroke};
 use pdfcraft_engine::Edit;
-use pdfcraft_engine::cad_links::{CadLink, LinkedFile};
+use pdfcraft_engine::cad_links::{CadLink, LinkKind, LinkedFile};
 
 use crate::theme::{self, Tokens};
 use crate::{PdfCraftApp, icons, widgets};
@@ -126,13 +126,7 @@ pub(crate) fn page_input(ui: &egui::Ui, resp: &egui::Response, cx: &crate::comme
 /// place on the current page, linked to them, and show the Links pane where they are listed.
 pub(crate) fn place_drawing(app: &mut PdfCraftApp) {
     let Some((_, id)) = app.active_ids() else { return };
-    if app.show_ribbon {
-        if !app.is_docked(crate::RightPanel::Links) {
-            app.toggle_docked(crate::RightPanel::Links);
-        }
-    } else {
-        app.choose_right_panel(Some(crate::RightPanel::Links));
-    }
+    show_pane(app, crate::RightPanel::Links);
     let dialog = crate::dialog::AsyncFileDialog::new().add_filter(tl!("Drawings (DWG, DXF)"), &pdfcraft_engine::CAD_EXTENSIONS);
     let _ = app.ask(crate::pickers::Ask::Files(dialog), Some(id), place);
 }
@@ -194,6 +188,11 @@ pub struct LinksState {
     /// Files whose date or size differ from the link's but whose drawing is the same: (size,
     /// modified) as checked, so each is read once.
     same: HashMap<String, (u64, i64)>,
+    /// Place table…: the workbook picked, while its sheet and range are chosen.
+    pub(crate) table_pick: Option<TablePick>,
+    /// The Workbook box's workbook, and the sheet it shows.
+    book: Option<BookView>,
+    book_sheet: usize,
 }
 
 /// Larger files aren't read to compare (they count as changed).
@@ -537,44 +536,52 @@ fn update(app: &mut PdfCraftApp, index: usize, saved_in_cad: bool) -> bool {
     ok
 }
 
-/// CADCraft's program: `CADCRAFT` in the environment, beside RevuCraft, where its installer puts
-/// it, or on the PATH.
+/// The craft app that edits `path`: GridCraft for a workbook, CADCraft for a drawing (its
+/// program's name, the environment variable that may point at it, and its folder name).
 #[cfg(not(any(target_os = "android", target_arch = "wasm32")))]
-fn cadcraft_program() -> Option<std::path::PathBuf> {
+fn editor_for(path: &str) -> (&'static str, &'static str, &'static str) {
+    if pdfcraft_engine::workbook::is_workbook(path) { ("gridcraft", "GRIDCRAFT", "GridCraft") } else { ("cadcraft", "CADCRAFT", "CADCraft") }
+}
+
+/// The craft app's program: the environment variable, beside RevuCraft, where its installer
+/// puts it, or on the PATH.
+#[cfg(not(any(target_os = "android", target_arch = "wasm32")))]
+fn craft_program(program: &str, var: &str, folder: &str) -> Option<std::path::PathBuf> {
     use std::path::PathBuf;
-    let exe = if cfg!(windows) { "cadcraft.exe" } else { "cadcraft" };
+    let exe = if cfg!(windows) { format!("{program}.exe") } else { program.to_string() };
     let mut candidates: Vec<PathBuf> = Vec::new();
-    if let Some(p) = std::env::var_os("CADCRAFT") {
+    if let Some(p) = std::env::var_os(var) {
         candidates.push(PathBuf::from(p));
     }
     if let Ok(me) = std::env::current_exe()
         && let Some(dir) = me.parent()
     {
-        candidates.push(dir.join(exe));
+        candidates.push(dir.join(&exe));
         if let Some(up) = dir.parent() {
-            candidates.push(up.join("CADCraft").join(exe));
+            candidates.push(up.join(folder).join(&exe));
         }
     }
     for var in ["LOCALAPPDATA", "ProgramFiles"] {
         if let Some(base) = std::env::var_os(var) {
             let base = PathBuf::from(base);
-            candidates.push(base.join("Programs").join("CADCraft").join(exe));
-            candidates.push(base.join("CADCraft").join(exe));
+            candidates.push(base.join("Programs").join(folder).join(&exe));
+            candidates.push(base.join(folder).join(&exe));
         }
     }
     if let Some(paths) = std::env::var_os("PATH") {
-        candidates.extend(std::env::split_paths(&paths).map(|d| d.join(exe)));
+        candidates.extend(std::env::split_paths(&paths).map(|d| d.join(&exe)));
     }
     candidates.into_iter().find(|p| p.is_file())
 }
 
-/// Open the drawing in CADCraft (or, without it, in the app the system opens drawings with).
+/// Open the file in CADCraft or GridCraft (or, without it, in the app the system opens it with).
+/// Returns the craft app's process when it was started directly, so its closing can be noticed;
+/// the system's opener hands the file on and exits, so there is nothing to follow then.
 #[cfg(not(any(target_os = "android", target_arch = "wasm32")))]
-/// Returns CADCraft's process when it was started directly, so its closing can be noticed; the
-/// system's opener hands the file on and exits, so there is nothing to follow then.
 fn edit_original(path: &str) -> Result<Option<std::process::Child>, String> {
     use std::process::Command;
-    match cadcraft_program() {
+    let (program, var, folder) = editor_for(path);
+    match craft_program(program, var, folder) {
         Some(p) => Command::new(p).arg(path).spawn().map(Some),
         None if cfg!(windows) => Command::new("cmd").args(["/C", "start", "", path]).spawn().map(|_| None),
         None if cfg!(target_os = "macos") => Command::new("open").arg(path).spawn().map(|_| None),
@@ -585,7 +592,12 @@ fn edit_original(path: &str) -> Result<Option<std::process::Child>, String> {
 
 #[cfg(any(target_os = "android", target_arch = "wasm32"))]
 fn edit_original(_path: &str) -> Result<Option<std::process::Child>, String> {
-    Err(tl!("Open the drawing in CADCraft yourself; this sheet updates when it is saved.").to_string())
+    let message = if pdfcraft_engine::workbook::is_workbook(_path) {
+        tl!("Open the workbook in GridCraft yourself; this sheet updates when it is saved.")
+    } else {
+        tl!("Open the drawing in CADCraft yourself; this sheet updates when it is saved.")
+    };
+    Err(message.to_string())
 }
 
 /// Show the file in the system's file manager.
@@ -608,8 +620,9 @@ fn reveal(_path: &str) -> Result<(), String> {
     Err(tl!("Showing files isn't available here.").to_string())
 }
 
-fn chip(ui: &mut egui::Ui, t: &Tokens, status: Status) {
+fn chip(ui: &mut egui::Ui, t: &Tokens, status: Status, kind: LinkKind) {
     let (label, fg) = match status {
+        Status::Editing if kind == LinkKind::Table => (tl!("In GridCraft"), t.accent),
         Status::UpToDate => (tl!("Up to date"), egui::Color32::from_rgb(0x4a, 0xa8, 0x6a)),
         Status::Modified => (tl!("Modified"), egui::Color32::from_rgb(0xd9, 0x9a, 0x1c)),
         Status::Missing => (tl!("Missing"), egui::Color32::from_rgb(0xdc, 0x5a, 0x5a)),
@@ -651,6 +664,289 @@ fn relink(app: &mut PdfCraftApp, links: &[CadLink], pdf: Option<&str>, index: us
     }
 }
 
+/// File ▸ Place table… (also the Links pane): pick a workbook, then its sheet and range.
+pub(crate) fn place_table(app: &mut PdfCraftApp) {
+    let Some((_, id)) = app.active_ids() else { return };
+    show_pane(app, crate::RightPanel::Links);
+    let dialog = crate::dialog::AsyncFileDialog::new().add_filter(tl!("Workbooks (XLSX, CSV…)"), &pdfcraft_engine::WORKBOOK_EXTENSIONS);
+    let _ = app.ask(crate::pickers::Ask::Files(dialog), Some(id), pick_table);
+}
+
+/// Open side panel `panel`: a box in RevuCraft's dock, else the right panel.
+fn show_pane(app: &mut PdfCraftApp, panel: crate::RightPanel) {
+    if app.show_ribbon {
+        if !app.is_docked(panel) {
+            app.toggle_docked(panel);
+        }
+    } else {
+        app.choose_right_panel(Some(panel));
+    }
+}
+
+/// The workbook picked for Place table…, while its sheet and range are chosen.
+#[derive(Debug)]
+pub(crate) struct TablePick {
+    path: String,
+    name: String,
+    bytes: Arc<Vec<u8>>,
+    sheets: Vec<String>,
+    names: Vec<String>,
+    sheet: usize,
+    range: String,
+    page: usize,
+}
+
+fn pick_table(app: &mut PdfCraftApp, paths: Vec<std::path::PathBuf>) {
+    let Some(p) = paths.into_iter().next() else { return };
+    match read_pick(app, &p.to_string_lossy()) {
+        Ok(pick) => app.links.table_pick = Some(pick),
+        Err(e) => app.notify(e),
+    }
+}
+
+/// Reads and opens the workbook at `path` for the Place table dialog, on the current page.
+fn read_pick(app: &PdfCraftApp, path: &str) -> Result<TablePick, String> {
+    let name = file_name(path);
+    let bytes = std::fs::read(path).map_err(|e| crate::i18n::fmt(tl!("Couldn't read {name}: {e}"), &[("name", &name), ("e", &e.to_string())]))?;
+    let book = pdfcraft_engine::workbook::open(&bytes, &name)
+        .map_err(|e| crate::i18n::fmt(tl!("Couldn't open {name}: {e}"), &[("name", &name), ("e", &e.to_string())]))?;
+    let page = app.active_ids().and_then(|(i, _)| app.views.get(i)).map_or(0, |v| v.current);
+    Ok(TablePick {
+        path: path.to_string(),
+        name,
+        bytes: Arc::new(bytes),
+        sheets: book.sheet_names(),
+        names: book.range_names(),
+        sheet: 0,
+        range: String::new(),
+        page,
+    })
+}
+
+/// Places the picked table and shows it in the Workbook box; false if the edit was refused.
+fn place_pick(app: &mut PdfCraftApp, pick: TablePick) -> bool {
+    let pdf = app.active_ids().and_then(|(_, id)| app.session.get(id)).and_then(|d| d.path.clone());
+    let size = u64::try_from(pick.bytes.len()).unwrap_or(0);
+    let relative = pdf.as_deref().and_then(|pdf| relative_to(pdf, &pick.path));
+    let file =
+        linked_file_from(&pick.path, pdf.as_deref()).unwrap_or(LinkedFile { path: pick.path.clone(), relative, size, mtime: 0, now: now_secs() });
+    let sheet = pick.sheets.get(pick.sheet).cloned().unwrap_or_default();
+    let edit = Edit::PlaceTableLink { page: pick.page, name: pick.name, bytes: pick.bytes, file, sheet, range: pick.range.trim().to_string() };
+    let placed = app.apply_edit(edit);
+    if placed {
+        show_pane(app, crate::RightPanel::Workbook);
+    }
+    placed
+}
+
+/// Screenshots and automation (`place-table`, `table-dialog`): `value` is a workbook's path,
+/// with `#` and a range after it if wanted. Placed at once (`place`), or shown in the Place
+/// table dialog.
+pub(crate) fn table_option(app: &mut PdfCraftApp, value: &str, place: bool) -> Result<(), String> {
+    if app.active_ids().is_none() {
+        return Err("open a document first".into());
+    }
+    let (path, range) = value.rsplit_once('#').unwrap_or((value, ""));
+    let mut pick = read_pick(app, path)?;
+    pick.range = range.to_string();
+    if !place {
+        app.links.table_pick = Some(pick);
+        return Ok(());
+    }
+    if place_pick(app, pick) { Ok(()) } else { Err("the table could not be placed".into()) }
+}
+
+/// The Place table dialog: the sheet, and the range (a named range, cells, or the print area).
+pub(crate) fn table_dialog(app: &mut PdfCraftApp, ctx: &egui::Context) {
+    let Some(pick) = app.links.table_pick.as_mut() else { return };
+    let t = Tokens::get(ctx);
+    let mut done: Option<bool> = None;
+    let modal = egui::Modal::new(egui::Id::new("place_table")).show(ctx, |ui| {
+        ui.set_width(380.0);
+        ui.horizontal(|ui| {
+            ui.add(icons::image("file-spreadsheet", 20.0, t.accent));
+            ui.label(egui::RichText::new(tl!("Place table")).font(theme::semibold(16.0)));
+        });
+        ui.label(egui::RichText::new(&pick.name).color(t.text_muted));
+        ui.add_space(8.0);
+        egui::Grid::new("place-table").num_columns(2).spacing([10.0, 8.0]).show(ui, |ui| {
+            ui.label(tl!("Sheet"));
+            let shown = pick.sheets.get(pick.sheet).cloned().unwrap_or_default();
+            egui::ComboBox::from_id_salt("table-sheet").selected_text(shown).width(220.0).show_ui(ui, |ui| {
+                for (i, s) in pick.sheets.iter().enumerate() {
+                    ui.selectable_value(&mut pick.sheet, i, s);
+                }
+            });
+            ui.end_row();
+            ui.label(tl!("Range"));
+            ui.vertical(|ui| {
+                ui.add(egui::TextEdit::singleline(&mut pick.range).desired_width(220.0).hint_text(tl!("Print area or used range")));
+                if !pick.names.is_empty() {
+                    egui::ComboBox::from_id_salt("table-name").selected_text(tl!("Named ranges")).width(220.0).show_ui(ui, |ui| {
+                        for n in &pick.names {
+                            if ui.selectable_label(pick.range == *n, n).clicked() {
+                                pick.range = n.clone();
+                            }
+                        }
+                    });
+                }
+            });
+            ui.end_row();
+        });
+        ui.add_space(4.0);
+        ui.label(
+            egui::RichText::new(tl!("Cells such as B2:F30, a named range, or leave it empty for the sheet's print area."))
+                .color(t.text_muted)
+                .small(),
+        );
+        ui.add_space(12.0);
+        ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+            if widgets::pill_button(ui, tl!("Place"), true).clicked() {
+                done = Some(true);
+            }
+            if widgets::pill_button(ui, tl!("Cancel"), false).clicked() {
+                done = Some(false);
+            }
+        });
+    });
+    if modal.should_close() && done.is_none() {
+        done = Some(false);
+    }
+    if done == Some(true)
+        && let Some(pick) = app.links.table_pick.take()
+    {
+        place_pick(app, pick);
+    } else if done == Some(false) {
+        app.links.table_pick = None;
+    }
+}
+
+/// A linked workbook as the Workbook box shows it: every sheet as text, for one version of the
+/// file.
+#[derive(Debug, Default)]
+pub(crate) struct BookView {
+    path: String,
+    meta: Option<(u64, i64)>,
+    sheets: Vec<pdfcraft_engine::workbook::SheetGrid>,
+    error: Option<String>,
+}
+
+/// The most sheets the Workbook box reads.
+const VIEW_SHEETS: usize = 32;
+
+fn book_view(path: &str) -> BookView {
+    let meta = file_meta(path);
+    let name = file_name(path);
+    let read = || -> Result<Vec<pdfcraft_engine::workbook::SheetGrid>, String> {
+        let size = meta.map_or(0, |m| m.0);
+        if usize::try_from(size).unwrap_or(usize::MAX) > pdfcraft_engine::workbook::MAX_BYTES {
+            return Err(tl!("The workbook is too large to show here.").to_string());
+        }
+        let bytes = std::fs::read(path).map_err(|e| e.to_string())?;
+        let book = pdfcraft_engine::workbook::open(&bytes, &name).map_err(|e| e.to_string())?;
+        Ok((0..book.sheet_names().len().min(VIEW_SHEETS)).filter_map(|i| book.grid(i)).collect())
+    };
+    match read() {
+        Ok(sheets) => BookView { path: path.to_string(), meta, sheets, error: None },
+        Err(e) => BookView { path: path.to_string(), meta, sheets: Vec::new(), error: Some(e) },
+    }
+}
+
+/// The Workbook box: a linked table's whole workbook, read-only, one sheet at a time, as it is
+/// on disk now (its formulas worked out).
+pub fn workbook_panel(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
+    let t = Tokens::get(ui.ctx());
+    let (links, _) = here(app);
+    let tables: Vec<&CadLink> = links.iter().filter(|l| l.kind == LinkKind::Table).collect();
+    let Some(first) = tables.first() else {
+        ui.label(egui::RichText::new(tl!("Place a table from a workbook to see the whole workbook here.")).color(t.text_muted));
+        let editable = app.active_ids().and_then(|(_, id)| app.session.get(id)).is_some_and(|d| d.allows_modification());
+        if ui.add_enabled(editable, egui::Button::new(tl!("Place table…"))).clicked() {
+            place_table(app);
+        }
+        return;
+    };
+    let sel = tables.iter().find(|l| l.index == app.links.selected).unwrap_or(first);
+    let path = sel.path.clone();
+    let mut paths: Vec<String> = tables.iter().map(|l| l.path.clone()).collect();
+    paths.sort_unstable();
+    paths.dedup();
+    if paths.len() > 1 {
+        let mut choice = path.clone();
+        egui::ComboBox::from_id_salt("workbook-file").selected_text(file_name(&choice)).width(ui.available_width() - 8.0).show_ui(ui, |ui| {
+            for p in &paths {
+                ui.selectable_value(&mut choice, p.clone(), file_name(p));
+            }
+        });
+        if choice != path
+            && let Some(l) = tables.iter().find(|l| l.path == choice)
+        {
+            app.links.selected = l.index;
+        }
+    }
+    let stale = app.links.book.as_ref().is_none_or(|b| b.path != path || b.meta != file_meta(&path));
+    if stale {
+        app.links.book = Some(book_view(&path));
+        app.links.book_sheet = 0;
+    }
+    let Some(book) = app.links.book.as_ref() else { return };
+    if let Some(e) = &book.error {
+        ui.colored_label(
+            egui::Color32::from_rgb(0xdc, 0x5a, 0x5a),
+            crate::i18n::fmt(tl!("Couldn't open {name}: {e}"), &[("name", &file_name(&path)), ("e", e)]),
+        );
+        return;
+    }
+    let mut sheet = app.links.book_sheet.min(book.sheets.len().saturating_sub(1));
+    egui::ScrollArea::horizontal().id_salt("workbook-tabs").show(ui, |ui| {
+        ui.horizontal(|ui| {
+            for (i, g) in book.sheets.iter().enumerate() {
+                if ui.selectable_label(sheet == i, &g.name).clicked() {
+                    sheet = i;
+                }
+            }
+        });
+    });
+    let Some(grid) = book.sheets.get(sheet) else { return };
+    ui.add_space(4.0);
+    if grid.rows.is_empty() {
+        ui.label(egui::RichText::new(tl!("This sheet is empty.")).color(t.text_muted));
+    }
+    egui::ScrollArea::both().id_salt("workbook-grid").auto_shrink([false, false]).max_height(ui.available_height() - 24.0).show(ui, |ui| {
+        egui::Grid::new(("workbook-cells", sheet)).striped(true).spacing([6.0, 2.0]).show(ui, |ui| {
+            ui.label("");
+            for c in 0..grid.widths.len() {
+                let col = u32::try_from(c).unwrap_or(0).saturating_add(grid.origin.1);
+                ui.label(egui::RichText::new(pdfcraft_engine::workbook::column_letters(col)).color(t.text_faint).small());
+            }
+            ui.end_row();
+            for (r, row) in grid.rows.iter().enumerate() {
+                ui.label(
+                    egui::RichText::new(u64::from(grid.origin.0).saturating_add(u64::try_from(r).unwrap_or(0)).saturating_add(1).to_string())
+                        .color(t.text_faint)
+                        .small(),
+                );
+                for (c, text) in row.iter().enumerate() {
+                    let w = grid.widths.get(c).copied().unwrap_or(48.0).clamp(24.0, 240.0);
+                    ui.add_sized([w, 16.0], egui::Label::new(egui::RichText::new(text).size(11.5)).truncate());
+                }
+                ui.end_row();
+            }
+        });
+    });
+    if grid.cut {
+        ui.label(
+            egui::RichText::new(crate::i18n::fmt(
+                tl!("Showing the first {rows} rows and {cols} columns."),
+                &[("rows", &pdfcraft_engine::workbook::VIEW_ROWS.to_string()), ("cols", &pdfcraft_engine::workbook::VIEW_COLS.to_string())],
+            ))
+            .color(t.text_muted)
+            .small(),
+        );
+    }
+    app.links.book_sheet = sheet;
+}
+
 /// What the pane asked for this frame.
 enum Act {
     Update(usize),
@@ -677,10 +973,19 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
     let state = &mut app.links;
     let status = |l: &CadLink| state.status.get(&l.path).copied().unwrap_or(Status::UpToDate);
     let mut act = None;
-    let place_now = ui
-        .add_enabled(editable, egui::Button::new(tl!("Place drawing…")))
-        .on_hover_text(tl!("Place a DWG or DXF on this sheet at its scale, linked to the file (one per room, say)"))
-        .clicked();
+    let (place_now, table_now) = ui
+        .horizontal_wrapped(|ui| {
+            let drawing = ui
+                .add_enabled(editable, egui::Button::new(tl!("Place drawing…")))
+                .on_hover_text(tl!("Place a DWG or DXF on this sheet at its scale, linked to the file (one per room, say)"))
+                .clicked();
+            let table = ui
+                .add_enabled(editable, egui::Button::new(tl!("Place table…")))
+                .on_hover_text(tl!("Place a table from a workbook (XLSX, CSV…) on this sheet, linked to the file"))
+                .clicked();
+            (drawing, table)
+        })
+        .inner;
     if links.is_empty() {
         ui.label(
             egui::RichText::new(tl!(
@@ -691,6 +996,10 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
     }
     if place_now {
         place_drawing(app);
+        return;
+    }
+    if table_now {
+        place_table(app);
         return;
     }
     if links.is_empty() {
@@ -713,10 +1022,12 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
             .inner_margin(egui::Margin::same(8))
             .show(ui, |ui| {
                 ui.set_width(ui.available_width());
-                ui.label(tl!("Drawings opened with Edit original update their sheets by themselves when you save them in CADCraft."));
+                ui.label(tl!(
+                    "Drawings and tables opened with Edit original update on the sheet by themselves when you save them in CADCraft or GridCraft."
+                ));
                 if ui
                     .button(tl!("Done editing"))
-                    .on_hover_text(tl!("Stop watching for saves from CADCraft. This also happens by itself when CADCraft closes."))
+                    .on_hover_text(tl!("Stop watching for saves from CADCraft or GridCraft. This also happens by itself when the app closes."))
                     .clicked()
                 {
                     act = Some(Act::DoneEditing);
@@ -734,9 +1045,12 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
         } else if resp.hovered() {
             ui.painter().rect_filled(rect, CornerRadius::same(6), t.hover);
         }
-        icons::paint(ui, egui::Rect::from_min_size(rect.min + egui::vec2(6.0, 12.0), egui::vec2(18.0, 18.0)), "file-text", 16.0, t.icon);
+        let icon = if l.kind == LinkKind::Table { "file-spreadsheet" } else { "file-text" };
+        icons::paint(ui, egui::Rect::from_min_size(rect.min + egui::vec2(6.0, 12.0), egui::vec2(18.0, 18.0)), icon, 16.0, t.icon);
         widgets::row_text(ui, rect.min + egui::vec2(32.0, 13.0), name.clone(), theme::medium(13.0), t.text, (rect.width() - 130.0).max(40.0));
-        let sub = if l.placed {
+        let sub = if l.kind == LinkKind::Table {
+            crate::i18n::fmt(tl!("Sheet {n} · table from {sheet}"), &[("n", &(l.page + 1).to_string()), ("sheet", &l.layout)])
+        } else if l.placed {
             crate::i18n::fmt(tl!("Sheet {n} · placed"), &[("n", &(l.page + 1).to_string())])
         } else {
             crate::i18n::fmt(tl!("Sheet {n} · {layout}"), &[("n", &(l.page + 1).to_string()), ("layout", &l.layout)])
@@ -747,7 +1061,7 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
                 .max_rect(egui::Rect::from_min_max(rect.center_top() + egui::vec2(0.0, 10.0), rect.right_bottom() - egui::vec2(6.0, 8.0)))
                 .layout(egui::Layout::right_to_left(egui::Align::Center)),
         );
-        chip(&mut chip_ui, &t, status(l));
+        chip(&mut chip_ui, &t, status(l), l.kind);
         if resp.clicked() {
             state.selected = l.index;
             state.relink = None;
@@ -774,9 +1088,18 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
             }
         });
         ui.end_row();
-        ui.label(muted(tl!("Layout")));
-        ui.label(&sel.layout);
-        ui.end_row();
+        if sel.kind == LinkKind::Table {
+            ui.label(muted(tl!("Sheet")));
+            ui.label(if sel.layout.is_empty() { tl!("The first sheet") } else { sel.layout.as_str() });
+            ui.end_row();
+            ui.label(muted(tl!("Range")));
+            ui.label(if sel.range.is_empty() { tl!("Print area or used range") } else { sel.range.as_str() });
+            ui.end_row();
+        } else {
+            ui.label(muted(tl!("Layout")));
+            ui.label(&sel.layout);
+            ui.end_row();
+        }
         ui.label(muted(tl!("On sheet")));
         ui.label(crate::i18n::fmt(tl!("Sheet {n} of {total}"), &[("n", &(sel.page + 1).to_string()), ("total", &pages.to_string())]));
         ui.end_row();
@@ -890,7 +1213,7 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
                 app.links.status.insert(path, Status::Editing);
             }
             Err(e) => {
-                // Android: CADCraft is opened by hand; the sheet still updates when it's saved.
+                // Android: the craft app is opened by hand; the sheet still updates when it's saved.
                 app.links.editing.insert(path);
                 app.notify(e);
             }
@@ -972,7 +1295,63 @@ mod tests {
             revisions: 0,
             placed: true,
             rect: None,
+            kind: LinkKind::Drawing,
+            range: String::new(),
         }
+    }
+
+    /// A one-page Letter document with a proper xref table.
+    fn letter_pdf() -> Vec<u8> {
+        let objs = [
+            "<< /Type /Catalog /Pages 2 0 R >>",
+            "<< /Type /Pages /Kids [3 0 R] /Count 1 /MediaBox [0 0 612 792] >>",
+            "<< /Type /Page /Parent 2 0 R >>",
+        ];
+        let mut out = b"%PDF-1.7\n".to_vec();
+        let mut offsets = Vec::new();
+        for (i, o) in objs.iter().enumerate() {
+            offsets.push(out.len());
+            out.extend_from_slice(format!("{} 0 obj\n{o}\nendobj\n", i + 1).as_bytes());
+        }
+        let xref = out.len();
+        out.extend_from_slice(format!("xref\n0 {}\n0000000000 65535 f \n", objs.len() + 1).as_bytes());
+        for o in offsets {
+            out.extend_from_slice(format!("{o:010} 00000 n \n").as_bytes());
+        }
+        out.extend_from_slice(format!("trailer\n<< /Size {} /Root 1 0 R >>\nstartxref\n{xref}\n%%EOF\n", objs.len() + 1).as_bytes());
+        out
+    }
+
+    #[test]
+    fn a_placed_workbook_table_is_listed_and_its_workbook_shown() -> Result<(), String> {
+        let err = |e: std::io::Error| e.to_string();
+        let dir = std::env::temp_dir().join(format!("revucraft-tables-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).map_err(err)?;
+        let csv = dir.join("budget.csv");
+        std::fs::write(&csv, "Item,Cost\nDoors,1200\nWindows,3300\nFloors,900\n").map_err(err)?;
+        let csv = csv.to_string_lossy().into_owned();
+        let mut app = PdfCraftApp::new();
+        app.open_bytes("plan.pdf", None, letter_pdf())?;
+        table_option(&mut app, &format!("{csv}#A1:B3"), true)?;
+        let (links, _) = here(&app);
+        assert_eq!(links.len(), 1);
+        let l = links.first().ok_or("no link")?;
+        assert_eq!((l.kind, l.range.as_str(), l.page), (LinkKind::Table, "A1:B3", 0));
+        assert!(app.is_docked(crate::RightPanel::Workbook) || app.right == Some(crate::RightPanel::Workbook), "the Workbook box opens");
+        // The box shows the whole sheet, not just the placed range.
+        let view = book_view(&csv);
+        assert_eq!(view.error, None);
+        let grid = view.sheets.first().ok_or("no sheet")?;
+        assert_eq!(grid.rows.len(), 4);
+        assert_eq!(grid.rows.get(3).and_then(|r| r.get(1)).map(String::as_str), Some("900"));
+        // Shown in the dialog first, the range typed there is kept.
+        table_option(&mut app, &format!("{csv}#B2:B4"), false)?;
+        assert_eq!(app.links.table_pick.as_ref().map(|p| p.range.as_str()), Some("B2:B4"));
+        assert!(table_option(&mut app, &dir.join("missing.xlsx").to_string_lossy(), true).is_err());
+        assert!(table_option(&mut app, &format!("{csv}#nope"), true).is_err(), "a range that isn't one is refused");
+        assert_eq!(here(&app).0.len(), 1);
+        let _ = std::fs::remove_dir_all(&dir);
+        Ok(())
     }
 
     #[test]
