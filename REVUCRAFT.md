@@ -182,6 +182,12 @@ Markup and measuring
       and each device looks there, then at the full path, then by name next to the PDF and in the
       folders below it. A copy with the same drawing (fingerprint) stays Up to date; Relink also
       relinks the other missing drawings found in the same folder.
+- [x] **(Steve, build 116)** Merged storytold/pdfcraft (1,383 commits, PdfCraft 0.10.1): reading
+      colours, Enhance camera photos, reverse pages and Ctrl-drag copy in Organize, fills and border
+      widths on text boxes and callouts, a Folders section on Home, custom document properties,
+      faster rendering of heavy pages, and many fixes. RevuCraft keeps its ribbon, dock, rail and
+      status bar; its own wording is translated in its 11 languages. Builds are now numbered along
+      RevuCraft's own history.
 - [ ] **(Steve, later update)** Folder mappings per device (`M:\Jobs` on the PC = `Sync/Jobs` on the
       tablet), for drawings kept outside the PDF's folder.
 
