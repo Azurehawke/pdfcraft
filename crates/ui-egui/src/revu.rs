@@ -338,13 +338,13 @@ pub fn ribbon(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
                 let s = &mut app.symbols;
                 ui.horizontal(|ui| {
                     ui.add(egui::TextEdit::singleline(&mut s.label).desired_width(70.0).hint_text(tl!("PC, VoIP…")));
-                    let _ = ui.checkbox(&mut s.auto_number, "#").on_hover_text(tl!("Number each symbol, counting up"));
+                    let _ = ui.add(crate::widgets::checkbox(&mut s.auto_number, "#")).on_hover_text(tl!("Number each symbol, counting up"));
                     if s.auto_number {
                         ui.add(egui::DragValue::new(&mut s.next).range(0..=99_999));
                     }
                 });
                 let _ = ui
-                    .checkbox(&mut s.align_to_wall, tl!("Line up with walls"))
+                    .add(crate::widgets::checkbox(&mut s.align_to_wall, tl!("Line up with walls")))
                     .on_hover_text(tl!("Turn new symbols to line up with the nearest wall or line"));
             });
             separator(ui);
@@ -605,7 +605,7 @@ pub fn layers_panel(app: &mut PdfCraftApp, ui: &mut egui::Ui, index: usize, id: 
         let mut child = ui.new_child(egui::UiBuilder::new().max_rect(r).layout(egui::Layout::left_to_right(egui::Align::Center)));
         let text = egui::RichText::new(tl!("No layer")).color(if current.is_none() { t.text } else { t.text_muted });
         child.add_space(6.0);
-        if child.radio(current.is_none(), text).clicked() {
+        if child.add(crate::widgets::radio(current.is_none(), text)).clicked() {
             set_current = Some(None);
         }
     }
@@ -1155,7 +1155,7 @@ fn renumber_popup(app: &mut PdfCraftApp, ui: &mut egui::Ui, id: pdfcraft_engine:
         ui.add(egui::DragValue::new(&mut s.renumber_start).range(0..=99_999));
         ui.end_row();
     });
-    ui.checkbox(&mut s.renumber_all_pages, tl!("Every page (otherwise this page)"));
+    ui.add(crate::widgets::checkbox(&mut s.renumber_all_pages, tl!("Every page (otherwise this page)")));
     let preview = {
         let prefix = s.renumber_prefix.trim();
         if prefix.is_empty() { s.renumber_start.to_string() } else { format!("{prefix}-{}", s.renumber_start) }

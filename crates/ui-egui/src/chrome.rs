@@ -328,7 +328,7 @@ fn theme_menu(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
         let mut job = egui::text::LayoutJob::default();
         job.append("\u{25CF}  ", 0.0, egui::TextFormat::simple(font.clone(), swatch));
         job.append(tl!(accent.label()), 0.0, egui::TextFormat::simple(font, t.text));
-        if ui.radio(app.accent == accent, job).clicked() {
+        if ui.add(crate::widgets::radio(app.accent == accent, job)).clicked() {
             app.set_accent(accent);
             ui.close();
         }
@@ -343,7 +343,7 @@ fn theme_menu(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
         let mut job = egui::text::LayoutJob::default();
         job.append("\u{25CF}  ", 0.0, egui::TextFormat::simple(font.clone(), swatch));
         job.append(tl!(c.label()), 0.0, egui::TextFormat::simple(font, t.text));
-        if ui.radio(app.icon_color == c, job).clicked() {
+        if ui.add(crate::widgets::radio(app.icon_color == c, job)).clicked() {
             app.set_icon_color(c);
             ui.close();
         }

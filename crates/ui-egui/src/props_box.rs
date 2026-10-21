@@ -230,7 +230,7 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
         });
         ui.add_space(6.0);
         ui.add_enabled_ui(editable, |ui| {
-            if ui.checkbox(&mut d.edited.locked, tl!("Locked")).changed() {
+            if ui.add(crate::widgets::checkbox(&mut d.edited.locked, tl!("Locked"))).changed() {
                 commit = true;
             }
         });

@@ -562,13 +562,6 @@ pub struct BlockDrag {
     grip: Grip,
 }
 
-impl BlockDrag {
-    /// Whether this drag is on `page`.
-    pub(crate) fn on_page(&self, page: usize) -> bool {
-        self.page == page
-    }
-}
-
 impl ImageSelection {
     /// Whether the selected image is being moved or resized.
     pub(crate) fn dragging(&self) -> bool {

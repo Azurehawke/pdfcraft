@@ -346,7 +346,7 @@ pub fn show(app: &mut PdfCraftApp, ctx: &egui::Context) {
                             ui.end_row();
                         });
                         if has_doc {
-                            ui.checkbox(&mut d.add_to_document, tl!("Add to the open document"));
+                            ui.add(crate::widgets::checkbox(&mut d.add_to_document, tl!("Add to the open document")));
                         }
                         ui.add_space(6.0);
                         if widgets::pill_button(ui, tl!("Create"), true).clicked() {

@@ -858,7 +858,7 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
     ui.separator();
     let mut keep = state.keep_revisions;
     if ui
-        .checkbox(&mut keep, tl!("Keep previous drawings as hidden Rev layers"))
+        .add(crate::widgets::checkbox(&mut keep, tl!("Keep previous drawings as hidden Rev layers")))
         .on_hover_text(tl!("Off: an update replaces the drawing. On: the drawing it replaces stays as a hidden layer, to compare."))
         .changed()
     {

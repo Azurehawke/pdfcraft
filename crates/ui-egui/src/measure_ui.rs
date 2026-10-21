@@ -360,7 +360,7 @@ pub(crate) fn page_input(
                 let unit = if bare_feet { tl!("Plain numbers are feet") } else { tl!("Plain numbers are inches") };
                 ui.label(egui::RichText::new(unit).small().weak());
                 if several {
-                    ui.checkbox(all_pages, tl!("Use this scale on every page"));
+                    ui.add(crate::widgets::checkbox(all_pages, tl!("Use this scale on every page")));
                 }
             },
         );

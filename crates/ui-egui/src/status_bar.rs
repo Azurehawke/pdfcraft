@@ -91,10 +91,10 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
                         egui::Popup::menu(&more).close_behavior(egui::PopupCloseBehavior::CloseOnClickOutside).show(|ui| {
                             ui.set_min_width(200.0);
                             let m = &mut v.measure;
-                            ui.checkbox(&mut m.snaps.endpoints, tl!("Endpoints"));
-                            ui.checkbox(&mut m.snaps.midpoints, tl!("Midpoints"));
-                            ui.checkbox(&mut m.snaps.intersections, tl!("Intersections"));
-                            ui.checkbox(&mut m.snaps.paths, tl!("Paths"));
+                            ui.add(crate::widgets::checkbox(&mut m.snaps.endpoints, tl!("Endpoints")));
+                            ui.add(crate::widgets::checkbox(&mut m.snaps.midpoints, tl!("Midpoints")));
+                            ui.add(crate::widgets::checkbox(&mut m.snaps.intersections, tl!("Intersections")));
+                            ui.add(crate::widgets::checkbox(&mut m.snaps.paths, tl!("Paths")));
                             ui.add(egui::Slider::new(&mut m.sensitivity, 1.0..=20.0).text(tl!("Sensitivity")));
                         });
                         let _ = ui

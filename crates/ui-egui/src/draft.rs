@@ -1516,7 +1516,11 @@ fn line_width(ui: &mut egui::Ui, w: &mut LineWidth) -> bool {
         };
         set |= r.drag_stopped() || r.lost_focus() || (r.changed() && !r.dragged() && !r.has_focus());
         let mut real = matches!(w, LineWidth::Real(_));
-        if ui.checkbox(&mut real, tl!("To scale")).on_hover_text(tl!("Width in real-world inches, drawn to the page's scale (walls)")).changed() {
+        if ui
+            .add(crate::widgets::checkbox(&mut real, tl!("To scale")))
+            .on_hover_text(tl!("Width in real-world inches, drawn to the page's scale (walls)"))
+            .changed()
+        {
             *w = if real { LineWidth::Real(6.0) } else { LineWidth::Paper(1.0) };
             set = true;
         }
@@ -1545,7 +1549,9 @@ fn tool_options(app: &mut PdfCraftApp, ui: &mut egui::Ui, t: &Tokens) {
                 Some(DraftTool::Wall) => number(ui, tl!("Thickness"), &mut d.wall_inches, 0.5..=48.0, " in", tl!("Wall thickness")),
                 Some(DraftTool::Door) => {
                     number(ui, tl!("Width"), &mut d.door_inches, 12.0..=144.0, " in", tl!("Door width (the opening cut in the wall)"));
-                    let _ = ui.checkbox(&mut d.door_flip, tl!("Flip hinge")).on_hover_text(tl!("Hinge the door at the other end of the opening"));
+                    let _ = ui
+                        .add(crate::widgets::checkbox(&mut d.door_flip, tl!("Flip hinge")))
+                        .on_hover_text(tl!("Hinge the door at the other end of the opening"));
                 }
                 Some(DraftTool::Window) => {
                     number(ui, tl!("Width"), &mut d.window_inches, 12.0..=240.0, " in", tl!("Window width (the opening cut in the wall)"))
@@ -1590,11 +1596,11 @@ fn tool_options(app: &mut PdfCraftApp, ui: &mut egui::Ui, t: &Tokens) {
                     number(ui, tl!("Angle"), &mut d.polar_angle, -360.0..=360.0, "°", tl!("The angle they fill (360 goes all the way round)"));
                 }
                 Some(DraftTool::Mirror) => {
-                    ui.checkbox(&mut d.mirror_keep, tl!("Keep the original"));
+                    ui.add(crate::widgets::checkbox(&mut d.mirror_keep, tl!("Keep the original")));
                 }
                 Some(DraftTool::Dimension | DraftTool::DimLinear) => {
-                    ui.radio_value(&mut d.dim_ticks, false, tl!("Arrows"));
-                    ui.radio_value(&mut d.dim_ticks, true, tl!("Ticks"));
+                    crate::widgets::radio_value(ui, &mut d.dim_ticks, false, tl!("Arrows"));
+                    crate::widgets::radio_value(ui, &mut d.dim_ticks, true, tl!("Ticks"));
                     ui.label(
                         egui::RichText::new(tl!("Click both ends, then where the dimension line goes"))
                             .font(theme::regular(12.0))
