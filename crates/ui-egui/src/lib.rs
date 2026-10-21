@@ -2285,7 +2285,6 @@ impl PdfCraftApp {
             // Null follows the interface language.
             "date_language": self.session.date_language(),
             "author": self.comment_prefs.author,
-            "draw_pen": self.comment_prefs.pen.name(),
             // Per-tool comment defaults (colours, opacity, widths), so Make Current
             // Properties Default survives a restart (#340).
             "comment_styles": self
@@ -2321,6 +2320,7 @@ impl PdfCraftApp {
         v["redact_prefs"] = self.redact_defaults.to_json();
         // Set outside json! above, which is at serde_json's macro recursion limit.
         v["hide_empty_highlight_hover"] = serde_json::Value::Bool(self.comment_prefs.hide_empty_highlight_hover);
+        v["draw_pen"] = serde_json::Value::String(self.comment_prefs.pen.name().into());
         v.to_string()
     }
 
