@@ -3183,6 +3183,7 @@ fn text_in_forms_becomes_editable_page_text_in_the_same_place() {
     replace_block(&mut doc, 0, i, "monday: maths").unwrap();
     let doc = reopen(&doc);
     assert!(text_blocks(&doc, 0).unwrap().iter().any(|b| b.text == "monday: maths"));
+}
 
 #[test]
 fn added_thai_text_wraps_clusters_and_survives_reopen() {
