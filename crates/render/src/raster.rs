@@ -3369,7 +3369,7 @@ trailer << /Root 1 0 R >>
         };
         let px = |doc: String, cfg: RenderConfig| {
             let mut r = PageRenderer::new(Arc::new(doc.into_bytes()), cfg);
-            let p = r.render(RenderRequest { page: 0, kind: RequestKind::Pixels, tile: None, scale: 0.5, tag: 0 });
+            let p = r.render(RenderRequest { page: 0, kind: RequestKind::Pixels, tile: None, scale: 0.5, tag: 0, preview: false });
             p.rgba.get(..4).map(<[u8]>::to_vec)
         };
         assert_eq!(px(pdf(""), RenderConfig::default()), Some(vec![255, 0, 0, 255]), "a visible layer's markup draws");

@@ -2433,9 +2433,6 @@ impl PdfCraftApp {
             "system_title_bar": self.system_title_bar,
             "pinned_folders": self.pinned.folders,
             "theme": self.theme_preference,
-            "accent": self.accent,
-            "icon_color": self.icon_color.code(),
-            "link_keep_revisions": self.links.keep_revisions,
             "scroll_speed": self.scroll_speed,
             "animation_effects": self.animation_effects,
             "default_mode": self.default_mode,
@@ -2453,9 +2450,6 @@ impl PdfCraftApp {
             // Null follows the interface language.
             "date_language": self.session.date_language(),
             "author": self.comment_prefs.author,
-            "draw_pen": self.comment_prefs.pen.name(),
-            "hover_tips": self.comment_prefs.hover_tips,
-            "draft_panel_collapsed": self.draft.panel_collapsed,
             // Per-tool comment defaults (colours, opacity, widths), so Make Current
             // Properties Default survives a restart (#340).
             "comment_styles": self
@@ -2485,16 +2479,23 @@ impl PdfCraftApp {
             "combine_view": self.combine_view.as_str(),
             "combine_zoom": self.combine_zoom,
             "comments_panel_closed": self.comments_panel_closed,
-            "dock": self.dock_layout(),
-            "tool_chest": self.chest.to_json(),
-            "markup_columns": columns::to_json(&self.markup_columns),
-            "my_symbols": self.my_symbols.iter().map(|s| serde_json::json!({ "name": s.name, "art": s.art })).collect::<Vec<_>>(),
             "right_panel_closed": self.right_panel_closed,
         });
         // Set apart: one more key inside the macro above passes serde_json's recursion limit.
         v["redact_prefs"] = self.redact_defaults.to_json();
         // Set outside json! above, which is at serde_json's macro recursion limit.
         v["hide_empty_highlight_hover"] = serde_json::Value::Bool(self.comment_prefs.hide_empty_highlight_hover);
+        // RevuCraft's settings, set apart for the same macro limit.
+        v["accent"] = serde_json::json!(self.accent);
+        v["icon_color"] = serde_json::json!(self.icon_color.code());
+        v["link_keep_revisions"] = serde_json::Value::Bool(self.links.keep_revisions);
+        v["draw_pen"] = serde_json::json!(self.comment_prefs.pen.name());
+        v["hover_tips"] = serde_json::Value::Bool(self.comment_prefs.hover_tips);
+        v["draft_panel_collapsed"] = serde_json::Value::Bool(self.draft.panel_collapsed);
+        v["dock"] = self.dock_layout();
+        v["tool_chest"] = self.chest.to_json();
+        v["markup_columns"] = columns::to_json(&self.markup_columns);
+        v["my_symbols"] = serde_json::Value::Array(self.my_symbols.iter().map(|s| serde_json::json!({ "name": s.name, "art": s.art })).collect());
         v.to_string()
     }
 
