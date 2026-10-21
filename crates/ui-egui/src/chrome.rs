@@ -563,10 +563,10 @@ pub fn mode_bar(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
                                 // catalogue; a group's options open in the dock.
                                 egui::Popup::menu(&all).show(|ui| all_tools_menu(app, ui));
                             } else if all.clicked() {
-                                app.select_mode(Mode::AllTools);
+                                app.switch_mode(Mode::AllTools, true);
                             }
                             if widgets::ghost_button_fit(ui, "book-open", tl!("Read"), compact).clicked() {
-                                app.select_mode(Mode::Read);
+                                app.switch_mode(Mode::Read, true);
                             }
                         });
                     });

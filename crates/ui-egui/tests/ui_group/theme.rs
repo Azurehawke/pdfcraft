@@ -214,6 +214,9 @@ fn preferences_theme_cards_and_use_system_setting_stay_in_sync() {
         combo.value().unwrap_or_default()
     }
     let mut h = harness();
+    // RevuCraft starts dark; this walk-through starts from Light.
+    h.state_mut().set_theme_preference(ThemePreference::Light);
+    h.run_steps(3);
     h.get_by_label("Display theme: Light gray").click_secondary();
     h.run_steps(4);
     h.get_by_label("Appearance settings…").click();

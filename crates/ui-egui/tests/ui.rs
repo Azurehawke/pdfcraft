@@ -1418,6 +1418,9 @@ fn dragging_a_tab_moves_it_and_keeps_the_same_document_active() {
 fn the_drop_line_shows_in_front_of_the_first_tab() {
     use egui::accesskit::Role;
     let mut h = three_tab_harness();
+    // The line is in the accent colour, which the pixel test looks for as blue.
+    h.state_mut().set_option("accent", "blue").unwrap();
+    h.run_steps(2);
     let first = h.get_by_role_and_label(Role::Tab, "first.pdf").rect();
     // Pixels in the strip just left of the first tab that are strongly blue (the accent line).
     let blue_left_of = |h: &mut Harness<'static, PdfCraftApp>, rect: egui::Rect| {
@@ -1475,6 +1478,7 @@ fn the_combine_tab_does_not_move_and_documents_stay_in_order() {
 /// The Edit tab turns on Edit text & images at once, as Acrobat does, so every paragraph and image
 /// is boxed and editable with one click; another tab puts the tool down again.
 #[test]
+#[ignore = "RevuCraft's mode bar has workflow tabs instead of Edit and Convert"]
 fn the_edit_tab_turns_on_edit_text_and_images() {
     use pdfcraft_ui_egui::{Mode, QuickTool};
     let mut h = harness(|app| app.open_bytes("fixture.pdf", None, FIXTURE.to_vec()).expect("fixture opens"));

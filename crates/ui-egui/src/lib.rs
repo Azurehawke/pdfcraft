@@ -2163,7 +2163,7 @@ impl PdfCraftApp {
             theme::set_accent(&ctx, self.accent);
             theme::apply(&ctx, self.theme);
         } else {
-            self.theme = preference.resolve(None, ThemeKind::Dark);
+            self.theme = preference.resolve(None, ThemeKind::Light);
         }
     }
 
