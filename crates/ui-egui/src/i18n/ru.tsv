@@ -2853,3 +2853,6 @@ animation effects	Off	Выкл
 	Copy markup	Копировать пометку
 	Move markup	Переместить пометку
 	Rotate markup	Повернуть пометку
+	RevuCraft is drawing without a graphics processor, so it may be slow. Updating the graphics driver may help.	RevuCraft рисует без графического процессора, поэтому может работать медленно. Обновление графического драйвера может помочь.
+	{who} in this document tried to open an address RevuCraft won't open: {e}.	{who} в этом документе пытается открыть адрес, который RevuCraft не открывает: {e}.
+	{who} in this document tried to open an address RevuCraft won't open: {e}. Only web (http, https) and email (mailto) links open from documents.	{who} в этом документе пытается открыть адрес, который RevuCraft не открывает: {e}. Из документов открываются только веб-ссылки (http, https) и ссылки на почту (mailto).

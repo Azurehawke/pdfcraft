@@ -2901,3 +2901,5 @@ animation effects	Off	Изключени
 	Copy markup	Копиране на маркировка
 	Move markup	Преместване на маркировка
 	Rotate markup	Завъртане на маркировка
+	{who} in this document tried to open an address RevuCraft won't open: {e}.	{who} в този документ се опита да отвори адрес, който RevuCraft не отваря: {e}.
+	{who} in this document tried to open an address RevuCraft won't open: {e}. Only web (http, https) and email (mailto) links open from documents.	{who} в този документ се опита да отвори адрес, който RevuCraft не отваря: {e}. От документи се отварят само уеб (http, https) и имейл (mailto) връзки.

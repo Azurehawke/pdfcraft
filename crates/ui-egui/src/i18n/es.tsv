@@ -2622,3 +2622,5 @@ animation effects	Off	Desactivados
 	Rotate markup	Girar marcado
 	Change line width	Cambiar grosor de línea
 	Make text editable	Hacer el texto editable
+	Page {n}	Página {n}
+	Page {n} of {total}	Página {n} de {total}

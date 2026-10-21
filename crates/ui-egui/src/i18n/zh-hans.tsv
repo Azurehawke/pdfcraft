@@ -2903,3 +2903,5 @@ animation effects	Off	关
 	Copy markup	复制标记
 	Move markup	移动标记
 	Rotate markup	旋转标记
+	{who} in this document tried to open an address RevuCraft won't open: {e}.	此文档中的{who}尝试打开 RevuCraft 不会打开的地址：{e}。
+	{who} in this document tried to open an address RevuCraft won't open: {e}. Only web (http, https) and email (mailto) links open from documents.	此文档中的{who}尝试打开 RevuCraft 不会打开的地址：{e}。文档中只能打开网页（http、https）和电子邮件（mailto）链接。
