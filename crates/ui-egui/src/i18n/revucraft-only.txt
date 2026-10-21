@@ -1,0 +1,529 @@
+# RevuCraft's own wording (escaped as in the catalogs), translated into its 11 languages. Other
+# catalogs, kept in step with PdfCraft, fall back to English for these, so their coverage tests
+# leave them out. Regenerate when RevuCraft adds wording.
+A new document
+About RevuCraft
+Accent color
+Add a column
+Add layer
+Add legend
+Add photo callout
+Add symbol from SVG…
+Add to
+Add to the open document
+Add {symbol}
+Added to every run for the drop down the wall and the service loop (10' or 3m)
+Added {name} to your symbols.
+Align to nearest wall
+Aligned dimension
+All files
+All layers
+All types
+Allow access…
+Amber
+An area
+Android closes RevuCraft when it installs the update, so unsaved work is asked about first.
+Angle in degrees
+Annotate
+App folder
+Arc (start, a point on it, end)
+Area:
+Arrays
+Arrows
+Base point (x,y from the origin)
+Break (click a line where it splits)
+Break and join
+Built on PdfCraft
+Cable
+Cable ({layer}): {runs} runs, {length}
+Cable run
+Cable run: click along the route, then Finish
+Cable runs
+Cable totals by layer
+Cable type
+Calibrate
+Calibrate scale
+Calibrate · Distance · Area · Angle
+Callout (text with a leader line)
+Camera (bullet)
+Camera (dome)
+Caption
+Card reader
+Chamfer (two lines: a cut corner)
+Chamfer distance
+Change layer colour
+Change line width
+Choices (comma-separated)
+Choose a folder
+Choose a scale below, or calibrate from the drawing.
+Choose a tool first.
+Choose files
+Choose where to save with Android's picker: Google Drive, Dropbox, OneDrive and other apps. Saving again later updates it there.
+Circle (centre, then radius)
+Click a circle
+Click a line where it should split
+Click a point to drag (a corner or an end), or type the factor
+Click a wall
+Click away from the ends
+Click both ends, then where the dimension line goes
+Click near the end of a line to extend
+Click one end of a length you know
+Click points; finish with Enter or a double-click · Shift for 45°
+Click the base point
+Click the centre of the array
+Click the centre to turn about
+Click the first point of the mirror line
+Click the line on the drawing.
+Click the markup to delete
+Click the other end
+Click the part of a line to cut away
+Click the second point of the mirror line
+Click the side to offset to
+Click two points a known distance apart
+Click two points a known distance apart, like the ends of a scale bar or a door.
+Click vertices, then finish with the check button beside the last point, Enter, a double-click or Escape. Tap the first point to close the shape.
+Close shape
+Collapse panel
+Collapse to icons
+Column spacing
+Column {n}
+Columns
+Columns in the array
+Conduit stub-up
+Copy (pick, base point, then each copy)
+Copy markup
+Couldn't read “{text}” as a distance.
+Couldn't read “{text}” as a scale factor.
+Couldn't read “{text}” as an angle in degrees.
+Couldn't read “{text}”. Try 15', 12'6", @0,15 or @15<90.
+Count
+Counts
+Crop
+Current layer (click to manage layers)
+Data
+Data jack (RJ-45)
+Data jacks · Access points · Your own symbols
+Decimal
+Decimal feet
+Delete markups
+Delete this workspace
+Demarc
+Description (the first line is the title)
+Desktop
+Diameter dimension (click a circle)
+Dimension
+Dimensions
+Display / TV
+Distance between columns (negative goes left)
+Distance between rows (negative goes down)
+Distance, or @x,y
+Dock this panel
+Documents
+Done editing
+Done moving
+Door (click a wall where it goes)
+Door width (the opening cut in the wall)
+Double-click a size to create it
+Downloads
+Draft
+Draft tools
+Drafting
+Drag a box around the area that has this scale
+Drag a box around the detail or viewport that has this scale.
+Drag to move · Esc when done
+Draw a floor plan
+Draw again
+Draw only horizontal and vertical lines (hold Shift for the other way)
+Drawings (DWG, DXF)
+Drawings opened with Edit original update their sheets by themselves when you save them in CADCraft.
+Drop ID
+Dual data jack
+Edit original
+Edit points
+Edit symbol
+Ellipse (centre, then a corner)
+Equipment rack
+Erase (click the markup to delete)
+Every page (otherwise this page)
+Exchange
+Expand panel
+Explode (a polyline or shape into separate lines)
+Export CSV
+Export symbol counts as CSV
+Export the list as a spreadsheet (CSV)
+Extend (click near an end to reach the next line)
+Exterior wall (6 in)
+Feet and inches
+Fiber
+Fiber termination
+File saved
+Files
+Files you open appear here.
+Files you open in RevuCraft appear here. Drop a PDF anywhere to open it.
+Fillet (two lines: a clean or rounded corner)
+Fillet radius
+Fillet radius (0 makes a sharp corner)
+Fine (1/2 pt)
+Finish
+Flip hinge
+Float this panel
+Floor box
+Form
+Found by name in a subfolder of the PDF's folder
+Found by name next to the PDF
+Found relative to the PDF
+Get started
+Give coordinates for the base point.
+Google Drive and other apps…
+Heavy (2 pt)
+Hinge the door at the other end of the opening
+How far back from the corner each side is cut
+How far off the line
+How long is this line really?
+How many in all, the original included
+How many sides a new polygon has
+ISO (A sizes)
+In CADCraft
+Inches
+Interior wall (4 1/2 in)
+Internal storage
+J-hook
+Join (two lines that meet become one)
+Keep previous drawings as hidden Rev layers
+Keep the original
+Keypad
+Layer
+Layer colour
+Layout
+Leave the choices empty for a column you type into.
+Legend
+Length format
+Length, or @x,y
+Line up with walls
+Line width
+Linear dimension (horizontal or vertical)
+Lines
+Links
+Lock layer
+Make a callout
+Make photo callout
+Make text editable
+Make this the current layer
+Manage layers
+Markup and takeoff for construction drawings, built on PdfCraft.
+Markups and reports
+Markups list
+Markups list · Your columns · Summary report
+Markups: {k} of {n}
+Markups: {n}
+Measure and calibrate
+Measure angle
+Measure cable run
+Measure radius
+Measure rectangle area
+Measure {kind}
+Measurements
+Measurements you make appear here.
+Metres
+Millimetres
+Mirror (pick, then two points on the mirror line)
+Missing
+Modify
+More properties…
+Move (pick, base point, then where to)
+Move description
+Move linked drawing
+Move markup
+Move markups
+Move on the sheet
+Move to layer
+My symbol
+My symbols
+My tools
+Network switch
+Networking
+New
+New folder
+New layer
+New layer name
+New or open
+New sheet
+New sheet at a drawing scale
+Next measurement
+No cable runs yet.
+No drawings here.
+No layer
+No layers yet. Add one, then choose it as the current layer: new markups, symbols and photos go on it.
+No markups yet. Everything you draw, measure or place is listed here.
+None (paper size)
+Not calibrated (paper size)
+Not found at this path
+Not started
+Nothing ahead of this end to extend to
+Nothing crosses this line to trim to
+Number each symbol, counting up
+Off: an update replaces the drawing. On: the drawing it replaces stays as a hidden layer, to compare.
+Offset
+Offset (a parallel copy at the offset distance)
+Offset distance
+Offset distance (or type it with the Offset tool, then Enter)
+On paper = in real life
+On sheet
+Open a file
+Open from Google Drive, Dropbox, OneDrive and other apps with Android's picker. Saving updates the file there.
+Open from device…
+Open the drawing in CADCraft yourself; this sheet updates when it is saved.
+Opening Settings… If nothing appears, use the steps below.
+Opens the tablet's camera app; the photo is also kept in the gallery.
+Options panel
+Or yourself: Settings ▸ Apps ▸ ⋮ (top right) ▸ Special access ▸ All files access ▸ RevuCraft ▸ turn it on.
+Orientation
+Origin
+Ortho
+PC, VoIP…
+PDF and images
+PDF, drawings and images
+Paper
+Paste markups
+Patch panel
+Pen
+Pen width on paper
+Perpendicular
+Photo callout
+Photo callout: tap the spot, then where the box goes
+Photo for the callout
+Photo pin
+Photo pins · Photo callouts
+Photos
+Photos on the plan
+Pick a polyline or shape to explode
+Pick a tool and set it up, then save it here to use it again with the same settings.
+Pick a tool in the Draft tools panel on the left
+Pick the first line
+Pick the line or shape to offset
+Pick the markup
+Pick the markup first.
+Pick the markup to repeat
+Pick the second line
+Pick two points
+Pin a photo
+Pin a photo: tap the drawing where it goes
+Pin photo
+Pin your jobs folder to list its newest drawings here.
+Place a DWG or DXF on this sheet at its scale, linked to the file (one per room, say)
+Place a legend of the symbols used; it keeps itself up to date
+Place drawing…
+Place linked drawing
+Place symbols
+Plain numbers are feet
+Plain numbers are inches
+Plans, markup and takeoff for network jobs and inspections.
+PoE device
+Point at the drawing to see coordinates
+Polar array (pick, then the centre)
+Polygon (centre, then a corner; sides in the ribbon)
+Port
+Preset
+Previous drawings: {n} (hidden layers)
+Progress
+Properties
+Pulled
+Quad data jack
+Rack A, ceiling above room 104…
+Rack A\n24-port switch and patch panel 1…
+Radius
+Radius dimension (click a circle)
+Real
+Real-world width, drawn to the page's scale
+Real: the symbol's width in the real world, at the page's measurement scale (pages without a scale use 1/4 inch on paper). Paper: its width on the printed sheet.
+Recent files
+Recent tools
+Rectangle area
+Rectangular array (rows and columns in the ribbon)
+Relink
+Relink drawing
+Relinked {n} more drawings found in the same folder.
+Relink…
+Remove from my symbols
+Remove from the tool chest
+Remove this column
+Rename layer
+Renumber
+Renumber symbols in order across the page
+Renumbered {n} symbols.
+Reopen the files that were open when RevuCraft last closed
+Reveal file
+Revision cloud (click around the change)
+RevuCraft can't see your files yet
+RevuCraft closes when the download starts, so the installer can replace it. Unsaved work is asked about first.
+RevuCraft didn't shut down normally. These documents had changes that were autosaved:
+RevuCraft is drawing without a graphics processor, so it may be slow. Updating the graphics driver may help.
+RevuCraft on GitHub
+RevuCraft web page
+RevuCraft works offline. No telemetry, no account, and no cloud processing unless you add a provider.
+RevuCraft {c} is up to date.
+RevuCraft {v} is available.
+Rotate (pick, centre, then the angle)
+Rotate markup
+Rotate symbol
+Row spacing
+Rows in the array
+Run lengths with drops and slack · Totals by layer
+Runs
+SVG drawings
+Save As
+Save current tool
+Save the current layout…
+Save to Google Drive or another app…
+Saved symbol counts.
+Saved the markups list.
+Saved the summary report.
+Scale
+Scale (pick, base point, then drag a point or type the factor)
+Scale (pick, base point, then type the factor)
+Scale factor
+Search markups
+Search this folder
+Secure
+Select a markup to see its properties.
+Selected markup
+Set the origin: click a point on the page
+Set {field}
+Settings didn't open:
+Shapes
+Sheet
+Sheet {n} of {total}
+Sheet {n} · placed
+Sheet {n} · {layout}
+Sheets opened from a DWG or DXF are linked to it and show here, so you can update them when the drawing changes.
+Shift constrains to 45 degrees. Backspace or the undo button removes a vertex; the cross button cancels.
+Show lengths as
+Show the author and comment when pointing at a markup
+Show the photo in a box with its description, pointing at this spot
+Show tool names
+Showing files isn't available here.
+Sides
+Sizes you make appear here.
+Snap
+Snap settings
+Snap to ends, middles and crossings of the drawing
+Snapshot
+Some text on page {n} is inside embedded content, so it can't be selected yet.
+Speaker
+Spline (a smooth curve through the points)
+Start a drawing or open a file
+Start a new drawing
+Start at
+Start point (x,y from the origin)
+Stop watching for saves from CADCraft. This also happens by itself when CADCraft closes.
+Summary report (PDF): the markups shown, with photos, by layer
+Symbol
+Symbols
+Symbols in the whole document
+Symbols on this page
+THIS PAGE
+Take a photo with the camera…
+Tap the drawing to place this symbol
+Tap the pin on the drawing to see this photo again.
+Teal
+Terminated
+Tested
+Text (a text box on the drawing)
+Text left
+Text markup
+Text recognition isn't installed: its model files are missing. Reinstall RevuCraft, or set PDFCRAFT_MODELS to the folder that holds them.
+Text right
+That page size can't be made; pages are 1 to 200 inches a side.
+That tool isn't available in this version.
+That wall is locked
+The angle they fill (360 goes all the way round)
+The first one becomes {label}
+The form asks to be submitted to {u}; RevuCraft doesn't send form data. Save the document to keep your entries.
+The key is in the Windows certificate store, which may ask to allow RevuCraft to use it.
+The key is in the macOS Keychain, which may ask to allow RevuCraft to use it.
+The page can't be measured.
+The photo couldn't be found.
+The photo's height on the sheet
+The two points are in the same place; pick two ends of a length.
+The wall is shorter than the opening
+There are no symbols of that kind on this page.
+There are no symbols to count yet.
+There are no symbols to renumber yet.
+These lines don't make a corner at their ends
+These lines don't meet end to end
+These three points are in a line; pick three points on the circle or arc.
+Thin (1 pt)
+This build can't open Settings by itself.
+This computer
+This document
+This folder is empty
+This form also contains XFA data, which RevuCraft doesn't read yet. You can fill its fields, but Acrobat may show the XFA values instead.
+This is a dynamic XFA form, which RevuCraft can't display yet. What you see is the file's placeholder page.
+This page
+Ticks
+Tips
+To open and save PDFs anywhere on this device, turn on All files access for RevuCraft. Settings opens on the switch; come back here afterwards.
+To scale
+Tool chest
+Tool icons
+Tool options
+Tools you use show up here.
+Transform
+Trim (click the part to cut away at crossing lines)
+Turn new symbols to line up with the nearest wall or line
+Turn the symbol to line up with the nearest wall or line
+Type a length after placing the first point, or give coordinates.
+Type a length or coordinates, then Enter
+Type a name first
+Type the real distance, like 3' or 36".
+Type the real length, like 12'6", 150 or 3.5m
+Type the scale factor, then Enter (2 doubles, 0.5 halves)
+Undo last point
+Unlock layer
+Up a folder
+Up one folder
+Up to date
+Update all
+Update linked drawing
+Updated
+Use a line drawing saved as SVG as a symbol of your own
+Use on
+Use this folder
+Use this scale on every page
+Value
+View photo
+Violet
+Voice jack
+Waiting for the document… (Google Drive downloads it first when it isn't on the tablet yet)
+Wall
+Wall thickness
+Walls
+Walls · Doors and windows · Dimensions
+Welcome to RevuCraft
+Where the drawing is now
+Width and height
+Width in real-world inches, drawn to the page's scale (walls)
+Window (click a wall where it goes)
+Window width (the opening cut in the wall)
+Wireless access point
+Workspace name
+Workspaces
+You have as many symbols of your own as can be kept; remove one first.
+Your columns
+Your columns: drop ID, progress and others
+Your size
+already exists. Replace it?
+ft
+in
+the text recognition models are not installed (reinstall RevuCraft, or set PDFCRAFT_MODELS to the folder that holds them)
+{name} is updated on the sheet; the markups stayed put.
+{name} submits the form to {url}; RevuCraft doesn't send form data. Save the document to keep your entries.
+{name} was saved in CADCraft: the sheet is updated, and the markups stayed put.
+{name} — Markup report
+{n} linked drawings
+{n} markups copied from RevuCraft
+{n} markups selected: changes apply to all of them
+{s} actions run in the JavaScript engine (M6)
+{when} (newer than the sheet)
+{who} in this document tried to open an address RevuCraft won't open: {e}.
+{who} in this document tried to open an address RevuCraft won't open: {e}. Only web (http, https) and email (mailto) links open from documents.

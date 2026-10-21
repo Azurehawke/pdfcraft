@@ -606,6 +606,32 @@ mod tests {
     use super::catalog::{Entry, parse_entries, placeholders};
     use super::*;
 
+    /// RevuCraft's own wording, which it translates into its own languages
+    /// ([`REVUCRAFT_LANGUAGES`]); the other catalogs fall back to English for it.
+    const REVUCRAFT_ONLY: &str = include_str!("revucraft-only.txt");
+    const REVUCRAFT_LANGUAGES: [&str; 11] = ["ar", "bg", "de", "fr", "hu", "it", "ja", "pt-br", "ru", "uk", "zh-hans"];
+
+    fn revucraft_only(s: &str) -> bool {
+        let escaped = s.replace('\\', "\\\\").replace('\n', "\\n").replace('\t', "\\t");
+        REVUCRAFT_ONLY.lines().filter(|l| !l.starts_with('#')).any(|l| l == escaped)
+    }
+
+    /// [`super::has`], counting RevuCraft's own wording as covered in the catalogs RevuCraft
+    /// doesn't translate.
+    fn has(lang: Lang, s: &str) -> bool {
+        super::has(lang, s) || (!REVUCRAFT_LANGUAGES.contains(&lang.code()) && revucraft_only(s))
+    }
+
+    #[test]
+    fn revucraft_languages_cover_revucraft_wording() {
+        for code in REVUCRAFT_LANGUAGES {
+            let lang = Lang::from_code(code).expect("registered");
+            for line in REVUCRAFT_ONLY.lines().filter(|l| !l.starts_with('#') && !l.contains('\\')) {
+                assert!(super::has(lang, line), "{code} lacks RevuCraft's {line:?}");
+            }
+        }
+    }
+
     const JA: fn() -> Lang = || Lang::from_code("ja").expect("ja registered");
     // These physical key-cap names remain English in several keyboard layouts. Only their
     // dedicated key context may use them unchanged; ordinary command labels still translate.
@@ -2325,7 +2351,7 @@ mod tests {
                     "@plural" => entry.source.split_once('|').and_then(|(one, other)| lt.catalog().plural(one, other, 0)),
                     context => lt.catalog().contextual(context, &entry.source),
                 };
-                if translated.is_none() {
+                if translated.is_none() && !revucraft_only(&entry.source) {
                     missing.insert((entry.context, entry.source));
                 }
             }
@@ -2538,7 +2564,7 @@ mod tests {
                     "@plural" => entry.source.split_once('|').and_then(|(one, other)| vi.catalog().plural(one, other, 0)),
                     context => vi.catalog().contextual(context, &entry.source),
                 };
-                if translated.is_none() {
+                if translated.is_none() && !revucraft_only(&entry.source) {
                     missing.insert((entry.context, entry.source));
                 }
             }
