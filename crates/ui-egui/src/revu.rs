@@ -973,7 +973,7 @@ pub struct CaptionPrompt {
 /// next symbol placed with the same click), as one step.
 fn queue_edit(view: &mut crate::canvas::DocView, edit: Edit) {
     view.pending_edit = Some(match view.pending_edit.take() {
-        Some(prev) => Edit::Batch { label: prev.label(), edits: vec![edit, prev] },
+        Some(prev) => Edit::Batch { label: prev.label().to_string(), edits: vec![edit, prev] },
         None => edit,
     });
 }

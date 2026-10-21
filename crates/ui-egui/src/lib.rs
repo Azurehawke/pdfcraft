@@ -1357,7 +1357,7 @@ impl PdfCraftApp {
             open_worker::ResultKind::Failed(reason) => {
                 self.notify_fmt("Couldn't open {name}: {reason}", &[("name", &pending.name), ("reason", &reason)]);
             }
-            open_worker::ResultKind::Conversion(bytes) => match self.open_converted(&pending.name, &bytes) {
+            open_worker::ResultKind::Conversion(bytes) => match self.open_converted(&pending.name, &bytes, pending.path.as_deref()) {
                 Some(Ok(())) => {
                     if let Some(command) = pending.then {
                         self.execute(command);
