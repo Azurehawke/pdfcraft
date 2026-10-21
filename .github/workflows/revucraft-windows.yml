@@ -37,7 +37,7 @@ jobs:
       # numbering began (after Android build 28), so the same commit gets the same number.
       - name: Build number
         shell: bash
-        run: echo "REVUCRAFT_BUILD=$((29 + $(git rev-list --count 30c135dbb2eda2b9abd9509c34b0f3846c127839..HEAD)))" >> "$GITHUB_ENV"
+        run: echo "REVUCRAFT_BUILD=$((30 + $(git rev-list --first-parent --count 30c135dbb2eda2b9abd9509c34b0f3846c127839..HEAD)))" >> "$GITHUB_ENV"
 
       - uses: dtolnay/rust-toolchain@stable
         with:
