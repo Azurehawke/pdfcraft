@@ -91,9 +91,11 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
                     }
                     commit |= r.drag_stopped() || (r.changed() && !r.dragged());
                     ui.end_row();
+                    // Text boxes and callouts may go borderless; lines keep a visible stroke.
+                    let min_width = if d.edited.font_size.is_some() { 0.0 } else { 0.25 };
                     if let Some(w) = d.edited.width.as_mut() {
                         ui.label(tl!("Thickness"));
-                        let r = ui.add(egui::DragValue::new(w).range(0.25..=24.0).speed(0.1).suffix(" pt"));
+                        let r = ui.add(egui::DragValue::new(w).range(min_width..=24.0).speed(0.1).suffix(" pt"));
                         commit |= r.drag_stopped() || r.lost_focus() || (r.changed() && !r.dragged() && !r.has_focus());
                         ui.end_row();
                     }
