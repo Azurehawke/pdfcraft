@@ -584,6 +584,7 @@ pub fn panel_title(panel: RightPanel) -> &'static str {
         RightPanel::Attachments => "Attachments",
         RightPanel::Signatures => "Signatures",
         RightPanel::Accessibility => "Accessibility Checker",
+        RightPanel::Tags => "Tags",
         RightPanel::Search => "Search",
         RightPanel::Compare => "Compare",
         RightPanel::Markups => "Markups list",
