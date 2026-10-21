@@ -737,7 +737,8 @@ impl crate::PdfCraftApp {
         }
         let Some(pixels) = self.session.get(id).map(|d| d.page_image_rgba(page, index)) else { return false };
         let copied = pixels.and_then(|(w, h, rgba)| {
-            #[cfg(not(target_arch = "wasm32"))]
+            // Android has no system clipboard for images here: the copy stays in the app.
+            #[cfg(not(any(target_arch = "wasm32", target_os = "android")))]
             if self.system_clipboard {
                 let img = arboard::ImageData { width: w as usize, height: h as usize, bytes: std::borrow::Cow::Borrowed(&rgba) };
                 arboard::Clipboard::new().and_then(|mut c| c.set_image(img)).map_err(|e| e.to_string())?;

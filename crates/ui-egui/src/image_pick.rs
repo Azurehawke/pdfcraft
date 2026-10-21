@@ -211,7 +211,7 @@ impl PdfCraftApp {
         }
         let dir = clipboard_dir().ok_or("there is no folder for the copied file")?;
         let path = write_clipboard_file(&dir, name, bytes)?;
-        arboard::Clipboard::new().and_then(|mut c| c.set().file_list(&[path])).map_err(|e| e.to_string())
+        file_to_system_clipboard(path)
     }
 
     #[cfg(target_arch = "wasm32")]
@@ -221,6 +221,18 @@ impl PdfCraftApp {
         }
         Ok(())
     }
+}
+
+/// Put the file at `path` on the system clipboard.
+#[cfg(not(any(target_arch = "wasm32", target_os = "android")))]
+fn file_to_system_clipboard(path: std::path::PathBuf) -> Result<(), String> {
+    arboard::Clipboard::new().and_then(|mut c| c.set().file_list(&[path])).map_err(|e| e.to_string())
+}
+
+/// Android has no system clipboard for files here: the copy stays in the app.
+#[cfg(target_os = "android")]
+fn file_to_system_clipboard(_path: std::path::PathBuf) -> Result<(), String> {
+    Ok(())
 }
 
 #[cfg(test)]
