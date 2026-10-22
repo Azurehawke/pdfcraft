@@ -413,72 +413,76 @@ mod tests {
         out
     }
 
-    fn area(label: &str, width: f64) -> Edit {
+    fn area(label: &str, width: f64) -> Result<Edit, String> {
         use pdfcraft_engine::measure;
-        Edit::AddMeasurement(measure::NewMeasurement {
+        Ok(Edit::AddMeasurement(measure::NewMeasurement {
             page: 0,
             kind: measure::Kind::Area,
             points: vec![[100.0, 100.0], [100.0 + width, 100.0], [100.0 + width, 200.0], [100.0, 200.0]],
-            scale: measure::Scale::new(0.1, "ft", 2).unwrap(),
+            scale: measure::Scale::new(0.1, "ft", 2).map_err(|e| e.to_string())?,
             style: pdfcraft_engine::Style::default(),
             label: label.into(),
             author: "Steve".into(),
             dimension: None,
-        })
+        }))
     }
 
     #[test]
-    fn quantities_are_sent_watched_and_sent_again() {
+    fn quantities_are_sent_watched_and_sent_again() -> Result<(), String> {
+        let err = |e: std::io::Error| e.to_string();
         let dir = std::env::temp_dir().join(format!("revucraft-send-{}", std::process::id()));
-        std::fs::create_dir_all(&dir).unwrap();
+        std::fs::create_dir_all(&dir).map_err(err)?;
         let book = dir.join("Takeoff.xlsx");
         let path = book.to_string_lossy().into_owned();
         let mut app = PdfCraftApp::new();
-        app.open_bytes("plan.pdf", None, letter_pdf()).unwrap();
+        app.open_bytes("plan.pdf", None, letter_pdf())?;
         assert_eq!(status(&mut app), Status::Unsent);
         assert!(!send_to(&mut app, path.clone(), true), "nothing to send yet");
-        assert!(app.apply_edit(area("Kitchen floor", 100.0)));
+        assert!(app.apply_edit(area("Kitchen floor", 100.0)?));
         assert!(send_to(&mut app, path.clone(), true));
-        let bytes = std::fs::read(&book).unwrap();
-        let wb = pdfcraft_engine::workbook::open(&bytes, "Takeoff.xlsx").unwrap();
+        let bytes = std::fs::read(&book).map_err(err)?;
+        let wb = pdfcraft_engine::workbook::open(&bytes, "Takeoff.xlsx").map_err(|e| e.to_string())?;
         assert_eq!(wb.sheet_names(), ["Budget", "Takeoff"]);
         assert_eq!(status(&mut app), Status::UpToDate { path: path.clone() });
 
         // Another area: the workbook no longer has the latest quantities.
-        assert!(app.apply_edit(area("", 50.0)));
+        assert!(app.apply_edit(area("", 50.0)?));
         assert_eq!(status(&mut app), Status::Changed { path: path.clone() });
         send_quantities(&mut app);
         assert_eq!(status(&mut app), Status::UpToDate { path: path.clone() });
 
         // A spreadsheet that had the first version open saves it over the second.
         std::thread::sleep(Duration::from_millis(1100));
-        std::fs::write(&book, &bytes).unwrap();
+        std::fs::write(&book, &bytes).map_err(err)?;
         app.links.takeoff.forget();
         assert_eq!(status(&mut app), Status::SavedOver { path: path.clone() });
         send_quantities(&mut app);
         assert_eq!(status(&mut app), Status::UpToDate { path: path.clone() });
 
         // Moved away: missing, and the dialog offers to choose another.
-        std::fs::remove_file(&book).unwrap();
+        std::fs::remove_file(&book).map_err(err)?;
         app.links.takeoff.forget();
         assert_eq!(status(&mut app), Status::Missing { name: "Takeoff.xlsx".into() });
         send_quantities(&mut app);
         assert!(app.links.takeoff.dialog.is_some());
         assert!(!send_to(&mut app, dir.join("list.csv").to_string_lossy().into_owned(), false), "only XLSX workbooks");
         let _ = std::fs::remove_dir_all(&dir);
+        Ok(())
     }
 
     #[test]
-    fn a_failed_write_leaves_the_workbook_and_no_stray_file() {
+    fn a_failed_write_leaves_the_workbook_and_no_stray_file() -> Result<(), String> {
+        let err = |e: std::io::Error| e.to_string();
         let dir = std::env::temp_dir().join(format!("revucraft-takeoff-{}", std::process::id()));
-        std::fs::create_dir_all(&dir).unwrap();
+        std::fs::create_dir_all(&dir).map_err(err)?;
         let book = dir.join("budget.xlsx");
-        std::fs::write(&book, b"old").unwrap();
+        std::fs::write(&book, b"old").map_err(err)?;
         let path = book.to_string_lossy().into_owned();
-        write_whole(&path, b"new").unwrap();
-        assert_eq!(std::fs::read(&book).unwrap(), b"new");
+        write_whole(&path, b"new").map_err(err)?;
+        assert_eq!(std::fs::read(&book).map_err(err)?, b"new");
         assert!(!std::path::Path::new(&format!("{path}.revucraft-tmp")).exists());
         assert!(write_whole(&dir.join("no-such-folder").join("b.xlsx").to_string_lossy(), b"x").is_err());
         let _ = std::fs::remove_dir_all(&dir);
+        Ok(())
     }
 }
