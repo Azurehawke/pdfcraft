@@ -242,10 +242,12 @@ Markup and measuring
       to them. Kept with the sheet in the PDF but never printed.
 - [ ] **(Steve, next build)** Printable area: a margin preset (e.g. 1/4" all round, or your printer's own
       margins) shown as dashed guides, so title blocks and linework stay where the printer reaches.
-- [ ] **(Steve, next build)** Markup and Review become one Markup ribbon: Text markup, Draw, Shapes, Text,
-      Stamp, Photos (Pin a photo and Photo callout, moved from Symbols, their text side and height in the
-      tool options), Dimensions, then Comments (list, summarize, hide, flatten, import, export). Compare
-      moves to Document. Groups fold into a drop-down when the window is too narrow (tablet).
+- [ ] **(Steve, next build)** Every tool tab works like Draft: a left-hand tools panel (collapsible to an
+      icon strip) holds the tools in groups, and the ribbon above shows the chosen tool's options.
+      Markup and Review become one Markup tab: Text markup, Draw, Shapes, Text, Stamp, Photos (Pin a
+      photo and Photo callout, moved from Symbols), Dimensions, Comments (list, summarize, hide,
+      flatten, import, export). Measure and Symbols get panels too. Compare moves to Document;
+      Document and Forms, being one-off commands rather than tools, keep their buttons in the ribbon.
 - [ ] **(Steve, back burner)** Select existing PDF linework (click, window or crossing) to delete, restyle,
       or Explode into editable lines (brings forward the Explode item below).
 - [ ] **(Steve, later update)** Folder mappings per device (`M:\Jobs` on the PC = `Sync/Jobs` on the
