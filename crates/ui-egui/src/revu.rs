@@ -348,28 +348,6 @@ pub fn ribbon(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
                     .on_hover_text(tl!("Turn new symbols to line up with the nearest wall or line"));
             });
             separator(ui);
-            group(ui, &t, tl!("Photos"), |ui| {
-                let pinning = app.quick_tool == QuickTool::PhotoPin;
-                ui.horizontal(|ui| {
-                    if icons::button(ui, "camera", 34.0, pinning, tl!("Pin a photo: tap the drawing where it goes")).clicked() {
-                        app.quick_tool = if pinning { QuickTool::Select } else { QuickTool::PhotoPin };
-                    }
-                    let calling = app.quick_tool == QuickTool::PhotoCallout;
-                    if icons::button(ui, "message-square-text", 34.0, calling, tl!("Photo callout: tap the spot, then where the box goes"))
-                        .clicked()
-                    {
-                        app.quick_tool = if calling { QuickTool::Select } else { QuickTool::PhotoCallout };
-                        app.symbols.callout_spot = None;
-                    }
-                    use pdfcraft_engine::photo_callout::TextSide;
-                    let s = &mut app.symbols;
-                    ui.selectable_value(&mut s.callout_side, TextSide::Left, tl!("Text left"));
-                    ui.selectable_value(&mut s.callout_side, TextSide::Right, tl!("Text right"));
-                    ui.add(egui::DragValue::new(&mut s.callout_inches).range(0.5..=8.0).speed(0.05).max_decimals(2).suffix(" in"))
-                        .on_hover_text(tl!("The photo's height on the sheet"));
-                });
-            });
-            separator(ui);
             group(ui, &t, tl!("Legend"), |ui| {
                 let resp = icons::button(ui, "list", 34.0, false, tl!("Place a legend of the symbols used; it keeps itself up to date"));
                 egui::Popup::from_toggle_button_response(&resp).close_behavior(egui::PopupCloseBehavior::CloseOnClickOutside).show(|ui| {

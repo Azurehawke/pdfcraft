@@ -27,8 +27,9 @@ pub enum Workflow {
 }
 
 impl Workflow {
-    pub const ALL: [Workflow; 7] =
-        [Workflow::Markup, Workflow::Draft, Workflow::Symbols, Workflow::Measure, Workflow::Review, Workflow::Forms, Workflow::Document];
+    /// The tabs shown. Review is part of Markup now (its Comments tools are in the Markup tools
+    /// panel); the variant stays so settings that saved it still read.
+    pub const ALL: [Workflow; 6] = [Workflow::Markup, Workflow::Draft, Workflow::Symbols, Workflow::Measure, Workflow::Forms, Workflow::Document];
 
     /// The English tab name, translated where it is shown.
     pub fn label(self) -> &'static str {
@@ -50,37 +51,13 @@ impl Workflow {
     /// The ribbon's groups for this tab: a caption and the commands under it.
     pub fn groups(self) -> &'static [(&'static str, &'static [&'static str])] {
         match self {
-            Self::Markup => &[
-                ("Text markup", &["comment.highlight", "comment.underline", "comment.strikeout", "comment.caret", "comment.replace"]),
-                ("Draw", &["comment.ink", "comment.eraser"]),
-                (
-                    "Shapes",
-                    &["comment.line", "comment.arrow", "comment.square", "comment.circle", "comment.polygon", "comment.polyline", "comment.cloud"],
-                ),
-                ("Text", &["comment.note", "comment.freetext", "comment.callout"]),
-                ("Stamp", &["comment.stamp", "comment.attach"]),
-            ],
+            // Markup's tools are in its tools panel; the ribbon holds the tool's options.
+            Self::Markup | Self::Review => &[],
+            // The measuring tools are in the Measure tools panel.
             Self::Measure => &[
                 ("Scale", &["measure.scale"]),
-                (
-                    "Measure",
-                    &[
-                        "measure.calibrate",
-                        "measure.distance",
-                        "measure.perimeter",
-                        "measure.area",
-                        "measure.rectangle",
-                        "measure.angle",
-                        "measure.radius",
-                    ],
-                ),
                 ("Tools", &["measure.snap", "measure.info"]),
                 ("Export", &["measure.export", "measure.send_quantities"]),
-            ],
-            Self::Review => &[
-                ("Comments", &["comment.list", "comment.summarize", "comment.hide_all", "comment.flatten"]),
-                ("Exchange", &["comment.import", "comment.export"]),
-                ("Compare", &["doc.compare"]),
             ],
             Self::Document => &[
                 (
@@ -99,6 +76,7 @@ impl Workflow {
                 ("Files", &["page.combine", "page.split"]),
                 ("Edit", &["edit.edit_text", "edit.text", "edit.image", "edit.link"]),
                 ("Secure", &["redact.mark", "protect.password", "sign.digital"]),
+                ("Compare", &["doc.compare"]),
             ],
             Self::Forms => &[
                 (
@@ -126,7 +104,7 @@ impl Workflow {
 
 /// The ribbon's icon for a command: the measuring commands share one icon in the registry, which
 /// tells them apart nowhere when they sit side by side.
-fn icon(id: &str, registry: &'static str) -> &'static str {
+pub(crate) fn icon(id: &str, registry: &'static str) -> &'static str {
     match id {
         "measure.scale" => "compass",
         "measure.distance" => "ruler",
@@ -147,7 +125,7 @@ fn icon(id: &str, registry: &'static str) -> &'static str {
 }
 
 /// Whether `id` names the tool that is in use now.
-fn tool_active(app: &PdfCraftApp, id: &str) -> bool {
+pub(crate) fn tool_active(app: &PdfCraftApp, id: &str) -> bool {
     if let Some(tool) = crate::comments::CommentTool::from_command(id) {
         return app.quick_tool == QuickTool::Comment(tool);
     }
@@ -183,6 +161,14 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
         .show(ui, |ui| {
             if app.workflow == Workflow::Symbols {
                 crate::revu::ribbon(app, ui);
+                return;
+            }
+            // Review is part of Markup now.
+            if app.workflow == Workflow::Review {
+                app.workflow = Workflow::Markup;
+            }
+            if app.workflow == Workflow::Markup {
+                markup_options(app, ui, &t);
                 return;
             }
             if app.workflow == Workflow::Draft {
@@ -221,30 +207,6 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
                             );
                         });
                     }
-                    // RevuCraft: dimensions are added to existing drawings too, so Markup has them
-                    // as well as the Draft tools panel.
-                    if app.workflow == Workflow::Markup {
-                        ui.add_space(8.0);
-                        let x = ui.cursor().left();
-                        ui.painter().vline(x, ui.max_rect().y_range().shrink(6.0), Stroke::new(1.0, t.divider));
-                        ui.add_space(8.0);
-                        ui.allocate_ui_with_layout(vec2(0.0, ui.available_height()), Layout::top_down(Align::Center), |ui| {
-                            ui.spacing_mut().item_spacing.y = 1.0;
-                            ui.horizontal(|ui| {
-                                ui.spacing_mut().item_spacing.x = 2.0;
-                                for tool in crate::draft::DraftTool::DIMENSIONS {
-                                    let selected = app.quick_tool == QuickTool::Draft(tool);
-                                    if crate::cad_icons::button(ui, tool.icon(), 34.0, selected, crate::i18n::t(tool.label())).clicked() {
-                                        app.quick_tool = if selected { QuickTool::Select } else { QuickTool::Draft(tool) };
-                                    }
-                                }
-                            });
-                            ui.add(
-                                egui::Label::new(egui::RichText::new(crate::i18n::t("Dimensions")).font(theme::regular(11.0)).color(t.text_faint))
-                                    .wrap_mode(egui::TextWrapMode::Extend),
-                            );
-                        });
-                    }
                     // RevuCraft: a cable run's allowance and the totals, beside its button.
                     if app.workflow == Workflow::Measure {
                         crate::cable::ribbon_group(app, ui, &t);
@@ -255,6 +217,25 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
                 });
             });
         });
+}
+
+/// The Markup tab's ribbon: the chosen tool's options (a photo's text side and height), else
+/// where the tools are.
+fn markup_options(app: &mut PdfCraftApp, ui: &mut egui::Ui, t: &Tokens) {
+    ui.horizontal_centered(|ui| {
+        ui.spacing_mut().item_spacing.x = 6.0;
+        if matches!(app.quick_tool, QuickTool::PhotoPin | QuickTool::PhotoCallout) {
+            use pdfcraft_engine::photo_callout::TextSide;
+            let s = &mut app.symbols;
+            ui.label(egui::RichText::new(tl!("Photo callout")).font(theme::regular(11.0)).color(t.text_faint));
+            ui.selectable_value(&mut s.callout_side, TextSide::Left, tl!("Text left"));
+            ui.selectable_value(&mut s.callout_side, TextSide::Right, tl!("Text right"));
+            ui.add(egui::DragValue::new(&mut s.callout_inches).range(0.5..=8.0).speed(0.05).max_decimals(2).suffix(" in"))
+                .on_hover_text(tl!("The photo's height on the sheet"));
+        } else {
+            ui.label(egui::RichText::new(tl!("Pick a tool in the Markup tools panel on the left")).font(theme::regular(12.0)).color(t.text_muted));
+        }
+    });
 }
 
 #[cfg(test)]

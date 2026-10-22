@@ -42,6 +42,7 @@ Cable run: click along the route, then Finish
 Cable runs
 Cable totals by layer
 Cable type
+Cables
 Calibrate
 Calibrate scale
 Calibrate · Distance · Area · Angle
@@ -235,6 +236,7 @@ Make text editable
 Make this the current layer
 Manage layers
 Markup and takeoff for construction drawings, built on PdfCraft.
+Markup tools
 Markups and reports
 Markups list
 Markups list · Your columns · Summary report
@@ -245,6 +247,7 @@ Measure angle
 Measure cable run
 Measure radius
 Measure rectangle area
+Measure tools
 Measure {kind}
 Measurements
 Measurements you make appear here.
@@ -332,6 +335,7 @@ Photos on the plan
 Pick a polyline or shape to explode
 Pick a tool and set it up, then save it here to use it again with the same settings.
 Pick a tool in the Draft tools panel on the left
+Pick a tool in the Markup tools panel on the left
 Pick the first line
 Pick the line or shape to offset
 Pick the markup

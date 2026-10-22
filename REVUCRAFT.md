@@ -244,11 +244,13 @@ Markup and measuring
 - [x] **(Steve, build 146)** Printable area: a margin preset (e.g. 1/4" all round, or your printer's own
       margins) shown as a dashed line, so title blocks and linework stay where the printer reaches;
       chosen from the corner where the rulers meet.
-- [ ] **(Steve, next build)** Every tool tab works like Draft: a left-hand tools panel (collapsible to an
+- [x] **(Steve, build 147)** Every tool tab works like Draft: a left-hand tools panel (collapsible to an
       icon strip) holds the tools in groups, and the ribbon above shows the chosen tool's options.
       Markup and Review become one Markup tab: Text markup, Draw, Shapes, Text, Stamp, Photos (Pin a
       photo and Photo callout, moved from Symbols), Dimensions, Comments (list, summarize, hide,
-      flatten, import, export). Measure and Symbols get panels too. Compare moves to Document;
+      flatten, import, export). Measure gets a panel too (calibrate, the measuring tools, cable runs;
+      scale, snap and export stay on its ribbon). Symbols keeps its ribbon, which is already the
+      symbol's options (library, layer, size, label), legend and counts. Compare moves to Document;
       Document and Forms, being one-off commands rather than tools, keep their buttons in the ribbon.
 - [ ] **(Steve, back burner)** Select existing PDF linework (click, window or crossing) to delete, restyle,
       or Explode into editable lines (brings forward the Explode item below).

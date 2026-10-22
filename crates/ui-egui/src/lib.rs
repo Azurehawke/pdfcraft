@@ -3554,9 +3554,9 @@ impl eframe::App for PdfCraftApp {
                 chrome::right_rail(self, ui);
                 if self.mode != Mode::Read {
                     dock::show(self, ui);
-                    // The Draft tools panel, on the left while drafting.
-                    if self.workflow == ribbon::Workflow::Draft {
-                        draft_panel::show(self, ui);
+                    // The tab's tools panel, on the left (Draft, Markup, Measure).
+                    if let Some(panel) = draft_panel::panel_for(self.workflow) {
+                        draft_panel::show(self, ui, panel);
                     }
                 }
             }
