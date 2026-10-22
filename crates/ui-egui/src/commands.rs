@@ -832,6 +832,9 @@ pub(crate) const MENU_LAYOUT: [(&str, &[MenuItem]); 5] = [
     (
         "Edit",
         &[
+            Cmd("edit.undo"),
+            Cmd("edit.redo"),
+            Sep,
             Cmd("edit.copy"),
             Cmd("edit.column_select"),
             Cmd("edit.snapshot"),

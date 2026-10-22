@@ -215,14 +215,14 @@ Markup and measuring
       on their path, inside it or outside it. The Draft ribbon sets it for new shapes and the
       Properties box for any closed shape (several at once); the shape stays where it was drawn.
       Open lines stroke centred.
-- [x] **(Steve, build 133)** Insert sheet (Document ribbon and Pages menu): one click adds a sheet
+- [x] **(Steve, build 135)** Insert sheet (Document ribbon and Pages menu): one click adds a sheet
       after the current one, its size and drawing scale (New sheet and Insert blank page made one);
       Insert sheet… picks another size and scale. The Draft ribbon's New sheet button is gone (New
       in the tab bar starts a new drawing).
-- [x] **(Steve, build 133)** Menus grouped and ordered: File (new and open, save and close, Create and
+- [x] **(Steve, build 135)** Menus grouped and ordered: File (new and open, save and close, Create and
       Export submenus, placed drawings and tables, Optimize and Security, print), Edit, Pages (insert,
       extract, Rotate submenu, page setup, bookmarks), View, Help; a test keeps every menu command in.
-- [x] **(Steve, build 133)** Drafting tools put themselves down once their shape is drawn, as in
+- [x] **(Steve, build 135)** Drafting tools put themselves down once their shape is drawn, as in
       CADCraft (a polyline, wall, spline or cloud once it is finished): the Select tool comes back to
       pick the new shape. Doors, windows and the modify tools stay for the next one. Measuring and
       markup tools are as they were.
