@@ -2675,3 +2675,11 @@ animation effects	Off	Desactivados
 	Rename measurement	Cambiar nombre de medición
 	Name measurements	Poner nombre a las mediciones
 	No XLSX workbook is placed in this document yet (a CSV can't hold a Takeoff sheet).	Todavía no hay ningún libro XLSX colocado en este documento (un CSV no puede contener una hoja Takeoff).
+	Drag to move · Delete removes it · Esc when done	Arrastra para mover · Supr lo quita · Esc para terminar
+	Drag to move, the corner to resize · Delete removes it · Esc when done	Arrastra para mover, la esquina para cambiar el tamaño · Supr lo quita · Esc para terminar
+	Move or resize on the sheet	Mover o cambiar el tamaño en el plano
+	Remove drawing	Quitar dibujo
+	Remove table	Quitar tabla
+	Take it off the sheet. The file stays as it is, and Undo brings it back.	Lo quita del plano. El archivo queda como está, y Deshacer lo devuelve.
+	Resize table	Cambiar el tamaño de la tabla
+	Remove from the sheet	Quitar del plano

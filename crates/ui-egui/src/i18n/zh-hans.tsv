@@ -2702,8 +2702,6 @@ key	Space	空格
 	{n} linked drawings	{n} 个链接图纸
 	{when} (newer than the sheet)	{when}（比图页新）
 	Sheets opened from a DWG or DXF are linked to it and show here, so you can update them when the drawing changes.	从 DWG 或 DXF 打开的图页会链接到该文件并显示在这里，图纸变更时可随时更新。
-	Done moving	完成移动
-	Drag to move · Esc when done	拖动以移动 · 按 Esc 完成
 	Move on the sheet	在图页上移动
 	Place a DWG or DXF on this sheet at its scale, linked to the file (one per room, say)	按此图页的比例放置 DWG 或 DXF，并链接到文件（例如每个房间一个）
 	Place drawing…	放置图纸…
@@ -2956,3 +2954,11 @@ animation effects	Off	关
 	Rename measurement	重命名测量
 	Name measurements	为测量命名
 	No XLSX workbook is placed in this document yet (a CSV can't hold a Takeoff sheet).	此文档中尚未放置 XLSX 工作簿（CSV 无法包含 Takeoff 工作表）。
+	Drag to move · Delete removes it · Esc when done	拖动以移动 · 按 Delete 删除 · 完成后按 Esc
+	Drag to move, the corner to resize · Delete removes it · Esc when done	拖动以移动，拖动角以调整大小 · 按 Delete 删除 · 完成后按 Esc
+	Move or resize on the sheet	在图纸上移动或调整大小
+	Remove drawing	移除图纸
+	Remove table	移除表格
+	Take it off the sheet. The file stays as it is, and Undo brings it back.	将其从图纸上移除。文件保持不变，撤销可恢复。
+	Resize table	调整表格大小
+	Remove from the sheet	从图纸上移除

@@ -126,7 +126,6 @@ Distance, or @x,y
 Dock this panel
 Documents
 Done editing
-Done moving
 Door (click a wall where it goes)
 Door width (the opening cut in the wall)
 Double-click a size to create it
@@ -136,7 +135,8 @@ Draft tools
 Drafting
 Drag a box around the area that has this scale
 Drag a box around the detail or viewport that has this scale.
-Drag to move · Esc when done
+Drag to move · Delete removes it · Esc when done
+Drag to move, the corner to resize · Delete removes it · Esc when done
 Draw a floor plan
 Draw again
 Draw only horizontal and vertical lines (hold Shift for the other way)
@@ -246,6 +246,7 @@ Move linked drawing
 Move markup
 Move markups
 Move on the sheet
+Move or resize on the sheet
 Move to layer
 My symbol
 My symbols
@@ -369,8 +370,11 @@ Relink
 Relink drawing
 Relinked {n} more drawings found in the same folder.
 Relink…
+Remove drawing
 Remove from my symbols
+Remove from the sheet
 Remove from the tool chest
+Remove table
 Remove this column
 Rename layer
 Rename measurement
@@ -378,6 +382,7 @@ Renumber
 Renumber symbols in order across the page
 Renumbered {n} symbols.
 Reopen the files that were open when RevuCraft last closed
+Resize table
 Reveal file
 Revision cloud (click around the change)
 RevuCraft can't see your files yet
@@ -461,6 +466,7 @@ Symbols in the whole document
 Symbols on this page
 THIS PAGE
 Take a photo with the camera…
+Take it off the sheet. The file stays as it is, and Undo brings it back.
 Tap the drawing to place this symbol
 Tap the pin on the drawing to see this photo again.
 Teal

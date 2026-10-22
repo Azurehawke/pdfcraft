@@ -28,8 +28,8 @@ const SETTLE: Duration = Duration::from_secs(2);
 /// to a CADCraft already running: the drawing is still open there, so it stays watched.
 const HANDOFF: Duration = Duration::from_secs(5);
 
-/// A placed drawing being moved on its sheet: where it is and the other drawings there (user
-/// space), and where the drag started.
+/// A placed drawing or table being moved (or a table resized) on its sheet: where it is and the
+/// other drawings there (user space), and where the drag started.
 #[derive(Clone, Debug, PartialEq)]
 pub struct LinkMove {
     pub index: usize,
@@ -37,6 +37,26 @@ pub struct LinkMove {
     pub rect: [f64; 4],
     pub others: Vec<[f64; 4]>,
     from: Option<egui::Pos2>,
+    /// A table, which can be resized by its bottom-right corner, and its size now.
+    table: bool,
+    scale: f64,
+    /// The drag started on the corner: resizing, not moving.
+    corner: bool,
+}
+
+/// The resize handle's size (screen points).
+const HANDLE: f32 = 10.0;
+
+/// The size factor a corner drag of `d` gives a box of `size` (screen points), its proportions
+/// kept, within the table's limits from `scale`.
+fn resize_factor(size: egui::Vec2, d: egui::Vec2, scale: f64) -> f64 {
+    let w = f64::from(size.x.max(1.0));
+    let h = f64::from(size.y.max(1.0));
+    // Whichever way the corner went further sets the size.
+    let f = ((w + f64::from(d.x)) / w).max((h + f64::from(d.y)) / h);
+    let lo = pdfcraft_engine::cad_links::MIN_TABLE_SCALE / scale.max(1e-9);
+    let hi = pdfcraft_engine::cad_links::MAX_TABLE_SCALE / scale.max(1e-9);
+    if f.is_finite() { f.clamp(lo, hi) } else { 1.0 }
 }
 
 /// How far (screen points) an edge looks for another drawing's edge to line up with.
@@ -78,33 +98,65 @@ pub(crate) fn page_input(ui: &egui::Ui, resp: &egui::Response, cx: &crate::comme
     let screen = |r: &[f64; 4]| cx.xf.user_rect(cx.info, cx.page, r.map(|v| v as f32));
     let rect = screen(&mv.rect);
     let others: Vec<egui::Rect> = mv.others.iter().map(screen).collect();
+    // Delete takes it off the sheet.
+    if ui.input(|i| i.key_pressed(egui::Key::Delete)) && !ui.ctx().wants_keyboard_input() {
+        view.pending_edit = Some(Edit::RemoveCadLink { index: mv.index });
+        view.link_move = None;
+        return true;
+    }
+    let handle = egui::Rect::from_center_size(rect.right_bottom(), egui::vec2(HANDLE, HANDLE));
     let (pointer, origin) = ui.input(|i| (i.pointer.hover_pos(), i.pointer.press_origin()));
     if resp.drag_started()
-        && let Some(o) = origin.filter(|o| rect.expand(4.0).contains(*o))
+        && let Some(o) = origin.filter(|o| rect.expand(4.0).contains(*o) || (mv.table && handle.expand(4.0).contains(*o)))
     {
         mv.from = Some(o);
+        mv.corner = mv.table && handle.expand(4.0).contains(o);
     }
-    let offset = match (mv.from, pointer) {
-        (Some(from), Some(p)) => snapped(rect, p - from, &others),
+    let drag = match (mv.from, pointer) {
+        (Some(from), Some(p)) => p - from,
         _ => egui::Vec2::ZERO,
     };
+    let factor = if mv.corner { resize_factor(rect.size(), drag, mv.scale) } else { 1.0 };
+    let offset = if mv.corner || mv.from.is_none() { egui::Vec2::ZERO } else { snapped(rect, drag, &others) };
     let t = Tokens::get(ui.ctx());
     let painter = ui.painter();
     for o in &others {
         painter.rect_stroke(*o, CornerRadius::ZERO, Stroke::new(1.0, t.text_faint), egui::StrokeKind::Outside);
     }
-    let shown = rect.translate(offset);
+    let shown = egui::Rect::from_min_size(rect.left_top(), rect.size() * factor as f32).translate(offset);
     painter.rect(shown, CornerRadius::ZERO, t.accent.gamma_multiply(0.08), Stroke::new(2.0, t.accent), egui::StrokeKind::Outside);
-    painter.text(
-        shown.left_top() + egui::vec2(4.0, -6.0),
-        egui::Align2::LEFT_BOTTOM,
-        tl!("Drag to move · Esc when done"),
-        theme::medium(11.5),
-        t.accent,
-    );
+    let hint = if mv.table {
+        tl!("Drag to move, the corner to resize · Delete removes it · Esc when done")
+    } else {
+        tl!("Drag to move · Delete removes it · Esc when done")
+    };
+    painter.text(shown.left_top() + egui::vec2(4.0, -6.0), egui::Align2::LEFT_BOTTOM, hint, theme::medium(11.5), t.accent);
+    let on_handle = mv.table && pointer.is_some_and(|p| handle.expand(4.0).contains(p));
+    if mv.table {
+        let h = egui::Rect::from_center_size(shown.right_bottom(), egui::vec2(HANDLE, HANDLE));
+        painter.rect(h, CornerRadius::same(2), t.card, Stroke::new(1.5, t.accent), egui::StrokeKind::Middle);
+        if mv.corner {
+            let pct = format!("{:.0}%", mv.scale * factor * 100.0);
+            painter.text(h.right_bottom() + egui::vec2(6.0, 4.0), egui::Align2::LEFT_TOP, pct, theme::medium(11.5), t.accent);
+        }
+    }
     let over = pointer.is_some_and(|p| rect.expand(4.0).contains(p));
-    if over || mv.from.is_some() {
+    if on_handle || mv.corner {
+        ui.ctx().set_cursor_icon(egui::CursorIcon::ResizeNwSe);
+    } else if over || mv.from.is_some() {
         ui.ctx().set_cursor_icon(egui::CursorIcon::Move);
+    }
+    if resp.drag_stopped() && mv.corner && mv.from.take().is_some() {
+        mv.corner = false;
+        if (factor - 1.0).abs() > 1e-3 {
+            let [x0, y0, x1, y1] = mv.rect;
+            let f = factor;
+            mv.rect = [x0, y1 - (y1 - y0) * f, x0 + (x1 - x0) * f, y1];
+            mv.scale *= f;
+            let (index, scale) = (mv.index, mv.scale);
+            view.pending_edit = Some(Edit::ResizeCadLink { index, scale });
+        }
+        return true;
     }
     if resp.drag_stopped()
         && let Some(from) = mv.from.take()
@@ -118,7 +170,7 @@ pub(crate) fn page_input(ui: &egui::Ui, resp: &egui::Response, cx: &crate::comme
         }
         return true;
     }
-    over || mv.from.is_some()
+    over || on_handle || mv.from.is_some()
 }
 
 /// Place the drawings at `paths` on the current sheet, linked to their files.
@@ -765,6 +817,29 @@ pub(crate) fn table_option(app: &mut PdfCraftApp, value: &str, place: bool) -> R
     if place_pick(app, pick) { Ok(()) } else { Err("the table could not be placed".into()) }
 }
 
+/// Screenshots and automation: `move-link` starts moving (or resizing) placed link `value`;
+/// `table-size` shows the last placed table at `value` percent.
+pub(crate) fn link_option(app: &mut PdfCraftApp, key: &str, value: &str) -> Result<(), String> {
+    let (links, _) = here(app);
+    let placed: Vec<&CadLink> = links.iter().filter(|l| l.placed).collect();
+    if key == "table-size" {
+        let pct: f64 = value.trim().trim_end_matches('%').parse().map_err(|_| "table-size is a percentage")?;
+        let l = placed.iter().rev().find(|l| l.kind == LinkKind::Table).ok_or("no table is placed")?;
+        let index = l.index;
+        return if app.apply_edit(Edit::ResizeCadLink { index, scale: pct / 100.0 }) { Ok(()) } else { Err("the table could not be resized".into()) };
+    }
+    let index: usize = value.trim().parse().map_err(|_| "move-link is a link's number")?;
+    let l = placed.iter().find(|l| l.index == index).ok_or("no placed link has that number")?;
+    let rect = l.rect.ok_or("that link isn't placed")?;
+    let others = links.iter().filter(|o| o.page == l.page && o.index != index).filter_map(|o| o.rect).collect();
+    let mv = LinkMove { index, page: l.page, rect, others, from: None, table: l.kind == LinkKind::Table, scale: l.scale, corner: false };
+    app.links.selected = index;
+    let (vi, _) = app.active_ids().ok_or("open a document first")?;
+    let view = app.views.get_mut(vi).ok_or("open a document first")?;
+    view.link_move = Some(mv);
+    Ok(())
+}
+
 /// The Place table dialog: the sheet, and the range (a named range, cells, or the print area).
 pub(crate) fn table_dialog(app: &mut PdfCraftApp, ctx: &egui::Context) {
     let Some(pick) = app.links.table_pick.as_mut() else { return };
@@ -968,8 +1043,12 @@ enum Act {
     DoneEditing,
     Reveal(String),
     Relink(usize, String),
-    /// Start (or, `true`, finish) moving a placed drawing: index, page, where it is, the others.
-    Move(usize, usize, [f64; 4], Vec<[f64; 4]>, bool),
+    /// Start (or, `true`, finish) moving a placed drawing or table.
+    Move(Box<LinkMove>, bool),
+    /// Show placed table `index` at a size (1 = as in its workbook).
+    Resize(usize, f64),
+    /// Take placed drawing or table `index` off its sheet.
+    Remove(usize),
 }
 
 /// The pane.
@@ -1167,13 +1246,44 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
         });
     });
     let moving = sel.placed && app.views.iter().any(|v| v.link_move.as_ref().is_some_and(|m| m.index == sel.index));
+    let table = sel.kind == LinkKind::Table;
     if sel.placed
         && let Some(rect) = sel.rect
     {
-        let label = if moving { tl!("Done moving") } else { tl!("Move on the sheet") };
-        if ui.add_enabled(editable, egui::Button::new(label)).clicked() {
-            let others = links.iter().filter(|o| o.page == sel.page && o.index != sel.index).filter_map(|o| o.rect).collect();
-            act = Some(Act::Move(sel.index, sel.page, rect, others, moving));
+        ui.horizontal_wrapped(|ui| {
+            let label = match (moving, table) {
+                (true, _) => tl!("Done"),
+                (false, true) => tl!("Move or resize on the sheet"),
+                (false, false) => tl!("Move on the sheet"),
+            };
+            if ui.add_enabled(editable, egui::Button::new(label)).clicked() {
+                let others = links.iter().filter(|o| o.page == sel.page && o.index != sel.index).filter_map(|o| o.rect).collect();
+                let mv = LinkMove { index: sel.index, page: sel.page, rect, others, from: None, table, scale: sel.scale, corner: false };
+                act = Some(Act::Move(Box::new(mv), moving));
+            }
+            let remove = if table { tl!("Remove table") } else { tl!("Remove drawing") };
+            if ui
+                .add_enabled(editable, egui::Button::new(remove))
+                .on_hover_text(tl!("Take it off the sheet. The file stays as it is, and Undo brings it back."))
+                .clicked()
+            {
+                act = Some(Act::Remove(sel.index));
+            }
+        });
+        if table {
+            ui.horizontal(|ui| {
+                ui.label(egui::RichText::new(tl!("Size")).color(t.text_muted));
+                let mut pct = sel.scale * 100.0;
+                let lo = pdfcraft_engine::cad_links::MIN_TABLE_SCALE * 100.0;
+                let hi = pdfcraft_engine::cad_links::MAX_TABLE_SCALE * 100.0;
+                let r = ui.add_enabled(editable, egui::DragValue::new(&mut pct).range(lo..=hi).speed(1.0).suffix("%").max_decimals(0));
+                if (r.drag_stopped() || r.lost_focus() || (r.changed() && !r.dragged() && !r.has_focus())) && (pct / 100.0 - sel.scale).abs() > 1e-6 {
+                    act = Some(Act::Resize(sel.index, pct / 100.0));
+                }
+                if ui.add_enabled(editable && (sel.scale - 1.0).abs() > 1e-6, egui::Button::new(tl!("Actual size"))).clicked() {
+                    act = Some(Act::Resize(sel.index, 1.0));
+                }
+            });
         }
     }
     let state = &mut app.links;
@@ -1240,14 +1350,32 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
                 app.notify(e);
             }
         }
-        Some(Act::Move(index, page, rect, others, done)) => {
+        Some(Act::Move(mv, done)) => {
             if let Some((vi, _)) = app.active_ids()
                 && let Some(view) = app.views.get_mut(vi)
             {
-                view.link_move = (!done).then_some(LinkMove { index, page, rect, others, from: None });
+                let page = mv.page;
+                view.link_move = (!done).then_some(*mv);
                 if !done {
                     view.go_to_page(page);
                 }
+            }
+        }
+        Some(Act::Resize(index, scale)) => {
+            if app.apply_edit(Edit::ResizeCadLink { index, scale })
+                && let Some((vi, _)) = app.active_ids()
+                && let Some(view) = app.views.get_mut(vi)
+            {
+                // A move in progress starts again from the new size.
+                view.link_move = None;
+            }
+        }
+        Some(Act::Remove(index)) => {
+            if app.apply_edit(Edit::RemoveCadLink { index }) {
+                for view in &mut app.views {
+                    view.link_move = None;
+                }
+                app.links.selected = index.saturating_sub(1);
             }
         }
         Some(Act::Relink(index, path)) => {
@@ -1310,7 +1438,19 @@ mod tests {
             rect: None,
             kind: LinkKind::Drawing,
             range: String::new(),
+            scale: 1.0,
         }
+    }
+
+    #[test]
+    fn a_corner_drag_resizes_in_proportion_within_the_limits() {
+        let size = egui::vec2(200.0, 100.0);
+        assert!((resize_factor(size, egui::vec2(100.0, 0.0), 1.0) - 1.5).abs() < 1e-9, "half as wide again");
+        assert!((resize_factor(size, egui::vec2(0.0, 100.0), 1.0) - 2.0).abs() < 1e-9, "the further way wins");
+        assert!((resize_factor(size, egui::vec2(-100.0, -50.0), 1.0) - 0.5).abs() < 1e-9);
+        assert!((resize_factor(size, egui::vec2(-1000.0, -1000.0), 1.0) - pdfcraft_engine::cad_links::MIN_TABLE_SCALE).abs() < 1e-9);
+        assert!((resize_factor(size, egui::vec2(1e6, 0.0), 2.0) - 5.0).abs() < 1e-9, "10× at most, from 2× now");
+        assert!((resize_factor(egui::vec2(0.0, 0.0), egui::vec2(f32::NAN, 0.0), 1.0) - 1.0).abs() < 1e-9);
     }
 
     /// A one-page Letter document with a proper xref table.

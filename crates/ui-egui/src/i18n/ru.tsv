@@ -2651,8 +2651,6 @@ key	Space	Пробел
 	{n} linked drawings	Связанных чертежей: {n}
 	{when} (newer than the sheet)	{when} (новее листа)
 	Sheets opened from a DWG or DXF are linked to it and show here, so you can update them when the drawing changes.	Листы, открытые из DWG или DXF, связаны с ним и показаны здесь, чтобы их можно было обновить, когда чертёж изменится.
-	Done moving	Готово
-	Drag to move · Esc when done	Перетащите для перемещения · Esc — готово
 	Move on the sheet	Переместить на листе
 	Place a DWG or DXF on this sheet at its scale, linked to the file (one per room, say)	Разместить DWG или DXF на этом листе в его масштабе со связью с файлом (например, по одному на комнату)
 	Place drawing…	Разместить чертёж…
@@ -2907,3 +2905,11 @@ animation effects	Off	Выкл
 	Rename measurement	Переименовать измерение
 	Name measurements	Назвать измерения
 	No XLSX workbook is placed in this document yet (a CSV can't hold a Takeoff sheet).	В этом документе ещё нет книги XLSX (в CSV нельзя поместить лист Takeoff).
+	Drag to move · Delete removes it · Esc when done	Перетащите, чтобы переместить · Delete удаляет · Esc — готово
+	Drag to move, the corner to resize · Delete removes it · Esc when done	Перетащите, чтобы переместить, за угол — чтобы изменить размер · Delete удаляет · Esc — готово
+	Move or resize on the sheet	Переместить или изменить размер на листе
+	Remove drawing	Убрать чертёж
+	Remove table	Убрать таблицу
+	Take it off the sheet. The file stays as it is, and Undo brings it back.	Убрать с листа. Файл не меняется, а «Отменить» вернёт всё обратно.
+	Resize table	Изменить размер таблицы
+	Remove from the sheet	Убрать с листа

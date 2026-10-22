@@ -2758,8 +2758,6 @@ key	Space	Пробіл
 	{n} linked drawings	Пов’язаних креслень: {n}
 	{when} (newer than the sheet)	{when} (новіше за аркуш)
 	Sheets opened from a DWG or DXF are linked to it and show here, so you can update them when the drawing changes.	Аркуші, відкриті з DWG або DXF, пов’язані з ним і показані тут, щоб їх можна було оновити, коли креслення зміниться.
-	Done moving	Готово
-	Drag to move · Esc when done	Перетягніть для переміщення · Esc — готово
 	Move on the sheet	Перемістити на аркуші
 	Place a DWG or DXF on this sheet at its scale, linked to the file (one per room, say)	Розмістити DWG або DXF на цьому аркуші в його масштабі зі зв’язком із файлом (наприклад, по одному на кімнату)
 	Place drawing…	Розмістити креслення…
@@ -3013,3 +3011,11 @@ animation effects	Off	Вимкнено
 	Rename measurement	Перейменувати вимірювання
 	Name measurements	Назвати вимірювання
 	No XLSX workbook is placed in this document yet (a CSV can't hold a Takeoff sheet).	У цьому документі ще немає книги XLSX (CSV не може містити аркуш Takeoff).
+	Drag to move · Delete removes it · Esc when done	Перетягніть, щоб перемістити · Delete видаляє · Esc — готово
+	Drag to move, the corner to resize · Delete removes it · Esc when done	Перетягніть, щоб перемістити, за кут — щоб змінити розмір · Delete видаляє · Esc — готово
+	Move or resize on the sheet	Перемістити або змінити розмір на аркуші
+	Remove drawing	Прибрати креслення
+	Remove table	Прибрати таблицю
+	Take it off the sheet. The file stays as it is, and Undo brings it back.	Прибрати з аркуша. Файл не змінюється, а «Скасувати» поверне все назад.
+	Resize table	Змінити розмір таблиці
+	Remove from the sheet	Прибрати з аркуша

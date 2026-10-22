@@ -2736,8 +2736,6 @@ key	Space	スペース
 	{n} linked drawings	リンクされた図面 {n} 件
 	{when} (newer than the sheet)	{when}（シートより新しい）
 	Sheets opened from a DWG or DXF are linked to it and show here, so you can update them when the drawing changes.	DWG や DXF から開いたシートはそのファイルにリンクされ、ここに表示されます。図面が変わったら更新できます。
-	Done moving	移動を終了
-	Drag to move · Esc when done	ドラッグで移動 · Esc で終了
 	Move on the sheet	シート上で移動
 	Place a DWG or DXF on this sheet at its scale, linked to the file (one per room, say)	この縮尺のシートに DWG や DXF をファイルにリンクして配置します（部屋ごとに 1 つなど）
 	Place drawing…	図面を配置…
@@ -2993,3 +2991,11 @@ animation effects	Off	オフ
 	Rename measurement	計測の名前を変更
 	Name measurements	計測に名前を付ける
 	No XLSX workbook is placed in this document yet (a CSV can't hold a Takeoff sheet).	この文書にはまだ XLSX ブックが配置されていません (CSV には Takeoff シートを入れられません)。
+	Drag to move · Delete removes it · Esc when done	ドラッグで移動 · Delete で削除 · 終わったら Esc
+	Drag to move, the corner to resize · Delete removes it · Esc when done	ドラッグで移動、角でサイズ変更 · Delete で削除 · 終わったら Esc
+	Move or resize on the sheet	図面上で移動またはサイズ変更
+	Remove drawing	図面を削除
+	Remove table	表を削除
+	Take it off the sheet. The file stays as it is, and Undo brings it back.	図面から取り除きます。ファイルはそのままで、元に戻すで復元できます。
+	Resize table	表のサイズを変更
+	Remove from the sheet	図面から削除

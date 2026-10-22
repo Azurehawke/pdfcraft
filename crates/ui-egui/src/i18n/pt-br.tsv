@@ -2735,8 +2735,6 @@ key	Space	Espaço
 	{n} linked drawings	{n} desenhos vinculados
 	{when} (newer than the sheet)	{when} (mais recente que a folha)
 	Sheets opened from a DWG or DXF are linked to it and show here, so you can update them when the drawing changes.	As folhas abertas de um DWG ou DXF ficam vinculadas a ele e aparecem aqui, para você atualizá-las quando o desenho mudar.
-	Done moving	Concluir movimento
-	Drag to move · Esc when done	Arraste para mover · Esc para terminar
 	Move on the sheet	Mover na folha
 	Place a DWG or DXF on this sheet at its scale, linked to the file (one per room, say)	Posicionar um DWG ou DXF nesta folha na escala dela, vinculado ao arquivo (um por ambiente, por exemplo)
 	Place drawing…	Posicionar desenho…
@@ -3003,3 +3001,11 @@ animation effects	Off	Desativados
 	Rename measurement	Renomear medição
 	Name measurements	Nomear medições
 	No XLSX workbook is placed in this document yet (a CSV can't hold a Takeoff sheet).	Nenhuma pasta de trabalho XLSX foi posicionada neste documento ainda (um CSV não pode conter uma planilha Takeoff).
+	Drag to move · Delete removes it · Esc when done	Arraste para mover · Delete o remove · Esc para terminar
+	Drag to move, the corner to resize · Delete removes it · Esc when done	Arraste para mover, o canto para redimensionar · Delete o remove · Esc para terminar
+	Move or resize on the sheet	Mover ou redimensionar na folha
+	Remove drawing	Remover desenho
+	Remove table	Remover tabela
+	Take it off the sheet. The file stays as it is, and Undo brings it back.	Tira da folha. O arquivo fica como está, e Desfazer traz de volta.
+	Resize table	Redimensionar tabela
+	Remove from the sheet	Remover da folha

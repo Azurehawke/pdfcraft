@@ -68,6 +68,8 @@ pub struct CadLink {
     pub placed: bool,
     /// Where a placed drawing is on its sheet (user space: x0, y0, x1, y1).
     pub rect: Option<[f64; 4]>,
+    /// How much a placed table is enlarged (1 at the size it prints in its workbook).
+    pub scale: f64,
 }
 
 /// The file a sheet is linked to, as read from disk by the app.
@@ -145,6 +147,22 @@ fn matrix(doc: &Document, d: &Dict) -> [f64; 6] {
     }
 }
 
+/// Where a placed drawing or table is on its sheet (user space: x0, y0, x1, y1), at its scale.
+fn placed_rect(doc: &Document, r: &Dict) -> [f64; 4] {
+    let m = matrix(doc, r);
+    let (w, h) = (num(doc, r, b"W") * m[0], num(doc, r, b"H") * m[3]);
+    [m[4], m[5], m[4] + w, m[5] + h]
+}
+
+/// A name for a new link's form in its sheet's resources, used by no other link.
+fn new_xname(list: &[Dict]) -> String {
+    let taken: HashSet<Vec<u8>> = list.iter().filter_map(|r| r.name(b"XName").map(<[u8]>::to_vec)).collect();
+    (list.len()..list.len().saturating_add(MAX_LINKS + 1))
+        .map(|i| format!("PCLink{i}"))
+        .find(|n| !taken.contains(n.as_bytes()))
+        .unwrap_or_else(|| "PCLinkX".into())
+}
+
 fn cm(m: &[f64; 6]) -> String {
     format!("{:.4} {:.4} {:.4} {:.4} {:.4} {:.4} cm ", m[0], m[1], m[2], m[3], m[4], m[5])
 }
@@ -175,11 +193,8 @@ pub fn list(doc: &Document) -> Vec<CadLink> {
                 updated: int(doc, r, b"Updated"),
                 revisions: r.get(b"Revs").and_then(|o| doc.resolve(o).as_array().map(Vec::len)).unwrap_or(0),
                 placed: placed(r),
-                rect: placed(r).then(|| {
-                    let m = matrix(doc, r);
-                    let (w, h) = (num(doc, r, b"W"), num(doc, r, b"H"));
-                    [m[4], m[5], m[4] + w, m[5] + h]
-                }),
+                rect: placed(r).then(|| placed_rect(doc, r)),
+                scale: matrix(doc, r)[0],
             })
         })
         .collect()
@@ -588,9 +603,11 @@ fn update_table(
         let label = if sheet.is_empty() { name.to_string() } else { sheet.clone() };
         keep_revision_of(doc, &mut rec, &label)?;
     }
+    // The table keeps its size (scale) and its top-left corner.
     let m = matrix(doc, &rec);
-    let top = m[5] + num(doc, &rec, b"H");
-    rec.set(b"Matrix".to_vec(), num_array(&[1.0, 0.0, 0.0, 1.0, m[4], top - plot.size[1]]));
+    let s = m[0];
+    let top = m[5] + num(doc, &rec, b"H") * m[3];
+    rec.set(b"Matrix".to_vec(), num_array(&[s, 0.0, 0.0, s, m[4], top - plot.size[1] * s]));
     rec.set(b"W".to_vec(), Object::Real(plot.size[0]));
     rec.set(b"H".to_vec(), Object::Real(plot.size[1]));
     rec.set(b"Form".to_vec(), Object::Ref(form));
@@ -635,14 +652,7 @@ pub(crate) fn place_table(
     let (w, h) = (plot.size[0], plot.size[1]);
     let margin = 36.0;
     let mut at = [mbox[0] + margin, mbox[3] - margin - h];
-    let others: Vec<[f64; 4]> = list
-        .iter()
-        .filter(|r| r.reference(b"Page") == Some(page_obj) && placed(r))
-        .map(|r| {
-            let m = matrix(doc, r);
-            [m[4], m[5], m[4] + num(doc, r, b"W"), m[5] + num(doc, r, b"H")]
-        })
-        .collect();
+    let others: Vec<[f64; 4]> = list.iter().filter(|r| r.reference(b"Page") == Some(page_obj) && placed(r)).map(|r| placed_rect(doc, r)).collect();
     let rect = [at[0], at[1], at[0] + w, at[1] + h];
     if others.iter().any(|o| overlap(o, &rect) > 0.0) {
         // Beside the others, along their top edge.
@@ -660,7 +670,7 @@ pub(crate) fn place_table(
     r.set(b"Range".to_vec(), PdfString::text(range.trim()));
     r.set(b"Page".to_vec(), Object::Ref(page_obj));
     r.set(b"Form".to_vec(), Object::Ref(form));
-    r.set(b"XName".to_vec(), Object::name(&format!("PCLink{index}")));
+    r.set(b"XName".to_vec(), Object::name(&new_xname(&list)));
     r.set(b"Size".to_vec(), Object::Int(i64::try_from(file.size).unwrap_or(i64::MAX)));
     r.set(b"MTime".to_vec(), Object::Int(file.mtime));
     r.set(b"Hash".to_vec(), PdfString::text(&fingerprint(bytes)));
@@ -744,14 +754,7 @@ pub(crate) fn place(doc: &mut Document, page: usize, name: &str, bytes: &[u8], f
     };
     let (w, h) = (plot.size[0], plot.size[1]);
     let mut at = [origin[0] + plot.model_min[0] * ppu, origin[1] + plot.model_min[1] * ppu];
-    let others: Vec<[f64; 4]> = list
-        .iter()
-        .filter(|r| r.reference(b"Page") == Some(page_obj) && placed(r))
-        .map(|r| {
-            let m = matrix(doc, r);
-            [m[4], m[5], m[4] + num(doc, r, b"W"), m[5] + num(doc, r, b"H")]
-        })
-        .collect();
+    let others: Vec<[f64; 4]> = list.iter().filter(|r| r.reference(b"Page") == Some(page_obj) && placed(r)).map(|r| placed_rect(doc, r)).collect();
     let rect = [at[0], at[1], at[0] + w, at[1] + h];
     if others.iter().any(|o| overlap(o, &rect) > 0.5 * (w * h).min((o[2] - o[0]) * (o[3] - o[1]))) {
         // Drawn around their own origins: beside the others, along their bottom edge.
@@ -766,7 +769,7 @@ pub(crate) fn place(doc: &mut Document, page: usize, name: &str, bytes: &[u8], f
     r.set(b"Layout".to_vec(), PdfString::text("Model"));
     r.set(b"Page".to_vec(), Object::Ref(page_obj));
     r.set(b"Form".to_vec(), Object::Ref(form));
-    r.set(b"XName".to_vec(), Object::name(&format!("PCLink{index}")));
+    r.set(b"XName".to_vec(), Object::name(&new_xname(&list)));
     r.set(b"Size".to_vec(), Object::Int(i64::try_from(file.size).unwrap_or(i64::MAX)));
     r.set(b"MTime".to_vec(), Object::Int(file.mtime));
     r.set(b"Hash".to_vec(), PdfString::text(&fingerprint(bytes)));
@@ -816,6 +819,70 @@ pub(crate) fn move_link(doc: &mut Document, index: usize, dx: f64, dy: f64) -> R
     }
     write_records(doc, list)?;
     redraw_page(doc, page)
+}
+
+/// The smallest and largest a placed table is shown, against its size in its workbook.
+pub const MIN_TABLE_SCALE: f64 = 0.1;
+pub const MAX_TABLE_SCALE: f64 = 10.0;
+
+/// Show placed table `index` at `scale` times its size in its workbook, its top-left corner where
+/// it is.
+pub(crate) fn resize_link(doc: &mut Document, index: usize, scale: f64) -> Result<(), EditError> {
+    if !scale.is_finite() || !(MIN_TABLE_SCALE..=MAX_TABLE_SCALE).contains(&scale) {
+        return Err(invalid("that size is out of range"));
+    }
+    let mut list = records(doc);
+    let rec = list.get(index).cloned().ok_or_else(|| invalid("that link doesn't exist"))?;
+    if !placed(&rec) || rec.name(b"Kind") != Some(&b"Table"[..]) {
+        return Err(invalid("only a table placed on a sheet can be resized (a drawing keeps its sheet's scale)"));
+    }
+    let page = rec.reference(b"Page").ok_or_else(|| invalid("that link has no sheet"))?;
+    let m = matrix(doc, &rec);
+    let h = num(doc, &rec, b"H");
+    let top = m[5] + h * m[3];
+    if let Some(r) = list.get_mut(index) {
+        r.set(b"Matrix".to_vec(), num_array(&[scale, 0.0, 0.0, scale, m[4], top - h * scale]));
+    }
+    write_records(doc, list)?;
+    redraw_page(doc, page)
+}
+
+/// Take placed drawing or table `index` off its sheet: its link, what it draws and its layers
+/// (its own and its earlier versions') go; the sheet and the other links stay as they are.
+pub(crate) fn remove_link(doc: &mut Document, index: usize) -> Result<(), EditError> {
+    let mut list = records(doc);
+    let rec = list.get(index).cloned().ok_or_else(|| invalid("that link doesn't exist"))?;
+    if !placed(&rec) {
+        return Err(invalid("only a drawing or table placed on a sheet can be removed (a whole linked sheet is deleted as a page)"));
+    }
+    let page = rec.reference(b"Page").ok_or_else(|| invalid("that link has no sheet"))?;
+    list.remove(index);
+    // Its layers, unless another link draws on them.
+    let layers_of = |r: &Dict| -> Vec<ObjRef> {
+        let mut out: Vec<ObjRef> = r.reference(b"OCG").into_iter().collect();
+        if let Some(Object::Array(revs)) = r.get(b"Revs").map(|o| (*doc.resolve(o)).clone()) {
+            out.extend(revs.iter().filter_map(|v| doc.resolve(v).as_dict().and_then(|d| d.reference(b"OCG"))));
+        }
+        out
+    };
+    let used: HashSet<ObjRef> = list.iter().flat_map(&layers_of).collect();
+    let gone: HashSet<ObjRef> = layers_of(&rec).into_iter().filter(|l| !used.contains(l)).collect();
+    write_records(doc, list)?;
+    redraw_page(doc, page)?;
+    if !gone.is_empty()
+        && let Some(mut props) = ocproperties(doc)
+    {
+        let keep = |r: ObjRef| !gone.contains(&r);
+        retain_refs(&mut props, b"OCGs", &keep);
+        if let Some(mut config) = props.get(b"D").and_then(Object::as_dict).cloned() {
+            for k in [&b"Order"[..], b"ON", b"OFF"] {
+                retain_refs(&mut config, k, &keep);
+            }
+            props.set(b"D".to_vec(), Object::Dict(config));
+        }
+        write_ocproperties(doc, props)?;
+    }
+    Ok(())
 }
 
 /// Record (or, `None`, clear) a link's path relative to the PDF. One that couldn't be a relative

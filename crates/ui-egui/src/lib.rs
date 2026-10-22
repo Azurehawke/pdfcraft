@@ -2780,6 +2780,7 @@ impl PdfCraftApp {
             // current page, or show it in the Place table dialog.
             ("place-table", _) => links_ui::table_option(self, value, true)?,
             ("table-dialog", _) => links_ui::table_option(self, value, false)?,
+            ("move-link" | "table-size", _) => links_ui::link_option(self, key, value)?,
             // Screenshots and automation: send the quantities to a workbook (made when there is
             // none at that path), or show the Send quantities dialog.
             ("send-quantities", _) => takeoff_ui::option(self, value, true)?,

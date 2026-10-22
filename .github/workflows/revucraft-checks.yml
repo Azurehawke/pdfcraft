@@ -128,6 +128,7 @@ jobs:
           shot plan-table "$plan" --workflow draft --place-table "$csv"
           shot plan-table-dialog "$plan" --table-dialog "$csv"
           shot plan-send-dialog "$plan" --place-table "$csv" --quantities-dialog open
+          shot plan-table-resize "$plan" --workflow draft --place-table "$csv" --table-size 160 --move-link 0 --dock links
           shot update-available "$plan" --update available
           shot update-prompt "$plan" --update prompt
 

@@ -2732,8 +2732,6 @@ key	Space	Szóköz
 	{n} linked drawings	{n} csatolt rajz
 	{when} (newer than the sheet)	{when} (újabb a lapnál)
 	Sheets opened from a DWG or DXF are linked to it and show here, so you can update them when the drawing changes.	A DWG- vagy DXF-fájlból megnyitott lapok hozzá vannak csatolva, és itt jelennek meg, hogy frissíthesse őket, ha a rajz változik.
-	Done moving	Mozgatás kész
-	Drag to move · Esc when done	Húzza a mozgatáshoz · Esc a befejezéshez
 	Move on the sheet	Mozgatás a lapon
 	Place a DWG or DXF on this sheet at its scale, linked to the file (one per room, say)	DWG vagy DXF elhelyezése ezen a lapon annak léptékében, a fájlhoz csatolva (például helyiségenként egy)
 	Place drawing…	Rajz elhelyezése…
@@ -2989,3 +2987,11 @@ animation effects	Off	Ki
 	Rename measurement	Mérés átnevezése
 	Name measurements	Mérések elnevezése
 	No XLSX workbook is placed in this document yet (a CSV can't hold a Takeoff sheet).	Ebben a dokumentumban még nincs elhelyezett XLSX-munkafüzet (egy CSV nem tartalmazhat Takeoff lapot).
+	Drag to move · Delete removes it · Esc when done	Húzza az áthelyezéshez · a Delete eltávolítja · Esc, ha kész
+	Drag to move, the corner to resize · Delete removes it · Esc when done	Húzza az áthelyezéshez, a sarkot az átméretezéshez · a Delete eltávolítja · Esc, ha kész
+	Move or resize on the sheet	Áthelyezés vagy átméretezés a lapon
+	Remove drawing	Rajz eltávolítása
+	Remove table	Táblázat eltávolítása
+	Take it off the sheet. The file stays as it is, and Undo brings it back.	Leveszi a lapról. A fájl változatlan marad, a Visszavonás pedig visszahozza.
+	Resize table	Táblázat átméretezése
+	Remove from the sheet	Eltávolítás a lapról

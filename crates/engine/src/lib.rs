@@ -1431,6 +1431,16 @@ pub enum Edit {
         file: cad_links::LinkedFile,
         sent: String,
     },
+    /// RevuCraft: show placed table `index` at `scale` times its size in its workbook, its
+    /// top-left corner where it is.
+    ResizeCadLink {
+        index: usize,
+        scale: f64,
+    },
+    /// RevuCraft: take placed drawing or table `index` off its sheet.
+    RemoveCadLink {
+        index: usize,
+    },
     /// RevuCraft: move placed drawing `index` by (`dx`, `dy`) points on its sheet.
     MoveCadLink {
         index: usize,
@@ -2210,6 +2220,8 @@ pub const EDIT_LABELS: &[&str] = &[
     "Place linked drawing",
     "Place linked table",
     "Rename measurement",
+    "Resize table",
+    "Remove from the sheet",
     "Name measurements",
     "Send quantities",
     "Move linked drawing",
@@ -2378,6 +2390,8 @@ impl Edit {
             Edit::PlaceCadLink { .. } => Label::of("Place linked drawing"),
             Edit::PlaceTableLink { .. } => Label::of("Place linked table"),
             Edit::RenameMeasurement { .. } => Label::of("Rename measurement"),
+            Edit::ResizeCadLink { .. } => Label::of("Resize table"),
+            Edit::RemoveCadLink { .. } => Label::of("Remove from the sheet"),
             Edit::NameMeasurements => Label::of("Name measurements"),
             Edit::RecordTakeoff { .. } => Label::of("Send quantities"),
             Edit::MoveCadLink { .. } => Label::of("Move linked drawing"),
@@ -2586,6 +2600,8 @@ fn check_permission(edit: &Edit, p: &pdfcraft_cos::Permissions) -> Result<(), Ed
         | Edit::PlaceCadLink { .. }
         | Edit::PlaceTableLink { .. }
         | Edit::RecordTakeoff { .. }
+        | Edit::ResizeCadLink { .. }
+        | Edit::RemoveCadLink { .. }
         | Edit::MoveCadLink { .. }
         | Edit::Flatten { .. }
         | Edit::UnpackTextForms { .. }
@@ -2741,6 +2757,8 @@ fn run_edit(doc: &mut pdfcraft_cos::Document, edit: &Edit, cx: &mut EditCtx) -> 
             cad_links::place_table(doc, *page, name, bytes, file, sheet, range)?;
         }
         Edit::MoveCadLink { index, dx, dy } => cad_links::move_link(doc, *index, *dx, *dy)?,
+        Edit::ResizeCadLink { index, scale } => cad_links::resize_link(doc, *index, *scale)?,
+        Edit::RemoveCadLink { index } => cad_links::remove_link(doc, *index)?,
         Edit::RenameMeasurement { page, index, name } => {
             measure::names::set_name(doc, *page, *index, name)?;
         }

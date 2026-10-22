@@ -6529,6 +6529,52 @@ fn a_linked_table_is_placed_updated_and_kept_at_its_top_left() {
             .is_err()
     );
     assert_eq!(session.get(id).unwrap().cad_links().len(), 1);
+
+    // Enlarged half again: the top-left corner stays, and an update keeps the size.
+    session.apply(id, Edit::ResizeCadLink { index: 0, scale: 1.5 }).unwrap();
+    let big = session.get(id).unwrap().cad_links()[0].clone();
+    let b = big.rect.unwrap();
+    assert!((b[0] - moved[0]).abs() < 0.01 && (b[3] - moved[3]).abs() < 0.01, "{moved:?} -> {b:?}");
+    assert!(((b[2] - b[0]) - 1.5 * (moved[2] - moved[0])).abs() < 0.01);
+    assert_eq!(big.scale, 1.5);
+    session.apply(id, Edit::UpdateCadLink { index: 0, name: "budget.csv".into(), bytes: csv(6), file: file(30, 3), keep_revision: false }).unwrap();
+    let kept = session.get(id).unwrap().cad_links()[0].clone();
+    let k = kept.rect.unwrap();
+    assert_eq!(kept.scale, 1.5, "an update keeps the size");
+    assert!((k[0] - b[0]).abs() < 0.01 && (k[3] - b[3]).abs() < 0.01, "and the top-left corner");
+    for bad in [0.0, -1.0, f64::NAN, 50.0] {
+        assert!(session.apply(id, Edit::ResizeCadLink { index: 0, scale: bad }).is_err(), "{bad}");
+    }
+    assert!(session.apply(id, Edit::ResizeCadLink { index: 7, scale: 1.0 }).is_err());
+
+    // A second table, then the first taken off: the second stays where it is, with its own name.
+    session
+        .apply(
+            id,
+            Edit::PlaceTableLink { page: 0, name: "budget.csv".into(), bytes: csv(2), file: file(40, 4), sheet: String::new(), range: String::new() },
+        )
+        .unwrap();
+    let second = session.get(id).unwrap().cad_links()[1].rect.unwrap();
+    let layers_before = session.layer_details(id).len();
+    session.apply(id, Edit::RemoveCadLink { index: 0 }).unwrap();
+    let left = session.get(id).unwrap().cad_links();
+    assert_eq!(left.len(), 1);
+    assert_eq!(left[0].rect.unwrap(), second);
+    assert_eq!(session.layer_details(id).len(), layers_before - 2, "its layer and its kept revision's layer go");
+    // A third table placed now gets a form name of its own, so both draw.
+    session
+        .apply(
+            id,
+            Edit::PlaceTableLink { page: 0, name: "budget.csv".into(), bytes: csv(1), file: file(50, 5), sheet: String::new(), range: String::new() },
+        )
+        .unwrap();
+    let doc = session.get(id).unwrap();
+    let page = doc.editor.as_ref().map(|e| pdfcraft_model::pages(&e.cos)[0].dict.clone()).unwrap();
+    let res = page.get(b"Resources").and_then(|o| o.as_dict()).and_then(|r| r.get(b"XObject")).and_then(|o| o.as_dict()).unwrap();
+    assert_eq!(res.iter().filter(|(k, _)| k.starts_with(b"PCLink")).count(), 2, "two tables, two forms");
+    session.undo(id).unwrap();
+    session.undo(id).unwrap();
+    assert_eq!(session.get(id).unwrap().cad_links().len(), 2, "undo brings the table back");
 }
 
 #[test]

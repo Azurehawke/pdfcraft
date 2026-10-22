@@ -2756,8 +2756,6 @@ key	Space	مسافة
 	{n} linked drawings	رسومات مرتبطة: {n}
 	{when} (newer than the sheet)	{when} (أحدث من الورقة)
 	Sheets opened from a DWG or DXF are linked to it and show here, so you can update them when the drawing changes.	الأوراق المفتوحة من ملف DWG أو DXF مرتبطة به وتظهر هنا، لتحديثها عند تغيّر الرسم.
-	Done moving	تم النقل
-	Drag to move · Esc when done	اسحب للنقل · Esc للإنهاء
 	Move on the sheet	نقل على الورقة
 	Place a DWG or DXF on this sheet at its scale, linked to the file (one per room, say)	ضع ملف DWG أو DXF على هذه الورقة بمقياسها، مرتبطًا بالملف (واحد لكل غرفة مثلًا)
 	Place drawing…	وضع رسم…
@@ -3265,3 +3263,11 @@ certificate	Version	الإصدار
 	Rename measurement	إعادة تسمية القياس
 	Name measurements	تسمية القياسات
 	No XLSX workbook is placed in this document yet (a CSV can't hold a Takeoff sheet).	لم يُوضع بعد أي مصنف XLSX في هذا المستند (لا يمكن لملف CSV أن يحتوي على ورقة Takeoff).
+	Drag to move · Delete removes it · Esc when done	اسحب للنقل · يزيله Delete · اضغط Esc عند الانتهاء
+	Drag to move, the corner to resize · Delete removes it · Esc when done	اسحب للنقل، والزاوية لتغيير الحجم · يزيله Delete · اضغط Esc عند الانتهاء
+	Move or resize on the sheet	نقل أو تغيير الحجم على اللوحة
+	Remove drawing	إزالة الرسم
+	Remove table	إزالة الجدول
+	Take it off the sheet. The file stays as it is, and Undo brings it back.	أزله عن اللوحة. يبقى الملف كما هو، ويعيده أمر التراجع.
+	Resize table	تغيير حجم الجدول
+	Remove from the sheet	إزالة من اللوحة
