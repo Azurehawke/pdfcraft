@@ -202,7 +202,7 @@ Markup and measuring
       its calculation setting are rewritten. The Links pane says when the drawing changed since, or
       the workbook was saved without the latest quantities, and sends them again; tables placed
       from the workbook update.
-- [x] **(Steve, build 127)** Placed tables resize: drag the corner while moving (Move or resize on
+- [x] **(Steve, build 128)** Placed tables resize: drag the corner while moving (Move or resize on
       the sheet), or type a size (10% to 1000%) in the Links pane; an update keeps the size and the
       top-left corner. Placed tables and drawings can be removed from the sheet (Links pane, or
       Delete while moving them), with their layers; Undo brings them back.

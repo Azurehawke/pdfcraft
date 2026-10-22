@@ -940,7 +940,9 @@ fn book_view(path: &str) -> BookView {
 /// on disk now (its formulas worked out).
 pub fn workbook_panel(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
     let t = Tokens::get(ui.ctx());
-    if app.active_ids().is_some() {
+    // The Links pane shows it when it is open too; once is enough.
+    let links_open = app.is_docked(crate::RightPanel::Links) || (!app.show_ribbon && app.right == Some(crate::RightPanel::Links));
+    if app.active_ids().is_some() && !links_open {
         crate::takeoff_ui::section(app, ui);
     }
     let (links, _) = here(app);
