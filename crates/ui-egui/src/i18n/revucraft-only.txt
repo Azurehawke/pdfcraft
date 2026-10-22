@@ -14,6 +14,7 @@ Add to the open document
 Add {symbol}
 Added to every run for the drop down the wall and the service loop (10' or 3m)
 Added {name} to your symbols.
+Align stroke
 Align to nearest wall
 Aligned dimension
 All files
@@ -196,6 +197,7 @@ ISO (A sizes)
 In CADCraft
 In GridCraft
 Inches
+Inside
 Inside face
 Interior wall (4 1/2 in)
 Internal storage
@@ -299,6 +301,7 @@ Or yourself: Settings ▸ Apps ▸ ⋮ (top right) ▸ Special access ▸ All fi
 Orientation
 Origin
 Ortho
+Outside
 Outside face
 PC, VoIP…
 PDF and images
@@ -464,6 +467,7 @@ Start at
 Start point (x,y from the origin)
 Stop watching for saves from CADCraft or GridCraft. This also happens by itself when the app closes.
 Stop watching for saves from CADCraft. This also happens by itself when CADCraft closes.
+Stroke
 Summary report (PDF): the markups shown, with photos, by layer
 Symbol
 Symbols
@@ -556,6 +560,8 @@ Walls · Doors and windows · Dimensions
 Welcome to RevuCraft
 What you draw: the wall's centre line, or its inside face (the thickness goes out of the room, for tracing existing walls) or outside face
 Where the drawing is now
+Where the line's thickness lies when the shape is closed: centred on the path, inside it or outside it (open lines are centred)
+Where the line's thickness lies: centred on the path, inside it or outside it
 Width and height
 Width in real-world inches, drawn to the page's scale (walls)
 Window (click a wall where it goes)

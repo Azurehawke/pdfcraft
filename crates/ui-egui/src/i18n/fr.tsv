@@ -3003,3 +3003,9 @@ animation effects	Off	Désactivés
 	Centre line	Axe
 	Inside face	Face intérieure
 	Outside face	Face extérieure
+	Inside	Intérieur
+	Outside	Extérieur
+	Stroke	Contour
+	Where the line's thickness lies when the shape is closed: centred on the path, inside it or outside it (open lines are centred)	Où se place l’épaisseur du trait quand la forme est fermée : centrée sur le tracé, à l’intérieur ou à l’extérieur (les lignes ouvertes sont centrées)
+	Where the line's thickness lies: centred on the path, inside it or outside it	Où se place l’épaisseur du trait : centrée sur le tracé, à l’intérieur ou à l’extérieur
+	Align stroke	Aligner le contour

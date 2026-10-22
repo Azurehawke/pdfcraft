@@ -25,6 +25,7 @@ pub mod layers;
 pub mod legend;
 pub mod links;
 pub mod photo_callout;
+pub mod stroke_align;
 pub mod svg_art;
 pub mod symbols;
 
@@ -1371,7 +1372,11 @@ fn redraw_or_restore(doc: &mut Document, r: ObjRef, before: Dict) -> Result<(), 
 /// `?` permanent. For new text (a new comment, changed contents), as Acrobat keeps text its font
 /// can't show, and for display-only copies.
 fn draw_appearance(doc: &mut Document, r: ObjRef) -> Result<(), AnnotError> {
-    let d = annot_dict(doc, r);
+    let mut d = annot_dict(doc, r);
+    // An aligned stroke needs room in the box whatever changed (its width, its points).
+    if stroke_align::fit(&mut d) {
+        doc.set(r, Object::Dict(d.clone()));
+    }
     let subtype = String::from_utf8_lossy(d.name(b"Subtype").unwrap_or_default()).into_owned();
     let Some(stream) = build_appearance(doc, &d) else { return Err(AnnotError::Unsupported(subtype)) };
     apply_appearance(doc, r, &d, stream)

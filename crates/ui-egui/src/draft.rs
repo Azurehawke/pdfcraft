@@ -314,6 +314,8 @@ pub struct DraftSettings {
     /// Which face of a new wall the drawn path is, and whether its thickness goes the other way.
     pub wall_side: WallSide,
     pub wall_flip: bool,
+    /// Where a new closed shape's stroke lies against its path (as VectorCraft's Align Stroke).
+    pub stroke_align: pdfcraft_engine::stroke_align::StrokeAlign,
     pub bare: BareUnit,
     /// The on-screen keypad is shown while drafting.
     pub keypad: bool,
@@ -360,6 +362,7 @@ impl Default for DraftSettings {
             door_flip: false,
             wall_side: WallSide::Centre,
             wall_flip: false,
+            stroke_align: pdfcraft_engine::stroke_align::StrokeAlign::Center,
             bare: BareUnit::Feet,
             keypad: cfg!(target_os = "android"),
             // ARCH D landscape at 1/4" = 1'-0".
@@ -615,9 +618,12 @@ fn shape_edit(page: usize, shape: Shape, color: [f64; 3], author: &str, doc: &Do
     let at = match &shape {
         Shape::Line { from, .. } => *from,
         Shape::PolyLine { vertices, .. } | Shape::Polygon { vertices, .. } => vertices.first().copied().unwrap_or_default(),
+        Shape::Oval { rect } | Shape::Rectangle { rect } => [(rect[0] + rect[2]) / 2.0, (rect[1] + rect[3]) / 2.0],
         _ => [0.0, 0.0],
     };
     let (width, real_width) = pen(doc, page, at, settings);
+    // A closed shape's stroke lies against its path as the ribbon says; lines stroke centred.
+    let closed = matches!(&shape, Shape::Polygon { cloud: false, .. } | Shape::Oval { .. } | Shape::Rectangle { .. });
     Edit::AddDraftShape {
         new: NewAnnotation {
             page,
@@ -628,6 +634,7 @@ fn shape_edit(page: usize, shape: Shape, color: [f64; 3], author: &str, doc: &Do
         },
         real_width,
         caption: None,
+        align: closed.then_some(settings.stroke_align),
     }
 }
 
@@ -867,16 +874,7 @@ fn finish_edit(tool: DraftTool, page: usize, points: &[[f64; 2]], closed: bool, 
         DraftTool::Circle => match points {
             [c, p, ..] => {
                 let r = (p[0] - c[0]).hypot(p[1] - c[1]);
-                (r >= 0.5).then(|| {
-                    annotation(
-                        page,
-                        Shape::Oval { rect: [c[0] - r, c[1] - r, c[0] + r, c[1] + r] },
-                        color,
-                        pen(doc, page, *c, settings).0,
-                        None,
-                        author,
-                    )
-                })
+                (r >= 0.5).then(|| shape_edit(page, Shape::Oval { rect: [c[0] - r, c[1] - r, c[0] + r, c[1] + r] }, color, author, doc, settings))
             }
             _ => None,
         },
@@ -911,16 +909,8 @@ fn finish_edit(tool: DraftTool, page: usize, points: &[[f64; 2]], closed: bool, 
         DraftTool::Ellipse => match points {
             [c, p, ..] => {
                 let (rx, ry) = ((p[0] - c[0]).abs(), (p[1] - c[1]).abs());
-                (rx >= 0.5 && ry >= 0.5).then(|| {
-                    annotation(
-                        page,
-                        Shape::Oval { rect: [c[0] - rx, c[1] - ry, c[0] + rx, c[1] + ry] },
-                        color,
-                        pen(doc, page, *c, settings).0,
-                        None,
-                        author,
-                    )
-                })
+                (rx >= 0.5 && ry >= 0.5)
+                    .then(|| shape_edit(page, Shape::Oval { rect: [c[0] - rx, c[1] - ry, c[0] + rx, c[1] + ry] }, color, author, doc, settings))
             }
             _ => None,
         },
@@ -1670,7 +1660,12 @@ fn tool_options(app: &mut PdfCraftApp, ui: &mut egui::Ui, t: &Tokens) {
                     " in",
                     tl!("Offset distance (or type it with the Offset tool, then Enter)"),
                 ),
-                Some(DraftTool::Polygon) => number(ui, tl!("Sides"), &mut d.polygon_sides, 3..=64, "", tl!("How many sides a new polygon has")),
+                Some(DraftTool::Polygon) => {
+                    number(ui, tl!("Sides"), &mut d.polygon_sides, 3..=64, "", tl!("How many sides a new polygon has"));
+                    stroke_align_picker(ui, &mut d.stroke_align, false);
+                }
+                Some(DraftTool::Rectangle | DraftTool::Circle | DraftTool::Ellipse) => stroke_align_picker(ui, &mut d.stroke_align, false),
+                Some(DraftTool::Polyline | DraftTool::Spline) => stroke_align_picker(ui, &mut d.stroke_align, true),
                 Some(DraftTool::Fillet) => {
                     number(ui, tl!("Radius"), &mut d.fillet_inches, 0.0..=1200.0, " in", tl!("Fillet radius (0 makes a sharp corner)"))
                 }
@@ -1721,6 +1716,27 @@ fn tool_options(app: &mut PdfCraftApp, ui: &mut egui::Ui, t: &Tokens) {
             }
         });
     });
+}
+
+/// Where a closed shape's stroke lies against its path: Centre, Inside, Outside (as VectorCraft's
+/// Align Stroke). `when_closed`: the tool also draws open paths, which stroke centred.
+pub(crate) fn stroke_align_picker(ui: &mut egui::Ui, align: &mut pdfcraft_engine::stroke_align::StrokeAlign, when_closed: bool) {
+    use pdfcraft_engine::stroke_align::StrokeAlign;
+    let tip = if when_closed {
+        tl!("Where the line's thickness lies when the shape is closed: centred on the path, inside it or outside it (open lines are centred)")
+    } else {
+        tl!("Where the line's thickness lies: centred on the path, inside it or outside it")
+    };
+    ui.label(tl!("Stroke")).on_hover_text(tip);
+    stroke_align_buttons(ui, align, tip);
+}
+
+/// The Centre, Inside and Outside buttons of [`stroke_align_picker`].
+pub(crate) fn stroke_align_buttons(ui: &mut egui::Ui, align: &mut pdfcraft_engine::stroke_align::StrokeAlign, tip: &str) {
+    use pdfcraft_engine::stroke_align::StrokeAlign;
+    for (a, label) in [(StrokeAlign::Center, tl!("Centre")), (StrokeAlign::Inside, tl!("Inside")), (StrokeAlign::Outside, tl!("Outside"))] {
+        ui.selectable_value(align, a, label).on_hover_text(tip);
+    }
 }
 
 /// The keypad for typing lengths and coordinates on a tablet.

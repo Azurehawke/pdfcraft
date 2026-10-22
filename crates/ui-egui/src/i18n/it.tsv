@@ -3218,3 +3218,9 @@ certificate	SHA-256 digest	Impronta SHA-256
 	Centre line	Mezzeria
 	Inside face	Faccia interna
 	Outside face	Faccia esterna
+	Inside	Interno
+	Outside	Esterno
+	Stroke	Traccia
+	Where the line's thickness lies when the shape is closed: centred on the path, inside it or outside it (open lines are centred)	Dove si trova lo spessore della linea quando la forma è chiusa: centrato sul tracciato, all’interno o all’esterno (le linee aperte sono centrate)
+	Where the line's thickness lies: centred on the path, inside it or outside it	Dove si trova lo spessore della linea: centrato sul tracciato, all’interno o all’esterno
+	Align stroke	Allinea traccia

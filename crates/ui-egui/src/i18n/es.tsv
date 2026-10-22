@@ -2689,3 +2689,9 @@ animation effects	Off	Desactivados
 	Centre line	Eje
 	Inside face	Cara interior
 	Outside face	Cara exterior
+	Inside	Interior
+	Outside	Exterior
+	Stroke	Trazo
+	Where the line's thickness lies when the shape is closed: centred on the path, inside it or outside it (open lines are centred)	Dónde queda el grosor de la línea cuando la forma está cerrada: centrado en el trazado, por dentro o por fuera (las líneas abiertas quedan centradas)
+	Where the line's thickness lies: centred on the path, inside it or outside it	Dónde queda el grosor de la línea: centrado en el trazado, por dentro o por fuera
+	Align stroke	Alinear trazo

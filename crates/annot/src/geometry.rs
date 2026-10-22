@@ -425,9 +425,16 @@ pub fn transform(doc: &mut Document, page: usize, index: usize, m: &[f64; 6], co
     let upright = (m[1].abs() < 1e-9 && m[2].abs() < 1e-9) || (m[0].abs() < 1e-9 && m[3].abs() < 1e-9);
     let moves_only = (m[0] - 1.0).abs() < 1e-12 && m[1] == 0.0 && m[2] == 0.0 && (m[3] - 1.0).abs() < 1e-12;
     if upright && !moves_only && matches!(d.name(b"Subtype"), Some(b"Square" | b"Circle")) {
-        let a = apply(m, [x0, y0]);
-        let b = apply(m, [x1, y1]);
-        crate::set_rect(doc, page, index, [a[0].min(b[0]), a[1].min(b[1]), a[0].max(b[0]), a[1].max(b[1])], meta)?;
+        // An aligned stroke's path is the box less its room for the stroke (`/RD`): the path
+        // scales, the room stays the stroke's.
+        let (p, pad) = match crate::stroke_align::shape_box(&d).filter(|_| crate::stroke_align::of(&d).is_some()) {
+            Some(p) => (p, (p[0] - x0.min(x1)).max(0.0)),
+            None => ([x0, y0, x1, y1], 0.0),
+        };
+        let a = apply(m, [p[0], p[1]]);
+        let b = apply(m, [p[2], p[3]]);
+        let r = [a[0].min(b[0]) - pad, a[1].min(b[1]) - pad, a[0].max(b[0]) + pad, a[1].max(b[1]) + pad];
+        crate::set_rect(doc, page, index, r, meta)?;
         return Ok(index);
     }
     // Everything else moves with its centre; a library symbol turns with the drawing too.

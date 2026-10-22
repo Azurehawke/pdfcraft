@@ -737,6 +737,7 @@ fn finish(state: &mut MeasureView, pending: &mut Option<Edit>, doc: &Document, p
                 },
                 real_width: None,
                 caption: Some((format!("{deg:.1}°"), "Angle".into())),
+                align: None,
             });
         }
         state.cancel();

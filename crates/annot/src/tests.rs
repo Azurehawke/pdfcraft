@@ -1429,3 +1429,54 @@ fn free_text_properties_show_legacy_or_absent_border_width() {
     .unwrap();
     assert_eq!(props(&doc, 0, index).unwrap().width, Some(4.0));
 }
+
+#[test]
+fn a_closed_shapes_stroke_aligns_inside_or_outside_its_path() {
+    use crate::stroke_align::{self, StrokeAlign};
+    let mut doc = fixture();
+    let sq = add_annotation(&mut doc, &new(0, Shape::Rectangle { rect: [100.0, 100.0, 200.0, 160.0] }), &meta("sq")).unwrap();
+    let poly = add_annotation(
+        &mut doc,
+        &new(0, Shape::Polygon { vertices: vec![[300.0, 300.0], [400.0, 300.0], [350.0, 380.0]], cloud: false }),
+        &meta("poly"),
+    )
+    .unwrap();
+    let line = add_annotation(
+        &mut doc,
+        &new(0, Shape::Line { from: [10.0, 500.0], to: [90.0, 500.0], start: LineEnding::None, end: LineEnding::None }),
+        &meta("ln"),
+    )
+    .unwrap();
+    // A rectangle has always stroked inside its box; that box is its path.
+    assert_eq!(stroke_align::effective(&list(&doc, 0)[sq]), Some(StrokeAlign::Inside));
+    assert_eq!(stroke_align::effective(&list(&doc, 0)[poly]), Some(StrokeAlign::Center));
+    assert_eq!(stroke_align::effective(&list(&doc, 0)[line]), None, "lines stroke on their centre");
+    assert!(stroke_align::set(&mut doc, 0, line, StrokeAlign::Outside).is_err());
+
+    // Outside: the box grows by the width (2) all round, /RD keeps the path, the stroke is clipped
+    // to the outside.
+    stroke_align::set(&mut doc, 0, sq, StrokeAlign::Outside).unwrap();
+    let d = &list(&doc, 0)[sq];
+    assert_eq!(rect(d), [98.0, 98.0, 202.0, 162.0]);
+    assert_eq!(stroke_align::shape_box(d), Some([100.0, 100.0, 200.0, 160.0]));
+    let ap = ap_content(&doc, d);
+    assert!(ap.contains("W* n") && ap.contains("4 w"), "{ap}");
+    // Centre: half the width out.
+    stroke_align::set(&mut doc, 0, sq, StrokeAlign::Center).unwrap();
+    assert_eq!(rect(&list(&doc, 0)[sq]), [99.0, 99.0, 201.0, 161.0]);
+    // Moved, it keeps its path inside its box.
+    move_annotation(&mut doc, 0, sq, 10.0, 0.0, &meta("mv")).unwrap();
+    assert_eq!(stroke_align::shape_box(&list(&doc, 0)[sq]), Some([110.0, 100.0, 210.0, 160.0]));
+
+    // A polygon's stroke inside: clipped to the path; its box still holds it.
+    stroke_align::set(&mut doc, 0, poly, StrokeAlign::Inside).unwrap();
+    let ap = ap_content(&doc, &list(&doc, 0)[poly]);
+    assert!(ap.contains("h\nW n") && ap.contains("4 w"), "{ap}");
+    stroke_align::set(&mut doc, 0, poly, StrokeAlign::Outside).unwrap();
+    let r = rect(&list(&doc, 0)[poly]);
+    assert!(r[0] <= 297.0 && r[2] >= 403.0 && r[3] >= 383.0, "room for the outside stroke: {r:?}");
+
+    // What a reader sees after saving.
+    let doc = reopen(&doc);
+    assert_eq!(stroke_align::of(&list(&doc, 0)[poly]), Some(StrokeAlign::Outside));
+}

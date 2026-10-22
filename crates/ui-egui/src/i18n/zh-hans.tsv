@@ -2968,3 +2968,9 @@ animation effects	Off	关
 	Centre line	中心线
 	Inside face	内侧面
 	Outside face	外侧面
+	Inside	内侧
+	Outside	外侧
+	Stroke	描边
+	Where the line's thickness lies when the shape is closed: centred on the path, inside it or outside it (open lines are centred)	封闭形状的线宽位置：居中于路径、在内侧或在外侧（开放线条居中）
+	Where the line's thickness lies: centred on the path, inside it or outside it	线宽位置：居中于路径、在内侧或在外侧
+	Align stroke	对齐描边

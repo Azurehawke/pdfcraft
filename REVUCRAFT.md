@@ -210,6 +210,11 @@ Markup and measuring
       face (the thickness goes out of the room, for tracing existing walls) or the outside face; the
       room is the side the run turns towards, and Flip side sends a straight run's thickness the
       other way. The preview shows the side before each click.
+- [x] **(Steve, build 130)** Stroke alignment, as VectorCraft's Align Stroke: closed shapes (rectangles,
+      circles, ellipses, polygons, closed polylines and splines; drafted or marked up) stroke centred
+      on their path, inside it or outside it. The Draft ribbon sets it for new shapes and the
+      Properties box for any closed shape (several at once); the shape stays where it was drawn.
+      Open lines stroke centred.
 - [ ] **(Steve, later update)** Folder mappings per device (`M:\Jobs` on the PC = `Sync/Jobs` on the
       tablet), for drawings kept outside the PDF's folder.
 

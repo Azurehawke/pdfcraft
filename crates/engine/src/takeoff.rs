@@ -161,6 +161,14 @@ impl Document {
         listing.measurements.iter().any(|m| names::clean(&m.name).as_deref() != Some(m.name.as_str()) || !seen.insert(m.name.to_lowercase()))
     }
 
+    /// How the stroke of the shape at (`page`, `index`) lies against its path; `None` when it
+    /// isn't a closed shape.
+    pub fn stroke_align(&self, page: usize, index: usize) -> Option<pdfcraft_annot::stroke_align::StrokeAlign> {
+        let e = self.editor.as_ref()?;
+        let d = pdfcraft_annot::photo_callout::dict_at(&e.cos, page, index)?;
+        pdfcraft_annot::stroke_align::effective(&d)
+    }
+
     /// The name of the measurement at (`page`, `index`); `None` when it isn't a measurement.
     pub fn measurement_name(&self, page: usize, index: usize) -> Option<String> {
         let e = self.editor.as_ref()?;

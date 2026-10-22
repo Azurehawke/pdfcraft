@@ -3277,3 +3277,9 @@ certificate	Version	الإصدار
 	Centre line	المحور
 	Inside face	الوجه الداخلي
 	Outside face	الوجه الخارجي
+	Inside	الداخل
+	Outside	الخارج
+	Stroke	الحد
+	Where the line's thickness lies when the shape is closed: centred on the path, inside it or outside it (open lines are centred)	أين يقع سُمك الخط عندما يكون الشكل مغلقًا: في منتصف المسار أو داخله أو خارجه (الخطوط المفتوحة في المنتصف)
+	Where the line's thickness lies: centred on the path, inside it or outside it	أين يقع سُمك الخط: في منتصف المسار أو داخله أو خارجه
+	Align stroke	محاذاة الحد

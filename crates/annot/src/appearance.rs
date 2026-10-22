@@ -412,6 +412,19 @@ pub fn build(d: &Dict) -> Option<Stream> {
                 ));
             }
         }
+        b"Square" | b"Circle" if crate::stroke_align::of(d).is_some() => {
+            // The path is the box less /RD; the stroke lies against it as aligned.
+            let align = crate::stroke_align::of(d).unwrap_or_default();
+            let fill = interior_color(d, None);
+            let [x0, y0, x1, y1] = crate::stroke_align::shape_box(d)?;
+            let path = if subtype == b"Square" { format!("{} {} {} {} re\n", n(x0), n(y0), n(x1 - x0), n(y1 - y0)) } else { ellipse(x0, y0, x1, y1) };
+            if let Some(f) = fill {
+                c.push_str(&format!("{}{path}f\n", rg(f)));
+            }
+            if let Some(s) = stroke.filter(|_| w > 0.0) {
+                c.push_str(&aligned_stroke(&path, align, rect, &format!("{}{}", rg_stroke(s), dash(d)), w));
+            }
+        }
         b"Square" | b"Circle" => {
             let fill = interior_color(d, None);
             if stroke.is_none() && fill.is_none() {
@@ -516,29 +529,46 @@ pub fn build(d: &Dict) -> Option<Stream> {
             } else {
                 None
             };
-            if let Some(f) = fill {
-                c.push_str(&rg(f));
-            }
-            if let Some(s) = col {
-                c.push_str(&format!("{}{} w {}\n{}", rg_stroke(s), n(w), joins(d), dash(d)));
-            }
-            if cloudy {
-                let intensity = d.get(b"BE").and_then(|b| b.as_dict()).and_then(|b| b.get(b"I")).and_then(|i| i.as_f64()).unwrap_or(1.0);
-                c.push_str(&cloud_path(&pts, cloud_radius(w) * intensity.clamp(0.5, 2.0)));
-            } else {
+            // A closed shape's stroke inside or outside its path (`crate::stroke_align`).
+            let aligned =
+                crate::stroke_align::of(d).filter(|a| closed && !cloudy && *a != crate::stroke_align::StrokeAlign::Center && !d.contains(b"IT"));
+            if let Some(align) = aligned {
+                let mut path = String::new();
                 for (i, p) in pts.iter().enumerate() {
-                    c.push_str(&format!("{} {} {}\n", n(p.0), n(p.1), if i == 0 { "m" } else { "l" }));
+                    path.push_str(&format!("{} {} {}\n", n(p.0), n(p.1), if i == 0 { "m" } else { "l" }));
                 }
-                if closed {
-                    c.push_str("h\n");
+                path.push_str("h\n");
+                if let Some(f) = fill {
+                    c.push_str(&format!("{}{path}f\n", rg(f)));
                 }
+                if let Some(s) = col.filter(|_| w > 0.0) {
+                    c.push_str(&aligned_stroke(&path, align, rect, &format!("{}{}\n{}", rg_stroke(s), joins(d), dash(d)), w));
+                }
+            } else {
+                if let Some(f) = fill {
+                    c.push_str(&rg(f));
+                }
+                if let Some(s) = col {
+                    c.push_str(&format!("{}{} w {}\n{}", rg_stroke(s), n(w), joins(d), dash(d)));
+                }
+                if cloudy {
+                    let intensity = d.get(b"BE").and_then(|b| b.as_dict()).and_then(|b| b.get(b"I")).and_then(|i| i.as_f64()).unwrap_or(1.0);
+                    c.push_str(&cloud_path(&pts, cloud_radius(w) * intensity.clamp(0.5, 2.0)));
+                } else {
+                    for (i, p) in pts.iter().enumerate() {
+                        c.push_str(&format!("{} {} {}\n", n(p.0), n(p.1), if i == 0 { "m" } else { "l" }));
+                    }
+                    if closed {
+                        c.push_str("h\n");
+                    }
+                }
+                c.push_str(match (fill.is_some(), col.is_some() && w > 0.0) {
+                    (true, true) => "B\n",
+                    (true, false) => "f\n",
+                    (false, true) => "S\n",
+                    (false, false) => "n\n",
+                });
             }
-            c.push_str(match (fill.is_some(), col.is_some() && w > 0.0) {
-                (true, true) => "B\n",
-                (true, false) => "f\n",
-                (false, true) => "S\n",
-                (false, false) => "n\n",
-            });
             if let Some(ends) = ends {
                 let col = col?;
                 let (Some(start), Some(end)) = (ends.first(), ends.get(1)) else { return None };
@@ -1026,6 +1056,21 @@ fn stamp(kind: crate::StampKind, rect: [f64; 4], col: Rgb, by: Option<&str>, opa
 }
 
 /// An ellipse inscribed in a rectangle, as four Bézier arcs.
+/// A stroke of width `w` along `path` (path operators, unpainted) lying against it as `align`
+/// says: centred, or drawn twice as wide and clipped to the path's inside, or to its outside
+/// within `bbox`. `style` sets the colour and dashes.
+fn aligned_stroke(path: &str, align: crate::stroke_align::StrokeAlign, bbox: [f64; 4], style: &str, w: f64) -> String {
+    use crate::stroke_align::StrokeAlign;
+    match align {
+        StrokeAlign::Center => format!("q {style}{} w\n{path}S Q\n", n(w)),
+        StrokeAlign::Inside => format!("q {path}W n\n{style}{} w\n{path}S Q\n", n(w * 2.0)),
+        StrokeAlign::Outside => {
+            let [x0, y0, x1, y1] = bbox;
+            format!("q {} {} {} {} re\n{path}W* n\n{style}{} w\n{path}S Q\n", n(x0), n(y0), n(x1 - x0), n(y1 - y0), n(w * 2.0))
+        }
+    }
+}
+
 fn ellipse(x0: f64, y0: f64, x1: f64, y1: f64) -> String {
     let k = 0.552_284_75;
     let (cx, cy, rx, ry) = ((x0 + x1) / 2.0, (y0 + y1) / 2.0, (x1 - x0) / 2.0, (y1 - y0) / 2.0);

@@ -2966,3 +2966,9 @@ animation effects	Off	Изключени
 	Centre line	Ос
 	Inside face	Вътрешна страна
 	Outside face	Външна страна
+	Inside	Вътре
+	Outside	Отвън
+	Stroke	Контур
+	Where the line's thickness lies when the shape is closed: centred on the path, inside it or outside it (open lines are centred)	Къде е дебелината на линията при затворена фигура: центрирана по контура, отвътре или отвън (отворените линии са центрирани)
+	Where the line's thickness lies: centred on the path, inside it or outside it	Къде е дебелината на линията: центрирана по контура, отвътре или отвън
+	Align stroke	Подравняване на контура

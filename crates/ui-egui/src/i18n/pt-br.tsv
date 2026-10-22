@@ -3015,3 +3015,9 @@ animation effects	Off	Desativados
 	Centre line	Linha de centro
 	Inside face	Face interna
 	Outside face	Face externa
+	Inside	Interno
+	Outside	Externo
+	Stroke	Traço
+	Where the line's thickness lies when the shape is closed: centred on the path, inside it or outside it (open lines are centred)	Onde fica a espessura da linha quando a forma é fechada: centrada no caminho, por dentro ou por fora (linhas abertas ficam centradas)
+	Where the line's thickness lies: centred on the path, inside it or outside it	Onde fica a espessura da linha: centrada no caminho, por dentro ou por fora
+	Align stroke	Alinhar traço

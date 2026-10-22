@@ -39,6 +39,7 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
     let callout_side = doc.callout_side(page, ai);
     let fields = doc.annotation_fields(page, ai);
     let measurement_name = doc.measurement_name(page, ai);
+    let stroke_align = doc.stroke_align(page, ai);
     let columns = app.markup_columns.clone();
     let (new_side, new_height) = (app.symbols.callout_side, crate::revu::callout_height(&app.symbols));
     // The direction of the line or wall nearest the symbol, for lining it up.
@@ -99,6 +100,17 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
                         let r = ui.add(egui::DragValue::new(w).range(min_width..=24.0).speed(0.1).suffix(" pt"));
                         commit |= r.drag_stopped() || r.lost_focus() || (r.changed() && !r.dragged() && !r.has_focus());
                         ui.end_row();
+                    }
+                    // A closed shape: where its stroke lies against its path.
+                    if let Some(current) = stroke_align {
+                        let mut choice = current;
+                        let tip = tl!("Where the line's thickness lies: centred on the path, inside it or outside it");
+                        ui.label(tl!("Stroke")).on_hover_text(tip);
+                        ui.horizontal(|ui| crate::draft::stroke_align_buttons(ui, &mut choice, tip));
+                        ui.end_row();
+                        if choice != current {
+                            extra.push(Edit::SetStrokeAlign { page, index: ai, align: choice });
+                        }
                     }
                 }
                 // Layer.
@@ -281,6 +293,13 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
             let props = doc.comment_props(page, other);
             let fit = props.as_ref().map_or((false, false, false), |p| (p.restylable, p.width.is_some(), p.fillable));
             more_edits.extend(edits.iter().filter_map(|e| retarget(e, other, fit)));
+            // A stroke's alignment goes to the other closed shapes.
+            if doc.stroke_align(page, other).is_some() {
+                more_edits.extend(edits.iter().filter_map(|e| match e {
+                    Edit::SetStrokeAlign { page, align, .. } => Some(Edit::SetStrokeAlign { page: *page, index: other, align: *align }),
+                    _ => None,
+                }));
+            }
         }
         edits.extend(more_edits);
     }

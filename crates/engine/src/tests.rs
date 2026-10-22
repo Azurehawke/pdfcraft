@@ -6658,3 +6658,48 @@ fn quantities_are_listed_with_their_names_and_sending_is_recorded() {
     s.undo(id).unwrap();
     assert_eq!(s.get(id).unwrap().takeoff_record(), None);
 }
+
+#[test]
+fn a_drafted_shapes_stroke_is_aligned_and_changes_with_the_shape() {
+    use pdfcraft_annot::stroke_align::StrokeAlign;
+    let mut s = Session::default();
+    let id = s.open("plan.pdf", None, Arc::new(fixture(1)), None).unwrap();
+    let circle = |align| Edit::AddDraftShape {
+        new: NewAnnotation {
+            page: 0,
+            shape: Shape::Oval { rect: [100.0, 100.0, 200.0, 200.0] },
+            style: Style { color: [0.0, 0.0, 0.0], opacity: 1.0, width: 6.0, fill: None },
+            contents: String::new(),
+            author: "Steve".into(),
+        },
+        real_width: None,
+        caption: None,
+        align,
+    };
+    s.apply(id, circle(Some(StrokeAlign::Outside))).unwrap();
+    let doc = s.get(id).unwrap();
+    let a = doc.info.annotations.iter().find(|a| a.subtype == "Circle").unwrap().clone();
+    assert_eq!(doc.stroke_align(a.page, a.index), Some(StrokeAlign::Outside));
+    assert_eq!(a.rect.map(f64::from), [94.0, 94.0, 206.0, 206.0], "6 pt of room outside the 100 pt circle");
+    // Inside: the box shrinks back to the circle; undo puts Outside back.
+    s.apply(id, Edit::SetStrokeAlign { page: a.page, index: a.index, align: StrokeAlign::Inside }).unwrap();
+    let r = s.get(id).unwrap().info.annotations.iter().find(|x| x.subtype == "Circle").unwrap().rect;
+    assert_eq!(r.map(f64::from), [100.0, 100.0, 200.0, 200.0]);
+    s.undo(id).unwrap();
+    assert_eq!(s.get(id).unwrap().stroke_align(a.page, a.index), Some(StrokeAlign::Outside));
+    // A line can't be aligned, and the edit says so.
+    s.apply(
+        id,
+        Edit::AddAnnotation(NewAnnotation {
+            page: 0,
+            shape: Shape::Line { from: [10.0, 10.0], to: [90.0, 10.0], start: LineEnding::None, end: LineEnding::None },
+            style: Style::default(),
+            contents: String::new(),
+            author: "Steve".into(),
+        }),
+    )
+    .unwrap();
+    let line = s.get(id).unwrap().info.annotations.iter().find(|x| x.subtype == "Line").unwrap().index;
+    assert_eq!(s.get(id).unwrap().stroke_align(0, line), None);
+    assert!(s.apply(id, Edit::SetStrokeAlign { page: 0, index: line, align: StrokeAlign::Outside }).is_err());
+}

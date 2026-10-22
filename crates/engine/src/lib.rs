@@ -149,7 +149,7 @@ pub use pdfcraft_annot::{
     AppearanceCache, AttachIcon, FillMark, LineEnding, Markup, NOTE_SIZE, NewAnnotation, NoteIcon, OverlayFont, OverlayLook, PenKind,
     Props as CommentProps, ReviewState, Rgb, Shape, StampGroup, StampKind, Style, rect_quad,
 };
-pub use pdfcraft_annot::{fields, geometry, layers, photo_callout, svg_art, symbols};
+pub use pdfcraft_annot::{fields, geometry, layers, photo_callout, stroke_align, svg_art, symbols};
 pub use pdfcraft_create::report;
 pub use pdfcraft_forms::detect;
 pub use pdfcraft_optimize as optimize;
@@ -282,6 +282,7 @@ fn scope_of(edit: &Edit) -> Scope {
         | Edit::EditSymbol { .. }
         | Edit::SetCalloutSide { .. }
         | Edit::SetAnnotationField { .. }
+        | Edit::SetStrokeAlign { .. }
         | Edit::RenameMeasurement { .. }
         | Edit::NameMeasurements
         | Edit::StyleAnnotation { .. }
@@ -1527,6 +1528,8 @@ pub enum Edit {
         real_width: Option<f64>,
         /// A reading shown on it (an angle) and the subject it is listed by.
         caption: Option<(String, String)>,
+        /// Where a closed shape's stroke lies against its path (`None`: as it is drawn by default).
+        align: Option<pdfcraft_annot::stroke_align::StrokeAlign>,
     },
     /// A custom stamp from a picture file (a PDF page or an image) on `page`. A zero-size
     /// `rect` is a point: the stamp is centred there at its natural size (at most 200 pt).
@@ -1679,6 +1682,12 @@ pub enum Edit {
         whole_document: bool,
         title: String,
         author: String,
+    },
+    /// RevuCraft: where a closed shape's stroke lies against its path (centre, inside, outside).
+    SetStrokeAlign {
+        page: usize,
+        index: usize,
+        align: pdfcraft_annot::stroke_align::StrokeAlign,
     },
     /// RevuCraft: set one of your own columns on a markup (an empty value clears it).
     SetAnnotationField {
@@ -2220,6 +2229,7 @@ pub const EDIT_LABELS: &[&str] = &[
     "Place linked drawing",
     "Place linked table",
     "Rename measurement",
+    "Align stroke",
     "Resize table",
     "Remove from the sheet",
     "Name measurements",
@@ -2390,6 +2400,7 @@ impl Edit {
             Edit::PlaceCadLink { .. } => Label::of("Place linked drawing"),
             Edit::PlaceTableLink { .. } => Label::of("Place linked table"),
             Edit::RenameMeasurement { .. } => Label::of("Rename measurement"),
+            Edit::SetStrokeAlign { .. } => Label::of("Align stroke"),
             Edit::ResizeCadLink { .. } => Label::of("Resize table"),
             Edit::RemoveCadLink { .. } => Label::of("Remove from the sheet"),
             Edit::NameMeasurements => Label::of("Name measurements"),
@@ -2523,6 +2534,7 @@ fn check_permission(edit: &Edit, p: &pdfcraft_cos::Permissions) -> Result<(), Ed
         | Edit::PinToCallout { .. }
         | Edit::SetCalloutSide { .. }
         | Edit::SetAnnotationField { .. }
+        | Edit::SetStrokeAlign { .. }
         | Edit::RenameMeasurement { .. }
         | Edit::NameMeasurements
         | Edit::StyleAnnotation { .. }
@@ -2818,10 +2830,13 @@ fn run_edit(doc: &mut pdfcraft_cos::Document, edit: &Edit, cx: &mut EditCtx) -> 
             let index = pdfcraft_annot::add_annotation(doc, a, &cx.meta())?;
             cx.place_on_layer(doc, a.page, index)?;
         }
-        Edit::AddDraftShape { new, real_width, caption } => {
+        Edit::AddDraftShape { new, real_width, caption, align } => {
             let index = pdfcraft_annot::add_annotation(doc, new, &cx.meta())?;
             if let Some(inches) = real_width {
                 pdfcraft_annot::geometry::mark_real_width(doc, new.page, index, *inches)?;
+            }
+            if let Some(a) = align {
+                pdfcraft_annot::stroke_align::set(doc, new.page, index, *a)?;
             }
             if let Some((text, subject)) = caption {
                 pdfcraft_annot::geometry::set_caption(doc, new.page, index, text, subject)?;
@@ -2947,6 +2962,7 @@ fn run_edit(doc: &mut pdfcraft_cos::Document, edit: &Edit, cx: &mut EditCtx) -> 
             }
             pdfcraft_annot::delete_annotation(doc, *page, *index)?;
         }
+        Edit::SetStrokeAlign { page, index, align } => pdfcraft_annot::stroke_align::set(doc, *page, *index, *align)?,
         Edit::SetAnnotationField { page, index, name, value } => pdfcraft_annot::fields::set_field(doc, *page, *index, name, value, &cx.meta())?,
         Edit::SetCalloutSide { page, index, side } => pdfcraft_annot::photo_callout::set_side(doc, *page, *index, *side, &cx.meta())?,
         Edit::EditSymbol { page, index, label, rotation } => {

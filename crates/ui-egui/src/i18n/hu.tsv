@@ -3001,3 +3001,9 @@ animation effects	Off	Ki
 	Centre line	Tengely
 	Inside face	Belső sík
 	Outside face	Külső sík
+	Inside	Belül
+	Outside	Kívül
+	Stroke	Körvonal
+	Where the line's thickness lies when the shape is closed: centred on the path, inside it or outside it (open lines are centred)	Hol van a vonalvastagság zárt alakzatnál: a vonal közepén, belül vagy kívül (a nyitott vonalak középen)
+	Where the line's thickness lies: centred on the path, inside it or outside it	Hol van a vonalvastagság: a vonal közepén, belül vagy kívül
+	Align stroke	Körvonal igazítása
