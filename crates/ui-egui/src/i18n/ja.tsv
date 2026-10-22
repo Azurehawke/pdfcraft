@@ -2971,7 +2971,6 @@ animation effects	Off	オフ
 	Given when sent	送信時に付けられます
 	Its quantity's name in the workbook's Takeoff sheet, for formulas such as ={name}*6.50	ブックの Takeoff シートでの数量の名前。={name}*6.50 のような数式に使えます
 	New workbook…	新しいブック…
-	No table from a workbook is placed in this document yet.	この文書にはまだブックの表が配置されていません。
 	Quantities	数量
 	Quantities are sent to XLSX workbooks; {name} isn't one.	数量は XLSX ブックに送信されます。{name} は XLSX ではありません。
 	RevuCraft writes a Takeoff sheet into the workbook: one row per measurement and symbol count, each quantity a named cell, so formulas such as =Kitchen_floor*6.50 follow the drawing. The rest of the workbook is left as it is.	RevuCraft はブックに Takeoff シートを書き込みます。計測とシンボル数ごとに 1 行、各数量は名前付きセルになるため、=Kitchen_floor*6.50 のような数式が図面に追従します。ブックのほかの部分はそのままです。

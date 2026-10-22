@@ -3184,7 +3184,6 @@ certificate	SHA-256 digest	Impronta SHA-256
 	Given when sent	Assegnato all’invio
 	Its quantity's name in the workbook's Takeoff sheet, for formulas such as ={name}*6.50	Il nome della sua quantità nel foglio Takeoff della cartella di lavoro, per formule come ={name}*6.50
 	New workbook…	Nuova cartella di lavoro…
-	No table from a workbook is placed in this document yet.	In questo documento non è ancora posizionata alcuna tabella da una cartella di lavoro.
 	Quantities	Quantità
 	Quantities are sent to XLSX workbooks; {name} isn't one.	Le quantità vengono inviate a cartelle di lavoro XLSX; {name} non lo è.
 	RevuCraft writes a Takeoff sheet into the workbook: one row per measurement and symbol count, each quantity a named cell, so formulas such as =Kitchen_floor*6.50 follow the drawing. The rest of the workbook is left as it is.	RevuCraft scrive un foglio Takeoff nella cartella di lavoro: una riga per misura e conteggio di simboli, ogni quantità una cella denominata, così formule come =Kitchen_floor*6.50 seguono il disegno. Il resto della cartella resta com’è.

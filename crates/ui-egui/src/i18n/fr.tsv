@@ -2969,7 +2969,6 @@ animation effects	Off	Désactivés
 	Given when sent	Donné à l’envoi
 	Its quantity's name in the workbook's Takeoff sheet, for formulas such as ={name}*6.50	Le nom de sa quantité dans la feuille Takeoff du classeur, pour des formules comme ={name}*6.50
 	New workbook…	Nouveau classeur…
-	No table from a workbook is placed in this document yet.	Aucun tableau d’un classeur n’est encore placé dans ce document.
 	Quantities	Quantités
 	Quantities are sent to XLSX workbooks; {name} isn't one.	Les quantités sont envoyées à des classeurs XLSX ; {name} n’en est pas un.
 	RevuCraft writes a Takeoff sheet into the workbook: one row per measurement and symbol count, each quantity a named cell, so formulas such as =Kitchen_floor*6.50 follow the drawing. The rest of the workbook is left as it is.	RevuCraft écrit une feuille Takeoff dans le classeur : une ligne par mesure et par comptage de symboles, chaque quantité une cellule nommée, pour que des formules comme =Kitchen_floor*6.50 suivent le dessin. Le reste du classeur reste tel quel.

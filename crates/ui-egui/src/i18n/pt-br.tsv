@@ -2981,7 +2981,6 @@ animation effects	Off	Desativados
 	Given when sent	Definido ao enviar
 	Its quantity's name in the workbook's Takeoff sheet, for formulas such as ={name}*6.50	O nome da quantidade na planilha Takeoff da pasta de trabalho, para fórmulas como ={name}*6.50
 	New workbook…	Nova pasta de trabalho…
-	No table from a workbook is placed in this document yet.	Nenhuma tabela de pasta de trabalho foi posicionada neste documento ainda.
 	Quantities	Quantidades
 	Quantities are sent to XLSX workbooks; {name} isn't one.	As quantidades são enviadas para pastas de trabalho XLSX; {name} não é uma.
 	RevuCraft writes a Takeoff sheet into the workbook: one row per measurement and symbol count, each quantity a named cell, so formulas such as =Kitchen_floor*6.50 follow the drawing. The rest of the workbook is left as it is.	O RevuCraft grava uma planilha Takeoff na pasta de trabalho: uma linha por medição e contagem de símbolos, cada quantidade uma célula nomeada, para que fórmulas como =Kitchen_floor*6.50 acompanhem o desenho. O restante da pasta fica como está.

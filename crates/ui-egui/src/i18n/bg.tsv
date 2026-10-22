@@ -2932,7 +2932,6 @@ animation effects	Off	Изключени
 	Given when sent	Дава се при изпращане
 	Its quantity's name in the workbook's Takeoff sheet, for formulas such as ={name}*6.50	Името на количеството му в листа Takeoff на работната книга, за формули като ={name}*6.50
 	New workbook…	Нова работна книга…
-	No table from a workbook is placed in this document yet.	В този документ все още няма поставена таблица от работна книга.
 	Quantities	Количества
 	Quantities are sent to XLSX workbooks; {name} isn't one.	Количествата се изпращат до работни книги XLSX; {name} не е такава.
 	RevuCraft writes a Takeoff sheet into the workbook: one row per measurement and symbol count, each quantity a named cell, so formulas such as =Kitchen_floor*6.50 follow the drawing. The rest of the workbook is left as it is.	RevuCraft записва лист Takeoff в работната книга: по ред за всяко измерване и брой символи, всяко количество е именувана клетка, така че формули като =Kitchen_floor*6.50 следват чертежа. Останалата част от книгата остава непроменена.

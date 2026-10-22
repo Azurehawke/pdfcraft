@@ -194,7 +194,7 @@ Markup and measuring
       layer. It is listed in Links, updates in place (keeping its top-left corner) when the workbook
       changes, and Edit original opens it in GridCraft. The Workbook box shows the whole workbook
       read-only; CSV and TSV columns are as wide as their text.
-- [x] **(Steve, build 124)** Named measurements and Send quantities: measurements are named as
+- [x] **(Steve, build 125)** Named measurements and Send quantities: measurements are named as
       drawn (their label, else Area_1, Distance_2, Cable_run_3…) and renamed in the Properties box;
       the Markups list shows the names. Send quantities (Measure ribbon, Markups list, Links pane,
       Workbook box) writes every measurement and symbol count to an XLSX workbook's Takeoff sheet,

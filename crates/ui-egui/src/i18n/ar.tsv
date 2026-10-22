@@ -3243,7 +3243,6 @@ certificate	Version	الإصدار
 	Given when sent	يُعطى عند الإرسال
 	Its quantity's name in the workbook's Takeoff sheet, for formulas such as ={name}*6.50	اسم كميته في ورقة Takeoff في المصنف، لصيغ مثل ={name}*6.50
 	New workbook…	مصنف جديد…
-	No table from a workbook is placed in this document yet.	لم يُوضع بعد أي جدول من مصنف في هذا المستند.
 	Quantities	الكميات
 	Quantities are sent to XLSX workbooks; {name} isn't one.	تُرسل الكميات إلى مصنفات XLSX، و{name} ليس منها.
 	RevuCraft writes a Takeoff sheet into the workbook: one row per measurement and symbol count, each quantity a named cell, so formulas such as =Kitchen_floor*6.50 follow the drawing. The rest of the workbook is left as it is.	يكتب RevuCraft ورقة Takeoff في المصنف: صف لكل قياس ولكل عدد رموز، وكل كمية خلية مسمّاة، لتتبع صيغ مثل =Kitchen_floor*6.50 الرسم. ويبقى باقي المصنف كما هو.

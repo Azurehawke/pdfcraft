@@ -2969,7 +2969,6 @@ animation effects	Off	Aus
 	Given when sent	Wird beim Senden vergeben
 	Its quantity's name in the workbook's Takeoff sheet, for formulas such as ={name}*6.50	Der Name ihrer Menge im Blatt „Takeoff“ der Arbeitsmappe, für Formeln wie ={name}*6.50
 	New workbook…	Neue Arbeitsmappe…
-	No table from a workbook is placed in this document yet.	In diesem Dokument ist noch keine Tabelle aus einer Arbeitsmappe platziert.
 	Quantities	Mengen
 	Quantities are sent to XLSX workbooks; {name} isn't one.	Mengen werden an XLSX-Arbeitsmappen gesendet; {name} ist keine.
 	RevuCraft writes a Takeoff sheet into the workbook: one row per measurement and symbol count, each quantity a named cell, so formulas such as =Kitchen_floor*6.50 follow the drawing. The rest of the workbook is left as it is.	RevuCraft schreibt ein Blatt „Takeoff“ in die Arbeitsmappe: eine Zeile je Messung und Symbolanzahl, jede Menge eine benannte Zelle, sodass Formeln wie =Kitchen_floor*6.50 der Zeichnung folgen. Der Rest der Arbeitsmappe bleibt unverändert.

@@ -2934,7 +2934,6 @@ animation effects	Off	关
 	Given when sent	发送时指定
 	Its quantity's name in the workbook's Takeoff sheet, for formulas such as ={name}*6.50	其数量在工作簿 Takeoff 工作表中的名称，可用于 ={name}*6.50 等公式
 	New workbook…	新建工作簿…
-	No table from a workbook is placed in this document yet.	此文档中尚未放置来自工作簿的表格。
 	Quantities	数量
 	Quantities are sent to XLSX workbooks; {name} isn't one.	数量只能发送到 XLSX 工作簿；{name} 不是。
 	RevuCraft writes a Takeoff sheet into the workbook: one row per measurement and symbol count, each quantity a named cell, so formulas such as =Kitchen_floor*6.50 follow the drawing. The rest of the workbook is left as it is.	RevuCraft 会在工作簿中写入 Takeoff 工作表：每项测量和符号计数一行，每个数量都是命名单元格，因此 =Kitchen_floor*6.50 等公式会随图纸更新。工作簿的其余部分保持不变。

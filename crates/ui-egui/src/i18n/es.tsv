@@ -2653,7 +2653,6 @@ animation effects	Off	Desactivados
 	Given when sent	Se asigna al enviar
 	Its quantity's name in the workbook's Takeoff sheet, for formulas such as ={name}*6.50	El nombre de su cantidad en la hoja Takeoff del libro, para fórmulas como ={name}*6.50
 	New workbook…	Libro nuevo…
-	No table from a workbook is placed in this document yet.	Todavía no hay ninguna tabla de un libro colocada en este documento.
 	Quantities	Cantidades
 	Quantities are sent to XLSX workbooks; {name} isn't one.	Las cantidades se envían a libros XLSX; {name} no lo es.
 	RevuCraft writes a Takeoff sheet into the workbook: one row per measurement and symbol count, each quantity a named cell, so formulas such as =Kitchen_floor*6.50 follow the drawing. The rest of the workbook is left as it is.	RevuCraft escribe una hoja Takeoff en el libro: una fila por medición y recuento de símbolos, cada cantidad una celda con nombre, para que fórmulas como =Kitchen_floor*6.50 sigan al plano. El resto del libro queda como está.
