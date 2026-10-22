@@ -194,9 +194,14 @@ Markup and measuring
       layer. It is listed in Links, updates in place (keeping its top-left corner) when the workbook
       changes, and Edit original opens it in GridCraft. The Workbook box shows the whole workbook
       read-only; CSV and TSV columns are as wide as their text.
-- [ ] **(Steve, next update)** Send quantities: symbol counts, cable runs and measurement totals
-      written into a Takeoff sheet of the linked workbook (only that sheet is rewritten), offered
-      again when GridCraft saves over it.
+- [x] **(Steve, build 124)** Named measurements and Send quantities: measurements are named as
+      drawn (their label, else Area_1, Distance_2, Cable_run_3…) and renamed in the Properties box;
+      the Markups list shows the names. Send quantities (Measure ribbon, Markups list, Links pane,
+      Workbook box) writes every measurement and symbol count to an XLSX workbook's Takeoff sheet,
+      each quantity a named cell (`=Kitchen_floor*6.50`); only that sheet, the workbook's names and
+      its calculation setting are rewritten. The Links pane says when the drawing changed since, or
+      the workbook was saved without the latest quantities, and sends them again; tables placed
+      from the workbook update.
 - [ ] **(Steve, later update)** Folder mappings per device (`M:\Jobs` on the PC = `Sync/Jobs` on the
       tablet), for drawings kept outside the PDF's folder.
 

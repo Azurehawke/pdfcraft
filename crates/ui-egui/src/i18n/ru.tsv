@@ -2907,3 +2907,4 @@ animation effects	Off	Выкл
 	{name} was saved without the latest quantities (it was open when they were sent).	{name} сохранена без последних количеств (она была открыта при отправке).
 	Rename measurement	Переименовать измерение
 	Name measurements	Назвать измерения
+	No XLSX workbook is placed in this document yet (a CSV can't hold a Takeoff sheet).	В этом документе ещё нет книги XLSX (в CSV нельзя поместить лист Takeoff).

@@ -2991,3 +2991,4 @@ animation effects	Off	Aus
 	{name} was saved without the latest quantities (it was open when they were sent).	{name} wurde ohne die neuesten Mengen gespeichert (sie war beim Senden geöffnet).
 	Rename measurement	Messung umbenennen
 	Name measurements	Messungen benennen
+	No XLSX workbook is placed in this document yet (a CSV can't hold a Takeoff sheet).	In diesem Dokument ist noch keine XLSX-Arbeitsmappe platziert (eine CSV-Datei kann kein Blatt „Takeoff“ aufnehmen).

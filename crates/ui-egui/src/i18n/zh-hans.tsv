@@ -2956,3 +2956,4 @@ animation effects	Off	关
 	{name} was saved without the latest quantities (it was open when they were sent).	{name} 保存时没有最新的数量（发送时它处于打开状态）。
 	Rename measurement	重命名测量
 	Name measurements	为测量命名
+	No XLSX workbook is placed in this document yet (a CSV can't hold a Takeoff sheet).	此文档中尚未放置 XLSX 工作簿（CSV 无法包含 Takeoff 工作表）。

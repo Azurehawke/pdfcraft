@@ -304,7 +304,7 @@ pub(crate) fn dialog(app: &mut PdfCraftApp, ctx: &egui::Context) {
         );
         ui.add_space(8.0);
         if d.choices.is_empty() {
-            ui.label(tl!("No table from a workbook is placed in this document yet."));
+            ui.label(tl!("No XLSX workbook is placed in this document yet (a CSV can't hold a Takeoff sheet)."));
         } else {
             ui.label(egui::RichText::new(tl!("Workbooks placed in this document")).font(theme::semibold(13.0)));
             for (i, p) in d.choices.iter().enumerate() {

@@ -3265,3 +3265,4 @@ certificate	Version	الإصدار
 	{name} was saved without the latest quantities (it was open when they were sent).	حُفظ {name} دون أحدث الكميات (كان مفتوحًا عند إرسالها).
 	Rename measurement	إعادة تسمية القياس
 	Name measurements	تسمية القياسات
+	No XLSX workbook is placed in this document yet (a CSV can't hold a Takeoff sheet).	لم يُوضع بعد أي مصنف XLSX في هذا المستند (لا يمكن لملف CSV أن يحتوي على ورقة Takeoff).

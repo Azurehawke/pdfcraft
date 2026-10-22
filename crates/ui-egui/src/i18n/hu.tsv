@@ -2989,3 +2989,4 @@ animation effects	Off	Ki
 	{name} was saved without the latest quantities (it was open when they were sent).	A(z) {name} a legújabb mennyiségek nélkül lett mentve (nyitva volt a küldéskor).
 	Rename measurement	Mérés átnevezése
 	Name measurements	Mérések elnevezése
+	No XLSX workbook is placed in this document yet (a CSV can't hold a Takeoff sheet).	Ebben a dokumentumban még nincs elhelyezett XLSX-munkafüzet (egy CSV nem tartalmazhat Takeoff lapot).

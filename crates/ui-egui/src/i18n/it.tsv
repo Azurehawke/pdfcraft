@@ -3206,3 +3206,4 @@ certificate	SHA-256 digest	Impronta SHA-256
 	{name} was saved without the latest quantities (it was open when they were sent).	{name} è stato salvato senza le quantità più recenti (era aperto durante l’invio).
 	Rename measurement	Rinomina misura
 	Name measurements	Assegna nomi alle misure
+	No XLSX workbook is placed in this document yet (a CSV can't hold a Takeoff sheet).	In questo documento non è ancora posizionata alcuna cartella di lavoro XLSX (un CSV non può contenere un foglio Takeoff).

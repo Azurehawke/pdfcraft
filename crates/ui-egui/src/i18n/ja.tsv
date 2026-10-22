@@ -2993,3 +2993,4 @@ animation effects	Off	オフ
 	{name} was saved without the latest quantities (it was open when they were sent).	{name} は最新の数量なしで保存されました (送信時に開かれていました)。
 	Rename measurement	計測の名前を変更
 	Name measurements	計測に名前を付ける
+	No XLSX workbook is placed in this document yet (a CSV can't hold a Takeoff sheet).	この文書にはまだ XLSX ブックが配置されていません (CSV には Takeoff シートを入れられません)。

@@ -263,12 +263,12 @@ New sheet
 New sheet at a drawing scale
 New workbook…
 Next measurement
+No XLSX workbook is placed in this document yet (a CSV can't hold a Takeoff sheet).
 No cable runs yet.
 No drawings here.
 No layer
 No layers yet. Add one, then choose it as the current layer: new markups, symbols and photos go on it.
 No markups yet. Everything you draw, measure or place is listed here.
-No table from a workbook is placed in this document yet.
 None (paper size)
 Not calibrated (paper size)
 Not found at this path

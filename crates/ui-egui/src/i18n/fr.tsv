@@ -2991,3 +2991,4 @@ animation effects	Off	Désactivés
 	{name} was saved without the latest quantities (it was open when they were sent).	{name} a été enregistré sans les dernières quantités (il était ouvert lors de l’envoi).
 	Rename measurement	Renommer la mesure
 	Name measurements	Nommer les mesures
+	No XLSX workbook is placed in this document yet (a CSV can't hold a Takeoff sheet).	Aucun classeur XLSX n’est encore placé dans ce document (un CSV ne peut pas contenir de feuille Takeoff).
