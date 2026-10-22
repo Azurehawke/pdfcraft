@@ -111,6 +111,29 @@ jobs:
           shot plan-draft-door "$plan" --workflow draft --quick draft-door --dock tool-chest
           shot plan-draft-wall-side "$plan" --workflow draft --quick draft-wall --wall-side inside --dock layers
           shot plan-draft-rect "$plan" --workflow draft --quick draft-rectangle --dock layers
+          # The pasteboard: a wall line and a box running off the sheet's right edge.
+          pboard="$RUNNER_TEMP/pasteboard.pdf"
+          cat > "$pboard" <<'PDF'
+          %PDF-1.7
+          1 0 obj << /Type /Catalog /Pages 2 0 R >> endobj
+          2 0 obj << /Type /Pages /Kids [3 0 R] /Count 1 >> endobj
+          3 0 obj << /Type /Page /Parent 2 0 R /MediaBox [0 0 1224 792] /Contents 4 0 R /Annots [6 0 R 8 0 R] >> endobj
+          4 0 obj << >> stream
+          3 w 120 120 m 900 120 l 900 640 l 120 640 l h S
+          endstream endobj
+          6 0 obj << /Type /Annot /Subtype /Line /Rect [890 290 1430 310] /L [900 300 1420 300] /BS << /W 6 >> /C [0 0 0] /AP << /N 7 0 R >> >> endobj
+          7 0 obj << /Type /XObject /Subtype /Form /BBox [890 290 1430 310] >> stream
+          0 0 0 RG 6 w 900 300 m 1420 300 l S
+          endstream endobj
+          8 0 obj << /Type /Annot /Subtype /Square /Rect [1100 560 1340 700] /BS << /W 2 >> /C [0.85 0.1 0.1] /AP << /N 9 0 R >> >> endobj
+          9 0 obj << /Type /XObject /Subtype /Form /BBox [1100 560 1340 700] >> stream
+          0.85 0.1 0.1 RG 2 w 1101 561 238 138 re S
+          endstream endobj
+          trailer << /Root 1 0 R >>
+          %%EOF
+          PDF
+          sed -i 's/^          //' "$pboard"
+          shot plan-pasteboard "$pboard" --workflow draft --zoom 50
           shot plan-markup "$plan" --workflow markup
           shot plan-photo-callout "$plan" --workflow symbols --quick photo-callout
           shot plan-cable "$plan" --workflow measure --quick measure-cable

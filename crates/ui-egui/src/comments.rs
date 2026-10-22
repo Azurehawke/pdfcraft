@@ -635,6 +635,9 @@ pub enum SortBy {
 pub(crate) struct PageCx<'a> {
     pub page: usize,
     pub xf: &'a PageXform,
+    /// Where the pointer works on this page: the page, and with RevuCraft's pasteboard the
+    /// area around it ([`crate::pasteboard::zone`]).
+    pub zone: Rect,
     pub info: &'a DocInfo,
     pub tool: QuickTool,
     pub prefs: &'a CommentPrefs,
@@ -814,7 +817,7 @@ pub(crate) fn resized(r: Rect, (hx, hy): (i8, i8), d: egui::Vec2, aspect_ratio: 
 pub(crate) fn page_input(ui: &egui::Ui, resp: &egui::Response, cx: &PageCx<'_>, view: &mut DocView) -> bool {
     let pointer = ui.input(|i| i.pointer.hover_pos());
     let origin = ui.input(|i| i.pointer.press_origin());
-    let page_rect = cx.xf.rect;
+    let page_rect = cx.zone;
     let pressed_here = origin.is_some_and(|o| page_rect.contains(o));
     let over_page = pointer.is_some_and(|p| page_rect.contains(p));
     let fill_grab = fill_grabs(ui, cx, view);
@@ -1145,7 +1148,7 @@ fn grabs(ui: &egui::Ui, cx: &PageCx<'_>, view: &DocView, pick: impl Fn(&Annotati
 /// pointer (egui clears the press origin on release). `None` off the page.
 fn press_point(ui: &egui::Ui, cx: &PageCx<'_>) -> Option<Pos2> {
     let (pointer, origin, down) = ui.input(|i| (i.pointer.hover_pos(), i.pointer.press_origin(), i.pointer.any_down()));
-    (if down { origin } else { pointer }).filter(|p| cx.xf.rect.contains(*p))
+    (if down { origin } else { pointer }).filter(|p| cx.zone.contains(*p))
 }
 
 /// Whether `p` is on a resize handle of the selected comment, when it is a resizable `pick`.
@@ -1296,7 +1299,7 @@ fn select_input(
         }
     }
     // (egui clears the press origin on release, so clicks are located by the pointer.)
-    let on_page = pointer.is_some_and(|p| cx.xf.rect.contains(p));
+    let on_page = pointer.is_some_and(|p| cx.zone.contains(p));
     if resp.clicked() && on_page {
         let follow_link = cx.tool == QuickTool::Select
             && !consumed
@@ -1656,7 +1659,17 @@ pub(crate) fn composer(ctx: &egui::Context, view: &mut DocView, info: &DocInfo, 
         // Scrolled away: keep the draft until the page is back.
         return None;
     };
-    let cx = PageCx { page, xf: &xf, info, tool: QuickTool::Select, prefs, allowed: true, hidden: false, redact_mark: ([0.89, 0.13, 0.13], 1.0) };
+    let cx = PageCx {
+        page,
+        xf: &xf,
+        zone: xf.rect,
+        info,
+        tool: QuickTool::Select,
+        prefs,
+        allowed: true,
+        hidden: false,
+        redact_mark: ([0.89, 0.13, 0.13], 1.0),
+    };
     let anchor = cx.to_screen(c.at);
     let t = Tokens::get(ctx);
     let mut post = false;

@@ -1173,7 +1173,7 @@ pub(crate) fn page_input(
     if !doc.allows_annotation() {
         return;
     }
-    let pos = ui.input(|i| i.pointer.hover_pos()).filter(|p| xf.rect.contains(*p));
+    let pos = ui.input(|i| i.pointer.hover_pos()).filter(|p| cx.zone.contains(*p));
     let pixels_per_unit = f64::from((xf.rect.width() / xf.pw).max(1e-6));
     let tolerance = SNAP_PX / pixels_per_unit;
     value_box(ui, doc, view, cx, tool, settings, pos);

@@ -470,6 +470,8 @@ pub struct DocView {
     /// Screen rects of the pages drawn last frame (hit-testing, tests, automation).
     screen_rects: Vec<(usize, Rect)>,
     screen_xforms: Vec<(usize, PageXform)>,
+    /// RevuCraft: the pasteboard's shapes, read once per edit.
+    pasteboard: crate::pasteboard::Cache,
     /// The scroll viewport on screen last frame.
     viewport_screen: Rect,
     /// Pending zoom anchor: page, fractional position (also in gutters), and viewport offset.
@@ -768,6 +770,7 @@ impl DocView {
             page_heights: info.pages.iter().map(|p| p.height).collect(),
             screen_rects: Vec::new(),
             screen_xforms: Vec::new(),
+            pasteboard: crate::pasteboard::Cache::default(),
             viewport_screen: Rect::NOTHING,
             zoom_anchor: None,
             shown: false,
@@ -2409,6 +2412,8 @@ pub fn document_area(app: &mut PdfCraftApp, index: usize, ui: &mut egui::Ui) {
         }
         return;
     }
+    // RevuCraft's pasteboard: the area around each sheet is part of the drawing.
+    let pasteboard = app.show_ribbon;
     let Some(doc) = app.session.get(app.views[index].id) else { return };
     let info = &doc.info;
     if info.pages.is_empty() {
@@ -2982,13 +2987,22 @@ pub fn document_area(app: &mut PdfCraftApp, index: usize, ui: &mut egui::Ui) {
             // Set again below when the right-click lands on a link.
             view.links.context = None;
         }
+        // Where the pointer works on each page: the page, or with the pasteboard, the area
+        // around it too, within this widget's part of the view.
+        let near: Vec<Rect> = if pasteboard {
+            visible_pages.iter().filter_map(|&i| rects.get(i)).map(|r| snap_to_pixels(r.translate(origin.to_vec2()), ppp)).collect()
+        } else {
+            Vec::new()
+        };
+        let bound = visible.intersect(resp_rect);
         for &i in &visible_pages {
             badge_hover = None;
             let r = snap_to_pixels(rects[i].translate(origin.to_vec2()), ppp);
             if !r.intersects(visible.expand(400.0)) {
                 continue;
             }
-            if pressed && pressed_page.is_none() && pointer.is_some_and(|p| r.contains(p)) {
+            let zone = if pasteboard { crate::pasteboard::zone(r, near.iter().copied(), bound) } else { r };
+            if pressed && pressed_page.is_none() && pointer.is_some_and(|p| zone.contains(p)) {
                 pressed_page = Some(i);
             }
             if r.intersects(visible) {
@@ -3011,6 +3025,9 @@ pub fn document_area(app: &mut PdfCraftApp, index: usize, ui: &mut egui::Ui) {
             let xf = PageXform { rect: r, rot: view.rotation, pw: info.pages[i].width.max(1.0), ph: info.pages[i].height.max(1.0) };
             // Soft shadow + paper.
             painter.add(egui::epaint::Shadow { offset: [0, 3], blur: 14, spread: 0, color: t.page_shadow }.as_shape(r, CornerRadius::ZERO));
+            if pasteboard && !comments_hidden {
+                crate::pasteboard::paint(painter, &mut view.pasteboard, doc, info, i, &xf, t.pasteboard);
+            }
             painter.rect_filled(r, CornerRadius::ZERO, Color32::WHITE);
             if let Some(err) = view.errors.get(&i) {
                 painter.rect_filled(r, CornerRadius::ZERO, Color32::from_rgb(0xFB, 0xF4, 0xF4));
@@ -3134,8 +3151,8 @@ pub fn document_area(app: &mut PdfCraftApp, index: usize, ui: &mut egui::Ui) {
             painter.rect_stroke(r, CornerRadius::ZERO, Stroke::new(0.5, t.border.gamma_multiply(0.8)), egui::StrokeKind::Outside);
 
             // Comments: tools, selection, moving and resizing come before text selection.
-            let pcx = comments::PageCx { page: i, xf: &xf, info, tool, prefs, allowed, hidden: comments_hidden, redact_mark };
-            if let Some(p) = ui.input(|inp| inp.pointer.hover_pos()).filter(|p| xf.rect.contains(*p))
+            let pcx = comments::PageCx { page: i, xf: &xf, zone, info, tool, prefs, allowed, hidden: comments_hidden, redact_mark };
+            if let Some(p) = ui.input(|inp| inp.pointer.hover_pos()).filter(|p| zone.contains(*p))
                 && let Some(page_info) = info.pages.get(i)
             {
                 let (vx, vy) = xf.screen_to_view(p);

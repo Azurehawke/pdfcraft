@@ -229,7 +229,11 @@ Markup and measuring
 - [x] **(Steve, build 137)** A typed length goes toward where the pointer last was on the page, even
       when the pointer has gone by the time Enter is pressed (Windows hides it while typing; the
       ribbon's entry box takes it off the page). It went right (0°) instead.
-- [ ] **(Steve, asked)** Select existing PDF linework (click, window or crossing) to delete, restyle,
+- [x] **(Steve, build 138)** A pasteboard, as in Illustrator and VectorCraft: a line or shape that runs
+      off the sheet shows on the area around it (faded; dark lines lightened on the dark theme), and
+      can still be selected, moved, grip-edited and snapped to; drafting and markup tools draw there
+      too. The sheet stays the print border. Measuring tools stay on the sheet.
+- [ ] **(Steve, back burner)** Select existing PDF linework (click, window or crossing) to delete, restyle,
       or Explode into editable lines (brings forward the Explode item below).
 - [ ] **(Steve, later update)** Folder mappings per device (`M:\Jobs` on the PC = `Sync/Jobs` on the
       tablet), for drawings kept outside the PDF's folder.
