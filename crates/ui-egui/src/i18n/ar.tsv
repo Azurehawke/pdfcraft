@@ -3271,3 +3271,9 @@ certificate	Version	الإصدار
 	Take it off the sheet. The file stays as it is, and Undo brings it back.	أزله عن اللوحة. يبقى الملف كما هو، ويعيده أمر التراجع.
 	Resize table	تغيير حجم الجدول
 	Remove from the sheet	إزالة من اللوحة
+	Flip side	قلب الجهة
+	Put the thickness on the other side of the line (a straight run can't tell which side the room is)	ضع السماكة على الجهة الأخرى من الخط (المسار المستقيم لا يبيّن في أي جهة تقع الغرفة)
+	What you draw: the wall's centre line, or its inside face (the thickness goes out of the room, for tracing existing walls) or outside face	ما ترسمه: محور الجدار، أو وجهه الداخلي (تمتد السماكة إلى خارج الغرفة، لتتبع جدران قائمة) أو وجهه الخارجي
+	Centre line	المحور
+	Inside face	الوجه الداخلي
+	Outside face	الوجه الخارجي

@@ -2913,3 +2913,9 @@ animation effects	Off	Выкл
 	Take it off the sheet. The file stays as it is, and Undo brings it back.	Убрать с листа. Файл не меняется, а «Отменить» вернёт всё обратно.
 	Resize table	Изменить размер таблицы
 	Remove from the sheet	Убрать с листа
+	Flip side	Сменить сторону
+	Put the thickness on the other side of the line (a straight run can't tell which side the room is)	Перенести толщину на другую сторону линии (по прямому участку нельзя понять, с какой стороны помещение)
+	What you draw: the wall's centre line, or its inside face (the thickness goes out of the room, for tracing existing walls) or outside face	Что вы рисуете: ось стены, её внутреннюю грань (толщина уходит наружу из помещения — для обрисовки существующих стен) или наружную
+	Centre line	Ось
+	Inside face	Внутренняя грань
+	Outside face	Наружная грань

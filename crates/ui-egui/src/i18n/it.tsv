@@ -3212,3 +3212,9 @@ certificate	SHA-256 digest	Impronta SHA-256
 	Take it off the sheet. The file stays as it is, and Undo brings it back.	Toglilo dal foglio. Il file resta com’è e Annulla lo riporta.
 	Resize table	Ridimensiona tabella
 	Remove from the sheet	Rimuovi dal foglio
+	Flip side	Inverti lato
+	Put the thickness on the other side of the line (a straight run can't tell which side the room is)	Metti lo spessore dall’altra parte della linea (un tratto rettilineo non indica da che parte sia la stanza)
+	What you draw: the wall's centre line, or its inside face (the thickness goes out of the room, for tracing existing walls) or outside face	Cosa disegni: la mezzeria del muro, o la sua faccia interna (lo spessore va fuori dalla stanza, per ricalcare muri esistenti) o esterna
+	Centre line	Mezzeria
+	Inside face	Faccia interna
+	Outside face	Faccia esterna

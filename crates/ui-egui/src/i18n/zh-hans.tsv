@@ -2962,3 +2962,9 @@ animation effects	Off	关
 	Take it off the sheet. The file stays as it is, and Undo brings it back.	将其从图纸上移除。文件保持不变，撤销可恢复。
 	Resize table	调整表格大小
 	Remove from the sheet	从图纸上移除
+	Flip side	翻转方向
+	Put the thickness on the other side of the line (a straight run can't tell which side the room is)	将厚度放到线的另一侧（直线段无法判断房间在哪一侧）
+	What you draw: the wall's centre line, or its inside face (the thickness goes out of the room, for tracing existing walls) or outside face	您绘制的是：墙的中心线，或其内侧面（厚度向房间外延伸，用于描绘现有墙体），或外侧面
+	Centre line	中心线
+	Inside face	内侧面
+	Outside face	外侧面

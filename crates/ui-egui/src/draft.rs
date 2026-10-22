@@ -311,6 +311,9 @@ pub struct DraftSettings {
     pub door_inches: f64,
     pub window_inches: f64,
     pub door_flip: bool,
+    /// Which face of a new wall the drawn path is, and whether its thickness goes the other way.
+    pub wall_side: WallSide,
+    pub wall_flip: bool,
     pub bare: BareUnit,
     /// The on-screen keypad is shown while drafting.
     pub keypad: bool,
@@ -355,6 +358,8 @@ impl Default for DraftSettings {
             door_inches: 32.0,
             window_inches: 36.0,
             door_flip: false,
+            wall_side: WallSide::Centre,
+            wall_flip: false,
             bare: BareUnit::Feet,
             keypad: cfg!(target_os = "android"),
             // ARCH D landscape at 1/4" = 1'-0".
@@ -626,9 +631,71 @@ fn shape_edit(page: usize, shape: Shape, color: [f64; 3], author: &str, doc: &Do
     }
 }
 
-/// Wall outlines: each segment of the centre line as a filled quadrilateral `thickness` wide,
-/// mitred at the corners.
-pub fn wall_quads(points: &[[f64; 2]], thickness: f64, closed: bool) -> Vec<[[f64; 2]; 4]> {
+/// What the path drawn with the Wall tool is: the wall's centre line, or one of its faces.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum WallSide {
+    #[default]
+    Centre,
+    /// The face inside the room: the thickness goes outward (tracing an existing room's walls).
+    Inside,
+    /// The face outside the room: the thickness goes inward.
+    Outside,
+}
+
+impl WallSide {
+    pub const ALL: [WallSide; 3] = [WallSide::Centre, WallSide::Inside, WallSide::Outside];
+
+    pub fn label(self) -> &'static str {
+        match self {
+            WallSide::Centre => "Centre line",
+            WallSide::Inside => "Inside face",
+            WallSide::Outside => "Outside face",
+        }
+    }
+}
+
+/// Twice the signed area the path encloses with its closing edge (positive: anticlockwise in
+/// user space, with the enclosed side on the left of the drawing direction).
+fn signed_area2(points: &[[f64; 2]]) -> f64 {
+    let n = points.len();
+    (0..n).filter_map(|i| Some((points.get(i)?, points.get((i + 1) % n)?))).map(|(a, b)| a[0] * b[1] - b[0] * a[1]).sum()
+}
+
+/// Where a wall goes from its path (for [`wall_quads`]): 0 centred on it, 1 entirely to its left
+/// (of the drawing direction), -1 entirely to its right. A face puts the thickness away from (Inside)
+/// or towards (Outside) the room, the room being the side the path turns towards; a straight run
+/// turns nowhere, and its thickness goes to the right. `flip` sends it the other way.
+pub fn wall_shift(points: &[[f64; 2]], side: WallSide, flip: bool) -> f64 {
+    let room_left = {
+        let a = signed_area2(points);
+        let span = points.iter().fold(0.0f64, |m, p| m.max(p[0].abs()).max(p[1].abs())).max(1.0);
+        // A run that hardly turns encloses next to nothing.
+        if a.abs() > 1e-6 * span * span { a > 0.0 } else { true }
+    };
+    let away = match side {
+        WallSide::Centre => return 0.0,
+        WallSide::Inside => {
+            if room_left {
+                -1.0
+            } else {
+                1.0
+            }
+        }
+        WallSide::Outside => {
+            if room_left {
+                1.0
+            } else {
+                -1.0
+            }
+        }
+    };
+    if flip { -away } else { away }
+}
+
+/// Wall outlines: each segment of the path as a filled quadrilateral `thickness` wide, mitred at
+/// the corners; `shift` (from [`wall_shift`]) puts the path on the wall's centre line (0) or on
+/// its right (1) or left (-1) face.
+pub fn wall_quads(points: &[[f64; 2]], thickness: f64, closed: bool, shift: f64) -> Vec<[[f64; 2]; 4]> {
     let mut pts: Vec<[f64; 2]> = Vec::new();
     for p in points {
         if pts.last().is_none_or(|l| (l[0] - p[0]).hypot(l[1] - p[1]) > 1e-6) {
@@ -642,14 +709,21 @@ pub fn wall_quads(points: &[[f64; 2]], thickness: f64, closed: bool) -> Vec<[[f6
     if n < 2 || !thickness.is_finite() || thickness <= 0.0 {
         return Vec::new();
     }
+    let s = if shift.is_finite() { shift.clamp(-1.0, 1.0) } else { 0.0 };
+    let (l, r) = (1.0 + s, 1.0 - s);
     let offsets = crate::draft_edit::mitre_offsets(&pts, thickness / 2.0, closed);
     let segments = if closed { n } else { n - 1 };
     (0..segments)
-        .map(|i| {
+        .filter_map(|i| {
             let j = (i + 1) % n;
-            let (a, b) = (pts[i], pts[j]);
-            let (oa, ob) = (offsets[i], offsets[j]);
-            [[a[0] + oa[0], a[1] + oa[1]], [b[0] + ob[0], b[1] + ob[1]], [b[0] - ob[0], b[1] - ob[1]], [a[0] - oa[0], a[1] - oa[1]]]
+            let (a, b) = (*pts.get(i)?, *pts.get(j)?);
+            let (oa, ob) = (*offsets.get(i)?, *offsets.get(j)?);
+            Some([
+                [a[0] + oa[0] * l, a[1] + oa[1] * l],
+                [b[0] + ob[0] * l, b[1] + ob[1] * l],
+                [b[0] - ob[0] * r, b[1] - ob[1] * r],
+                [a[0] - oa[0] * r, a[1] - oa[1] * r],
+            ])
         })
         .collect()
 }
@@ -783,7 +857,7 @@ fn finish_edit(tool: DraftTool, page: usize, points: &[[f64; 2]], closed: bool, 
         DraftTool::Wall => {
             let at = points.first().copied().unwrap_or([0.0, 0.0]);
             let thickness = settings.wall_inches * units_per_inch(doc, page, at);
-            let quads = wall_quads(points, thickness, closed);
+            let quads = wall_quads(points, thickness, closed, wall_shift(points, settings.wall_side, settings.wall_flip));
             let edits: Vec<Edit> = quads
                 .into_iter()
                 .map(|q| annotation(page, Shape::Polygon { vertices: q.to_vec(), cloud: false }, color, 0.75, Some([0.78, 0.78, 0.78]), author))
@@ -1282,7 +1356,7 @@ pub(crate) fn page_input(
         DraftTool::Wall => {
             let at = pts.first().copied().unwrap_or([0.0, 0.0]);
             let thickness = settings.wall_inches * units_per_inch(doc, page, at);
-            for q in wall_quads(&pts, thickness, false) {
+            for q in wall_quads(&pts, thickness, false, wall_shift(&pts, settings.wall_side, settings.wall_flip)) {
                 painter.add(egui::Shape::closed_line(q.iter().map(|p| cx.to_screen(*p)).collect(), stroke));
             }
             painter.extend(egui::Shape::dashed_line(&screen, Stroke::new(1.0, accent.gamma_multiply(0.6)), 6.0, 4.0));
@@ -1559,7 +1633,26 @@ fn tool_options(app: &mut PdfCraftApp, ui: &mut egui::Ui, t: &Tokens) {
         ui.horizontal(|ui| {
             ui.spacing_mut().item_spacing.x = 6.0;
             match tool {
-                Some(DraftTool::Wall) => number(ui, tl!("Thickness"), &mut d.wall_inches, 0.5..=48.0, " in", tl!("Wall thickness")),
+                Some(DraftTool::Wall) => {
+                    number(ui, tl!("Thickness"), &mut d.wall_inches, 0.5..=48.0, " in", tl!("Wall thickness"));
+                    egui::ComboBox::from_id_salt("wall-side")
+                        .selected_text(crate::i18n::t(d.wall_side.label()))
+                        .width(110.0)
+                        .show_ui(ui, |ui| {
+                            for side in WallSide::ALL {
+                                ui.selectable_value(&mut d.wall_side, side, crate::i18n::t(side.label()));
+                            }
+                        })
+                        .response
+                        .on_hover_text(tl!(
+                            "What you draw: the wall's centre line, or its inside face (the thickness goes out of the room, for tracing existing walls) or outside face"
+                        ));
+                    if d.wall_side != WallSide::Centre {
+                        let _ = ui
+                            .add(crate::widgets::checkbox(&mut d.wall_flip, tl!("Flip side")))
+                            .on_hover_text(tl!("Put the thickness on the other side of the line (a straight run can't tell which side the room is)"));
+                    }
+                }
                 Some(DraftTool::Door) => {
                     number(ui, tl!("Width"), &mut d.door_inches, 12.0..=144.0, " in", tl!("Door width (the opening cut in the wall)"));
                     let _ = ui
@@ -1850,15 +1943,55 @@ mod tests {
 
     #[test]
     fn walls_are_mitred_quads_of_the_thickness() {
-        let quads = wall_quads(&[[0.0, 0.0], [100.0, 0.0], [100.0, 100.0]], 10.0, false);
+        let quads = wall_quads(&[[0.0, 0.0], [100.0, 0.0], [100.0, 100.0]], 10.0, false, 0.0);
         assert_eq!(quads.len(), 2);
         // The first segment runs along y = 0, 5 either side; the corner is mitred to (105, -5).
         let q = quads[0];
         assert!((q[0][1] - 5.0).abs() < 1e-9 && (q[3][1] + 5.0).abs() < 1e-9, "{q:?}");
         assert!((q[2][0] - 105.0).abs() < 1e-9 && (q[2][1] + 5.0).abs() < 1e-9, "{q:?}");
-        let closed = wall_quads(&[[0.0, 0.0], [100.0, 0.0], [100.0, 100.0], [0.0, 100.0], [0.0, 0.0]], 10.0, true);
+        let closed = wall_quads(&[[0.0, 0.0], [100.0, 0.0], [100.0, 100.0], [0.0, 100.0], [0.0, 0.0]], 10.0, true, 0.0);
         assert_eq!(closed.len(), 4);
-        assert!(wall_quads(&[[0.0, 0.0]], 10.0, false).is_empty());
-        assert!(wall_quads(&[[0.0, 0.0], [1.0, 1.0]], f64::NAN, false).is_empty());
+        assert!(wall_quads(&[[0.0, 0.0]], 10.0, false, 0.0).is_empty());
+        assert!(wall_quads(&[[0.0, 0.0], [1.0, 1.0]], f64::NAN, false, 0.0).is_empty());
+    }
+
+    /// The span of a wall's quads across y, for a wall along y = 0.
+    fn ys(quads: &[[[f64; 2]; 4]]) -> (f64, f64) {
+        quads.iter().flatten().fold((f64::MAX, f64::MIN), |(lo, hi), p| (lo.min(p[1]), hi.max(p[1])))
+    }
+
+    #[test]
+    fn a_wall_traced_on_a_rooms_inside_face_grows_out_of_the_room() {
+        // A room traced anticlockwise (the room on the left) and clockwise (on the right).
+        let anti = [[0.0, 0.0], [100.0, 0.0], [100.0, 80.0], [0.0, 80.0]];
+        let clock: Vec<[f64; 2]> = anti.iter().rev().copied().collect();
+        for (path, label) in [(anti.to_vec(), "anticlockwise"), (clock, "clockwise")] {
+            let quads = wall_quads(&path, 6.0, true, wall_shift(&path, WallSide::Inside, false));
+            // Every corner of the room stays clear: the wall lies outside 0..100 × 0..80.
+            for q in &quads {
+                for p in q {
+                    let inside = p[0] > 1e-9 && p[0] < 100.0 - 1e-9 && p[1] > 1e-9 && p[1] < 80.0 - 1e-9;
+                    assert!(!inside, "{label}: {p:?} is inside the room");
+                }
+            }
+            let all: Vec<[f64; 2]> = quads.iter().flatten().copied().collect();
+            let (x0, x1) = all.iter().fold((f64::MAX, f64::MIN), |(a, b), p| (a.min(p[0]), b.max(p[0])));
+            assert!((x0 + 6.0).abs() < 1e-9 && (x1 - 106.0).abs() < 1e-9, "{label}: 6 out from each face, {x0}..{x1}");
+            // The outside face: the same 6 inward.
+            let inward = wall_quads(&path, 6.0, true, wall_shift(&path, WallSide::Outside, false));
+            let (y0, y1) = ys(&inward);
+            assert!((y0 - 0.0).abs() < 1e-9 && (y1 - 80.0).abs() < 1e-9, "{label}: within the outline");
+        }
+        // Two walls of a room, open: the room is the side the run turns towards.
+        let corner = [[0.0, 0.0], [100.0, 0.0], [100.0, 80.0]];
+        let (y0, y1) = ys(&wall_quads(&corner[..2], 6.0, false, wall_shift(&corner, WallSide::Inside, false)));
+        assert!((y0 + 6.0).abs() < 1e-9 && y1.abs() < 1e-9, "below the first wall, away from the room: {y0}..{y1}");
+        // A straight run goes right of its direction, and Flip side sends it left.
+        let run = [[0.0, 0.0], [100.0, 0.0]];
+        assert_eq!(wall_shift(&run, WallSide::Inside, false), -1.0);
+        assert_eq!(wall_shift(&run, WallSide::Inside, true), 1.0);
+        let (y0, y1) = ys(&wall_quads(&run, 6.0, false, wall_shift(&run, WallSide::Inside, true)));
+        assert!(y0.abs() < 1e-9 && (y1 - 6.0).abs() < 1e-9);
+        assert_eq!(wall_shift(&run, WallSide::Centre, true), 0.0, "a centre line has no side");
     }
 }

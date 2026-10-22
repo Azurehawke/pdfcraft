@@ -2683,3 +2683,9 @@ animation effects	Off	Desactivados
 	Take it off the sheet. The file stays as it is, and Undo brings it back.	Lo quita del plano. El archivo queda como está, y Deshacer lo devuelve.
 	Resize table	Cambiar el tamaño de la tabla
 	Remove from the sheet	Quitar del plano
+	Flip side	Cambiar de lado
+	Put the thickness on the other side of the line (a straight run can't tell which side the room is)	Pon el grosor al otro lado de la línea (un tramo recto no indica de qué lado está la habitación)
+	What you draw: the wall's centre line, or its inside face (the thickness goes out of the room, for tracing existing walls) or outside face	Lo que dibujas: el eje del muro, o su cara interior (el grosor va hacia fuera de la habitación, para trazar muros existentes) o exterior
+	Centre line	Eje
+	Inside face	Cara interior
+	Outside face	Cara exterior

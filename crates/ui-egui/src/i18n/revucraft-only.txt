@@ -50,6 +50,7 @@ Camera (dome)
 Caption
 Card reader
 Cells such as B2:F30, a named range, or leave it empty for the sheet's print area.
+Centre line
 Chamfer (two lines: a cut corner)
 Chamfer distance
 Change layer colour
@@ -173,6 +174,7 @@ Fillet radius (0 makes a sharp corner)
 Fine (1/2 pt)
 Finish
 Flip hinge
+Flip side
 Float this panel
 Floor box
 Form
@@ -194,6 +196,7 @@ ISO (A sizes)
 In CADCraft
 In GridCraft
 Inches
+Inside face
 Interior wall (4 1/2 in)
 Internal storage
 Its quantity's name in the workbook's Takeoff sheet, for formulas such as ={name}*6.50
@@ -296,6 +299,7 @@ Or yourself: Settings ▸ Apps ▸ ⋮ (top right) ▸ Special access ▸ All fi
 Orientation
 Origin
 Ortho
+Outside face
 PC, VoIP…
 PDF and images
 PDF, drawings and images
@@ -351,6 +355,7 @@ Print area or used range
 Progress
 Properties
 Pulled
+Put the thickness on the other side of the line (a straight run can't tell which side the room is)
 Quad data jack
 Quantities
 Quantities are sent to XLSX workbooks; {name} isn't one.
@@ -549,6 +554,7 @@ Wall thickness
 Walls
 Walls · Doors and windows · Dimensions
 Welcome to RevuCraft
+What you draw: the wall's centre line, or its inside face (the thickness goes out of the room, for tracing existing walls) or outside face
 Where the drawing is now
 Width and height
 Width in real-world inches, drawn to the page's scale (walls)

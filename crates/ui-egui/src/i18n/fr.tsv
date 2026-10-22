@@ -2997,3 +2997,9 @@ animation effects	Off	Désactivés
 	Take it off the sheet. The file stays as it is, and Undo brings it back.	Le retirer de la feuille. Le fichier reste tel quel, et Annuler le remet.
 	Resize table	Redimensionner le tableau
 	Remove from the sheet	Retirer de la feuille
+	Flip side	Changer de côté
+	Put the thickness on the other side of the line (a straight run can't tell which side the room is)	Mettre l’épaisseur de l’autre côté de la ligne (un tracé droit ne permet pas de savoir de quel côté est la pièce)
+	What you draw: the wall's centre line, or its inside face (the thickness goes out of the room, for tracing existing walls) or outside face	Ce que vous tracez : l’axe du mur, ou sa face intérieure (l’épaisseur part hors de la pièce, pour relever des murs existants) ou sa face extérieure
+	Centre line	Axe
+	Inside face	Face intérieure
+	Outside face	Face extérieure

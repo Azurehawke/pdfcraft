@@ -206,6 +206,10 @@ Markup and measuring
       the sheet), or type a size (10% to 1000%) in the Links pane; an update keeps the size and the
       top-left corner. Placed tables and drawings can be removed from the sheet (Links pane, or
       Delete while moving them), with their layers; Undo brings them back.
+- [x] **(Steve, build 129)** Wall justification: the Wall tool draws from the centre line, the inside
+      face (the thickness goes out of the room, for tracing existing walls) or the outside face; the
+      room is the side the run turns towards, and Flip side sends a straight run's thickness the
+      other way. The preview shows the side before each click.
 - [ ] **(Steve, later update)** Folder mappings per device (`M:\Jobs` on the PC = `Sync/Jobs` on the
       tablet), for drawings kept outside the PDF's folder.
 

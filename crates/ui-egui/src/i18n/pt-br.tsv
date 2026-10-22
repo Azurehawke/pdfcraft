@@ -3009,3 +3009,9 @@ animation effects	Off	Desativados
 	Take it off the sheet. The file stays as it is, and Undo brings it back.	Tira da folha. O arquivo fica como está, e Desfazer traz de volta.
 	Resize table	Redimensionar tabela
 	Remove from the sheet	Remover da folha
+	Flip side	Inverter lado
+	Put the thickness on the other side of the line (a straight run can't tell which side the room is)	Colocar a espessura do outro lado da linha (um trecho reto não indica de que lado está o cômodo)
+	What you draw: the wall's centre line, or its inside face (the thickness goes out of the room, for tracing existing walls) or outside face	O que você desenha: a linha de centro da parede, ou sua face interna (a espessura vai para fora do cômodo, para traçar paredes existentes) ou externa
+	Centre line	Linha de centro
+	Inside face	Face interna
+	Outside face	Face externa

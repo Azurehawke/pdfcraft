@@ -2997,3 +2997,9 @@ animation effects	Off	Aus
 	Take it off the sheet. The file stays as it is, and Undo brings it back.	Vom Blatt nehmen. Die Datei bleibt unverändert, und Rückgängig holt es zurück.
 	Resize table	Tabelle skalieren
 	Remove from the sheet	Vom Blatt entfernen
+	Flip side	Seite wechseln
+	Put the thickness on the other side of the line (a straight run can't tell which side the room is)	Die Dicke auf die andere Seite der Linie legen (bei einem geraden Verlauf ist nicht erkennbar, auf welcher Seite der Raum liegt)
+	What you draw: the wall's centre line, or its inside face (the thickness goes out of the room, for tracing existing walls) or outside face	Was Sie zeichnen: die Mittellinie der Wand oder ihre Innenseite (die Dicke geht aus dem Raum hinaus, zum Nachzeichnen bestehender Wände) oder Außenseite
+	Centre line	Mittellinie
+	Inside face	Innenseite
+	Outside face	Außenseite

@@ -2960,3 +2960,9 @@ animation effects	Off	Изключени
 	Take it off the sheet. The file stays as it is, and Undo brings it back.	Махнете го от листа. Файлът остава непроменен, а „Отмяна“ го връща.
 	Resize table	Преоразмеряване на таблица
 	Remove from the sheet	Премахване от листа
+	Flip side	Смяна на страната
+	Put the thickness on the other side of the line (a straight run can't tell which side the room is)	Дебелината отива от другата страна на линията (при прав участък не личи от коя страна е помещението)
+	What you draw: the wall's centre line, or its inside face (the thickness goes out of the room, for tracing existing walls) or outside face	Какво чертаете: оста на стената или вътрешната ѝ страна (дебелината отива извън помещението — за очертаване на съществуващи стени) или външната
+	Centre line	Ос
+	Inside face	Вътрешна страна
+	Outside face	Външна страна

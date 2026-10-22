@@ -2999,3 +2999,9 @@ animation effects	Off	オフ
 	Take it off the sheet. The file stays as it is, and Undo brings it back.	図面から取り除きます。ファイルはそのままで、元に戻すで復元できます。
 	Resize table	表のサイズを変更
 	Remove from the sheet	図面から削除
+	Flip side	側を反転
+	Put the thickness on the other side of the line (a straight run can't tell which side the room is)	厚みを線の反対側にします (直線だけでは部屋がどちら側か分かりません)
+	What you draw: the wall's centre line, or its inside face (the thickness goes out of the room, for tracing existing walls) or outside face	描くもの: 壁の中心線、内側の面 (厚みは部屋の外側へ。既存の壁をなぞるとき)、または外側の面
+	Centre line	中心線
+	Inside face	内側の面
+	Outside face	外側の面

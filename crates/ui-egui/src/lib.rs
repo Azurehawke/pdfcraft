@@ -2781,6 +2781,14 @@ impl PdfCraftApp {
             ("place-table", _) => links_ui::table_option(self, value, true)?,
             ("table-dialog", _) => links_ui::table_option(self, value, false)?,
             ("move-link" | "table-size", _) => links_ui::link_option(self, key, value)?,
+            ("wall-side", _) => {
+                self.draft.wall_side = match value {
+                    "centre" | "center" => draft::WallSide::Centre,
+                    "inside" => draft::WallSide::Inside,
+                    "outside" => draft::WallSide::Outside,
+                    _ => return Err("wall-side must be centre, inside or outside".into()),
+                };
+            }
             // Screenshots and automation: send the quantities to a workbook (made when there is
             // none at that path), or show the Send quantities dialog.
             ("send-quantities", _) => takeoff_ui::option(self, value, true)?,
