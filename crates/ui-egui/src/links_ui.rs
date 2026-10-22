@@ -99,7 +99,7 @@ pub(crate) fn page_input(ui: &egui::Ui, resp: &egui::Response, cx: &crate::comme
     let rect = screen(&mv.rect);
     let others: Vec<egui::Rect> = mv.others.iter().map(screen).collect();
     // Delete takes it off the sheet.
-    if ui.input(|i| i.key_pressed(egui::Key::Delete)) && !ui.ctx().wants_keyboard_input() {
+    if ui.input(|i| i.key_pressed(egui::Key::Delete)) && ui.memory(|m| m.focused().is_none()) {
         view.pending_edit = Some(Edit::RemoveCadLink { index: mv.index });
         view.link_move = None;
         return true;
