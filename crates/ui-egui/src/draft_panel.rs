@@ -285,14 +285,18 @@ fn sections(app: &mut PdfCraftApp, ui: &mut egui::Ui, t: &Tokens, panel: &Panel,
                 egui::Label::new(egui::RichText::new(tl!(caption)).font(theme::regular(11.0)).color(t.text_faint))
                     .wrap_mode(egui::TextWrapMode::Extend),
             );
-            ui.horizontal_wrapped(|ui| {
-                ui.spacing_mut().item_spacing = vec2(2.0, 2.0);
-                for e in entries.iter().copied() {
-                    let on = e.active(app);
-                    if ui.add_enabled_ui(allowed || !e.annotates(), |ui| button(ui, e, on)).inner.clicked() {
-                        choose(app, panel, g, e, run);
+            // One enabled state for the group: a child Ui per button would stop the row wrapping.
+            let enabled = allowed || !entries.iter().all(|e| e.annotates());
+            ui.add_enabled_ui(enabled, |ui| {
+                ui.horizontal_wrapped(|ui| {
+                    ui.spacing_mut().item_spacing = vec2(2.0, 2.0);
+                    for e in entries.iter().copied() {
+                        let on = e.active(app);
+                        if button(ui, e, on).clicked() {
+                            choose(app, panel, g, e, run);
+                        }
                     }
-                }
+                });
             });
             ui.add_space(2.0);
         }

@@ -28,7 +28,7 @@ pub(crate) struct ScreenGuide {
 
 /// Whether the view shows the sheet's view-space axes turned a quarter.
 fn quarter(xf: &PageXform) -> bool {
-    xf.rot % 180 != 0
+    !xf.rot.is_multiple_of(180)
 }
 
 /// A view-space guide on screen.
@@ -69,16 +69,6 @@ pub(crate) fn snap(guides: &[ScreenGuide], p: Pos2) -> Option<Pos2> {
     };
     let (x, y) = (nearest(true, p.x), nearest(false, p.y));
     (x.is_some() || y.is_some()).then(|| pos2(x.unwrap_or(p.x), y.unwrap_or(p.y)))
-}
-
-/// The guide `p` is on (within [`SNAP_PX`]), if any.
-pub(crate) fn hit(guides: &[ScreenGuide], p: Pos2) -> Option<ScreenGuide> {
-    guides
-        .iter()
-        .map(|g| (*g, (g.at - if g.vertical { p.x } else { p.y }).abs()))
-        .filter(|(_, d)| *d <= SNAP_PX)
-        .min_by(|a, b| a.1.total_cmp(&b.1))
-        .map(|(g, _)| g)
 }
 
 /// A guide's line across `zone`.
@@ -122,7 +112,7 @@ mod tests {
 
     fn xf(rot: u16) -> PageXform {
         // A 612 × 792 sheet at 1 px a point, at (100, 50); turned sideways at 90° and 270°.
-        let (w, h) = if rot % 180 == 0 { (612.0, 792.0) } else { (792.0, 612.0) };
+        let (w, h) = if rot.is_multiple_of(180) { (612.0, 792.0) } else { (792.0, 612.0) };
         PageXform { rect: Rect::from_min_size(pos2(100.0, 50.0), egui::vec2(w, h)), rot, pw: 612.0, ph: 792.0 }
     }
 
@@ -152,8 +142,6 @@ mod tests {
         assert_eq!(snap(&g, pos2(197.0, 302.0)), Some(pos2(200.0, 300.0)));
         assert_eq!(snap(&g, pos2(250.0, 250.0)), None);
         assert_eq!(snap(&[], pos2(1.0, 1.0)), None);
-        assert_eq!(hit(&g, pos2(250.0, 297.0)).map(|h| h.vertical), Some(false));
-        assert_eq!(hit(&g, pos2(250.0, 250.0)), None);
         // Garbage doesn't panic.
         let _ = snap(&g, pos2(f32::NAN, f32::INFINITY));
     }

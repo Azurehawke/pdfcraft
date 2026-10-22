@@ -99,7 +99,7 @@ fn fraction(v: f64) -> Option<String> {
     }
     let mut n = sixteenths as u32;
     let mut d = 16u32;
-    while n % 2 == 0 && d > 1 {
+    while n.is_multiple_of(2) && d > 1 {
         n /= 2;
         d /= 2;
     }
@@ -208,7 +208,7 @@ pub(crate) fn paint(painter: &Painter, t: &Tokens, full: Rect, units: &Units, x:
             let i = k.rem_euclid(i64::from(subs.max(1)));
             let len = if i == 0 {
                 SIZE
-            } else if subs % 2 == 0 && i == i64::from(subs / 2) {
+            } else if subs.is_multiple_of(2) && i == i64::from(subs / 2) {
                 SIZE * 0.45
             } else {
                 SIZE * 0.25

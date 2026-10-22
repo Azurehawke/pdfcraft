@@ -2664,7 +2664,7 @@ pub fn document_area(app: &mut PdfCraftApp, index: usize, ui: &mut egui::Ui) {
 
 /// The rulers' axes for the sheet at `xf`: zero at its top-left corner on screen.
 fn ruler_axes(xf: &PageXform, units: &crate::rulers::Units) -> (crate::rulers::Axis, crate::rulers::Axis) {
-    let (w_pt, h_pt) = if xf.rot % 180 == 0 { (xf.pw, xf.ph) } else { (xf.ph, xf.pw) };
+    let (w_pt, h_pt) = if xf.rot.is_multiple_of(180) { (xf.pw, xf.ph) } else { (xf.ph, xf.pw) };
     let px_per_pt = (f64::from(xf.rect.width()) / f64::from(w_pt.max(1.0)) + f64::from(xf.rect.height()) / f64::from(h_pt.max(1.0))) / 2.0;
     let px_per_unit = px_per_pt / units.per_point;
     (
