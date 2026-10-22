@@ -2439,7 +2439,13 @@ pub fn document_area(app: &mut PdfCraftApp, index: usize, ui: &mut egui::Ui) {
     let full = ui.available_rect_before_wrap();
     let size = crate::rulers::SIZE;
     let inner = Rect::from_min_max(full.min + vec2(size, size), full.max);
+    let top = Rect::from_min_max(pos2(inner.min.x, full.min.y), pos2(full.max.x, inner.min.y));
+    let left = Rect::from_min_max(pos2(full.min.x, inner.min.y), pos2(inner.min.x, full.max.y));
+    let corner = Rect::from_min_max(full.min, inner.min);
     ui.scope_builder(egui::UiBuilder::new().max_rect(inner), |ui| document_area_pages(app, index, ui));
+    let select = app.quick_tool == QuickTool::Select;
+    let guides_on = app.show_ribbon;
+    let (mut show_guides, mut locked, mut margin, mut rulers) = (app.show_guides, app.guides_locked, app.print_margin, app.rulers);
     let Some(view) = app.views.get_mut(index) else { return };
     let Some(doc) = app.session.get(view.id) else { return };
     // The sheet under the pointer, else the current one.
@@ -2454,19 +2460,228 @@ pub fn document_area(app: &mut PdfCraftApp, index: usize, ui: &mut egui::Ui) {
         }
         (None, _) => crate::rulers::Units::paper(),
     };
-    let axes = xf.map(|(_, xf)| {
-        let (w_pt, h_pt) = if xf.rot % 180 == 0 { (xf.pw, xf.ph) } else { (xf.ph, xf.pw) };
-        let px_per_pt = (f64::from(xf.rect.width()) / f64::from(w_pt.max(1.0)) + f64::from(xf.rect.height()) / f64::from(h_pt.max(1.0))) / 2.0;
-        let px_per_unit = px_per_pt / units.per_point;
-        (
-            crate::rulers::Axis { zero: xf.rect.min.x, px_per_unit, sheet: (xf.rect.min.x, xf.rect.max.x) },
-            crate::rulers::Axis { zero: xf.rect.min.y, px_per_unit, sheet: (xf.rect.min.y, xf.rect.max.y) },
-        )
-    });
-    let pointer = ui.input(|i| i.pointer.hover_pos()).filter(|p| inner.contains(*p));
+    let axes = xf.map(|(_, xf)| ruler_axes(&xf, &units));
+    let hover = ui.input(|i| i.pointer.hover_pos());
+    let pointer = hover.filter(|p| inner.contains(*p));
     let t = Tokens::get(ui.ctx());
     let painter = ui.painter_at(full);
     crate::rulers::paint(&painter, &t, full, &units, axes.as_ref().map(|a| &a.0), axes.as_ref().map(|a| &a.1), pointer);
+    let id = egui::Id::new(("rulers", view.id));
+
+    if guides_on && show_guides {
+        // A new guide, dragged out of a ruler.
+        let from_top = ui.interact(top, id.with("top"), Sense::drag()).on_hover_text(tl!("Drag out a guide"));
+        let from_left = ui.interact(left, id.with("left"), Sense::drag()).on_hover_text(tl!("Drag out a guide"));
+        if view.guide_drag.is_none() {
+            if from_top.drag_started() {
+                view.guide_drag = Some(GuideDrag { vertical: false, page: None, guide: None });
+            } else if from_left.drag_started() {
+                view.guide_drag = Some(GuideDrag { vertical: true, page: None, guide: None });
+            }
+        }
+        // Guides already there: the Select tool moves them, and a double-click types where.
+        if !locked && select && view.guide_drag.is_none() {
+            let mut picked = None;
+            for (page, guides) in &view.screen_guides {
+                let Some(zone) = view.screen_zones.iter().find(|z| z.0 == *page).map(|z| z.1) else { continue };
+                for g in guides {
+                    let [a, b] = crate::guides_ui::line(g.vertical, g.at, zone);
+                    let r = Rect::from_two_pos(a, b).expand(3.0).intersect(inner);
+                    if !r.is_positive() {
+                        continue;
+                    }
+                    let resp = ui.interact(r, id.with((*page, g.view_vertical, g.index)), Sense::click_and_drag());
+                    if resp.hovered() || resp.dragged() {
+                        ui.ctx().set_cursor_icon(if g.vertical { egui::CursorIcon::ResizeColumn } else { egui::CursorIcon::ResizeRow });
+                    }
+                    if resp.drag_started() {
+                        picked = Some((*page, *g, false));
+                    } else if resp.double_clicked() {
+                        picked = Some((*page, *g, true));
+                    }
+                }
+            }
+            match picked {
+                Some((page, g, false)) => view.guide_drag = Some(GuideDrag { vertical: g.vertical, page: Some(page), guide: Some(g) }),
+                Some((page, g, true)) => {
+                    let text = view
+                        .screen_xforms
+                        .iter()
+                        .find(|x| x.0 == page)
+                        .map(|(_, xf)| {
+                            let units = crate::rulers::Units::of(doc.sheet_scale(page).as_ref());
+                            let (ax, ay) = ruler_axes(xf, &units);
+                            let axis = if g.vertical { ax } else { ay };
+                            crate::rulers::label((f64::from(g.at - axis.zero)) / axis.px_per_unit, &units.unit)
+                        })
+                        .unwrap_or_default();
+                    view.guide_edit = Some(GuideEdit { page, guide: g, text, at: hover.unwrap_or(inner.center()) });
+                }
+                None => {}
+            }
+        }
+        // Dragging: a line follows the pointer; let go on a sheet to place it, on a ruler to
+        // remove it.
+        if let Some(d) = view.guide_drag {
+            let (down, latest) = ui.input(|i| (i.pointer.primary_down(), i.pointer.latest_pos()));
+            match latest {
+                Some(p) if down => {
+                    let at = if d.vertical { p.x } else { p.y };
+                    let preview = ui.painter_at(inner);
+                    let [a, b] = crate::guides_ui::line(d.vertical, at, inner);
+                    preview.line_segment([a, b], Stroke::new(1.0, crate::guides_ui::COLOR));
+                    if let Some((ax, ay)) = axes.as_ref() {
+                        let axis = if d.vertical { ax } else { ay };
+                        let text = crate::rulers::label(f64::from(at - axis.zero) / axis.px_per_unit, &units.unit);
+                        preview.text(p + vec2(12.0, 14.0), Align2::LEFT_TOP, text, theme::regular(11.0), crate::guides_ui::COLOR);
+                    }
+                    ui.ctx().set_cursor_icon(if d.vertical { egui::CursorIcon::ResizeColumn } else { egui::CursorIcon::ResizeRow });
+                }
+                Some(p) => {
+                    view.guide_drag = None;
+                    let target = d.page.or_else(|| view.screen_zones.iter().find(|(_, z)| z.contains(p)).map(|(i, _)| *i));
+                    if let Some(page) = target
+                        && let Some(xf) = view.screen_xforms.iter().find(|x| x.0 == page).map(|x| x.1)
+                    {
+                        let mut g = view.sheet_guides(doc, page);
+                        let before = g.clone();
+                        if let Some(old) = d.guide {
+                            let list = if old.view_vertical { &mut g.vertical } else { &mut g.horizontal };
+                            if old.index < list.len() {
+                                list.remove(old.index);
+                            }
+                        }
+                        if inner.contains(p) {
+                            let (view_vertical, v) = crate::guides_ui::from_screen(&xf, d.vertical, if d.vertical { p.x } else { p.y });
+                            let list = if view_vertical { &mut g.vertical } else { &mut g.horizontal };
+                            if v.is_finite() && list.len() < pdfcraft_engine::guides::MAX {
+                                list.push(v);
+                            }
+                        }
+                        if g != before {
+                            view.pending_edit = Some(Edit::SetGuides { page, guides: g });
+                        }
+                    }
+                }
+                None => view.guide_drag = None,
+            }
+        }
+    } else {
+        view.guide_drag = None;
+    }
+    // Typing a guide's position, in the rulers' units.
+    if let Some(mut e) = view.guide_edit.take() {
+        let mut close = false;
+        let mut apply = false;
+        let mut remove = false;
+        egui::Area::new(id.with("guide-edit")).order(egui::Order::Foreground).fixed_pos(e.at + vec2(10.0, 10.0)).show(ui.ctx(), |ui| {
+            egui::Frame::popup(ui.style()).show(ui, |ui| {
+                ui.label(tl!("Guide position"));
+                let r = ui.add(egui::TextEdit::singleline(&mut e.text).desired_width(120.0));
+                r.request_focus();
+                if r.lost_focus() && ui.input(|i| i.key_pressed(egui::Key::Enter)) {
+                    apply = true;
+                }
+                ui.horizontal(|ui| {
+                    if ui.button(tl!("OK")).clicked() {
+                        apply = true;
+                    }
+                    if ui.button(tl!("Remove")).clicked() {
+                        remove = true;
+                    }
+                    if ui.button(tl!("Cancel")).clicked() || ui.input(|i| i.key_pressed(egui::Key::Escape)) {
+                        close = true;
+                    }
+                });
+            });
+        });
+        if apply || remove {
+            if let Some(xf) = view.screen_xforms.iter().find(|x| x.0 == e.page).map(|x| x.1) {
+                let mut g = view.sheet_guides(doc, e.page);
+                let units = crate::rulers::Units::of(doc.sheet_scale(e.page).as_ref());
+                let value = parse_ruler_value(&e.text, &units.unit);
+                let list_len = if e.guide.view_vertical { g.vertical.len() } else { g.horizontal.len() };
+                let ok = e.guide.index < list_len && (remove || value.is_some());
+                if ok {
+                    let list = if e.guide.view_vertical { &mut g.vertical } else { &mut g.horizontal };
+                    list.remove(e.guide.index);
+                    if let Some(v) = value.filter(|_| !remove) {
+                        let (ax, ay) = ruler_axes(&xf, &units);
+                        let axis = if e.guide.vertical { ax } else { ay };
+                        let at = axis.zero + (v * axis.px_per_unit) as f32;
+                        let (view_vertical, v) = crate::guides_ui::from_screen(&xf, e.guide.vertical, at);
+                        let list = if view_vertical { &mut g.vertical } else { &mut g.horizontal };
+                        if v.is_finite() {
+                            list.push(v);
+                        }
+                    }
+                    view.pending_edit = Some(Edit::SetGuides { page: e.page, guides: g });
+                    close = true;
+                }
+            } else {
+                close = true;
+            }
+        }
+        if !close {
+            view.guide_edit = Some(e);
+        }
+    }
+    // Where the rulers meet: their settings.
+    let corner_resp = ui.interact(corner, id.with("corner"), Sense::click()).on_hover_text(tl!("Rulers and guides"));
+    let mut clear = false;
+    egui::Popup::menu(&corner_resp).show(|ui| {
+        if guides_on {
+            ui.add(widgets::checkbox(&mut show_guides, tl!("Show guides")));
+            ui.add(widgets::checkbox(&mut locked, tl!("Lock guides")));
+            if ui.button(tl!("Clear guides on this sheet")).clicked() {
+                clear = true;
+                ui.close();
+            }
+            ui.separator();
+            ui.label(egui::RichText::new(tl!("Printable area")).font(theme::regular(11.0)).color(t.text_faint));
+            for (m, name) in crate::guides_ui::MARGINS {
+                let label = if m == 0.0 { tl!("Off").to_string() } else { name.to_string() };
+                widgets::radio_value(ui, &mut margin, m, label);
+            }
+            ui.separator();
+        }
+        if ui.button(tl!("Hide rulers")).clicked() {
+            rulers = false;
+            ui.close();
+        }
+    });
+    if clear
+        && let Some((p, _)) = xf
+        && !view.sheet_guides(doc, p).is_empty()
+    {
+        view.pending_edit = Some(Edit::SetGuides { page: p, guides: Default::default() });
+    }
+    app.show_guides = show_guides;
+    app.guides_locked = locked;
+    app.print_margin = margin;
+    app.rulers = rulers;
+}
+
+/// The rulers' axes for the sheet at `xf`: zero at its top-left corner on screen.
+fn ruler_axes(xf: &PageXform, units: &crate::rulers::Units) -> (crate::rulers::Axis, crate::rulers::Axis) {
+    let (w_pt, h_pt) = if xf.rot % 180 == 0 { (xf.pw, xf.ph) } else { (xf.ph, xf.pw) };
+    let px_per_pt = (f64::from(xf.rect.width()) / f64::from(w_pt.max(1.0)) + f64::from(xf.rect.height()) / f64::from(h_pt.max(1.0))) / 2.0;
+    let px_per_unit = px_per_pt / units.per_point;
+    (
+        crate::rulers::Axis { zero: xf.rect.min.x, px_per_unit, sheet: (xf.rect.min.x, xf.rect.max.x) },
+        crate::rulers::Axis { zero: xf.rect.min.y, px_per_unit, sheet: (xf.rect.min.y, xf.rect.max.y) },
+    )
+}
+
+/// A typed guide position in the rulers' units: `12'-6"`, `6"` or `12.5` (feet) on a feet
+/// scale; `8 1/2` (inches) on paper; a plain number in any other unit.
+fn parse_ruler_value(text: &str, unit: &crate::rulers::Unit) -> Option<f64> {
+    let v = match unit {
+        crate::rulers::Unit::Feet => crate::draft::parse_length(text, crate::draft::BareUnit::Feet).map(|inches| inches / 12.0),
+        crate::rulers::Unit::Inches => crate::draft::parse_length(text, crate::draft::BareUnit::Inches),
+        crate::rulers::Unit::Other(_) => text.trim().parse::<f64>().ok(),
+    }?;
+    (v.is_finite() && v.abs() < 1e7).then_some(v)
 }
 
 fn document_area_pages(app: &mut PdfCraftApp, index: usize, ui: &mut egui::Ui) {

@@ -237,11 +237,13 @@ Markup and measuring
       each follows the pointer; the numbers read in the sheet's drawing scale (feet and inches at
       1/8" = 1'-0") or in paper units on an uncalibrated sheet, and the ticks thin out or fill in
       with the zoom. Zero at the sheet's corner; shown or hidden from View ▸ Rulers (Ctrl+R).
-- [ ] **(Steve, next build)** Guides, as in Illustrator: drag one out of a ruler, move it, type its exact
-      position (in drawing units or paper inches), lock or clear them. Drafting and markup tools snap
-      to them. Kept with the sheet in the PDF but never printed.
-- [ ] **(Steve, next build)** Printable area: a margin preset (e.g. 1/4" all round, or your printer's own
-      margins) shown as dashed guides, so title blocks and linework stay where the printer reaches.
+- [x] **(Steve, build 146)** Guides, as in Illustrator: drag one out of a ruler, move it, type its exact
+      position (double-click it with the Select tool; in drawing units or paper inches), drop it on a
+      ruler to remove it, lock or clear them from the corner where the rulers meet. Drafting and markup
+      tools snap to them. Kept with the sheet in the PDF but never printed.
+- [x] **(Steve, build 146)** Printable area: a margin preset (e.g. 1/4" all round, or your printer's own
+      margins) shown as a dashed line, so title blocks and linework stay where the printer reaches;
+      chosen from the corner where the rulers meet.
 - [ ] **(Steve, next build)** Every tool tab works like Draft: a left-hand tools panel (collapsible to an
       icon strip) holds the tools in groups, and the ribbon above shows the chosen tool's options.
       Markup and Review become one Markup tab: Text markup, Draw, Shapes, Text, Stamp, Photos (Pin a

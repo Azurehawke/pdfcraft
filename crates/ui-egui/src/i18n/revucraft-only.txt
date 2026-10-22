@@ -54,6 +54,7 @@ Cells such as B2:F30, a named range, or leave it empty for the sheet's print are
 Centre line
 Chamfer (two lines: a cut corner)
 Chamfer distance
+Change guides
 Change layer colour
 Change line width
 Change…
@@ -65,6 +66,7 @@ Choose a workbook…
 Choose files
 Choose where to save with Android's picker: Google Drive, Dropbox, OneDrive and other apps. Saving again later updates it there.
 Circle (centre, then radius)
+Clear guides on this sheet
 Click a circle
 Click a line where it should split
 Click a point to drag (a corner or an end), or type the factor
@@ -137,6 +139,7 @@ Draft tools
 Drafting
 Drag a box around the area that has this scale
 Drag a box around the detail or viewport that has this scale.
+Drag out a guide
 Drag to move · Delete removes it · Esc when done
 Drag to move, the corner to resize · Delete removes it · Esc when done
 Draw a floor plan
@@ -186,7 +189,10 @@ Get started
 Give coordinates for the base point.
 Given when sent
 Google Drive and other apps…
+Guide
+Guide position
 Heavy (2 pt)
+Hide rulers
 Hinge the door at the other end of the opening
 How far back from the corner each side is cut
 How far off the line
@@ -221,6 +227,7 @@ Line width
 Linear dimension (horizontal or vertical)
 Lines
 Links
+Lock guides
 Lock layer
 Make a callout
 Make photo callout
@@ -358,6 +365,7 @@ Port
 Preset
 Previous drawings: {n} (hidden layers)
 Print area or used range
+Printable area
 Progress
 Properties
 Pulled
@@ -411,6 +419,8 @@ Rotate markup
 Rotate symbol
 Row spacing
 Rows in the array
+Rulers
+Rulers and guides
 Run lengths with drops and slack · Totals by layer
 Runs
 SVG drawings
@@ -449,6 +459,7 @@ Sheet {n} · table from {sheet}
 Sheet {n} · {layout}
 Sheets opened from a DWG or DXF are linked to it and show here, so you can update them when the drawing changes.
 Shift constrains to 45 degrees. Backspace or the undo button removes a vertex; the cross button cancels.
+Show guides
 Show lengths as
 Show the author and comment when pointing at a markup
 Show the photo in a box with its description, pointing at this spot

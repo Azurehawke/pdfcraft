@@ -99,6 +99,7 @@ pub mod fill_sign;
 mod fling;
 pub mod folders_ui;
 pub mod forms_ui;
+mod guides_ui;
 mod home;
 mod icon_data;
 pub mod icons;
@@ -119,7 +120,6 @@ mod pickers;
 mod point_bar;
 mod props_box;
 mod rulers;
-mod guides_ui;
 mod status_bar;
 mod takeoff_ui;
 mod tool_chest;
@@ -2649,7 +2649,8 @@ impl PdfCraftApp {
             self.guides_locked = on;
         }
         // A margin from the list only (settings are untrusted).
-        if let Some(m) = v["print_margin"].as_f64().map(|m| m as f32).filter(|m| crate::guides_ui::MARGINS.iter().any(|(x, _)| (x - m).abs() < 1e-4)) {
+        if let Some(m) = v["print_margin"].as_f64().map(|m| m as f32).filter(|m| crate::guides_ui::MARGINS.iter().any(|(x, _)| (x - m).abs() < 1e-4))
+        {
             self.print_margin = m;
         }
         if v["dock"].is_object() {
