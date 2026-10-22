@@ -14,7 +14,7 @@ use pdfcraft_cos::{Dict, Document as Cos, Object, PdfString};
 pub use pdfcraft_create::takeoff::{EXTENSIONS, SHEET, Sent, Takeoff, TakeoffRow, can_send, new_workbook, write};
 
 use crate::cad_links::LinkedFile;
-use crate::measure::{Kind, names};
+use crate::measure::{self, Kind, names};
 use crate::{Document, EditError};
 
 /// The catalog key of the record.
@@ -167,6 +167,14 @@ impl Document {
         let e = self.editor.as_ref()?;
         let d = pdfcraft_annot::photo_callout::dict_at(&e.cos, page, index)?;
         pdfcraft_annot::stroke_align::effective(&d)
+    }
+
+    /// The drawing scale of sheet `page` (the measuring viewport at its middle), if it has one.
+    pub fn sheet_scale(&self, page: usize) -> Option<measure::Scale> {
+        let e = self.editor.as_ref()?;
+        let p = self.info.pages.get(page)?;
+        let c = [f64::from(p.crop[0] + p.crop[2]) / 2.0, f64::from(p.crop[1] + p.crop[3]) / 2.0];
+        measure::viewport_scale_at(&e.cos, page, c).ok().flatten()
     }
 
     /// The name of the measurement at (`page`, `index`); `None` when it isn't a measurement.

@@ -3558,6 +3558,11 @@ impl eframe::App for PdfCraftApp {
         draft::sheet_dialog(self, &ctx);
         new_dialog::show(self, &ctx);
         links_ui::poll(self, &ctx);
+        // A drafting tool that ends with its shape (as CADCraft's do) gives way to Select.
+        let ended = self.views.iter_mut().fold(false, |any, v| std::mem::take(&mut v.draft.ended) || any);
+        if ended && matches!(self.quick_tool, QuickTool::Draft(t) if t.ends_after_one()) {
+            self.quick_tool = QuickTool::Select;
+        }
         links_ui::table_dialog(self, &ctx);
         takeoff_ui::dialog(self, &ctx);
         draft::keypad(self, &ctx);

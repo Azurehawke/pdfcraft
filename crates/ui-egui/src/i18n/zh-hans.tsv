@@ -2974,3 +2974,6 @@ animation effects	Off	关
 	Where the line's thickness lies when the shape is closed: centred on the path, inside it or outside it (open lines are centred)	封闭形状的线宽位置：居中于路径、在内侧或在外侧（开放线条居中）
 	Where the line's thickness lies: centred on the path, inside it or outside it	线宽位置：居中于路径、在内侧或在外侧
 	Align stroke	对齐描边
+	Insert sheet	插入图纸
+	Insert sheet…	插入图纸…
+	New…	新建…

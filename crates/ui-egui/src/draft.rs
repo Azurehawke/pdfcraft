@@ -259,6 +259,29 @@ impl DraftTool {
     fn open_ended(self) -> bool {
         matches!(self, Self::Polyline | Self::Wall | Self::Spline | Self::Cloud)
     }
+
+    /// Whether the tool puts itself down once its shape is drawn, as CADCraft's drawing commands
+    /// end: the shapes, walls and dimensions (a polyline, wall, spline or cloud once it is
+    /// finished). Doors and windows, and the modify tools, stay for the next one.
+    pub fn ends_after_one(self) -> bool {
+        matches!(
+            self,
+            Self::Line
+                | Self::Polyline
+                | Self::Rectangle
+                | Self::Wall
+                | Self::Circle
+                | Self::Arc
+                | Self::Dimension
+                | Self::Spline
+                | Self::Ellipse
+                | Self::Polygon
+                | Self::Cloud
+                | Self::DimLinear
+                | Self::DimRadius
+                | Self::DimDiameter
+        )
+    }
 }
 
 /// What a typed number without a unit means.
@@ -414,6 +437,9 @@ pub struct DraftView {
     /// A distance or factor typed with a modify tool (inches, or the scale factor), for the shared
     /// settings: Offset, Fillet and Chamfer keep theirs.
     pub typed_setting: Option<(DraftTool, f64)>,
+    /// A shape was just drawn with a tool that ends with it (as in CADCraft): the Select tool
+    /// comes back so the shape can be picked at once.
+    pub ended: bool,
 }
 
 impl DraftView {
@@ -945,13 +971,9 @@ fn add_point(view: &mut DocView, doc: &Document, page: usize, tool: DraftTool, p
     match tool.points_needed() {
         Some(n) if d.points.len() >= n => {
             let edit = finish_edit(tool, page, &d.points, false, doc, settings);
-            if tool == DraftTool::Line {
-                // Lines chain: the next one starts where this one ended.
-                d.points = vec![p];
-            } else {
-                d.points.clear();
-                d.page = None;
-            }
+            d.points.clear();
+            d.page = None;
+            d.ended |= edit.is_some() && tool.ends_after_one();
             edit
         }
         _ => None,
@@ -965,6 +987,7 @@ fn finish(view: &mut DocView, doc: &Document, tool: DraftTool, closed: bool, set
     let edit = if tool.open_ended() { finish_edit(tool, page, &d.points, closed, doc, settings) } else { None };
     d.points.clear();
     d.page = None;
+    d.ended |= edit.is_some() && tool.ends_after_one();
     edit
 }
 
@@ -1427,11 +1450,9 @@ pub fn ribbon(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
         |ui| {
             ui.horizontal(|ui| {
                 ui.spacing_mut().item_spacing.x = 4.0;
-                group(ui, &t, tl!("Sheet"), |ui| {
+                // New sheets are in the Document ribbon (Insert sheet) and the tab bar (New).
+                group(ui, &t, tl!("Place"), |ui| {
                     ui.horizontal(|ui| {
-                        if icons::button(ui, "file-plus-2", 34.0, false, tl!("New sheet at a drawing scale")).clicked() {
-                            app.show_new_dialog(active.is_some());
-                        }
                         // Place drawing…: a DWG or DXF linked onto this sheet (Links pane).
                         let place = ui.add_enabled_ui(active.is_some(), |ui| {
                             icons::button(
@@ -1906,6 +1927,55 @@ fn new_sheet(app: &mut PdfCraftApp) {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// A one-page Letter document with a proper xref table.
+    fn letter_pdf() -> Vec<u8> {
+        let objs = [
+            "<< /Type /Catalog /Pages 2 0 R >>",
+            "<< /Type /Pages /Kids [3 0 R] /Count 1 /MediaBox [0 0 612 792] >>",
+            "<< /Type /Page /Parent 2 0 R >>",
+        ];
+        let mut out = b"%PDF-1.7\n".to_vec();
+        let mut offsets = Vec::new();
+        for (i, o) in objs.iter().enumerate() {
+            offsets.push(out.len());
+            out.extend_from_slice(format!("{} 0 obj\n{o}\nendobj\n", i + 1).as_bytes());
+        }
+        let xref = out.len();
+        out.extend_from_slice(format!("xref\n0 {}\n0000000000 65535 f \n", objs.len() + 1).as_bytes());
+        for o in offsets {
+            out.extend_from_slice(format!("{o:010} 00000 n \n").as_bytes());
+        }
+        out.extend_from_slice(format!("trailer\n<< /Size {} /Root 1 0 R >>\nstartxref\n{xref}\n%%EOF\n", objs.len() + 1).as_bytes());
+        out
+    }
+
+    #[test]
+    fn a_drawing_tool_ends_with_its_shape_and_a_polyline_when_finished() -> Result<(), String> {
+        let mut app = PdfCraftApp::new();
+        app.open_bytes("plan.pdf", None, letter_pdf())?;
+        let (index, id) = app.active_ids().ok_or("no document")?;
+        let settings = app.draft.clone();
+        let doc = app.session.get(id).ok_or("no document")?;
+        let view = app.views.get_mut(index).ok_or("no view")?;
+        // A line: the second click draws it, and the tool ends there (no chaining).
+        assert!(add_point(view, doc, 0, DraftTool::Line, [100.0, 100.0], &settings).is_none());
+        assert!(add_point(view, doc, 0, DraftTool::Line, [200.0, 100.0], &settings).is_some());
+        assert!(std::mem::take(&mut view.draft.ended));
+        assert!(view.draft.points.is_empty(), "the next line doesn't start from this one");
+        // A polyline keeps going point after point until it is finished.
+        for p in [[100.0, 200.0], [200.0, 200.0], [200.0, 300.0]] {
+            assert!(add_point(view, doc, 0, DraftTool::Polyline, p, &settings).is_none());
+            assert!(!view.draft.ended);
+        }
+        assert!(finish(view, doc, DraftTool::Polyline, false, &settings).is_some());
+        assert!(std::mem::take(&mut view.draft.ended));
+        // Modify tools, doors and windows stay for the next one.
+        for t in [DraftTool::Trim, DraftTool::Move, DraftTool::Door, DraftTool::Window, DraftTool::Offset] {
+            assert!(!t.ends_after_one(), "{t:?}");
+        }
+        Ok(())
+    }
 
     #[test]
     fn lengths_parse_as_cad_users_type_them() {

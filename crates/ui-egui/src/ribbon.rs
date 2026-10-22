@@ -83,7 +83,19 @@ impl Workflow {
                 ("Compare", &["doc.compare"]),
             ],
             Self::Document => &[
-                ("Pages", &["page.organize", "page.insert", "page.extract", "page.rotate", "page.delete", "page.crop"]),
+                (
+                    "Pages",
+                    &[
+                        "page.organize",
+                        "page.insert_blank",
+                        "page.insert_sheet",
+                        "page.insert",
+                        "page.extract",
+                        "page.rotate",
+                        "page.delete",
+                        "page.crop",
+                    ],
+                ),
                 ("Files", &["page.combine", "page.split"]),
                 ("Edit", &["edit.edit_text", "edit.text", "edit.image", "edit.link"]),
                 ("Secure", &["redact.mark", "protect.password", "sign.digital"]),

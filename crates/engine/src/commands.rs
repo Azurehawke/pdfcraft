@@ -166,6 +166,7 @@ pub const COMMANDS: &[CommandSpec] = &[
     // Shown at the foot of File ▸ Open Recent and on Home, not as its own File menu item.
     c("file.clear_recent", "Clear Recent Files", None, None, Nothing, "trash-2"),
     c("file.pin_folder", "Pin folder to Home…", FILE, None, Nothing, "folder-plus"),
+    c("file.new", "New…", FILE, None, Nothing, "file-plus"),
     c("create.blank", "New blank PDF", FILE, None, Nothing, "file-plus-2"),
     c("measure.calibrate", "Calibrate scale", None, None, Annotate, "ruler"),
     c("measure.cable", "Measure cable run", None, None, Annotate, "ruler"),
@@ -365,7 +366,10 @@ pub const COMMANDS: &[CommandSpec] = &[
     c("page.rotate", "Rotate pages clockwise", PAGES, None, Assembly, "rotate-cw"),
     c("page.rotate_ccw", "Rotate pages counterclockwise", PAGES, None, Assembly, "rotate-ccw"),
     c("page.delete", "Delete pages", PAGES, None, Assembly, "trash-2"),
-    c("page.insert_blank", "Insert blank page", PAGES, None, Assembly, "file-plus"),
+    // RevuCraft: a blank sheet after the current one, its size and drawing scale (one command
+    // with New sheet), and the same with a size and scale of your choosing.
+    c("page.insert_blank", "Insert sheet", PAGES, None, Assembly, "file-plus"),
+    c("page.insert_sheet", "Insert sheet…", PAGES, None, Assembly, "file-plus-2"),
     c("page.rotate_dialog", "Rotate pages…", PAGES, None, Assembly, "rotate-cw"),
     c("page.duplicate", "Duplicate pages", PAGES, None, Assembly, "copy-plus"),
     c("page.reverse", "Reverse pages", PAGES, None, Assembly, "arrow-up-down"),

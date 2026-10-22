@@ -104,6 +104,8 @@ pub struct NewDialog {
     pub pages: u32,
     /// Add the pages to the open document rather than making a new one.
     pub add_to_document: bool,
+    /// Insert sheet…: where the added sheets go (else at the end).
+    pub insert_at: Option<usize>,
     /// Sizes made recently (inches, portrait), newest first.
     pub recent: Vec<(f64, f64)>,
     place: Option<Place>,
@@ -140,6 +142,33 @@ impl NewDialog {
 }
 
 impl PdfCraftApp {
+    /// Pages ▸ Insert sheet…: the New dialog set to the current sheet's size and drawing scale,
+    /// adding sheets straight after it.
+    pub(crate) fn insert_sheet_dialog(&mut self) {
+        let Some((i, id)) = self.active_ids() else { return };
+        let current = self.views.get(i).map_or(0, |v| v.current);
+        let Some(doc) = self.session.get(id) else { return };
+        let Some(p) = doc.info.pages.get(current) else { return };
+        let (w, h) = (f64::from((p.crop[2] - p.crop[0]).abs()), f64::from((p.crop[3] - p.crop[1]).abs()));
+        let scale = doc.sheet_scale(current);
+        let preset = scale.as_ref().and_then(|s| {
+            crate::measure_ui::PRESETS.iter().position(|p| {
+                crate::measure_ui::preset_scale(p).is_ok_and(|ps| ps.unit == s.unit && (ps.x - s.x).abs() <= 1e-6 * s.x.abs().max(1e-12))
+            })
+        });
+        self.show_new_dialog(true);
+        let d = &mut self.new_doc;
+        if w >= 72.0 && h >= 72.0 && w.is_finite() && h.is_finite() {
+            d.width = w.min(h) / PT_PER_IN;
+            d.height = w.max(h) / PT_PER_IN;
+            d.landscape = w > h;
+            d.custom = true;
+        }
+        d.scale = preset;
+        d.pages = 1;
+        d.insert_at = Some(current.saturating_add(1));
+    }
+
     /// Open the New dialog (`add`: from Draft's New sheet, adding to the open document).
     pub(crate) fn show_new_dialog(&mut self, add: bool) {
         let has_doc = self.active_ids().is_some();
@@ -147,6 +176,7 @@ impl PdfCraftApp {
         d.with_defaults();
         d.open = true;
         d.add_to_document = add && has_doc;
+        d.insert_at = None;
         d.search.clear();
         d.selected = None;
         d.file_name.clear();
@@ -443,6 +473,8 @@ fn create(app: &mut PdfCraftApp) {
     let existing = app.active_ids().filter(|_| d.add_to_document).and_then(|(i, id)| app.session.get(id).map(|doc| (i, doc.info.pages.len())));
     match existing {
         Some((index, first)) => {
+            // Insert sheet… puts them after the current sheet; New sheet at the end.
+            let first = d.insert_at.map_or(first, |at| at.min(first));
             let mut edits = Vec::new();
             for k in 0..pages {
                 edits.push(pdfcraft_engine::Edit::InsertBlankPage { at: first + k, width: w, height: h });

@@ -347,13 +347,27 @@ impl PdfCraftApp {
                 self.apply_edit(Edit::DeletePages { pages: targets });
             }
             "page.insert_blank" => {
+                // RevuCraft's Insert sheet: after the current sheet, its size and drawing scale.
                 if let (Some(i), Some(&last)) = (active, targets.last())
-                    && let Some(p) = self.session.get(self.views[i].id).and_then(|d| d.info.pages.get(last))
+                    && let Some(doc) = self.views.get(i).and_then(|v| self.session.get(v.id))
+                    && let Some(p) = doc.info.pages.get(last)
                 {
                     let (w, h) = ((p.crop[2] - p.crop[0]).abs().max(1.0) as f64, (p.crop[3] - p.crop[1]).abs().max(1.0) as f64);
-                    self.apply_edit(Edit::InsertBlankPage { at: last + 1, width: w, height: h });
+                    let at = last + 1;
+                    let mut edits = vec![Edit::InsertBlankPage { at, width: w, height: h }];
+                    if let Some(scale) = doc.sheet_scale(last) {
+                        let name = if scale.ratio.trim().is_empty() { "Drawing scale".to_string() } else { scale.ratio.clone() };
+                        edits.push(Edit::SetMeasurementScale { page: at, bbox: [0.0, 0.0, w, h], name, scale });
+                    }
+                    let edit = if edits.len() == 1 { edits.remove(0) } else { Edit::Batch { label: "Insert sheet".into(), edits } };
+                    if self.apply_edit(edit)
+                        && let Some(view) = self.views.get_mut(i)
+                    {
+                        view.go_to_page(at);
+                    }
                 }
             }
+            "page.insert_sheet" => self.insert_sheet_dialog(),
             "page.insert" => self.insert_from_file_dialog(),
             "file.place_drawing" => crate::links_ui::place_drawing(self),
             "file.place_table" => crate::links_ui::place_table(self),
@@ -623,6 +637,7 @@ impl PdfCraftApp {
                 }
             }
             "create.blank" => self.create_blank(),
+            "file.new" => self.show_new_dialog(false),
             "create.file" => self.open_dialog(),
             "create.multiple" => self.create_multiple_dialog(),
             "create.multiple_separate" => self.create_multiple_separate_dialog(),
@@ -767,8 +782,167 @@ fn tab_after(current: Option<usize>, count: usize, forward: bool) -> Option<usiz
 }
 
 /// Render a top-level menu's registered commands (with live labels, shortcuts and enablement).
+/// One entry of a menu's layout.
+#[derive(Clone, Copy, Debug)]
+pub(crate) enum MenuItem {
+    /// A command, by id.
+    Cmd(&'static str),
+    Separator,
+    /// A submenu of commands (its English title).
+    Sub(&'static str, &'static [&'static str]),
+}
+
+use MenuItem::{Cmd, Separator as Sep, Sub};
+
+/// RevuCraft's menus, grouped and ordered: what you make and open, then save and close, then
+/// make from and export to, then your drawing's links and quantities, then the document's
+/// settings, then print. Every command the registry puts in a menu appears once (tested).
+pub(crate) const MENU_LAYOUT: [(&str, &[MenuItem]); 5] = [
+    (
+        "File",
+        &[
+            Cmd("file.new"),
+            Cmd("file.open"),
+            Cmd("file.open_recent"),
+            Cmd("file.pin_folder"),
+            Sep,
+            Cmd("file.save"),
+            Cmd("file.save_as"),
+            Cmd("file.revert"),
+            Cmd("file.close"),
+            Cmd("file.close_all"),
+            Sep,
+            Sub(
+                "Create",
+                &["create.blank", "create.file", "create.multiple", "create.multiple_separate", "create.images", "create.clipboard", "page.combine"],
+            ),
+            Sub("Export", &["export.image", "export.all_images", "export.text", "export.docx", "export.pptx", "export.html", "export.rtf"]),
+            Sep,
+            Cmd("file.place_drawing"),
+            Cmd("file.place_table"),
+            Sep,
+            Sub("Optimize", &["optimize.reduce", "optimize.advanced"]),
+            Sub("Security", &["protect.password", "protect.remove", "protect.properties"]),
+            Cmd("file.properties"),
+            Cmd("file.word_count"),
+            Sep,
+            Cmd("print.dialog"),
+        ],
+    ),
+    (
+        "Edit",
+        &[
+            Cmd("edit.copy"),
+            Cmd("edit.column_select"),
+            Cmd("edit.snapshot"),
+            Sep,
+            Cmd("edit.find"),
+            Cmd("edit.advanced_search"),
+            Sep,
+            Cmd("form.clear"),
+            Sep,
+            Cmd("app.preferences"),
+        ],
+    ),
+    (
+        "Pages",
+        &[
+            Cmd("page.organize"),
+            Sep,
+            Cmd("page.insert_blank"),
+            Cmd("page.insert_sheet"),
+            Cmd("page.insert"),
+            Cmd("page.replace"),
+            Cmd("page.duplicate"),
+            Sep,
+            Cmd("page.extract"),
+            Cmd("page.split"),
+            Cmd("page.delete"),
+            Sep,
+            Sub("Rotate", &["page.rotate", "page.rotate_ccw", "page.rotate_dialog"]),
+            Cmd("page.reverse"),
+            Cmd("page.crop"),
+            Cmd("page.boxes"),
+            Cmd("page.number"),
+            Sep,
+            Cmd("bookmark.add"),
+            Cmd("bookmark.from_structure"),
+        ],
+    ),
+    (
+        "View",
+        &[
+            Cmd("view.palette"),
+            Cmd("view.focus_page_input"),
+            Cmd("view.marquee_zoom"),
+            Sep,
+            Cmd("view.read_mode"),
+            Cmd("view.full_screen"),
+            Cmd("view.next_tab"),
+            Cmd("view.previous_tab"),
+            Sep,
+            Cmd("comment.list"),
+            Cmd("form.fields"),
+            Cmd("sign.panel"),
+            Cmd("ui.dock.reset"),
+        ],
+    ),
+    (
+        "Help",
+        &[
+            Cmd("help.shortcuts"),
+            Sep,
+            Cmd("help.app_page"),
+            Cmd("help.github"),
+            Cmd("help.website"),
+            Sep,
+            Cmd("help.check_updates"),
+            Cmd("help.about"),
+        ],
+    ),
+];
+
+/// A menu as [`MENU_LAYOUT`] arranges it, else the registry's commands in order.
 pub(crate) fn registry_menu(app: &mut PdfCraftApp, ui: &mut egui::Ui, menu: &str) {
-    for spec in commands::menu(menu) {
+    let Some((_, layout)) = MENU_LAYOUT.iter().find(|(m, _)| *m == menu) else {
+        for spec in commands::menu(menu) {
+            menu_entry(app, ui, spec);
+        }
+        return;
+    };
+    let mut last_was_separator = true;
+    for item in layout.iter() {
+        match item {
+            Cmd(id) => {
+                if let Some(spec) = commands::command(id) {
+                    menu_entry(app, ui, spec);
+                    last_was_separator = false;
+                }
+            }
+            Sep => {
+                if !last_was_separator {
+                    ui.separator();
+                    last_was_separator = true;
+                }
+            }
+            Sub(title, ids) => {
+                let _ = ui.menu_button(crate::i18n::t(title), |ui| {
+                    for id in ids.iter() {
+                        if let Some(spec) = commands::command(id) {
+                            menu_entry(app, ui, spec);
+                        }
+                    }
+                });
+                last_was_separator = false;
+            }
+        }
+    }
+}
+
+/// One command in a menu: its label, shortcut and state; Open Recent as the submenu of the
+/// recent files.
+fn menu_entry(app: &mut PdfCraftApp, ui: &mut egui::Ui, spec: &'static commands::CommandSpec) {
+    {
         let label = commands::current_label(spec, &app.session, app.active_ids().map(|(_, id)| id));
         let label = crate::i18n::menu_label(spec.id, &label);
         // Open Recent is a submenu of the live recent list, not one action: disabled while the
@@ -777,7 +951,7 @@ pub(crate) fn registry_menu(app: &mut PdfCraftApp, ui: &mut egui::Ui, menu: &str
         if spec.id == "file.open_recent" {
             if app.recent.is_empty() {
                 ui.add_enabled(false, egui::Button::new(label));
-                continue;
+                return;
             }
             let mut open: Option<String> = None;
             let mut clear = false;
@@ -804,7 +978,7 @@ pub(crate) fn registry_menu(app: &mut PdfCraftApp, ui: &mut egui::Ui, menu: &str
                 app.execute("file.clear_recent");
                 ui.close();
             }
-            continue;
+            return;
         }
         let shortcut = spec.shortcut.or((spec.id == "edit.copy").then_some(COPY)).map(|s| shortcut_label(ui.ctx(), s)).unwrap_or_default();
         let enabled = app.command_enabled(spec);
@@ -820,6 +994,31 @@ pub(crate) fn registry_menu(app: &mut PdfCraftApp, ui: &mut egui::Ui, menu: &str
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// Every command the registry puts in a menu is in [`MENU_LAYOUT`] once, in its own menu,
+    /// and nothing in the layout is missing from the registry.
+    #[test]
+    fn the_menu_layout_holds_every_menu_command_once() {
+        let mut seen = std::collections::HashSet::new();
+        for (menu, items) in MENU_LAYOUT {
+            for item in items {
+                let ids: Vec<&str> = match item {
+                    Cmd(id) => vec![*id],
+                    Sub(_, ids) => ids.to_vec(),
+                    Sep => Vec::new(),
+                };
+                for id in ids {
+                    let spec = commands::command(id);
+                    assert!(spec.is_some(), "{id} isn't a command");
+                    assert_eq!(spec.and_then(|s| s.menu), Some(menu), "{id} belongs to another menu");
+                    assert!(seen.insert(id), "{id} is in the menus twice");
+                }
+            }
+            for spec in commands::menu(menu) {
+                assert!(seen.contains(spec.id), "{} is missing from the {menu} menu", spec.id);
+            }
+        }
+    }
     use egui::os::OperatingSystem;
 
     #[test]

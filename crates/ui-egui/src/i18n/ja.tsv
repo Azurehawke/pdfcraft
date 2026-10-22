@@ -3011,3 +3011,6 @@ animation effects	Off	オフ
 	Where the line's thickness lies when the shape is closed: centred on the path, inside it or outside it (open lines are centred)	閉じた図形で線の太さを置く位置: パスの中央、内側、外側 (開いた線は中央)
 	Where the line's thickness lies: centred on the path, inside it or outside it	線の太さを置く位置: パスの中央、内側、外側
 	Align stroke	線の位置を揃える
+	Insert sheet	図面を挿入
+	Insert sheet…	図面を挿入…
+	New…	新規…
