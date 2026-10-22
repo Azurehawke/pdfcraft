@@ -1721,7 +1721,6 @@ fn tool_options(app: &mut PdfCraftApp, ui: &mut egui::Ui, t: &Tokens) {
 /// Where a closed shape's stroke lies against its path: Centre, Inside, Outside (as VectorCraft's
 /// Align Stroke). `when_closed`: the tool also draws open paths, which stroke centred.
 pub(crate) fn stroke_align_picker(ui: &mut egui::Ui, align: &mut pdfcraft_engine::stroke_align::StrokeAlign, when_closed: bool) {
-    use pdfcraft_engine::stroke_align::StrokeAlign;
     let tip = if when_closed {
         tl!("Where the line's thickness lies when the shape is closed: centred on the path, inside it or outside it (open lines are centred)")
     } else {
