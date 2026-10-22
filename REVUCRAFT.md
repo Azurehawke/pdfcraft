@@ -237,6 +237,11 @@ Markup and measuring
       each follows the pointer; the numbers read in the sheet's drawing scale (feet and inches at
       1/8" = 1'-0") or in paper units on an uncalibrated sheet, and the ticks thin out or fill in
       with the zoom. Zero at the sheet's corner; shown or hidden from View.
+- [ ] **(Steve, next build)** Guides, as in Illustrator: drag one out of a ruler, move it, type its exact
+      position (in drawing units or paper inches), lock or clear them. Drafting and markup tools snap
+      to them. Kept with the sheet in the PDF but never printed.
+- [ ] **(Steve, next build)** Printable area: a margin preset (e.g. 1/4" all round, or your printer's own
+      margins) shown as dashed guides, so title blocks and linework stay where the printer reaches.
 - [ ] **(Steve, back burner)** Select existing PDF linework (click, window or crossing) to delete, restyle,
       or Explode into editable lines (brings forward the Explode item below).
 - [ ] **(Steve, later update)** Folder mappings per device (`M:\Jobs` on the PC = `Sync/Jobs` on the
