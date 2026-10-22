@@ -638,6 +638,8 @@ pub(crate) struct PageCx<'a> {
     /// Where the pointer works on this page: the page, and with RevuCraft's pasteboard the
     /// area around it ([`crate::pasteboard::zone`]).
     pub zone: Rect,
+    /// RevuCraft: the sheet's guides on screen, which drawing snaps to.
+    pub guides: &'a [crate::guides_ui::ScreenGuide],
     pub info: &'a DocInfo,
     pub tool: QuickTool,
     pub prefs: &'a CommentPrefs,
@@ -655,6 +657,11 @@ impl PageCx<'_> {
         let (vx, vy) = self.xf.screen_to_view(p);
         let u = self.info.pages[self.page].view_to_user(vx, vy);
         [u[0] as f64, u[1] as f64]
+    }
+
+    /// `p` on the nearest guide within reach (both, where two cross), else `p`.
+    pub(crate) fn snap(&self, p: Pos2) -> Pos2 {
+        crate::guides_ui::snap(self.guides, p).unwrap_or(p)
     }
 
     pub(crate) fn to_screen(&self, p: [f64; 2]) -> Pos2 {
@@ -862,6 +869,7 @@ pub(crate) fn page_input(ui: &egui::Ui, resp: &egui::Response, cx: &PageCx<'_>, 
                 && pressed_here
                 && let Some(o) = origin
             {
+                let o = if matches!(tool, CommentTool::Ink | CommentTool::Eraser) { o } else { cx.snap(o) };
                 cv.gesture = Some(Gesture::Draw { page: cx.page, tool, points: vec![cx.to_user(o)] });
                 cv.pressures = vec![crate::pen::pressure()];
                 cv.selected = None;
@@ -871,6 +879,7 @@ pub(crate) fn page_input(ui: &egui::Ui, resp: &egui::Response, cx: &PageCx<'_>, 
                 && let Some(p) = pointer
             {
                 let p = clamp_to(page_rect, p);
+                let p = if matches!(*tool, CommentTool::Ink | CommentTool::Eraser) { p } else { cx.snap(p) };
                 let u = cx.to_user(p);
                 if matches!(*tool, CommentTool::Ink | CommentTool::Eraser) {
                     let last = points.last().map(|l| cx.to_screen(*l)).unwrap_or(p);
@@ -936,7 +945,7 @@ pub(crate) fn page_input(ui: &egui::Ui, resp: &egui::Response, cx: &PageCx<'_>, 
                 && over_page
                 && let Some(p) = pointer
             {
-                let u = cx.to_user(p);
+                let u = cx.to_user(cx.snap(p));
                 match cv.gesture.as_mut() {
                     Some(Gesture::Draw { page, tool: t, points }) if *page == cx.page && *t == tool => {
                         // Tapping the first point again closes the shape (connected lines too).
@@ -1016,7 +1025,7 @@ pub(crate) fn page_input(ui: &egui::Ui, resp: &egui::Response, cx: &PageCx<'_>, 
                 && pressed_here
                 && let Some(o) = origin
             {
-                cv.gesture = Some(Gesture::Draw { page: cx.page, tool: CommentTool::Callout, points: vec![cx.to_user(o)] });
+                cv.gesture = Some(Gesture::Draw { page: cx.page, tool: CommentTool::Callout, points: vec![cx.to_user(cx.snap(o))] });
                 cv.selected = None;
             }
             if let Some(Gesture::Draw { page, points, .. }) = cv.gesture.as_mut()
@@ -1024,7 +1033,7 @@ pub(crate) fn page_input(ui: &egui::Ui, resp: &egui::Response, cx: &PageCx<'_>, 
                 && let Some(p) = pointer
             {
                 points.truncate(1);
-                points.push(cx.to_user(clamp_to(page_rect, p)));
+                points.push(cx.to_user(cx.snap(clamp_to(page_rect, p))));
             }
             if resp.drag_stopped()
                 && let Some(Gesture::Draw { page, points, .. }) = cv.gesture.clone()
@@ -1663,6 +1672,7 @@ pub(crate) fn composer(ctx: &egui::Context, view: &mut DocView, info: &DocInfo, 
         page,
         xf: &xf,
         zone: xf.rect,
+        guides: &[],
         info,
         tool: QuickTool::Select,
         prefs,

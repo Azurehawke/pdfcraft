@@ -37,6 +37,7 @@ mod scan_fields;
 pub mod signature_image;
 pub mod signature_scan;
 pub mod takeoff;
+pub mod guides;
 pub mod text_fonts;
 mod text_preview;
 pub mod word_count;
@@ -257,6 +258,8 @@ fn uses_scripts(edit: &Edit) -> bool {
 fn scope_of(edit: &Edit) -> Scope {
     match edit {
         Edit::SetInfo { .. } => Scope::Metadata,
+        // Guides are drawn by the app, not in the page.
+        Edit::SetGuides { .. } => Scope::Metadata,
         // A file attachment also changes the Attachments list.
         Edit::AddAnnotation(a) if matches!(a.shape, Shape::Attachment { .. }) => Scope::Full,
         Edit::AddPhoto { .. } => Scope::Full,
@@ -1426,6 +1429,11 @@ pub enum Edit {
     },
     /// RevuCraft: name the measurements that have no name, or one another has.
     NameMeasurements,
+    /// RevuCraft: set sheet `page`'s guides ([`guides`]).
+    SetGuides {
+        page: usize,
+        guides: guides::Guides,
+    },
     /// RevuCraft: record that the quantities with fingerprint `sent` were written to the
     /// workbook `file` ([`takeoff`]).
     RecordTakeoff {
@@ -2234,6 +2242,7 @@ pub const EDIT_LABELS: &[&str] = &[
     "Remove from the sheet",
     "Name measurements",
     "Send quantities",
+    "Change guides",
     "Move linked drawing",
     "Measure cable run",
     "Add legend",
@@ -2405,6 +2414,7 @@ impl Edit {
             Edit::RemoveCadLink { .. } => Label::of("Remove from the sheet"),
             Edit::NameMeasurements => Label::of("Name measurements"),
             Edit::RecordTakeoff { .. } => Label::of("Send quantities"),
+            Edit::SetGuides { .. } => Label::of("Change guides"),
             Edit::MoveCadLink { .. } => Label::of("Move linked drawing"),
             Edit::AddCableRun { .. } => Label::of("Measure cable run"),
             Edit::AddLegend { .. } => Label::of("Add legend"),
@@ -2535,6 +2545,7 @@ fn check_permission(edit: &Edit, p: &pdfcraft_cos::Permissions) -> Result<(), Ed
         | Edit::SetCalloutSide { .. }
         | Edit::SetAnnotationField { .. }
         | Edit::SetStrokeAlign { .. }
+        | Edit::SetGuides { .. }
         | Edit::RenameMeasurement { .. }
         | Edit::NameMeasurements
         | Edit::StyleAnnotation { .. }
@@ -2778,6 +2789,7 @@ fn run_edit(doc: &mut pdfcraft_cos::Document, edit: &Edit, cx: &mut EditCtx) -> 
             measure::names::name_all(doc)?;
         }
         Edit::RecordTakeoff { file, sent } => takeoff::set_record(doc, file, sent)?,
+        Edit::SetGuides { page, guides } => guides::write(doc, *page, guides)?,
         Edit::ReplacePages { pages, name, bytes, src_pages } => {
             let src = open_source(name, bytes)?;
             pdfcraft_organize::replace_pages(doc, pages, &src, src_pages)?;

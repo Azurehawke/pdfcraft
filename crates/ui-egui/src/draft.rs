@@ -1242,6 +1242,16 @@ pub(crate) fn page_input(
                 }
             }
         }
+        // RevuCraft: the sheet's guides, where nothing else caught the pointer.
+        let mut on_guide = false;
+        if view.measure.snap_enabled
+            && kind.is_none_or(|k| k == SnapKind::Path)
+            && let Some(g) = crate::guides_ui::snap(cx.guides, pos)
+        {
+            point = cx.to_user(g);
+            kind = None;
+            on_guide = true;
+        }
         let shift = ui.input(|i| i.modifiers.shift);
         if let Some(last) = view.draft.points.last().filter(|_| view.draft.page == Some(page))
             && settings.ortho != shift
@@ -1257,6 +1267,11 @@ pub(crate) fn page_input(
             let green = Color32::from_rgb(46, 158, 92);
             ui.painter().circle_stroke(at, 6.0, Stroke::new(1.0, green));
             ui.painter().text(at + vec2(10.0, -10.0), egui::Align2::LEFT_BOTTOM, tl!(snap_name(k)), theme::regular(11.0), green);
+        } else if on_guide {
+            let at = cx.to_screen(point);
+            let c = crate::guides_ui::COLOR;
+            ui.painter().circle_stroke(at, 6.0, Stroke::new(1.0, c));
+            ui.painter().text(at + vec2(10.0, -10.0), egui::Align2::LEFT_BOTTOM, tl!("Guide"), theme::regular(11.0), c);
         }
         if tool.modifies() {
             if resp.clicked() && view.draft.setting_origin {

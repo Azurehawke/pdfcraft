@@ -474,6 +474,13 @@ pub struct DocView {
     pasteboard: crate::pasteboard::Cache,
     /// RevuCraft: the rulers' units for a page, read once per edit.
     ruler_units: Option<(usize, u64, crate::rulers::Units)>,
+    /// RevuCraft: each page's guides, read once per edit; where the pointer works on each page
+    /// drawn last frame, and its guides there; a guide being dragged, or its position typed.
+    guide_cache: HashMap<usize, (u64, pdfcraft_engine::guides::Guides)>,
+    screen_zones: Vec<(usize, Rect)>,
+    screen_guides: Vec<(usize, Vec<crate::guides_ui::ScreenGuide>)>,
+    guide_drag: Option<GuideDrag>,
+    guide_edit: Option<GuideEdit>,
     /// The scroll viewport on screen last frame.
     viewport_screen: Rect,
     /// Pending zoom anchor: page, fractional position (also in gutters), and viewport offset.
@@ -670,7 +677,35 @@ pub enum ViewAction {
     CameraNext(&'static str),
 }
 
+/// RevuCraft: a guide being dragged: a new one out of a ruler (`guide` is `None`), or one of
+/// sheet `page`'s guides.
+#[derive(Clone, Copy, Debug)]
+pub(crate) struct GuideDrag {
+    /// Upright on screen.
+    pub vertical: bool,
+    pub page: Option<usize>,
+    pub guide: Option<crate::guides_ui::ScreenGuide>,
+}
+
+/// RevuCraft: a guide's position being typed.
+#[derive(Clone, Debug)]
+pub(crate) struct GuideEdit {
+    pub page: usize,
+    pub guide: crate::guides_ui::ScreenGuide,
+    pub text: String,
+    pub at: Pos2,
+}
+
 impl DocView {
+    /// Sheet `page`'s guides, read once per edit.
+    fn sheet_guides(&mut self, doc: &pdfcraft_engine::Document, page: usize) -> pdfcraft_engine::guides::Guides {
+        let generation = doc.edit_generation();
+        if self.guide_cache.values().next().is_some_and(|(g, _)| *g != generation) {
+            self.guide_cache.clear();
+        }
+        self.guide_cache.entry(page).or_insert_with(|| (generation, doc.guides(page))).1.clone()
+    }
+
     pub fn raster_memory(&self) -> RasterMemory {
         RasterMemory {
             thumbnail_count: self.thumbs.len(),
@@ -774,6 +809,11 @@ impl DocView {
             screen_xforms: Vec::new(),
             pasteboard: crate::pasteboard::Cache::default(),
             ruler_units: None,
+            guide_cache: HashMap::new(),
+            screen_zones: Vec::new(),
+            screen_guides: Vec::new(),
+            guide_drag: None,
+            guide_edit: None,
             viewport_screen: Rect::NOTHING,
             zoom_anchor: None,
             shown: false,
@@ -2454,8 +2494,10 @@ fn document_area_pages(app: &mut PdfCraftApp, index: usize, ui: &mut egui::Ui) {
         }
         return;
     }
-    // RevuCraft's pasteboard: the area around each sheet is part of the drawing.
+    // RevuCraft's pasteboard: the area around each sheet is part of the drawing; its guides and
+    // printable area.
     let pasteboard = app.show_ribbon;
+    let (show_guides, guides_locked, print_margin) = (app.show_guides && app.rulers && app.show_ribbon, app.guides_locked, app.print_margin);
     let Some(doc) = app.session.get(app.views[index].id) else { return };
     let info = &doc.info;
     if info.pages.is_empty() {
@@ -3012,6 +3054,8 @@ fn document_area_pages(app: &mut PdfCraftApp, index: usize, ui: &mut egui::Ui) {
         let mut visible_now = Vec::new();
         view.screen_rects.clear();
         view.screen_xforms.clear();
+        view.screen_zones.clear();
+        view.screen_guides.clear();
         // Visible heights (points) closer than this are equal: one page size can meet the
         // viewport a fraction of a point differently once the scroll offset is applied.
         const TIE: f32 = 0.5;
@@ -3191,9 +3235,19 @@ fn document_area_pages(app: &mut PdfCraftApp, index: usize, ui: &mut egui::Ui) {
                 view.move_background.paint(ui, painter, &xf, i, info, &view.content, page_tex);
             }
             painter.rect_stroke(r, CornerRadius::ZERO, Stroke::new(0.5, t.border.gamma_multiply(0.8)), egui::StrokeKind::Outside);
+            // RevuCraft: the printable area and the sheet's guides.
+            let guides = if show_guides { crate::guides_ui::on_screen(&view.sheet_guides(doc, i), &xf) } else { Vec::new() };
+            if pasteboard && print_margin > 0.0 {
+                crate::guides_ui::paint_margin(painter, &xf, print_margin);
+            }
+            crate::guides_ui::paint(painter, &guides, zone, guides_locked);
+            if r.intersects(visible) {
+                view.screen_zones.push((i, zone));
+                view.screen_guides.push((i, guides.clone()));
+            }
 
             // Comments: tools, selection, moving and resizing come before text selection.
-            let pcx = comments::PageCx { page: i, xf: &xf, zone, info, tool, prefs, allowed, hidden: comments_hidden, redact_mark };
+            let pcx = comments::PageCx { page: i, xf: &xf, zone, guides: &guides, info, tool, prefs, allowed, hidden: comments_hidden, redact_mark };
             if let Some(p) = ui.input(|inp| inp.pointer.hover_pos()).filter(|p| zone.contains(*p))
                 && let Some(page_info) = info.pages.get(i)
             {

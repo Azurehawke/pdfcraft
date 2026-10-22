@@ -6703,3 +6703,28 @@ fn a_drafted_shapes_stroke_is_aligned_and_changes_with_the_shape() {
     assert_eq!(s.get(id).unwrap().stroke_align(0, line), None);
     assert!(s.apply(id, Edit::SetStrokeAlign { page: 0, index: line, align: StrokeAlign::Outside }).is_err());
 }
+
+#[test]
+fn guides_are_kept_with_the_sheet_and_undo() {
+    use crate::guides::{Guides, MAX};
+    let mut s = Session::default();
+    let id = s.open("plan.pdf", None, Arc::new(fixture(2)), None).unwrap();
+    assert!(s.get(id).unwrap().guides(1).is_empty());
+    let g = Guides { vertical: vec![36.0, -100.0], horizontal: vec![72.5] };
+    s.apply(id, Edit::SetGuides { page: 1, guides: g.clone() }).unwrap();
+    assert_eq!(s.get(id).unwrap().guides(1), g);
+    assert!(s.get(id).unwrap().guides(0).is_empty(), "only the sheet they were set on");
+    // Saved and opened again.
+    let bytes = s.get(id).unwrap().bytes.clone();
+    let again = s.open("again.pdf", None, bytes, None).unwrap();
+    assert_eq!(s.get(again).unwrap().guides(1), g);
+    s.undo(id).unwrap();
+    assert!(s.get(id).unwrap().guides(1).is_empty());
+    // Clearing removes them; bad values and too many are refused.
+    s.apply(id, Edit::SetGuides { page: 1, guides: g }).unwrap();
+    s.apply(id, Edit::SetGuides { page: 1, guides: Guides::default() }).unwrap();
+    assert!(s.get(id).unwrap().guides(1).is_empty());
+    assert!(s.apply(id, Edit::SetGuides { page: 1, guides: Guides { vertical: vec![f64::NAN], horizontal: vec![] } }).is_err());
+    assert!(s.apply(id, Edit::SetGuides { page: 1, guides: Guides { vertical: vec![1.0; MAX + 1], horizontal: vec![] } }).is_err());
+    assert!(s.apply(id, Edit::SetGuides { page: 9, guides: Guides { vertical: vec![1.0], horizontal: vec![] } }).is_err());
+}

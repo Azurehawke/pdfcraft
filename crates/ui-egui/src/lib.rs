@@ -119,6 +119,7 @@ mod pickers;
 mod point_bar;
 mod props_box;
 mod rulers;
+mod guides_ui;
 mod status_bar;
 mod takeoff_ui;
 mod tool_chest;
@@ -643,6 +644,10 @@ pub struct PdfCraftApp {
     pub show_ribbon: bool,
     /// Rulers along the top and left of the drawing (View ▸ Rulers; on in RevuCraft).
     pub rulers: bool,
+    /// RevuCraft: guides shown, guides locked, and the printable area's margin in inches (0, none).
+    pub show_guides: bool,
+    pub guides_locked: bool,
+    pub print_margin: f32,
     /// The reading-colours preference (Preferences ▸ Reading colours): applied to every open
     /// document, and documents open with it (Acrobat's Replace Document Colors).
     pub reading_colors: pdfcraft_render::ReadingColors,
@@ -1052,6 +1057,9 @@ impl PdfCraftApp {
             props_box: None,
             show_ribbon: false,
             rulers: false,
+            show_guides: true,
+            guides_locked: false,
+            print_margin: 0.0,
             reading_colors: Default::default(),
             #[cfg(target_os = "linux")]
             desktop_theme: None,
@@ -2488,7 +2496,6 @@ impl PdfCraftApp {
             "combine_view": self.combine_view.as_str(),
             "combine_zoom": self.combine_zoom,
             "comments_panel_closed": self.comments_panel_closed,
-            "rulers": self.rulers,
             "right_panel_closed": self.right_panel_closed,
         });
         // Set apart: one more key inside the macro above passes serde_json's recursion limit.
@@ -2498,6 +2505,10 @@ impl PdfCraftApp {
         // RevuCraft's settings, set apart for the same macro limit.
         v["accent"] = serde_json::json!(self.accent);
         v["icon_color"] = serde_json::json!(self.icon_color.code());
+        v["rulers"] = serde_json::Value::Bool(self.rulers);
+        v["show_guides"] = serde_json::Value::Bool(self.show_guides);
+        v["guides_locked"] = serde_json::Value::Bool(self.guides_locked);
+        v["print_margin"] = serde_json::json!(self.print_margin);
         v["link_keep_revisions"] = serde_json::Value::Bool(self.links.keep_revisions);
         v["draw_pen"] = serde_json::json!(self.comment_prefs.pen.name());
         v["hover_tips"] = serde_json::Value::Bool(self.comment_prefs.hover_tips);
@@ -2630,6 +2641,16 @@ impl PdfCraftApp {
         }
         if let Some(on) = v["rulers"].as_bool() {
             self.rulers = on;
+        }
+        if let Some(on) = v["show_guides"].as_bool() {
+            self.show_guides = on;
+        }
+        if let Some(on) = v["guides_locked"].as_bool() {
+            self.guides_locked = on;
+        }
+        // A margin from the list only (settings are untrusted).
+        if let Some(m) = v["print_margin"].as_f64().map(|m| m as f32).filter(|m| crate::guides_ui::MARGINS.iter().any(|(x, _)| (x - m).abs() < 1e-4)) {
+            self.print_margin = m;
         }
         if v["dock"].is_object() {
             self.restore_dock_layout(&v["dock"]);
@@ -2780,6 +2801,13 @@ impl PdfCraftApp {
                 self.language = language.to_string();
             }
             ("rulers", _) => self.rulers = value == "on",
+            ("print-margin", _) => {
+                let m: f32 = value.parse().map_err(|_| "print-margin must be inches, e.g. 0.25")?;
+                if !crate::guides_ui::MARGINS.iter().any(|(x, _)| (x - m).abs() < 1e-4) {
+                    return Err("print-margin must be 0, 0.125, 0.1875, 0.25, 0.375 or 0.5".into());
+                }
+                self.print_margin = m;
+            }
             ("shell", _) => match value {
                 "revucraft" => self.revucraft_shell(),
                 _ => return Err("shell must be revucraft".into()),
