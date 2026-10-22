@@ -3141,6 +3141,7 @@ pub fn document_area(app: &mut PdfCraftApp, index: usize, ui: &mut egui::Ui) {
                 let (vx, vy) = xf.screen_to_view(p);
                 let u = page_info.view_to_user(vx, vy);
                 view.cursor = Some((i, [f64::from(u[0]), f64::from(u[1])]));
+                view.draft.aim = view.cursor;
             }
             if let QuickTool::Measure(measure_tool) = tool {
                 view.measure.bare = draft_settings.bare;

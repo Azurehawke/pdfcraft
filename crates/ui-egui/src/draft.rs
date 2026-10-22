@@ -437,6 +437,10 @@ pub struct DraftView {
     /// A distance or factor typed with a modify tool (inches, or the scale factor), for the shared
     /// settings: Offset, Fillet and Chamfer keep theirs.
     pub typed_setting: Option<(DraftTool, f64)>,
+    /// Where the pointer last was on a page (page, user space): a typed length goes that way even
+    /// when the pointer has gone by the time Enter is pressed (Windows hides it while typing;
+    /// the ribbon's entry box takes the pointer off the page).
+    pub aim: Option<(usize, [f64; 2])>,
     /// A shape was just drawn with a tool that ends with it (as in CADCraft): the Select tool
     /// comes back so the shape can be picked at once.
     pub ended: bool,
@@ -1011,7 +1015,7 @@ pub fn submit(view: &mut DocView, doc: &Document, tool: DraftTool, settings: &Dr
     view.draft.error = None;
     let origin = origin(view, doc, page);
     let last = if view.draft.page == Some(page) { view.draft.points.last().copied() } else { None };
-    let toward = view.cursor.filter(|c| c.0 == page).map(|c| c.1);
+    let toward = view.cursor.or(view.draft.aim).filter(|c| c.0 == page).map(|c| c.1);
     let k = units_per_inch(doc, page, last.unwrap_or(origin));
     // A dimension's third entry is how far off its dimension line goes, on the pointer's side.
     if matches!(tool, DraftTool::Dimension | DraftTool::DimLinear)
@@ -1970,6 +1974,19 @@ mod tests {
         }
         assert!(finish(view, doc, DraftTool::Polyline, false, &settings).is_some());
         assert!(std::mem::take(&mut view.draft.ended));
+        // A typed length goes toward where the pointer last was, even once it has left the page
+        // (Windows hides it while typing).
+        assert!(add_point(view, doc, 0, DraftTool::Line, [100.0, 400.0], &settings).is_none());
+        view.cursor = None;
+        view.draft.aim = Some((0, [100.0, 600.0]));
+        view.draft.input = "20".into();
+        let mut inches = settings.clone();
+        inches.bare = BareUnit::Inches;
+        let edit = submit(view, doc, DraftTool::Line, &inches).ok_or("the typed line wasn't drawn")?;
+        let Edit::AddDraftShape { new, .. } = edit else { return Err("not a drafted line".into()) };
+        let Shape::Line { from, to, .. } = new.shape else { return Err("not a line".into()) };
+        assert!((to[0] - from[0]).abs() < 1e-6 && to[1] > from[1], "straight up, toward the pointer: {from:?} → {to:?}");
+        view.draft.ended = false;
         // Modify tools, doors and windows stay for the next one.
         for t in [DraftTool::Trim, DraftTool::Move, DraftTool::Door, DraftTool::Window, DraftTool::Offset] {
             assert!(!t.ends_after_one(), "{t:?}");

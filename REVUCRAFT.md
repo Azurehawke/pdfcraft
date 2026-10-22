@@ -226,6 +226,9 @@ Markup and measuring
       CADCraft (a polyline, wall, spline or cloud once it is finished): the Select tool comes back to
       pick the new shape. Doors, windows and the modify tools stay for the next one. Measuring and
       markup tools are as they were.
+- [x] **(Steve, build 137)** A typed length goes toward where the pointer last was on the page, even
+      when the pointer has gone by the time Enter is pressed (Windows hides it while typing; the
+      ribbon's entry box takes it off the page). It went right (0°) instead.
 - [ ] **(Steve, asked)** Select existing PDF linework (click, window or crossing) to delete, restyle,
       or Explode into editable lines (brings forward the Explode item below).
 - [ ] **(Steve, later update)** Folder mappings per device (`M:\Jobs` on the PC = `Sync/Jobs` on the
