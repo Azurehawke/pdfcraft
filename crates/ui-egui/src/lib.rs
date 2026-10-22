@@ -118,6 +118,7 @@ pub mod pen;
 mod pickers;
 mod point_bar;
 mod props_box;
+mod rulers;
 mod status_bar;
 mod takeoff_ui;
 mod tool_chest;
@@ -640,6 +641,8 @@ pub struct PdfCraftApp {
     pub(crate) props_box: Option<comment_props::PropsDraft>,
     /// RevuCraft's tool ribbon under the mode bar (on in the apps; see [`Self::revucraft_shell`]).
     pub show_ribbon: bool,
+    /// Rulers along the top and left of the drawing (View ▸ Rulers; on in RevuCraft).
+    pub rulers: bool,
     /// The reading-colours preference (Preferences ▸ Reading colours): applied to every open
     /// document, and documents open with it (Acrobat's Replace Document Colors).
     pub reading_colors: pdfcraft_render::ReadingColors,
@@ -1048,6 +1051,7 @@ impl PdfCraftApp {
             dock_rect: None,
             props_box: None,
             show_ribbon: false,
+            rulers: false,
             reading_colors: Default::default(),
             #[cfg(target_os = "linux")]
             desktop_theme: None,
@@ -2176,6 +2180,7 @@ impl PdfCraftApp {
     /// keeps PdfCraft's layout, which the interface tests are written against.
     pub fn revucraft_shell(&mut self) {
         self.show_ribbon = true;
+        self.rulers = true;
         self.left_open = false;
     }
 
@@ -2483,6 +2488,7 @@ impl PdfCraftApp {
             "combine_view": self.combine_view.as_str(),
             "combine_zoom": self.combine_zoom,
             "comments_panel_closed": self.comments_panel_closed,
+            "rulers": self.rulers,
             "right_panel_closed": self.right_panel_closed,
         });
         // Set apart: one more key inside the macro above passes serde_json's recursion limit.
@@ -2621,6 +2627,9 @@ impl PdfCraftApp {
         }
         if let Some(closed) = v["comments_panel_closed"].as_bool() {
             self.comments_panel_closed = closed;
+        }
+        if let Some(on) = v["rulers"].as_bool() {
+            self.rulers = on;
         }
         if v["dock"].is_object() {
             self.restore_dock_layout(&v["dock"]);
@@ -2770,6 +2779,7 @@ impl PdfCraftApp {
                 })?;
                 self.language = language.to_string();
             }
+            ("rulers", _) => self.rulers = value == "on",
             ("shell", _) => match value {
                 "revucraft" => self.revucraft_shell(),
                 _ => return Err("shell must be revucraft".into()),

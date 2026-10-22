@@ -233,10 +233,10 @@ Markup and measuring
       off the sheet shows on the area around it (faded; dark lines lightened on the dark theme), and
       can still be selected, moved, grip-edited and snapped to; drafting and markup tools draw there
       too. The sheet stays the print border. Measuring tools stay on the sheet.
-- [ ] **(Steve, next build)** Rulers along the top and left of the drawing, as in Illustrator: a marker on
+- [x] **(Steve, build 144)** Rulers along the top and left of the drawing, as in Illustrator: a marker on
       each follows the pointer; the numbers read in the sheet's drawing scale (feet and inches at
       1/8" = 1'-0") or in paper units on an uncalibrated sheet, and the ticks thin out or fill in
-      with the zoom. Zero at the sheet's corner; shown or hidden from View.
+      with the zoom. Zero at the sheet's corner; shown or hidden from View ▸ Rulers (Ctrl+R).
 - [ ] **(Steve, next build)** Guides, as in Illustrator: drag one out of a ruler, move it, type its exact
       position (in drawing units or paper inches), lock or clear them. Drafting and markup tools snap
       to them. Kept with the sheet in the PDF but never printed.

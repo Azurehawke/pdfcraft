@@ -472,6 +472,8 @@ pub struct DocView {
     screen_xforms: Vec<(usize, PageXform)>,
     /// RevuCraft: the pasteboard's shapes, read once per edit.
     pasteboard: crate::pasteboard::Cache,
+    /// RevuCraft: the rulers' units for a page, read once per edit.
+    ruler_units: Option<(usize, u64, crate::rulers::Units)>,
     /// The scroll viewport on screen last frame.
     viewport_screen: Rect,
     /// Pending zoom anchor: page, fractional position (also in gutters), and viewport offset.
@@ -771,6 +773,7 @@ impl DocView {
             screen_rects: Vec::new(),
             screen_xforms: Vec::new(),
             pasteboard: crate::pasteboard::Cache::default(),
+            ruler_units: None,
             viewport_screen: Rect::NOTHING,
             zoom_anchor: None,
             shown: false,
@@ -2388,6 +2391,45 @@ fn page_scroll<R>(
 }
 
 pub fn document_area(app: &mut PdfCraftApp, index: usize, ui: &mut egui::Ui) {
+    if !app.rulers || app.full_screen {
+        document_area_pages(app, index, ui);
+        return;
+    }
+    // RevuCraft's rulers along the top and left; the pages fill the rest.
+    let full = ui.available_rect_before_wrap();
+    let size = crate::rulers::SIZE;
+    let inner = Rect::from_min_max(full.min + vec2(size, size), full.max);
+    ui.scope_builder(egui::UiBuilder::new().max_rect(inner), |ui| document_area_pages(app, index, ui));
+    let Some(view) = app.views.get_mut(index) else { return };
+    let Some(doc) = app.session.get(view.id) else { return };
+    // The sheet under the pointer, else the current one.
+    let page = view.cursor.map_or(view.current, |c| c.0);
+    let xf = view.screen_xforms.iter().find(|(p, _)| *p == page).or_else(|| view.screen_xforms.first()).map(|(p, x)| (*p, *x));
+    let units = match (xf, view.ruler_units.as_ref()) {
+        (Some((p, _)), Some((cp, generation, u))) if *cp == p && *generation == doc.edit_generation() => u.clone(),
+        (Some((p, _)), _) => {
+            let u = crate::rulers::Units::of(doc.sheet_scale(p).as_ref());
+            view.ruler_units = Some((p, doc.edit_generation(), u.clone()));
+            u
+        }
+        (None, _) => crate::rulers::Units::paper(),
+    };
+    let axes = xf.map(|(_, xf)| {
+        let (w_pt, h_pt) = if xf.rot % 180 == 0 { (xf.pw, xf.ph) } else { (xf.ph, xf.pw) };
+        let px_per_pt = (f64::from(xf.rect.width()) / f64::from(w_pt.max(1.0)) + f64::from(xf.rect.height()) / f64::from(h_pt.max(1.0))) / 2.0;
+        let px_per_unit = px_per_pt / units.per_point;
+        (
+            crate::rulers::Axis { zero: xf.rect.min.x, px_per_unit, sheet: (xf.rect.min.x, xf.rect.max.x) },
+            crate::rulers::Axis { zero: xf.rect.min.y, px_per_unit, sheet: (xf.rect.min.y, xf.rect.max.y) },
+        )
+    });
+    let pointer = ui.input(|i| i.pointer.hover_pos()).filter(|p| inner.contains(*p));
+    let t = Tokens::get(ui.ctx());
+    let painter = ui.painter_at(full);
+    crate::rulers::paint(&painter, &t, full, &units, axes.as_ref().map(|a| &a.0), axes.as_ref().map(|a| &a.1), pointer);
+}
+
+fn document_area_pages(app: &mut PdfCraftApp, index: usize, ui: &mut egui::Ui) {
     let t = Tokens::get(ui.ctx());
     // Keyboard scrolling applies to this frame's page view only, never later.
     let key_scroll = std::mem::take(&mut app.views[index].key_scroll);

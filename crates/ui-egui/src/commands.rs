@@ -266,6 +266,7 @@ impl PdfCraftApp {
                     self.views[i].set_fit(fit);
                 }
             }
+            "view.rulers" => self.rulers = !self.rulers,
             "view.full_screen" => {
                 let on = !self.full_screen;
                 match self.ctx.clone() {
@@ -881,6 +882,7 @@ pub(crate) const MENU_LAYOUT: [(&str, &[MenuItem]); 5] = [
             Sep,
             Cmd("view.read_mode"),
             Cmd("view.full_screen"),
+            Cmd("view.rulers"),
             Cmd("view.next_tab"),
             Cmd("view.previous_tab"),
             Sep,
