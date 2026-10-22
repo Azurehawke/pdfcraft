@@ -233,6 +233,10 @@ Markup and measuring
       off the sheet shows on the area around it (faded; dark lines lightened on the dark theme), and
       can still be selected, moved, grip-edited and snapped to; drafting and markup tools draw there
       too. The sheet stays the print border. Measuring tools stay on the sheet.
+- [ ] **(Steve, next build)** Rulers along the top and left of the drawing, as in Illustrator: a marker on
+      each follows the pointer; the numbers read in the sheet's drawing scale (feet and inches at
+      1/8" = 1'-0") or in paper units on an uncalibrated sheet, and the ticks thin out or fill in
+      with the zoom. Zero at the sheet's corner; shown or hidden from View.
 - [ ] **(Steve, back burner)** Select existing PDF linework (click, window or crossing) to delete, restyle,
       or Explode into editable lines (brings forward the Explode item below).
 - [ ] **(Steve, later update)** Folder mappings per device (`M:\Jobs` on the PC = `Sync/Jobs` on the
