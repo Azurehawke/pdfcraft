@@ -357,6 +357,7 @@ impl PdfCraftApp {
             "page.insert" => self.insert_from_file_dialog(),
             "file.place_drawing" => crate::links_ui::place_drawing(self),
             "file.place_table" => crate::links_ui::place_table(self),
+            "measure.send_quantities" => crate::takeoff_ui::send_quantities(self),
             "page.replace" => self.replace_pages_dialog(),
             "edit.header_footer"
             | "edit.watermark"

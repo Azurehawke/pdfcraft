@@ -2973,3 +2973,33 @@ animation effects	Off	Desativados
 	Workbook	Pasta de trabalho
 	Workbooks (XLSX, CSV…)	Pastas de trabalho (XLSX, CSV…)
 	Place linked table	Posicionar tabela vinculada
+	Change…	Alterar…
+	Choose a workbook…	Escolher uma pasta de trabalho…
+	Close the workbook in GridCraft or Excel first, or its next save puts the old quantities back.	Feche a pasta de trabalho no GridCraft ou no Excel antes, ou o próximo salvamento trará de volta as quantidades antigas.
+	Couldn't save {name}: {e}. If it is open in Excel, close it and send again.	Não foi possível salvar {name}: {e}. Se estiver aberta no Excel, feche-a e envie de novo.
+	Couldn't send the quantities to {name}: {e}	Não foi possível enviar as quantidades para {name}: {e}
+	Given when sent	Definido ao enviar
+	Its quantity's name in the workbook's Takeoff sheet, for formulas such as ={name}*6.50	O nome da quantidade na planilha Takeoff da pasta de trabalho, para fórmulas como ={name}*6.50
+	New workbook…	Nova pasta de trabalho…
+	No table from a workbook is placed in this document yet.	Nenhuma tabela de pasta de trabalho foi posicionada neste documento ainda.
+	Quantities	Quantidades
+	Quantities are sent to XLSX workbooks; {name} isn't one.	As quantidades são enviadas para pastas de trabalho XLSX; {name} não é uma.
+	RevuCraft writes a Takeoff sheet into the workbook: one row per measurement and symbol count, each quantity a named cell, so formulas such as =Kitchen_floor*6.50 follow the drawing. The rest of the workbook is left as it is.	O RevuCraft grava uma planilha Takeoff na pasta de trabalho: uma linha por medição e contagem de símbolos, cada quantidade uma célula nomeada, para que fórmulas como =Kitchen_floor*6.50 acompanhem o desenho. O restante da pasta fica como está.
+	Send	Enviar
+	Send again	Enviar de novo
+	Send quantities	Enviar quantidades
+	Send quantities to a workbook's Takeoff sheet, each a named cell	Enviar quantidades para a planilha Takeoff de uma pasta de trabalho, cada uma uma célula nomeada
+	Send quantities…	Enviar quantidades…
+	Send the measurements and symbol counts to a workbook's Takeoff sheet, each quantity a named cell for its formulas.	Envie as medições e contagens de símbolos para a planilha Takeoff de uma pasta de trabalho, cada quantidade uma célula nomeada para suas fórmulas.
+	Sent the quantities to {name}'s Takeoff sheet.	Quantidades enviadas para a planilha Takeoff de {name}.
+	Sent to {name}: up to date.	Enviado para {name}: atualizado.
+	The quantities have changed since they were sent to {name}.	As quantidades mudaram desde que foram enviadas para {name}.
+	There are no measurements or symbols to send yet.	Ainda não há medições ou símbolos para enviar.
+	Workbooks (XLSX)	Pastas de trabalho (XLSX)
+	Workbooks placed in this document	Pastas de trabalho posicionadas neste documento
+	Writes a Takeoff sheet into the workbook: one row per measurement and symbol count, each quantity a named cell. The rest of the workbook is left as it is.	Grava uma planilha Takeoff na pasta de trabalho: uma linha por medição e contagem de símbolos, cada quantidade uma célula nomeada. O restante da pasta fica como está.
+	{name} can't be found.	{name} não foi encontrado.
+	{name} was saved in GridCraft: the table on the sheet is updated.	{name} foi salvo no GridCraft: a tabela na folha foi atualizada.
+	{name} was saved without the latest quantities (it was open when they were sent).	{name} foi salvo sem as quantidades mais recentes (estava aberto quando foram enviadas).
+	Rename measurement	Renomear medição
+	Name measurements	Nomear medições

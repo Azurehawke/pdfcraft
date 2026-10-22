@@ -17,6 +17,8 @@ const MAX_ROWS: usize = 20_000;
 pub enum Col {
     Type,
     Label,
+    /// A measurement's name in a workbook's Takeoff sheet.
+    Name,
     Layer,
     #[default]
     Page,
@@ -29,12 +31,13 @@ pub enum Col {
 }
 
 impl Col {
-    const ALL: [Col; 8] = [Col::Type, Col::Label, Col::Layer, Col::Page, Col::Author, Col::Status, Col::Value, Col::Date];
+    const ALL: [Col; 9] = [Col::Type, Col::Label, Col::Name, Col::Layer, Col::Page, Col::Author, Col::Status, Col::Value, Col::Date];
 
     fn title(self) -> &'static str {
         match self {
             Col::Type => "Type",
             Col::Label => "Label",
+            Col::Name => "Name",
             Col::Layer => "Layer",
             Col::Page => "Page",
             Col::Author => "Author",
@@ -48,6 +51,7 @@ impl Col {
     fn width(self) -> f32 {
         match self {
             Col::Label => 140.0,
+            Col::Name => 110.0,
             Col::Page => 44.0,
             Col::Date => 82.0,
             Col::Value => 80.0,
@@ -64,6 +68,8 @@ pub struct Row {
     pub rect: [f32; 4],
     pub kind: String,
     pub label: String,
+    /// A measurement's name (empty for other markups).
+    pub name: String,
     pub layer: String,
     pub author: String,
     pub status: String,
@@ -85,6 +91,7 @@ impl Row {
             Col::Custom(i) => custom.get(i).map(|n| self.field(n)).unwrap_or_default(),
             Col::Type => self.kind.clone(),
             Col::Label => self.label.clone(),
+            Col::Name => self.name.clone(),
             Col::Layer => self.layer.clone(),
             Col::Page => (self.page + 1).to_string(),
             Col::Author => self.author.clone(),
@@ -181,6 +188,7 @@ pub fn rows(doc: &Document) -> Vec<Row> {
             rect: a.rect,
             kind,
             label,
+            name: measurement.map(|m| m.name.clone()).unwrap_or_default(),
             layer: layer_name(a.layer),
             author: a.author.clone().unwrap_or_default(),
             status,
@@ -281,6 +289,7 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
     let cols = all_columns(&custom);
     let mut export = false;
     let mut report = false;
+    let mut send = false;
     // Wraps in a narrow dock, so the buttons stay in view.
     ui.horizontal_wrapped(|ui| {
         ui.add(egui::TextEdit::singleline(&mut state.query).hint_text(tl!("Search markups")).desired_width(130.0));
@@ -309,6 +318,9 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
         }
         if icons::button(ui, "file-text", 26.0, false, tl!("Summary report (PDF): the markups shown, with photos, by layer")).clicked() {
             report = true;
+        }
+        if icons::button(ui, "send", 26.0, false, tl!("Send quantities to a workbook's Takeoff sheet, each a named cell")).clicked() {
+            send = true;
         }
         let r = icons::button(ui, "columns-3", 26.0, false, tl!("Your columns: drop ID, progress and others"));
         egui::Popup::from_toggle_button_response(&r)
@@ -386,6 +398,9 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
     }
     if report {
         summary_report(app, &shown, &custom);
+    }
+    if send {
+        crate::takeoff_ui::send_quantities(app);
     }
 }
 
@@ -517,6 +532,7 @@ mod tests {
             rect: [0.0; 4],
             kind: kind.into(),
             label: label.into(),
+            name: String::new(),
             layer: String::new(),
             author: "Steve".into(),
             status: String::new(),
@@ -544,9 +560,9 @@ mod tests {
         // Your own columns are searched and exported.
         s.query = "pulled".into();
         assert_eq!(visible(&rows, &s, &["Progress".to_string()]).len(), 3);
-        assert!(csv(&rows, &["Progress".to_string()]).starts_with("Type,Label,Layer,Page,Author,Status,Value,Date,Progress\r\n"));
+        assert!(csv(&rows, &["Progress".to_string()]).starts_with("Type,Label,Name,Layer,Page,Author,Status,Value,Date,Progress\r\n"));
         let text = csv(&[row(0, "Note", "=SUM(A1), \"x\"", None)], &none);
-        assert!(text.starts_with("Type,Label,Layer,Page,Author,Status,Value,Date\r\n"));
+        assert!(text.starts_with("Type,Label,Name,Layer,Page,Author,Status,Value,Date\r\n"));
         assert!(text.contains("\"'=SUM(A1), \"\"x\"\"\""), "{text}");
         assert_eq!(pdf_date("D:20261015093000-07'00'"), "2026-10-15");
         assert_eq!(pdf_date("yesterday"), "yesterday");

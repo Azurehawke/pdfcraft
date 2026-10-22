@@ -2959,3 +2959,33 @@ animation effects	Off	Ki
 	Workbook	Munkafüzet
 	Workbooks (XLSX, CSV…)	Munkafüzetek (XLSX, CSV…)
 	Place linked table	Csatolt táblázat elhelyezése
+	Change…	Módosítás…
+	Choose a workbook…	Munkafüzet kiválasztása…
+	Close the workbook in GridCraft or Excel first, or its next save puts the old quantities back.	Előbb zárja be a munkafüzetet a GridCraftban vagy az Excelben, különben a következő mentés visszahozza a régi mennyiségeket.
+	Couldn't save {name}: {e}. If it is open in Excel, close it and send again.	A(z) {name} nem menthető: {e}. Ha meg van nyitva az Excelben, zárja be, és küldje újra.
+	Couldn't send the quantities to {name}: {e}	A mennyiségek nem küldhetők el ide: {name}: {e}
+	Given when sent	Küldéskor kapja
+	Its quantity's name in the workbook's Takeoff sheet, for formulas such as ={name}*6.50	A mennyiség neve a munkafüzet Takeoff lapján, például ={name}*6.50 képletekhez
+	New workbook…	Új munkafüzet…
+	No table from a workbook is placed in this document yet.	Ebben a dokumentumban még nincs munkafüzetből elhelyezett táblázat.
+	Quantities	Mennyiségek
+	Quantities are sent to XLSX workbooks; {name} isn't one.	A mennyiségek XLSX-munkafüzetekbe kerülnek; a(z) {name} nem az.
+	RevuCraft writes a Takeoff sheet into the workbook: one row per measurement and symbol count, each quantity a named cell, so formulas such as =Kitchen_floor*6.50 follow the drawing. The rest of the workbook is left as it is.	A RevuCraft egy Takeoff lapot ír a munkafüzetbe: méréseként és szimbólumszámonként egy sort, minden mennyiség egy elnevezett cella, így az olyan képletek, mint az =Kitchen_floor*6.50, követik a rajzot. A munkafüzet többi része változatlan marad.
+	Send	Küldés
+	Send again	Újraküldés
+	Send quantities	Mennyiségek küldése
+	Send quantities to a workbook's Takeoff sheet, each a named cell	Mennyiségek küldése egy munkafüzet Takeoff lapjára, mindegyik elnevezett cellaként
+	Send quantities…	Mennyiségek küldése…
+	Send the measurements and symbol counts to a workbook's Takeoff sheet, each quantity a named cell for its formulas.	Küldje el a méréseket és a szimbólumszámokat egy munkafüzet Takeoff lapjára, minden mennyiséget elnevezett cellaként a képleteihez.
+	Sent the quantities to {name}'s Takeoff sheet.	A mennyiségek elküldve ide: {name}, Takeoff lap.
+	Sent to {name}: up to date.	Elküldve ide: {name}: naprakész.
+	The quantities have changed since they were sent to {name}.	A mennyiségek megváltoztak, mióta elküldték ide: {name}.
+	There are no measurements or symbols to send yet.	Még nincs elküldhető mérés vagy szimbólum.
+	Workbooks (XLSX)	Munkafüzetek (XLSX)
+	Workbooks placed in this document	Ebben a dokumentumban elhelyezett munkafüzetek
+	Writes a Takeoff sheet into the workbook: one row per measurement and symbol count, each quantity a named cell. The rest of the workbook is left as it is.	Takeoff lapot ír a munkafüzetbe: méréseként és szimbólumszámonként egy sort, minden mennyiség egy elnevezett cella. A munkafüzet többi része változatlan marad.
+	{name} can't be found.	A(z) {name} nem található.
+	{name} was saved in GridCraft: the table on the sheet is updated.	A(z) {name} mentve a GridCraftban: a lapon lévő táblázat frissült.
+	{name} was saved without the latest quantities (it was open when they were sent).	A(z) {name} a legújabb mennyiségek nélkül lett mentve (nyitva volt a küldéskor).
+	Rename measurement	Mérés átnevezése
+	Name measurements	Mérések elnevezése

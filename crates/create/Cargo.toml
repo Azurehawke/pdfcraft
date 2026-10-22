@@ -22,6 +22,7 @@ cadcraft-io = { workspace = true }
 cadcraft-doc = { workspace = true }
 cadcraft-render = { workspace = true }
 gridcraft-engine = { workspace = true }
+zip = { workspace = true }
 # Already in the graph through lopdf; used only to read plain-text files (decode_text).
 encoding_rs = "0.8"
 

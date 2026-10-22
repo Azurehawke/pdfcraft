@@ -2963,3 +2963,33 @@ animation effects	Off	オフ
 	Workbook	ブック
 	Workbooks (XLSX, CSV…)	ブック (XLSX、CSV…)
 	Place linked table	リンクした表を配置
+	Change…	変更…
+	Choose a workbook…	ブックを選択…
+	Close the workbook in GridCraft or Excel first, or its next save puts the old quantities back.	先に GridCraft や Excel でブックを閉じてください。閉じないと次の保存で古い数量に戻ります。
+	Couldn't save {name}: {e}. If it is open in Excel, close it and send again.	{name} を保存できませんでした: {e}。Excel で開いている場合は閉じてから再送信してください。
+	Couldn't send the quantities to {name}: {e}	{name} に数量を送信できませんでした: {e}
+	Given when sent	送信時に付けられます
+	Its quantity's name in the workbook's Takeoff sheet, for formulas such as ={name}*6.50	ブックの Takeoff シートでの数量の名前。={name}*6.50 のような数式に使えます
+	New workbook…	新しいブック…
+	No table from a workbook is placed in this document yet.	この文書にはまだブックの表が配置されていません。
+	Quantities	数量
+	Quantities are sent to XLSX workbooks; {name} isn't one.	数量は XLSX ブックに送信されます。{name} は XLSX ではありません。
+	RevuCraft writes a Takeoff sheet into the workbook: one row per measurement and symbol count, each quantity a named cell, so formulas such as =Kitchen_floor*6.50 follow the drawing. The rest of the workbook is left as it is.	RevuCraft はブックに Takeoff シートを書き込みます。計測とシンボル数ごとに 1 行、各数量は名前付きセルになるため、=Kitchen_floor*6.50 のような数式が図面に追従します。ブックのほかの部分はそのままです。
+	Send	送信
+	Send again	再送信
+	Send quantities	数量を送信
+	Send quantities to a workbook's Takeoff sheet, each a named cell	数量をブックの Takeoff シートに名前付きセルとして送信
+	Send quantities…	数量を送信…
+	Send the measurements and symbol counts to a workbook's Takeoff sheet, each quantity a named cell for its formulas.	計測とシンボル数をブックの Takeoff シートに送信します。各数量は数式用の名前付きセルになります。
+	Sent the quantities to {name}'s Takeoff sheet.	{name} の Takeoff シートに数量を送信しました。
+	Sent to {name}: up to date.	{name} に送信済み: 最新です。
+	The quantities have changed since they were sent to {name}.	{name} に送信した後、数量が変わりました。
+	There are no measurements or symbols to send yet.	送信する計測やシンボルがまだありません。
+	Workbooks (XLSX)	ブック (XLSX)
+	Workbooks placed in this document	この文書に配置されたブック
+	Writes a Takeoff sheet into the workbook: one row per measurement and symbol count, each quantity a named cell. The rest of the workbook is left as it is.	ブックに Takeoff シートを書き込みます。計測とシンボル数ごとに 1 行、各数量は名前付きセルです。ブックのほかの部分はそのままです。
+	{name} can't be found.	{name} が見つかりません。
+	{name} was saved in GridCraft: the table on the sheet is updated.	{name} が GridCraft で保存されました。図面上の表を更新しました。
+	{name} was saved without the latest quantities (it was open when they were sent).	{name} は最新の数量なしで保存されました (送信時に開かれていました)。
+	Rename measurement	計測の名前を変更
+	Name measurements	計測に名前を付ける

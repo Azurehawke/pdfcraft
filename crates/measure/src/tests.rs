@@ -496,3 +496,57 @@ fn perpendicular_snaps_to_the_foot_on_the_segment() {
     assert_eq!(snap::perpendicular([150.0, 40.0], [100.0, 1.0], [wall], 5.0), None);
     assert_eq!(snap::perpendicular([f64::NAN, 0.0], [0.0, 0.0], [wall], 5.0), None);
 }
+
+#[test]
+fn measurements_are_named_as_drawn_and_renamed_uniquely() {
+    let mut d = fixture("", "", &[]);
+    let square = vec![[0.0, 0.0], [10.0, 0.0], [10.0, 10.0], [0.0, 10.0]];
+    let a = add(&mut d, &new(Kind::Area, square.clone()), &Meta::default()).unwrap();
+    let b = add(&mut d, &new(Kind::Area, square.clone()), &Meta::default()).unwrap();
+    let mut unlabelled = new(Kind::Area, square.clone());
+    unlabelled.label.clear();
+    let c = add(&mut d, &unlabelled, &Meta::default()).unwrap();
+    let run = add(&mut d, &new(Kind::Perimeter, vec![[0.0, 0.0], [40.0, 0.0], [40.0, 30.0]]), &Meta::default()).unwrap();
+    let mut route = new(Kind::Perimeter, vec![[0.0, 0.0], [20.0, 0.0], [20.0, 30.0]]);
+    route.label.clear();
+    let cable = add(&mut d, &route, &Meta::default()).unwrap();
+    let names = |d: &Document| list(d).measurements.into_iter().map(|m| (m.index, m.name)).collect::<Vec<_>>();
+    assert_eq!(
+        names(&d),
+        vec![(a, "Room_1".into()), (b, "Room_1_2".into()), (c, "Area_1".into()), (run, "Room_1_3".into()), (cable, "Perimeter_1".into())]
+    );
+    // Made a cable run, a default perimeter name follows; a name of your own would stay.
+    set_cable(&mut d, 0, cable, 24.0).unwrap();
+    assert_eq!(names(&d).last().map(|(_, n)| n.as_str()), Some("Cable_run_1"));
+    assert_eq!(names::set_name(&mut d, 0, c, "kitchen floor").unwrap(), "kitchen_floor");
+    assert!(names::set_name(&mut d, 0, a, "ROOM_1_2").is_err(), "another has it, ignoring case");
+    assert!(names::set_name(&mut d, 0, a, " / ").is_err());
+    assert_eq!(names::set_name(&mut d, 0, a, "Room_1").unwrap(), "Room_1", "its own name again");
+}
+
+#[test]
+fn unnamed_and_copied_measurements_are_named_once() {
+    let mut d = fixture("", "", &[]);
+    let square = vec![[0.0, 0.0], [10.0, 0.0], [10.0, 10.0], [0.0, 10.0]];
+    let mut m = new(Kind::Area, square);
+    m.label.clear();
+    for _ in 0..3 {
+        add(&mut d, &m, &Meta::default()).unwrap();
+    }
+    // Drawn before names (no name), and a copy of the first (the same name).
+    let listing = list(&d).measurements;
+    for (i, name) in [(1, None), (2, Some("Area_1"))] {
+        let (r, mut dict) = annot(&d, 0, listing[i].index).unwrap();
+        match name {
+            Some(n) => dict.set(names::KEY.to_vec(), PdfString::text(n)),
+            None => {
+                dict.remove(names::KEY);
+            }
+        }
+        d.update_dict(r, |t| *t = dict).unwrap();
+    }
+    assert_eq!(names::name_all(&mut d).unwrap(), 2);
+    let got: Vec<String> = list(&d).measurements.into_iter().map(|m| m.name).collect();
+    assert_eq!(got, ["Area_1", "Area_2", "Area_1_2"]);
+    assert_eq!(names::name_all(&mut d).unwrap(), 0, "nothing left to name");
+}

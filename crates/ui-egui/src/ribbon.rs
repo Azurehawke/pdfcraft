@@ -75,7 +75,7 @@ impl Workflow {
                     ],
                 ),
                 ("Tools", &["measure.snap", "measure.info"]),
-                ("Export", &["measure.export"]),
+                ("Export", &["measure.export", "measure.send_quantities"]),
             ],
             Self::Review => &[
                 ("Comments", &["comment.list", "comment.summarize", "comment.hide_all", "comment.flatten"]),

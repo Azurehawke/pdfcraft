@@ -3235,3 +3235,33 @@ certificate	Version	الإصدار
 	Workbook	المصنف
 	Workbooks (XLSX, CSV…)	المصنفات (XLSX، CSV…)
 	Place linked table	وضع جدول مرتبط
+	Change…	تغيير…
+	Choose a workbook…	اختيار مصنف…
+	Close the workbook in GridCraft or Excel first, or its next save puts the old quantities back.	أغلق المصنف في GridCraft أو Excel أولًا، وإلا فإن حفظه التالي سيعيد الكميات القديمة.
+	Couldn't save {name}: {e}. If it is open in Excel, close it and send again.	تعذّر حفظ {name}: {e}. إن كان مفتوحًا في Excel فأغلقه وأرسل مرة أخرى.
+	Couldn't send the quantities to {name}: {e}	تعذّر إرسال الكميات إلى {name}: {e}
+	Given when sent	يُعطى عند الإرسال
+	Its quantity's name in the workbook's Takeoff sheet, for formulas such as ={name}*6.50	اسم كميته في ورقة Takeoff في المصنف، لصيغ مثل ={name}*6.50
+	New workbook…	مصنف جديد…
+	No table from a workbook is placed in this document yet.	لم يُوضع بعد أي جدول من مصنف في هذا المستند.
+	Quantities	الكميات
+	Quantities are sent to XLSX workbooks; {name} isn't one.	تُرسل الكميات إلى مصنفات XLSX، و{name} ليس منها.
+	RevuCraft writes a Takeoff sheet into the workbook: one row per measurement and symbol count, each quantity a named cell, so formulas such as =Kitchen_floor*6.50 follow the drawing. The rest of the workbook is left as it is.	يكتب RevuCraft ورقة Takeoff في المصنف: صف لكل قياس ولكل عدد رموز، وكل كمية خلية مسمّاة، لتتبع صيغ مثل =Kitchen_floor*6.50 الرسم. ويبقى باقي المصنف كما هو.
+	Send	إرسال
+	Send again	إرسال مرة أخرى
+	Send quantities	إرسال الكميات
+	Send quantities to a workbook's Takeoff sheet, each a named cell	إرسال الكميات إلى ورقة Takeoff في مصنف، كل منها خلية مسمّاة
+	Send quantities…	إرسال الكميات…
+	Send the measurements and symbol counts to a workbook's Takeoff sheet, each quantity a named cell for its formulas.	أرسل القياسات وأعداد الرموز إلى ورقة Takeoff في مصنف، وكل كمية خلية مسمّاة لصيغه.
+	Sent the quantities to {name}'s Takeoff sheet.	أُرسلت الكميات إلى ورقة Takeoff في {name}.
+	Sent to {name}: up to date.	أُرسلت إلى {name}: محدّثة.
+	The quantities have changed since they were sent to {name}.	تغيّرت الكميات منذ إرسالها إلى {name}.
+	There are no measurements or symbols to send yet.	لا توجد قياسات أو رموز لإرسالها بعد.
+	Workbooks (XLSX)	المصنفات (XLSX)
+	Workbooks placed in this document	المصنفات الموضوعة في هذا المستند
+	Writes a Takeoff sheet into the workbook: one row per measurement and symbol count, each quantity a named cell. The rest of the workbook is left as it is.	يكتب ورقة Takeoff في المصنف: صف لكل قياس ولكل عدد رموز، وكل كمية خلية مسمّاة. ويبقى باقي المصنف كما هو.
+	{name} can't be found.	تعذّر العثور على {name}.
+	{name} was saved in GridCraft: the table on the sheet is updated.	حُفظ {name} في GridCraft: تم تحديث الجدول على اللوحة.
+	{name} was saved without the latest quantities (it was open when they were sent).	حُفظ {name} دون أحدث الكميات (كان مفتوحًا عند إرسالها).
+	Rename measurement	إعادة تسمية القياس
+	Name measurements	تسمية القياسات

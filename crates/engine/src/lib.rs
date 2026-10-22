@@ -36,6 +36,7 @@ mod scan_colours;
 mod scan_fields;
 pub mod signature_image;
 pub mod signature_scan;
+pub mod takeoff;
 pub mod text_fonts;
 mod text_preview;
 pub mod word_count;
@@ -281,6 +282,8 @@ fn scope_of(edit: &Edit) -> Scope {
         | Edit::EditSymbol { .. }
         | Edit::SetCalloutSide { .. }
         | Edit::SetAnnotationField { .. }
+        | Edit::RenameMeasurement { .. }
+        | Edit::NameMeasurements
         | Edit::StyleAnnotation { .. }
         | Edit::FillAnnotation { .. }
         | Edit::FontSizeAnnotation { .. }
@@ -1414,6 +1417,20 @@ pub enum Edit {
         sheet: String,
         range: String,
     },
+    /// RevuCraft: name the measurement at (`page`, `index`) for the Takeoff sheet.
+    RenameMeasurement {
+        page: usize,
+        index: usize,
+        name: String,
+    },
+    /// RevuCraft: name the measurements that have no name, or one another has.
+    NameMeasurements,
+    /// RevuCraft: record that the quantities with fingerprint `sent` were written to the
+    /// workbook `file` ([`takeoff`]).
+    RecordTakeoff {
+        file: cad_links::LinkedFile,
+        sent: String,
+    },
     /// RevuCraft: move placed drawing `index` by (`dx`, `dy`) points on its sheet.
     MoveCadLink {
         index: usize,
@@ -2192,6 +2209,9 @@ pub const EDIT_LABELS: &[&str] = &[
     "Relink drawing",
     "Place linked drawing",
     "Place linked table",
+    "Rename measurement",
+    "Name measurements",
+    "Send quantities",
     "Move linked drawing",
     "Measure cable run",
     "Add legend",
@@ -2357,6 +2377,9 @@ impl Edit {
             Edit::RelinkCad { .. } => Label::of("Relink drawing"),
             Edit::PlaceCadLink { .. } => Label::of("Place linked drawing"),
             Edit::PlaceTableLink { .. } => Label::of("Place linked table"),
+            Edit::RenameMeasurement { .. } => Label::of("Rename measurement"),
+            Edit::NameMeasurements => Label::of("Name measurements"),
+            Edit::RecordTakeoff { .. } => Label::of("Send quantities"),
             Edit::MoveCadLink { .. } => Label::of("Move linked drawing"),
             Edit::AddCableRun { .. } => Label::of("Measure cable run"),
             Edit::AddLegend { .. } => Label::of("Add legend"),
@@ -2486,6 +2509,8 @@ fn check_permission(edit: &Edit, p: &pdfcraft_cos::Permissions) -> Result<(), Ed
         | Edit::PinToCallout { .. }
         | Edit::SetCalloutSide { .. }
         | Edit::SetAnnotationField { .. }
+        | Edit::RenameMeasurement { .. }
+        | Edit::NameMeasurements
         | Edit::StyleAnnotation { .. }
         | Edit::FillAnnotation { .. }
         | Edit::FontSizeAnnotation { .. }
@@ -2560,6 +2585,7 @@ fn check_permission(edit: &Edit, p: &pdfcraft_cos::Permissions) -> Result<(), Ed
         | Edit::RelinkCad { .. }
         | Edit::PlaceCadLink { .. }
         | Edit::PlaceTableLink { .. }
+        | Edit::RecordTakeoff { .. }
         | Edit::MoveCadLink { .. }
         | Edit::Flatten { .. }
         | Edit::UnpackTextForms { .. }
@@ -2715,6 +2741,13 @@ fn run_edit(doc: &mut pdfcraft_cos::Document, edit: &Edit, cx: &mut EditCtx) -> 
             cad_links::place_table(doc, *page, name, bytes, file, sheet, range)?;
         }
         Edit::MoveCadLink { index, dx, dy } => cad_links::move_link(doc, *index, *dx, *dy)?,
+        Edit::RenameMeasurement { page, index, name } => {
+            measure::names::set_name(doc, *page, *index, name)?;
+        }
+        Edit::NameMeasurements => {
+            measure::names::name_all(doc)?;
+        }
+        Edit::RecordTakeoff { file, sent } => takeoff::set_record(doc, file, sent)?,
         Edit::ReplacePages { pages, name, bytes, src_pages } => {
             let src = open_source(name, bytes)?;
             pdfcraft_organize::replace_pages(doc, pages, &src, src_pages)?;

@@ -3,6 +3,7 @@
 //! annotations use the measurement intents of line, polygon and polyline annotations (§12.5.6).
 #![deny(clippy::unwrap_used, clippy::expect_used, clippy::panic, clippy::unimplemented, clippy::todo, clippy::unreachable)]
 
+pub mod names;
 pub mod snap;
 use pdfcraft_annot::{Meta, NewAnnotation, Shape, Style};
 use pdfcraft_cos::{Dict, Document, ObjRef, Object, PdfString};
@@ -499,8 +500,11 @@ pub fn add(doc: &mut Document, new: &NewMeasurement, meta: &Meta) -> Result<usiz
         &NewAnnotation { page: new.page, shape, style: new.style.clone(), contents: info.label.clone(), author: new.author.clone() },
         meta,
     )?;
+    // Named before it is added to the list of names in use.
+    let name = names::new_name(doc, new.kind, &new.label);
     let (r, mut d) = annot(doc, new.page, index)?;
     d.set(b"IT".to_vec(), Object::name(new.kind.intent()));
+    d.set(names::KEY.to_vec(), PdfString::text(&name));
     d.set(b"Measure".to_vec(), Object::Dict(new.scale.dictionary()?));
     d.set(b"Subj".to_vec(), PdfString::text(new.kind.name()));
     d.set(b"PCMeasureLabel".to_vec(), PdfString::text(&new.label));
@@ -594,6 +598,7 @@ pub fn set_cable(doc: &mut Document, page_index: usize, index: usize, extra_inch
     d.set(b"PCCableRun".to_vec(), Object::Bool(true));
     d.set(b"Subj".to_vec(), PdfString::text("Cable run"));
     doc.update_dict(r, |target| *target = d).map_err(|e| invalid(&e.to_string()))?;
+    names::rename_cable(doc, page_index, index)?;
     refresh(doc, page_index, index).map(|_| ())
 }
 
@@ -628,6 +633,9 @@ pub struct Measurement {
     /// RevuCraft: a cable run (its allowance, in the scale's unit, is in the reading).
     pub cable: bool,
     pub extra: f64,
+    /// RevuCraft: its name in a workbook's Takeoff sheet (`Kitchen_floor`), empty when none was
+    /// given ([`names`]).
+    pub name: String,
 }
 /// A measurement annotation that couldn't be read (unsupported scale format, invalid
 /// geometry). Its PDF data is left untouched.
@@ -681,6 +689,7 @@ fn read_measurement(doc: &Document, d: &Dict, kind: Kind, page: usize, index: us
         reading,
         cable,
         extra,
+        name: text(d, names::KEY),
     })
 }
 /// Every measurement annotation. One that can't be read is reported in `unsupported`

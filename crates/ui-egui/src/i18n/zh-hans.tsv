@@ -2926,3 +2926,33 @@ animation effects	Off	关
 	Workbook	工作簿
 	Workbooks (XLSX, CSV…)	工作簿（XLSX、CSV…）
 	Place linked table	放置链接的表格
+	Change…	更改…
+	Choose a workbook…	选择工作簿…
+	Close the workbook in GridCraft or Excel first, or its next save puts the old quantities back.	请先在 GridCraft 或 Excel 中关闭工作簿，否则它的下一次保存会恢复旧的数量。
+	Couldn't save {name}: {e}. If it is open in Excel, close it and send again.	无法保存 {name}：{e}。如果它在 Excel 中打开，请关闭后再发送。
+	Couldn't send the quantities to {name}: {e}	无法将数量发送到 {name}：{e}
+	Given when sent	发送时指定
+	Its quantity's name in the workbook's Takeoff sheet, for formulas such as ={name}*6.50	其数量在工作簿 Takeoff 工作表中的名称，可用于 ={name}*6.50 等公式
+	New workbook…	新建工作簿…
+	No table from a workbook is placed in this document yet.	此文档中尚未放置来自工作簿的表格。
+	Quantities	数量
+	Quantities are sent to XLSX workbooks; {name} isn't one.	数量只能发送到 XLSX 工作簿；{name} 不是。
+	RevuCraft writes a Takeoff sheet into the workbook: one row per measurement and symbol count, each quantity a named cell, so formulas such as =Kitchen_floor*6.50 follow the drawing. The rest of the workbook is left as it is.	RevuCraft 会在工作簿中写入 Takeoff 工作表：每项测量和符号计数一行，每个数量都是命名单元格，因此 =Kitchen_floor*6.50 等公式会随图纸更新。工作簿的其余部分保持不变。
+	Send	发送
+	Send again	再次发送
+	Send quantities	发送数量
+	Send quantities to a workbook's Takeoff sheet, each a named cell	将数量发送到工作簿的 Takeoff 工作表，每项为一个命名单元格
+	Send quantities…	发送数量…
+	Send the measurements and symbol counts to a workbook's Takeoff sheet, each quantity a named cell for its formulas.	将测量和符号计数发送到工作簿的 Takeoff 工作表，每个数量都是供公式使用的命名单元格。
+	Sent the quantities to {name}'s Takeoff sheet.	已将数量发送到 {name} 的 Takeoff 工作表。
+	Sent to {name}: up to date.	已发送到 {name}：最新。
+	The quantities have changed since they were sent to {name}.	自发送到 {name} 以来，数量已更改。
+	There are no measurements or symbols to send yet.	还没有可发送的测量或符号。
+	Workbooks (XLSX)	工作簿 (XLSX)
+	Workbooks placed in this document	此文档中放置的工作簿
+	Writes a Takeoff sheet into the workbook: one row per measurement and symbol count, each quantity a named cell. The rest of the workbook is left as it is.	在工作簿中写入 Takeoff 工作表：每项测量和符号计数一行，每个数量都是命名单元格。工作簿的其余部分保持不变。
+	{name} can't be found.	找不到 {name}。
+	{name} was saved in GridCraft: the table on the sheet is updated.	{name} 已在 GridCraft 中保存：图纸上的表格已更新。
+	{name} was saved without the latest quantities (it was open when they were sent).	{name} 保存时没有最新的数量（发送时它处于打开状态）。
+	Rename measurement	重命名测量
+	Name measurements	为测量命名

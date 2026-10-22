@@ -127,6 +127,7 @@ jobs:
           printf 'Item,Qty,Unit cost,Total\nDoors,12,450,5400\nWindows,18,620,11160\nFlooring (sq ft),2400,6.5,15600\nPaint (gal),40,38,1520\nTotal,,,33680\n' > "$csv"
           shot plan-table "$plan" --workflow draft --place-table "$csv"
           shot plan-table-dialog "$plan" --table-dialog "$csv"
+          shot plan-send-dialog "$plan" --place-table "$csv" --quantities-dialog open
           shot update-available "$plan" --update available
           shot update-prompt "$plan" --update prompt
 

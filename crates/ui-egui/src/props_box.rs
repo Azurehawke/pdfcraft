@@ -38,6 +38,7 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
     let rotation = doc.symbol_rotation(page, ai);
     let callout_side = doc.callout_side(page, ai);
     let fields = doc.annotation_fields(page, ai);
+    let measurement_name = doc.measurement_name(page, ai);
     let columns = app.markup_columns.clone();
     let (new_side, new_height) = (app.symbols.callout_side, crate::revu::callout_height(&app.symbols));
     // The direction of the line or wall nearest the symbol, for lining it up.
@@ -118,6 +119,27 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
                         extra.push(Edit::SetAnnotationLayer { page, index: ai, layer: choice });
                     }
                     ui.end_row();
+                    // A measurement's name: its quantity's name in a workbook's Takeoff sheet.
+                    if let Some(current) = measurement_name.as_ref() {
+                        ui.label(tl!("Name"));
+                        let name_id = egui::Id::new(("props-measure-name", page, ai));
+                        let mut text = ui.data(|m| m.get_temp::<String>(name_id)).unwrap_or_else(|| current.clone());
+                        let r = ui.add(egui::TextEdit::singleline(&mut text).desired_width(170.0).hint_text(tl!("Given when sent"))).on_hover_text(
+                            crate::i18n::fmt(
+                                tl!("Its quantity's name in the workbook's Takeoff sheet, for formulas such as ={name}*6.50"),
+                                &[("name", if current.is_empty() { "Kitchen_floor" } else { current.as_str() })],
+                            ),
+                        );
+                        if r.lost_focus() {
+                            if text.trim() != current && !text.trim().is_empty() {
+                                extra.push(Edit::RenameMeasurement { page, index: ai, name: text.trim().to_string() });
+                            }
+                            ui.data_mut(|m| m.remove::<String>(name_id));
+                        } else if r.has_focus() {
+                            ui.data_mut(|m| m.insert_temp(name_id, text));
+                        }
+                        ui.end_row();
+                    }
                     // The text (a symbol's label, a note's comment).
                     ui.label(if a.symbol.is_some() { tl!("Label") } else { tl!("Text") });
                     let text_id = egui::Id::new(("props-text", page, ai));

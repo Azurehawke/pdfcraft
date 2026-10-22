@@ -69,6 +69,8 @@ cadcraft-doc = { git = "https://github.com/Azurehawke/cadcraft", rev = "e707ab4d
 cadcraft-render = { git = "https://github.com/Azurehawke/cadcraft", rev = "e707ab4d7cc10102e550ad4c5bcecef1084a9baa" }
 # RevuCraft: linked tables from workbooks, through GridCraft's reader, calculation engine and printer.
 gridcraft-engine = { git = "https://github.com/Azurehawke/gridcraft", rev = "37e41424ed425b33520ae98c6b8f660e518cecad" }
+# RevuCraft: quantities written into a workbook's package part by part (the Takeoff sheet).
+zip = { version = "3", default-features = false, features = ["deflate"] }
 
 # foundation
 thiserror = "2"

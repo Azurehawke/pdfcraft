@@ -54,10 +54,12 @@ Chamfer (two lines: a cut corner)
 Chamfer distance
 Change layer colour
 Change line width
+Change…
 Choices (comma-separated)
 Choose a folder
 Choose a scale below, or calibrate from the drawing.
 Choose a tool first.
+Choose a workbook…
 Choose files
 Choose where to save with Android's picker: Google Drive, Dropbox, OneDrive and other apps. Saving again later updates it there.
 Circle (centre, then radius)
@@ -84,6 +86,7 @@ Click two points a known distance apart
 Click two points a known distance apart, like the ends of a scale bar or a door.
 Click vertices, then finish with the check button beside the last point, Enter, a double-click or Escape. Tap the first point to close the shape.
 Close shape
+Close the workbook in GridCraft or Excel first, or its next save puts the old quantities back.
 Collapse panel
 Collapse to icons
 Column spacing
@@ -97,6 +100,8 @@ Couldn't read “{text}” as a distance.
 Couldn't read “{text}” as a scale factor.
 Couldn't read “{text}” as an angle in degrees.
 Couldn't read “{text}”. Try 15', 12'6", @0,15 or @15<90.
+Couldn't save {name}: {e}. If it is open in Excel, close it and send again.
+Couldn't send the quantities to {name}: {e}
 Count
 Counts
 Crop
@@ -176,6 +181,7 @@ Found by name next to the PDF
 Found relative to the PDF
 Get started
 Give coordinates for the base point.
+Given when sent
 Google Drive and other apps…
 Heavy (2 pt)
 Hinge the door at the other end of the opening
@@ -190,6 +196,7 @@ In GridCraft
 Inches
 Interior wall (4 1/2 in)
 Internal storage
+Its quantity's name in the workbook's Takeoff sheet, for formulas such as ={name}*6.50
 J-hook
 Join (two lines that meet become one)
 Keep previous drawings as hidden Rev layers
@@ -243,6 +250,7 @@ Move to layer
 My symbol
 My symbols
 My tools
+Name measurements
 Named ranges
 Network switch
 Networking
@@ -253,12 +261,14 @@ New layer name
 New or open
 New sheet
 New sheet at a drawing scale
+New workbook…
 Next measurement
 No cable runs yet.
 No drawings here.
 No layer
 No layers yet. Add one, then choose it as the current layer: new markups, symbols and photos go on it.
 No markups yet. Everything you draw, measure or place is listed here.
+No table from a workbook is placed in this document yet.
 None (paper size)
 Not calibrated (paper size)
 Not found at this path
@@ -341,6 +351,8 @@ Progress
 Properties
 Pulled
 Quad data jack
+Quantities
+Quantities are sent to XLSX workbooks; {name} isn't one.
 Rack A, ceiling above room 104…
 Rack A\n24-port switch and patch panel 1…
 Radius
@@ -361,6 +373,7 @@ Remove from my symbols
 Remove from the tool chest
 Remove this column
 Rename layer
+Rename measurement
 Renumber
 Renumber symbols in order across the page
 Renumbered {n} symbols.
@@ -374,6 +387,7 @@ RevuCraft is drawing without a graphics processor, so it may be slow. Updating t
 RevuCraft on GitHub
 RevuCraft web page
 RevuCraft works offline. No telemetry, no account, and no cloud processing unless you add a provider.
+RevuCraft writes a Takeoff sheet into the workbook: one row per measurement and symbol count, each quantity a named cell, so formulas such as =Kitchen_floor*6.50 follow the drawing. The rest of the workbook is left as it is.
 RevuCraft {c} is up to date.
 RevuCraft {v} is available.
 Rotate (pick, centre, then the angle)
@@ -400,6 +414,14 @@ Search this folder
 Secure
 Select a markup to see its properties.
 Selected markup
+Send
+Send again
+Send quantities
+Send quantities to a workbook's Takeoff sheet, each a named cell
+Send quantities…
+Send the measurements and symbol counts to a workbook's Takeoff sheet, each quantity a named cell for its formulas.
+Sent the quantities to {name}'s Takeoff sheet.
+Sent to {name}: up to date.
 Set the origin: click a point on the page
 Set {field}
 Settings didn't open:
@@ -461,9 +483,11 @@ The key is in the macOS Keychain, which may ask to allow RevuCraft to use it.
 The page can't be measured.
 The photo couldn't be found.
 The photo's height on the sheet
+The quantities have changed since they were sent to {name}.
 The two points are in the same place; pick two ends of a length.
 The wall is shorter than the opening
 The workbook is too large to show here.
+There are no measurements or symbols to send yet.
 There are no symbols of that kind on this page.
 There are no symbols to count yet.
 There are no symbols to renumber yet.
@@ -526,9 +550,12 @@ Window (click a wall where it goes)
 Window width (the opening cut in the wall)
 Wireless access point
 Workbook
+Workbooks (XLSX)
 Workbooks (XLSX, CSV…)
+Workbooks placed in this document
 Workspace name
 Workspaces
+Writes a Takeoff sheet into the workbook: one row per measurement and symbol count, each quantity a named cell. The rest of the workbook is left as it is.
 You have as many symbols of your own as can be kept; remove one first.
 Your columns
 Your columns: drop ID, progress and others
@@ -537,9 +564,12 @@ already exists. Replace it?
 ft
 in
 the text recognition models are not installed (reinstall RevuCraft, or set PDFCRAFT_MODELS to the folder that holds them)
+{name} can't be found.
 {name} is updated on the sheet; the markups stayed put.
 {name} submits the form to {url}; RevuCraft doesn't send form data. Save the document to keep your entries.
 {name} was saved in CADCraft: the sheet is updated, and the markups stayed put.
+{name} was saved in GridCraft: the table on the sheet is updated.
+{name} was saved without the latest quantities (it was open when they were sent).
 {name} — Markup report
 {n} linked drawings
 {n} markups copied from RevuCraft

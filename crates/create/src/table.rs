@@ -40,7 +40,7 @@ fn invalid(msg: impl Into<String>) -> CreateError {
 
 /// An opened workbook, its formulas worked out.
 pub struct Book {
-    wb: Workbook,
+    pub(crate) wb: Workbook,
 }
 
 /// One sheet as text, for the workbook view: the cells of its used range (capped at

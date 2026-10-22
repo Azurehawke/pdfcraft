@@ -6530,3 +6530,85 @@ fn a_linked_table_is_placed_updated_and_kept_at_its_top_left() {
     );
     assert_eq!(session.get(id).unwrap().cad_links().len(), 1);
 }
+
+#[test]
+fn quantities_are_listed_with_their_names_and_sending_is_recorded() {
+    use pdfcraft_annot::symbols::{NewSymbol, Symbol};
+    let mut s = Session::default();
+    let id = s.open("plan.pdf", None, Arc::new(fixture(1)), None).unwrap();
+    s.apply(id, Edit::AddLayer { name: "Flooring".into(), color: [0.2, 0.6, 0.2] }).unwrap();
+    let flooring = s.layer_details(id).first().map(|l| (l.id.num, l.id.generation));
+    s.set_current_layer(id, flooring).unwrap();
+    let area = |label: &str| {
+        Edit::AddMeasurement(measure::NewMeasurement {
+            page: 0,
+            kind: measure::Kind::Area,
+            points: vec![[0.0, 0.0], [100.0, 0.0], [100.0, 50.0], [0.0, 50.0]],
+            scale: measure::Scale::new(0.1, "ft", 2).unwrap(),
+            style: Style::default(),
+            label: label.into(),
+            author: "Steve".into(),
+            dimension: None,
+        })
+    };
+    s.apply(id, area("Kitchen floor")).unwrap();
+    s.apply(id, area("")).unwrap();
+    s.set_current_layer(id, None).unwrap();
+    for x in [50.0, 80.0] {
+        s.apply(
+            id,
+            Edit::AddSymbol(NewSymbol {
+                page: 0,
+                symbol: Symbol::DataJack,
+                center: [x, 300.0],
+                size: 12.0,
+                label: "D".into(),
+                color: [0.0, 0.4, 0.9],
+                author: "Steve".into(),
+                rotation: 0.0,
+                custom: None,
+            }),
+        )
+        .unwrap();
+    }
+    let doc = s.get(id).unwrap();
+    let t = doc.takeoff(&["Phase".to_string()]);
+    let names: Vec<&str> = t.rows.iter().map(|r| r.name.as_str()).collect();
+    assert_eq!(names.len(), 3);
+    assert_eq!(&names[..2], ["Kitchen_floor", "Area_1"]);
+    assert!(names[2].ends_with("_count"), "{names:?}");
+    let kitchen = &t.rows[0];
+    assert_eq!((kitchen.kind.as_str(), kitchen.layer.as_str(), kitchen.page), ("Area", "Flooring", Some(1)));
+    assert!((kitchen.quantity - 50.0).abs() < 1e-9, "10 ft × 5 ft = {}", kitchen.quantity);
+    assert_eq!(kitchen.fields, [""]);
+    let jacks = &t.rows[2];
+    assert_eq!((jacks.quantity, jacks.unit.as_str(), jacks.page), (2.0, "ea", None));
+    assert!(!doc.measurements_need_names());
+    assert_eq!(doc.takeoff_record(), None);
+
+    // Renamed, and refused when another has the name.
+    s.apply(id, Edit::RenameMeasurement { page: 0, index: 1, name: "Pantry floor".into() }).unwrap();
+    assert!(s.apply(id, Edit::RenameMeasurement { page: 0, index: 1, name: "kitchen_FLOOR".into() }).is_err());
+    assert_eq!(s.get(id).unwrap().takeoff(&[]).rows[1].name, "Pantry_floor");
+
+    let file = cad_links::LinkedFile {
+        path: "/jobs/smith/budget.xlsx".into(),
+        relative: Some("budget.xlsx".into()),
+        size: 9000,
+        mtime: 1_700_000_000,
+        now: 1_700_000_100,
+    };
+    let sent = s.get(id).unwrap().takeoff(&[]).fingerprint();
+    s.apply(id, Edit::RecordTakeoff { file, sent: sent.clone() }).unwrap();
+    let r = s.get(id).unwrap().takeoff_record().unwrap();
+    assert_eq!(
+        (r.path.as_str(), r.relative.as_deref(), r.size, r.mtime, r.sent.as_str()),
+        ("/jobs/smith/budget.xlsx", Some("budget.xlsx"), 9000, 1_700_000_000, sent.as_str())
+    );
+    // Saved and opened again, the record is still there.
+    let bytes = s.save_bytes(id).unwrap();
+    let id2 = s.open("again.pdf", None, bytes, None).unwrap();
+    assert_eq!(s.get(id2).unwrap().takeoff_record().map(|r| r.sent), Some(sent));
+    s.undo(id).unwrap();
+    assert_eq!(s.get(id).unwrap().takeoff_record(), None);
+}

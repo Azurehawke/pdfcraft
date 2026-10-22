@@ -193,6 +193,8 @@ pub struct LinksState {
     /// The Workbook box's workbook, and the sheet it shows.
     book: Option<BookView>,
     book_sheet: usize,
+    /// Send quantities: the dialog, and whether the workbook has the latest quantities.
+    pub(crate) takeoff: crate::takeoff_ui::TakeoffState,
 }
 
 /// Larger files aren't read to compare (they count as changed).
@@ -232,20 +234,20 @@ const SEARCH_DEPTH: usize = 3;
 const SEARCH_FOLDERS: usize = 400;
 const SEARCH_EVERY: Duration = Duration::from_secs(30);
 
-fn now_secs() -> i64 {
+pub(crate) fn now_secs() -> i64 {
     std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).ok().and_then(|d| i64::try_from(d.as_secs()).ok()).unwrap_or(0)
 }
 
 /// The file's size and modification time (seconds since 1970), or `None` when it can't be read.
 #[cfg(not(target_arch = "wasm32"))]
-fn file_meta(path: &str) -> Option<(u64, i64)> {
+pub(crate) fn file_meta(path: &str) -> Option<(u64, i64)> {
     let m = std::fs::metadata(path).ok()?;
     let modified = m.modified().ok()?.duration_since(std::time::UNIX_EPOCH).ok()?;
     Some((m.len(), i64::try_from(modified.as_secs()).ok()?))
 }
 
 #[cfg(target_arch = "wasm32")]
-fn file_meta(_path: &str) -> Option<(u64, i64)> {
+pub(crate) fn file_meta(_path: &str) -> Option<(u64, i64)> {
     None
 }
 
@@ -255,7 +257,7 @@ pub(crate) fn linked_file(path: &str) -> Option<LinkedFile> {
 }
 
 /// [`linked_file`], with where the file is from the PDF at `pdf` (when it has a place on disk).
-fn linked_file_from(path: &str, pdf: Option<&str>) -> Option<LinkedFile> {
+pub(crate) fn linked_file_from(path: &str, pdf: Option<&str>) -> Option<LinkedFile> {
     let (size, mtime) = file_meta(path)?;
     let relative = pdf.and_then(|pdf| relative_to(pdf, path));
     Some(LinkedFile { path: path.to_string(), relative, size, mtime, now: now_secs() })
@@ -263,7 +265,7 @@ fn linked_file_from(path: &str, pdf: Option<&str>) -> Option<LinkedFile> {
 
 /// The last part of a path written on any system (`M:\Jobs\101.dwg` read on Android is
 /// `101.dwg`, not the whole string).
-fn file_name(path: &str) -> String {
+pub(crate) fn file_name(path: &str) -> String {
     path.rsplit(['/', '\\']).find(|p| !p.is_empty()).unwrap_or(path).to_string()
 }
 
@@ -296,19 +298,24 @@ pub(crate) fn relative_to(pdf: &str, file: &str) -> Option<String> {
 /// Where linked file `link` is on this device, and how it was found, for the PDF at `pdf`.
 /// `search` also looks through the folders below the PDF's (slower: a network folder).
 fn locate(link: &CadLink, pdf: Option<&str>, search: bool) -> Option<(String, Found)> {
+    locate_path(&link.path, link.relative.as_deref(), pdf, search)
+}
+
+/// [`locate`] for a file recorded at `path`, `relative` from the PDF.
+pub(crate) fn locate_path(path: &str, relative: Option<&str>, pdf: Option<&str>, search: bool) -> Option<(String, Found)> {
     let exists = |p: &std::path::Path| p.is_file();
     let dir = pdf.and_then(|p| std::path::Path::new(p).parent()).filter(|d| !d.as_os_str().is_empty());
-    if let (Some(dir), Some(rel)) = (dir, link.relative.as_deref()) {
+    if let (Some(dir), Some(rel)) = (dir, relative) {
         let p = rel.split(['/', '\\']).filter(|s| !s.is_empty() && *s != ".").fold(dir.to_path_buf(), |p, s| p.join(s));
         if exists(&p) {
             return Some((p.to_string_lossy().into_owned(), Found::FromPdf));
         }
     }
-    if exists(std::path::Path::new(&link.path)) {
-        return Some((link.path.clone(), Found::AtPath));
+    if exists(std::path::Path::new(path)) {
+        return Some((path.to_string(), Found::AtPath));
     }
     let dir = dir?;
-    let name = file_name(&link.path);
+    let name = file_name(path);
     let beside = dir.join(&name);
     if exists(&beside) {
         return Some((beside.to_string_lossy().into_owned(), Found::NextToPdf));
@@ -349,7 +356,7 @@ fn find_below(dir: &std::path::Path, name: &str) -> Option<std::path::PathBuf> {
 
 /// The active document's links, each with the path where its file is on this device (as last
 /// found) instead of the one recorded, and the PDF's own path.
-fn here(app: &PdfCraftApp) -> (Vec<CadLink>, Option<String>) {
+pub(crate) fn here(app: &PdfCraftApp) -> (Vec<CadLink>, Option<String>) {
     let Some(doc) = app.active_ids().and_then(|(_, id)| app.session.get(id)) else { return (Vec::new(), None) };
     let links = doc
         .cad_links()
@@ -508,7 +515,7 @@ fn end_editing(app: &mut PdfCraftApp, paths: &[String]) {
 }
 
 /// Redraw link `index` from its file.
-fn update(app: &mut PdfCraftApp, index: usize, saved_in_cad: bool) -> bool {
+pub(crate) fn update(app: &mut PdfCraftApp, index: usize, saved_in_cad: bool) -> bool {
     let (links, pdf) = here(app);
     let Some(link) = links.into_iter().find(|l| l.index == index) else { return false };
     let name = file_name(&link.path);
@@ -526,7 +533,9 @@ fn update(app: &mut PdfCraftApp, index: usize, saved_in_cad: bool) -> bool {
     if ok {
         app.links.seen.remove(&link.path);
         app.links.status.insert(link.path.clone(), if app.links.editing.contains(&link.path) { Status::Editing } else { Status::UpToDate });
-        let msg = if saved_in_cad {
+        let msg = if saved_in_cad && link.kind == LinkKind::Table {
+            tl!("{name} was saved in GridCraft: the table on the sheet is updated.")
+        } else if saved_in_cad {
             tl!("{name} was saved in CADCraft: the sheet is updated, and the markups stayed put.")
         } else {
             tl!("{name} is updated on the sheet; the markups stayed put.")
@@ -673,7 +682,7 @@ pub(crate) fn place_table(app: &mut PdfCraftApp) {
 }
 
 /// Open side panel `panel`: a box in RevuCraft's dock, else the right panel.
-fn show_pane(app: &mut PdfCraftApp, panel: crate::RightPanel) {
+pub(crate) fn show_pane(app: &mut PdfCraftApp, panel: crate::RightPanel) {
     if app.show_ribbon {
         if !app.is_docked(panel) {
             app.toggle_docked(panel);
@@ -856,6 +865,9 @@ fn book_view(path: &str) -> BookView {
 /// on disk now (its formulas worked out).
 pub fn workbook_panel(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
     let t = Tokens::get(ui.ctx());
+    if app.active_ids().is_some() {
+        crate::takeoff_ui::section(app, ui);
+    }
     let (links, _) = here(app);
     let tables: Vec<&CadLink> = links.iter().filter(|l| l.kind == LinkKind::Table).collect();
     let Some(first) = tables.first() else {
@@ -964,6 +976,7 @@ enum Act {
 pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
     let t = Tokens::get(ui.ctx());
     let Some((_, id)) = app.active_ids() else { return };
+    crate::takeoff_ui::section(app, ui);
     let Some(doc) = app.session.get(id) else { return };
     let editable = doc.allows_modification();
     let pages = doc.info.pages.len();

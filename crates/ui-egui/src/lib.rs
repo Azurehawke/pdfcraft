@@ -118,6 +118,7 @@ mod pickers;
 mod point_bar;
 mod props_box;
 mod status_bar;
+mod takeoff_ui;
 mod tool_chest;
 mod value_prompt;
 #[cfg(target_os = "android")]
@@ -2779,6 +2780,10 @@ impl PdfCraftApp {
             // current page, or show it in the Place table dialog.
             ("place-table", _) => links_ui::table_option(self, value, true)?,
             ("table-dialog", _) => links_ui::table_option(self, value, false)?,
+            // Screenshots and automation: send the quantities to a workbook (made when there is
+            // none at that path), or show the Send quantities dialog.
+            ("send-quantities", _) => takeoff_ui::option(self, value, true)?,
+            ("quantities-dialog", _) => takeoff_ui::option(self, value, false)?,
             ("new-dialog", _) => match value {
                 "open" => self.show_new_dialog(false),
                 "add" => self.show_new_dialog(true),
@@ -3545,6 +3550,7 @@ impl eframe::App for PdfCraftApp {
         new_dialog::show(self, &ctx);
         links_ui::poll(self, &ctx);
         links_ui::table_dialog(self, &ctx);
+        takeoff_ui::dialog(self, &ctx);
         draft::keypad(self, &ctx);
         #[cfg(target_os = "android")]
         pickers::show_browser(self, &ctx);

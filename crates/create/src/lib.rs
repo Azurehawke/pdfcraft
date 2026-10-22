@@ -8,6 +8,7 @@ pub mod cad;
 mod extract;
 pub mod report;
 pub mod table;
+pub mod takeoff;
 mod upright_image;
 pub use extract::{ExtractedImage, ImageExport, extract_images, image_file};
 use pdfcraft_fonts::{literal, win_ansi, wrap};

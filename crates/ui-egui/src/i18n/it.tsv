@@ -3176,3 +3176,33 @@ certificate	SHA-256 digest	Impronta SHA-256
 	Workbook	Cartella di lavoro
 	Workbooks (XLSX, CSV…)	Cartelle di lavoro (XLSX, CSV…)
 	Place linked table	Posiziona tabella collegata
+	Change…	Cambia…
+	Choose a workbook…	Scegli una cartella di lavoro…
+	Close the workbook in GridCraft or Excel first, or its next save puts the old quantities back.	Chiudi prima la cartella di lavoro in GridCraft o Excel, altrimenti il prossimo salvataggio rimetterà le vecchie quantità.
+	Couldn't save {name}: {e}. If it is open in Excel, close it and send again.	Impossibile salvare {name}: {e}. Se è aperta in Excel, chiudila e invia di nuovo.
+	Couldn't send the quantities to {name}: {e}	Impossibile inviare le quantità a {name}: {e}
+	Given when sent	Assegnato all’invio
+	Its quantity's name in the workbook's Takeoff sheet, for formulas such as ={name}*6.50	Il nome della sua quantità nel foglio Takeoff della cartella di lavoro, per formule come ={name}*6.50
+	New workbook…	Nuova cartella di lavoro…
+	No table from a workbook is placed in this document yet.	In questo documento non è ancora posizionata alcuna tabella da una cartella di lavoro.
+	Quantities	Quantità
+	Quantities are sent to XLSX workbooks; {name} isn't one.	Le quantità vengono inviate a cartelle di lavoro XLSX; {name} non lo è.
+	RevuCraft writes a Takeoff sheet into the workbook: one row per measurement and symbol count, each quantity a named cell, so formulas such as =Kitchen_floor*6.50 follow the drawing. The rest of the workbook is left as it is.	RevuCraft scrive un foglio Takeoff nella cartella di lavoro: una riga per misura e conteggio di simboli, ogni quantità una cella denominata, così formule come =Kitchen_floor*6.50 seguono il disegno. Il resto della cartella resta com’è.
+	Send	Invia
+	Send again	Invia di nuovo
+	Send quantities	Invia quantità
+	Send quantities to a workbook's Takeoff sheet, each a named cell	Invia le quantità al foglio Takeoff di una cartella di lavoro, ognuna una cella denominata
+	Send quantities…	Invia quantità…
+	Send the measurements and symbol counts to a workbook's Takeoff sheet, each quantity a named cell for its formulas.	Invia le misure e i conteggi dei simboli al foglio Takeoff di una cartella di lavoro, ogni quantità una cella denominata per le sue formule.
+	Sent the quantities to {name}'s Takeoff sheet.	Quantità inviate al foglio Takeoff di {name}.
+	Sent to {name}: up to date.	Inviato a {name}: aggiornato.
+	The quantities have changed since they were sent to {name}.	Le quantità sono cambiate da quando sono state inviate a {name}.
+	There are no measurements or symbols to send yet.	Non ci sono ancora misure o simboli da inviare.
+	Workbooks (XLSX)	Cartelle di lavoro (XLSX)
+	Workbooks placed in this document	Cartelle di lavoro posizionate in questo documento
+	Writes a Takeoff sheet into the workbook: one row per measurement and symbol count, each quantity a named cell. The rest of the workbook is left as it is.	Scrive un foglio Takeoff nella cartella di lavoro: una riga per misura e conteggio di simboli, ogni quantità una cella denominata. Il resto della cartella resta com’è.
+	{name} can't be found.	Impossibile trovare {name}.
+	{name} was saved in GridCraft: the table on the sheet is updated.	{name} è stato salvato in GridCraft: la tabella sul foglio è aggiornata.
+	{name} was saved without the latest quantities (it was open when they were sent).	{name} è stato salvato senza le quantità più recenti (era aperto durante l’invio).
+	Rename measurement	Rinomina misura
+	Name measurements	Assegna nomi alle misure
