@@ -133,7 +133,7 @@ jobs:
           %%EOF
           PDF
           sed -i 's/^          //' "$pboard"
-          shot plan-pasteboard "$pboard" --workflow draft --zoom 50
+          shot plan-pasteboard "$pboard" --workflow draft --panel none --zoom 35
           shot plan-markup "$plan" --workflow markup
           shot plan-photo-callout "$plan" --workflow symbols --quick photo-callout
           shot plan-cable "$plan" --workflow measure --quick measure-cable
