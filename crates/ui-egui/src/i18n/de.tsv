@@ -3030,7 +3030,6 @@ animation effects	Off	Aus
 	By layer	Nach Ebene
 	By layer ({w} pt)	Nach Ebene ({w} pt)
 	Change layer line width	Linienstärke der Ebene ändern
-	Format copied: new markups and lines take this look	Format kopiert: Neue Markups und Linien übernehmen dieses Aussehen
 	Format copy	Format kopieren
 	Format copy: click a markup or line to use its look (with markups selected: give them its look; Shift: its layer too)	Format kopieren: Klicken Sie auf ein Markup oder eine Linie, um deren Aussehen zu übernehmen (mit ausgewählten Markups: diese erhalten das Aussehen; Umschalt: auch die Ebene)
 	Layer colour and line width	Ebenenfarbe und Linienstärke
@@ -3040,3 +3039,10 @@ animation effects	Off	Aus
 	PDF line	PDF-Linie
 	The selected markups already look like that	Die ausgewählten Markups sehen bereits so aus
 	hairline	Haarlinie
+	Hairline (thinnest the printer draws)	Haarlinie (die dünnste, die der Drucker zeichnet)
+	By layer (hairline)	Nach Ebene (Haarlinie)
+	A hairline: the thinnest line the printer or screen draws	Eine Haarlinie: die dünnste Linie, die Drucker oder Bildschirm zeichnen
+	Hairline	Haarlinie
+	Copied a hairline: drafting lines are hairlines now; markups take its colour and keep their width	Haarlinie kopiert: Zeichenlinien sind jetzt Haarlinien; Markups übernehmen ihre Farbe und behalten ihre Stärke
+	Copied its look ({w} pt): new markups and drafted lines take it	Aussehen kopiert ({w} pt): neue Markups und gezeichnete Linien übernehmen es
+	Copied its colour: new markups and drafted lines take it	Farbe kopiert: neue Markups und gezeichnete Linien übernehmen sie

@@ -3030,7 +3030,6 @@ animation effects	Off	Désactivés
 	By layer	Par calque
 	By layer ({w} pt)	Par calque ({w} pt)
 	Change layer line width	Modifier l’épaisseur de trait du calque
-	Format copied: new markups and lines take this look	Format copié : les nouvelles annotations et lignes prennent cet aspect
 	Format copy	Copier le format
 	Format copy: click a markup or line to use its look (with markups selected: give them its look; Shift: its layer too)	Copier le format : cliquez sur une annotation ou une ligne pour reprendre son aspect (annotations sélectionnées : elles prennent cet aspect ; Maj : son calque aussi)
 	Layer colour and line width	Couleur et épaisseur de trait du calque
@@ -3040,3 +3039,10 @@ animation effects	Off	Désactivés
 	PDF line	Ligne du PDF
 	The selected markups already look like that	Les annotations sélectionnées ont déjà cet aspect
 	hairline	trait fin
+	Hairline (thinnest the printer draws)	Trait fin (le plus fin que l’imprimante trace)
+	By layer (hairline)	Par calque (trait fin)
+	A hairline: the thinnest line the printer or screen draws	Un trait fin : le trait le plus fin que l’imprimante ou l’écran trace
+	Hairline	Trait fin
+	Copied a hairline: drafting lines are hairlines now; markups take its colour and keep their width	Trait fin copié : les lignes dessinées sont désormais des traits fins ; les annotations prennent sa couleur et gardent leur épaisseur
+	Copied its look ({w} pt): new markups and drafted lines take it	Aspect copié ({w} pt) : les nouvelles annotations et lignes dessinées le prennent
+	Copied its colour: new markups and drafted lines take it	Couleur copiée : les nouvelles annotations et lignes dessinées la prennent

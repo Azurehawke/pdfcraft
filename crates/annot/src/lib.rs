@@ -1991,6 +1991,8 @@ fn apply_text_box(doc: &mut Document, r: ObjRef, rect: [f64; 4], meta: &Meta, ne
 
 /// Set the border width (`/BS /W`), dropping a legacy `/Border`.
 fn set_border_width(d: &mut Dict, w: f64) {
+    // A width set by hand is no longer a hairline (see `geometry::HAIRLINE`).
+    d.remove(geometry::HAIRLINE);
     let mut bs = d.get(b"BS").and_then(|b| b.as_dict()).cloned().unwrap_or_default();
     bs.set(b"W".to_vec(), Object::Real(w.max(0.0)));
     d.set(b"BS".to_vec(), Object::Dict(bs));
@@ -1998,6 +2000,9 @@ fn set_border_width(d: &mut Dict, w: f64) {
 }
 
 fn border_width_of(d: &Dict) -> f64 {
+    if geometry::is_hairline(d) {
+        return 0.0;
+    }
     d.get(b"BS").and_then(|b| b.as_dict()).and_then(|b| b.get(b"W")).and_then(|w| w.as_f64()).unwrap_or(1.0).max(0.0)
 }
 
@@ -2374,7 +2379,7 @@ pub fn props(doc: &Document, page: usize, index: usize) -> Option<Props> {
         if subtype == "FreeText" {
             if !d.contains(b"BS") && !d.contains(b"Border") { 0.0 } else { appearance::border_width(d) }
         } else {
-            d.get(b"BS").and_then(|b| b.as_dict()).and_then(|b| b.get(b"W")).and_then(|w| w.as_f64()).unwrap_or(1.0)
+            border_width_of(d)
         }
     });
     Some(Props {

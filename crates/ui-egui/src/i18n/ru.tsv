@@ -2946,7 +2946,6 @@ animation effects	Off	Выкл
 	By layer	По слою
 	By layer ({w} pt)	По слою ({w} pt)
 	Change layer line width	Изменение толщины линии слоя
-	Format copied: new markups and lines take this look	Формат скопирован: новые пометки и линии получат этот вид
 	Format copy	Копировать формат
 	Format copy: click a markup or line to use its look (with markups selected: give them its look; Shift: its layer too)	Копировать формат: щёлкните пометку или линию, чтобы взять её вид (при выбранных пометках — применить к ним; Shift — и слой)
 	Layer colour and line width	Цвет и толщина линии слоя
@@ -2956,3 +2955,10 @@ animation effects	Off	Выкл
 	PDF line	Линия PDF
 	The selected markups already look like that	Выбранные пометки уже так выглядят
 	hairline	волосяная линия
+	Hairline (thinnest the printer draws)	Волосяная линия (самая тонкая, какую рисует принтер)
+	By layer (hairline)	По слою (волосяная линия)
+	A hairline: the thinnest line the printer or screen draws	Волосяная линия: самая тонкая линия, какую рисует принтер или экран
+	Hairline	Волосяная линия
+	Copied a hairline: drafting lines are hairlines now; markups take its colour and keep their width	Скопирована волосяная линия: линии черчения теперь волосяные; пометки берут её цвет и сохраняют свою толщину
+	Copied its look ({w} pt): new markups and drafted lines take it	Вид скопирован ({w} pt): новые пометки и начерченные линии получат его
+	Copied its colour: new markups and drafted lines take it	Цвет скопирован: новые пометки и начерченные линии получат его

@@ -175,6 +175,9 @@ fn interior_color(d: &Dict, fallback: Option<Rgb>) -> Option<Rgb> {
 }
 
 pub(crate) fn border_width(d: &Dict) -> f64 {
+    if crate::geometry::is_hairline(d) {
+        return 0.0;
+    }
     if let Some(w) = d.get(b"BS").and_then(|b| b.as_dict()).and_then(|b| b.get(b"W")).and_then(|w| w.as_f64()) {
         return w.max(0.0);
     }

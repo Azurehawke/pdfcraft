@@ -3032,7 +3032,6 @@ animation effects	Off	オフ
 	By layer	レイヤー準拠
 	By layer ({w} pt)	レイヤー準拠 ({w} pt)
 	Change layer line width	レイヤーの線幅を変更
-	Format copied: new markups and lines take this look	書式をコピーしました: 新しいマークアップと線はこの見た目になります
 	Format copy	書式のコピー
 	Format copy: click a markup or line to use its look (with markups selected: give them its look; Shift: its layer too)	書式のコピー: マークアップや線をクリックしてその見た目を使用（マークアップを選択中はそれらに適用、Shift でレイヤーも）
 	Layer colour and line width	レイヤーの色と線幅
@@ -3042,3 +3041,10 @@ animation effects	Off	オフ
 	PDF line	PDF の線
 	The selected markups already look like that	選択したマークアップはすでにこの見た目です
 	hairline	極細線
+	Hairline (thinnest the printer draws)	極細線（プリンターが描ける最も細い線）
+	By layer (hairline)	レイヤー準拠（極細線）
+	A hairline: the thinnest line the printer or screen draws	極細線: プリンターや画面が描ける最も細い線
+	Hairline	極細線
+	Copied a hairline: drafting lines are hairlines now; markups take its colour and keep their width	極細線をコピーしました: 作図の線は極細線になります。マークアップは色だけを取り、線幅はそのままです
+	Copied its look ({w} pt): new markups and drafted lines take it	見た目をコピーしました（{w} pt）: 新しいマークアップと作図の線に適用されます
+	Copied its colour: new markups and drafted lines take it	色をコピーしました: 新しいマークアップと作図の線に適用されます

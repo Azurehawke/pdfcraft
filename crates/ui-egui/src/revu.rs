@@ -624,9 +624,10 @@ pub fn layers_panel(app: &mut PdfCraftApp, ui: &mut egui::Ui, index: usize, id: 
                         ui.separator();
                         ui.label(egui::RichText::new(tl!("Line width for drafting on this layer")).font(theme::regular(11.0)).color(t.text_muted));
                         ui.horizontal_wrapped(|ui| {
-                            for w in [None, Some(0.5), Some(0.7), Some(1.0), Some(1.4), Some(2.0)] {
+                            for w in [None, Some(0.0), Some(0.5), Some(0.7), Some(1.0), Some(1.4), Some(2.0)] {
                                 let label = match w {
                                     None => tl!("None").to_string(),
+                                    Some(w) if w == 0.0 => tl!("Hairline").to_string(),
                                     Some(w) => format!("{w} pt"),
                                 };
                                 if ui.selectable_label(layer_width == w, label).clicked() {

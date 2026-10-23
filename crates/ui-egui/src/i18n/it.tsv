@@ -3245,7 +3245,6 @@ certificate	SHA-256 digest	Impronta SHA-256
 	By layer	Per livello
 	By layer ({w} pt)	Per livello ({w} pt)
 	Change layer line width	Cambia spessore linea del livello
-	Format copied: new markups and lines take this look	Formato copiato: i nuovi markup e le nuove linee prendono questo aspetto
 	Format copy	Copia formato
 	Format copy: click a markup or line to use its look (with markups selected: give them its look; Shift: its layer too)	Copia formato: fai clic su un markup o una linea per usarne l’aspetto (con markup selezionati: assegna loro l’aspetto; Maiusc: anche il livello)
 	Layer colour and line width	Colore e spessore linea del livello
@@ -3255,3 +3254,10 @@ certificate	SHA-256 digest	Impronta SHA-256
 	PDF line	Linea del PDF
 	The selected markups already look like that	I markup selezionati hanno già questo aspetto
 	hairline	linea sottile
+	Hairline (thinnest the printer draws)	Linea sottilissima (la più sottile che la stampante traccia)
+	By layer (hairline)	Per livello (linea sottilissima)
+	A hairline: the thinnest line the printer or screen draws	Una linea sottilissima: la più sottile che stampante o schermo tracciano
+	Hairline	Linea sottilissima
+	Copied a hairline: drafting lines are hairlines now; markups take its colour and keep their width	Copiata una linea sottilissima: le linee disegnate ora sono sottilissime; i markup ne prendono il colore e mantengono il loro spessore
+	Copied its look ({w} pt): new markups and drafted lines take it	Aspetto copiato ({w} pt): i nuovi markup e le linee disegnate lo prendono
+	Copied its colour: new markups and drafted lines take it	Colore copiato: i nuovi markup e le linee disegnate lo prendono

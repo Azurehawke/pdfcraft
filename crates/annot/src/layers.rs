@@ -87,7 +87,7 @@ pub fn list(doc: &Document) -> Vec<LayerInfo> {
             let d = obj.as_dict()?;
             let name = d.get(b"Name").and_then(Object::as_string).map(PdfString::to_text).unwrap_or_default();
             let locked = matches!(d.get(b"PCLocked").map(|o| doc.resolve(o)).as_deref(), Some(Object::Bool(true)));
-            let width = d.get(b"PCWidth").map(|o| doc.resolve(o)).and_then(|o| o.as_f64()).filter(|w| WIDTHS.contains(w));
+            let width = d.get(b"PCWidth").map(|o| doc.resolve(o)).and_then(|o| o.as_f64()).filter(|w| *w == 0.0 || WIDTHS.contains(w));
             Some(LayerInfo { id, name, color: color_of(doc, d), locked, width })
         })
         .collect()
@@ -170,8 +170,9 @@ pub fn set_color(doc: &mut Document, id: ObjRef, color: Rgb) -> Result<(), Annot
 
 /// Set the line width lines drafted on layer `id` take (`None`: none, the ribbon's width).
 pub fn set_width(doc: &mut Document, id: ObjRef, width: Option<f64>) -> Result<(), AnnotError> {
-    if width.is_some_and(|w| !WIDTHS.contains(&w)) {
-        return Err(AnnotError::Invalid("a layer's line width must be from 0.05 to 72 pt".into()));
+    // 0 is a hairline.
+    if width.is_some_and(|w| w != 0.0 && !WIDTHS.contains(&w)) {
+        return Err(AnnotError::Invalid("a layer's line width must be a hairline (0) or from 0.05 to 72 pt".into()));
     }
     layer(doc, id)?;
     doc.update_dict(id, |d| match width {

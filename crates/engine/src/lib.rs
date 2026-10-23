@@ -2857,6 +2857,10 @@ fn run_edit(doc: &mut pdfcraft_cos::Document, edit: &Edit, cx: &mut EditCtx) -> 
         }
         Edit::AddDraftShape { new, real_width, caption, align } => {
             let index = pdfcraft_annot::add_annotation(doc, new, &cx.meta())?;
+            // A width of 0 is a hairline (drafting only).
+            if new.style.width == 0.0 && real_width.is_none() {
+                pdfcraft_annot::geometry::mark_hairline(doc, new.page, index)?;
+            }
             if let Some(inches) = real_width {
                 pdfcraft_annot::geometry::mark_real_width(doc, new.page, index, *inches)?;
             }

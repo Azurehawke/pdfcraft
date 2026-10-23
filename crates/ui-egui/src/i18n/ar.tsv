@@ -3304,7 +3304,6 @@ certificate	Version	الإصدار
 	By layer	حسب الطبقة
 	By layer ({w} pt)	حسب الطبقة ({w} نقطة)
 	Change layer line width	تغيير عرض خط الطبقة
-	Format copied: new markups and lines take this look	تم نسخ التنسيق: التعليقات والخطوط الجديدة تأخذ هذا المظهر
 	Format copy	نسخ التنسيق
 	Format copy: click a markup or line to use its look (with markups selected: give them its look; Shift: its layer too)	نسخ التنسيق: انقر تعليقًا أو خطًا لاستخدام مظهره (مع تحديد تعليقات: امنحها مظهره؛ Shift: وطبقته أيضًا)
 	Layer colour and line width	لون الطبقة وعرض الخط
@@ -3314,3 +3313,10 @@ certificate	Version	الإصدار
 	PDF line	خط PDF
 	The selected markups already look like that	التعليقات المحددة لها هذا المظهر بالفعل
 	hairline	خط شعري
+	Hairline (thinnest the printer draws)	خط شعري (أرفع ما تطبعه الطابعة)
+	By layer (hairline)	حسب الطبقة (خط شعري)
+	A hairline: the thinnest line the printer or screen draws	خط شعري: أرفع خط ترسمه الطابعة أو الشاشة
+	Hairline	خط شعري
+	Copied a hairline: drafting lines are hairlines now; markups take its colour and keep their width	تم نسخ خط شعري: خطوط الرسم الآن شعرية؛ التعليقات تأخذ لونه وتحتفظ بعرضها
+	Copied its look ({w} pt): new markups and drafted lines take it	تم نسخ مظهره ({w} نقطة): التعليقات والخطوط المرسومة الجديدة تأخذه
+	Copied its colour: new markups and drafted lines take it	تم نسخ لونه: التعليقات والخطوط المرسومة الجديدة تأخذه

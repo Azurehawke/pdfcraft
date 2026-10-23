@@ -2993,7 +2993,6 @@ animation effects	Off	Изключени
 	By layer	По слой
 	By layer ({w} pt)	По слой ({w} pt)
 	Change layer line width	Промяна на дебелината на линията на слоя
-	Format copied: new markups and lines take this look	Форматът е копиран: новите маркировки и линии приемат този вид
 	Format copy	Копиране на формат
 	Format copy: click a markup or line to use its look (with markups selected: give them its look; Shift: its layer too)	Копиране на формат: щракнете маркировка или линия, за да използвате вида ѝ (с избрани маркировки: дайте им този вид; Shift: и слоя ѝ)
 	Layer colour and line width	Цвят и дебелина на линията на слоя
@@ -3003,3 +3002,10 @@ animation effects	Off	Изключени
 	PDF line	PDF линия
 	The selected markups already look like that	Избраните маркировки вече изглеждат така
 	hairline	косъмна линия
+	Hairline (thinnest the printer draws)	Косъмна линия (най-тънката, която принтерът чертае)
+	By layer (hairline)	По слой (косъмна линия)
+	A hairline: the thinnest line the printer or screen draws	Косъмна линия: най-тънката линия, която принтерът или екранът чертае
+	Hairline	Косъмна линия
+	Copied a hairline: drafting lines are hairlines now; markups take its colour and keep their width	Копирана е косъмна линия: линиите при чертане вече са косъмни; маркировките вземат цвета ѝ и запазват дебелината си
+	Copied its look ({w} pt): new markups and drafted lines take it	Копиран е видът ({w} pt): новите маркировки и начертани линии го приемат
+	Copied its colour: new markups and drafted lines take it	Копиран е цветът: новите маркировки и начертани линии го приемат

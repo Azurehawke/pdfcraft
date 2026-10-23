@@ -3042,7 +3042,6 @@ animation effects	Off	Desativados
 	By layer	Por camada
 	By layer ({w} pt)	Por camada ({w} pt)
 	Change layer line width	Alterar espessura de linha da camada
-	Format copied: new markups and lines take this look	Formato copiado: novas marcações e linhas usam esta aparência
 	Format copy	Copiar formato
 	Format copy: click a markup or line to use its look (with markups selected: give them its look; Shift: its layer too)	Copiar formato: clique em uma marcação ou linha para usar sua aparência (com marcações selecionadas: aplica a elas; Shift: a camada também)
 	Layer colour and line width	Cor e espessura de linha da camada
@@ -3052,3 +3051,10 @@ animation effects	Off	Desativados
 	PDF line	Linha do PDF
 	The selected markups already look like that	As marcações selecionadas já têm essa aparência
 	hairline	linha fina
+	Hairline (thinnest the printer draws)	Linha fina (a mais fina que a impressora traça)
+	By layer (hairline)	Por camada (linha fina)
+	A hairline: the thinnest line the printer or screen draws	Uma linha fina: a mais fina que a impressora ou a tela traça
+	Hairline	Linha fina
+	Copied a hairline: drafting lines are hairlines now; markups take its colour and keep their width	Linha fina copiada: as linhas desenhadas agora são linhas finas; as marcações pegam sua cor e mantêm a espessura
+	Copied its look ({w} pt): new markups and drafted lines take it	Aparência copiada ({w} pt): novas marcações e linhas desenhadas a usam
+	Copied its colour: new markups and drafted lines take it	Cor copiada: novas marcações e linhas desenhadas a usam

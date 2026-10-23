@@ -1,6 +1,7 @@
 # RevuCraft's own wording (escaped as in the catalogs), translated into its 11 languages. Other
 # catalogs, kept in step with PdfCraft, fall back to English for these, so their coverage tests
 # leave them out. Regenerate when RevuCraft adds wording.
+A hairline: the thinnest line the printer or screen draws
 A new document
 About RevuCraft
 Accent color
@@ -36,6 +37,7 @@ Break (click a line where it splits)
 Break and join
 Built on PdfCraft
 By layer
+By layer (hairline)
 By layer ({w} pt)
 Cable
 Cable ({layer}): {runs} runs, {length}
@@ -102,6 +104,9 @@ Column {n}
 Columns
 Columns in the array
 Conduit stub-up
+Copied a hairline: drafting lines are hairlines now; markups take its colour and keep their width
+Copied its colour: new markups and drafted lines take it
+Copied its look ({w} pt): new markups and drafted lines take it
 Copy (pick, base point, then each copy)
 Copy markup
 Couldn't read “{text}” as a distance.
@@ -186,7 +191,6 @@ Flip side
 Float this panel
 Floor box
 Form
-Format copied: new markups and lines take this look
 Format copy
 Format copy: click a markup or line to use its look (with markups selected: give them its look; Shift: its layer too)
 Found by name in a subfolder of the PDF's folder
@@ -198,6 +202,8 @@ Given when sent
 Google Drive and other apps…
 Guide
 Guide position
+Hairline
+Hairline (thinnest the printer draws)
 Heavy (2 pt)
 Hide rulers
 Hinge the door at the other end of the opening

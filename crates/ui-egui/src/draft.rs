@@ -688,6 +688,8 @@ pub enum LineWidth {
     Paper(f64),
     /// A real-world width, in inches, drawn to the page's scale (walls).
     Real(f64),
+    /// The thinnest line the printer or screen draws (width 0), as CAD plots without lineweights.
+    Hairline,
 }
 
 /// The width in points for a line drawn on `page` near `at`, and its real-world width when it has
@@ -696,9 +698,11 @@ fn pen(doc: &Document, page: usize, at: [f64; 2], settings: &DraftSettings) -> (
     if settings.by_layer
         && let Some(w) = layer_width(doc)
     {
-        return (w.clamp(0.1, 72.0), None);
+        // 0: the layer's lines are hairlines.
+        return (if w == 0.0 { 0.0 } else { w.clamp(0.1, 72.0) }, None);
     }
     match settings.line_width {
+        LineWidth::Hairline => (0.0, None),
         LineWidth::Paper(pt) => (pt.clamp(0.1, 72.0), None),
         LineWidth::Real(inches) => {
             let inches = inches.clamp(0.01, 1200.0);
@@ -1668,7 +1672,7 @@ fn restyle_selected(app: &PdfCraftApp) -> Option<Edit> {
             let at = [f64::from(a.rect[0] + a.rect[2]) / 2.0, f64::from(a.rect[1] + a.rect[3]) / 2.0];
             let (width, real_inches) = pen(doc, page, at, &app.draft);
             // A pen drawing has no real-world width; it takes the width on paper.
-            (!ink || real_inches.is_none()).then_some(Edit::SetLineWidth { page, index: i, width, real_inches })
+            (!ink || (real_inches.is_none() && width > 0.0)).then_some(Edit::SetLineWidth { page, index: i, width, real_inches })
         })
         .collect();
     match edits.len() {
@@ -1683,7 +1687,8 @@ fn restyle_selected(app: &PdfCraftApp) -> Option<Edit> {
 /// Returns `true` when the width was set (a preset, a typed or dragged number let go, or To scale).
 fn line_width(ui: &mut egui::Ui, settings: &mut DraftSettings, layer_w: Option<f64>) -> bool {
     let mut set = false;
-    let presets: [(LineWidth, &str); 5] = [
+    let presets: [(LineWidth, &str); 6] = [
+        (LineWidth::Hairline, "Hairline (thinnest the printer draws)"),
         (LineWidth::Paper(0.5), "Fine (1/2 pt)"),
         (LineWidth::Paper(1.0), "Thin (1 pt)"),
         (LineWidth::Paper(2.0), "Heavy (2 pt)"),
@@ -1695,6 +1700,7 @@ fn line_width(ui: &mut egui::Ui, settings: &mut DraftSettings, layer_w: Option<f
     ui.horizontal(|ui| {
         ui.spacing_mut().item_spacing.x = 4.0;
         let current = match layer_w.filter(|_| by_layer) {
+            Some(lw) if lw == 0.0 => tl!("By layer (hairline)").to_string(),
             Some(lw) => crate::i18n::fmt(tl!("By layer ({w} pt)"), &[("w", &format!("{}", (lw * 100.0).round() / 100.0))]),
             None => presets.iter().find(|(p, _)| *p == settings.line_width).map(|(_, l)| tl!(l)).unwrap_or_else(|| tl!("Custom")).to_string(),
         };
@@ -1719,6 +1725,7 @@ fn line_width(ui: &mut egui::Ui, settings: &mut DraftSettings, layer_w: Option<f
             LineWidth::Real(inches) => ui
                 .add(egui::DragValue::new(inches).range(0.25..=1200.0).speed(0.25).suffix(" in"))
                 .on_hover_text(tl!("Real-world width, drawn to the page's scale")),
+            LineWidth::Hairline => ui.label("0 pt").on_hover_text(tl!("A hairline: the thinnest line the printer or screen draws")),
         };
         let typed = r.drag_stopped() || r.lost_focus() || (r.changed() && !r.dragged() && !r.has_focus());
         let mut real = matches!(w, LineWidth::Real(_));

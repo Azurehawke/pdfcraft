@@ -6736,3 +6736,38 @@ fn guides_are_kept_with_the_sheet_and_undo() {
     assert!(s.apply(id, Edit::SetGuides { page: 1, guides: Guides { vertical: vec![1.0; MAX + 1], horizontal: vec![] } }).is_err());
     assert!(s.apply(id, Edit::SetGuides { page: 9, guides: Guides { vertical: vec![1.0], horizontal: vec![] } }).is_err());
 }
+
+#[test]
+fn drafted_hairlines_stroke_at_zero_and_take_a_width_again() {
+    let mut s = Session::default();
+    let id = s.open("plan.pdf", None, Arc::new(fixture(1)), None).unwrap();
+    let line = |width| Edit::AddDraftShape {
+        new: NewAnnotation {
+            page: 0,
+            shape: Shape::Line { from: [100.0, 100.0], to: [300.0, 100.0], start: LineEnding::None, end: LineEnding::None },
+            style: Style { color: [0.0, 0.0, 0.0], opacity: 1.0, width, fill: None },
+            contents: String::new(),
+            author: "Steve".into(),
+        },
+        real_width: None,
+        caption: None,
+        align: None,
+    };
+    s.apply(id, line(0.0)).unwrap();
+    let doc = s.get(id).unwrap();
+    let a = doc.info.annotations.iter().find(|a| a.subtype == "Line").unwrap().clone();
+    assert_eq!(doc.comment_props(a.page, a.index).unwrap().width, Some(0.0), "reads as a hairline");
+    assert_eq!(doc.markup_geometry(0)[0].width, 0.0);
+    // Other viewers that redraw it get a thin line, not none.
+    let e = doc.editor.as_ref().unwrap();
+    let d = pdfcraft_annot::photo_callout::dict_at(&e.cos, a.page, a.index).unwrap();
+    let w = d.get(b"BS").and_then(|b| b.as_dict()).and_then(|b| b.get(b"W")).and_then(|w| w.as_f64());
+    assert_eq!(w, Some(pdfcraft_annot::geometry::HAIRLINE_FALLBACK));
+    // A width set later replaces the hairline; setting 0 makes it one again.
+    s.apply(id, Edit::SetLineWidth { page: a.page, index: a.index, width: 1.4, real_inches: None }).unwrap();
+    assert_eq!(s.get(id).unwrap().comment_props(a.page, a.index).unwrap().width, Some(1.4));
+    s.apply(id, Edit::SetLineWidth { page: a.page, index: a.index, width: 0.0, real_inches: None }).unwrap();
+    assert_eq!(s.get(id).unwrap().comment_props(a.page, a.index).unwrap().width, Some(0.0));
+    assert!(s.apply(id, Edit::SetLineWidth { page: a.page, index: a.index, width: 0.0, real_inches: Some(6.0) }).is_err());
+    assert!(s.apply(id, Edit::SetLineWidth { page: a.page, index: a.index, width: -1.0, real_inches: None }).is_err());
+}

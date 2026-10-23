@@ -15,6 +15,7 @@ type Rgb = [f64; 3];
 #[derive(Clone, Debug, Default, PartialEq)]
 pub(crate) struct Look {
     pub color: Option<Rgb>,
+    /// The line width in points; `Some(0.0)` is a hairline (drafting only: markups keep theirs).
     pub width: Option<f64>,
     pub opacity: Option<f64>,
     /// `Some(None)`: the source has no fill.
@@ -32,7 +33,7 @@ pub(crate) fn from_markup(doc: &Document, page: usize, index: usize) -> Option<L
     let layer = doc.info.annotations.iter().find(|a| a.page == page && a.index == index).map(|a| a.layer);
     Some(Look {
         color: p.color,
-        width: p.width.filter(|w| w.is_finite() && *w > 0.0),
+        width: p.width.filter(|w| w.is_finite() && *w >= 0.0),
         opacity: Some(p.opacity).filter(|o| o.is_finite()),
         fill: p.fillable.then_some(p.fill),
         endings: p.endings,
@@ -44,7 +45,7 @@ pub(crate) fn from_markup(doc: &Document, page: usize, index: usize) -> Option<L
 
 /// The look of a line of the PDF: its width and colour.
 pub(crate) fn from_line(width: f64, color: Rgb) -> Look {
-    Look { color: Some(color), width: Some(width).filter(|w| w.is_finite() && *w > 0.0), ..Look::default() }
+    Look { color: Some(color), width: Some(width).filter(|w| w.is_finite() && *w >= 0.0), ..Look::default() }
 }
 
 /// Edits restyling the markups `targets` to `look` (`with_layer`: onto its layer too); `None`
@@ -59,9 +60,15 @@ pub(crate) fn restyle(doc: &Document, targets: &[(usize, usize)], look: &Look, w
         if p.restylable {
             // Endings only between markups with as many ends (a line's two, a callout's one).
             let endings = look.endings.clone().filter(|e| p.endings.as_ref().is_some_and(|own| own.len() == e.len()));
-            let width = look.width.filter(|_| p.width.is_some());
+            // A hairline goes only to lines and shapes made of lines; others keep their width.
+            let hairline = look.width == Some(0.0);
+            let lines = matches!(p.subtype.as_str(), "Line" | "PolyLine" | "Polygon");
+            let width = look.width.filter(|_| p.width.is_some() && !hairline);
             if look.color.is_some() || look.opacity.is_some() || width.is_some() || endings.is_some() {
                 edits.push(Edit::StyleAnnotation { page, index, color: look.color, opacity: look.opacity, width, endings });
+            }
+            if hairline && lines && p.width != Some(0.0) {
+                edits.push(Edit::SetLineWidth { page, index, width: 0.0, real_inches: None });
             }
             if p.fillable
                 && let Some(fill) = look.fill
@@ -99,7 +106,8 @@ pub(crate) fn load(prefs: &mut CommentPrefs, draft: &mut DraftSettings, look: &L
         if let Some(c) = color {
             prefs.set_color(tool, c);
         }
-        if let Some(w) = look.width {
+        // Markup tools keep a real width: a hairline gives them only its colour.
+        if let Some(w) = look.width.filter(|w| *w > 0.0) {
             prefs.set_width(tool, w);
         }
         if let Some(o) = look.opacity {
@@ -116,7 +124,7 @@ pub(crate) fn load(prefs: &mut CommentPrefs, draft: &mut DraftSettings, look: &L
         draft.color_layer = layer;
     }
     if let Some(w) = look.width {
-        draft.line_width = LineWidth::Paper(w.clamp(0.1, 72.0));
+        draft.line_width = if w == 0.0 { LineWidth::Hairline } else { LineWidth::Paper(w.clamp(0.1, 72.0)) };
         draft.by_layer = false;
     }
     if let Some(a) = look.align {
@@ -160,7 +168,19 @@ pub(crate) fn pick(app: &mut crate::PdfCraftApp, index: usize, page: usize, sour
     let current = app.session.get(id).and_then(|d| d.current_layer);
     load(&mut app.comment_prefs, &mut app.draft, &look, current);
     app.quick_tool = crate::QuickTool::Select;
-    app.notify(tl!("Format copied: new markups and lines take this look"));
+    app.notify(copied_text(&look));
+}
+
+/// What a pick copied, in words.
+fn copied_text(look: &Look) -> String {
+    match look.width {
+        Some(w) if w == 0.0 => tl!("Copied a hairline: drafting lines are hairlines now; markups take its colour and keep their width").to_string(),
+        Some(w) => crate::i18n::fmt(
+            tl!("Copied its look ({w} pt): new markups and drafted lines take it"),
+            &[("w", &format!("{}", (w * 100.0).round() / 100.0))],
+        ),
+        None => tl!("Copied its colour: new markups and drafted lines take it").to_string(),
+    }
 }
 
 #[cfg(test)]
@@ -178,12 +198,15 @@ mod tests {
         assert_eq!((draft.color, draft.color_layer), (Some([1.0, 0.0, 0.0]), Some((7, 0))));
         assert_eq!(draft.line_width, LineWidth::Paper(2.5));
         assert!(!draft.by_layer, "a picked width wins over the layer's");
-        // A PDF line brings only its width and colour; a hairline has no width to copy.
+        // A PDF hairline: drafting becomes hairlines; markups take only its colour.
         let line = from_line(0.0, [0.0, 0.0, 1.0]);
-        assert_eq!((line.width, line.color, line.fill), (None, Some([0.0, 0.0, 1.0]), None));
+        assert_eq!((line.width, line.color, line.fill), (Some(0.0), Some([0.0, 0.0, 1.0]), None));
         let mut draft = DraftSettings::default();
         load(&mut prefs, &mut draft, &line, None);
-        assert_eq!(draft.line_width, DraftSettings::default().line_width);
+        assert_eq!(draft.line_width, LineWidth::Hairline);
+        let s = prefs.style(comments::CommentTool::Rectangle);
+        assert_eq!((s.color, s.width), ([0.0, 0.0, 1.0], 2.5), "markups keep their width");
+        assert!(copied_text(&line).contains("hairline"));
         // Garbage colours don't panic.
         load(&mut prefs, &mut draft, &Look { color: Some([f64::NAN, 2.0, -1.0]), ..Look::default() }, None);
     }

@@ -259,7 +259,7 @@ Markup and measuring
       and colour come. Shift-click (or an option) copies the layer too.
 - [x] **(Steve, build 157)** Photo callouts: the dot stays anchored to the drawing; moving the photo box
       moves only the box, and the leader re-runs from the dot to the box's nearest point.
-- [ ] **(Steve, next build)** Hairlines in the drafting tools only: the Draft ribbon's Line width gets a
+- [x] **(Steve, build 161)** Hairlines in the drafting tools only: the Draft ribbon's Line width gets a
       Hairline (0 pt) choice, a layer's drafting width can be Hairline, and Format copy from a hairline
       PDF line makes the drafting width a hairline, so drafted lines match an all-hairline drawing on
       any printer. Markup and comment tools keep a real width: from a hairline they take only its colour.

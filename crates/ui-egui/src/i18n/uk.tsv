@@ -3052,7 +3052,6 @@ animation effects	Off	Вимкнено
 	By layer	За шаром
 	By layer ({w} pt)	За шаром ({w} pt)
 	Change layer line width	Зміна товщини лінії шару
-	Format copied: new markups and lines take this look	Формат скопійовано: нові позначки й лінії матимуть цей вигляд
 	Format copy	Копіювати формат
 	Format copy: click a markup or line to use its look (with markups selected: give them its look; Shift: its layer too)	Копіювати формат: клацніть позначку або лінію, щоб узяти її вигляд (з вибраними позначками — застосувати до них; Shift — і шар)
 	Layer colour and line width	Колір і товщина лінії шару
@@ -3062,3 +3061,10 @@ animation effects	Off	Вимкнено
 	PDF line	Лінія PDF
 	The selected markups already look like that	Вибрані позначки вже так виглядають
 	hairline	волосяна лінія
+	Hairline (thinnest the printer draws)	Волосяна лінія (найтонша, яку малює принтер)
+	By layer (hairline)	За шаром (волосяна лінія)
+	A hairline: the thinnest line the printer or screen draws	Волосяна лінія: найтонша лінія, яку малює принтер або екран
+	Hairline	Волосяна лінія
+	Copied a hairline: drafting lines are hairlines now; markups take its colour and keep their width	Скопійовано волосяну лінію: лінії креслення тепер волосяні; позначки беруть її колір і зберігають свою товщину
+	Copied its look ({w} pt): new markups and drafted lines take it	Вигляд скопійовано ({w} pt): нові позначки й накреслені лінії отримають його
+	Copied its colour: new markups and drafted lines take it	Колір скопійовано: нові позначки й накреслені лінії отримають його

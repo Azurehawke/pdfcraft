@@ -87,6 +87,7 @@ impl ChestTool {
             "line_width": self.line_width.map(|w| match w {
                 LineWidth::Paper(pt) => json!({ "paper": pt }),
                 LineWidth::Real(inches) => json!({ "real": inches }),
+                LineWidth::Hairline => json!({ "hairline": true }),
             }),
             "symbol": self.symbol.as_ref().map(|s| json!({
                 "symbol": s.symbol, "label": s.label, "real_size": s.real_size, "real_inches": s.real_inches, "paper_inches": s.paper_inches,
@@ -110,6 +111,7 @@ impl ChestTool {
             })
         });
         let line_width = match (finite(&v["line_width"]["paper"]), finite(&v["line_width"]["real"])) {
+            _ if v["line_width"]["hairline"].as_bool() == Some(true) => Some(LineWidth::Hairline),
             (Some(pt), _) => Some(LineWidth::Paper(pt.clamp(0.1, 72.0))),
             (None, Some(inches)) => Some(LineWidth::Real(inches.clamp(0.01, 1200.0))),
             _ => None,

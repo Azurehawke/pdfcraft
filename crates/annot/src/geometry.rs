@@ -226,6 +226,32 @@ pub fn set_vertices(doc: &mut Document, page: usize, index: usize, points: &[[f6
 /// Mark the line, polyline or polygon at `(page, index)` as drawn `inches` wide in the real world
 /// (`/PCRealWidth`): it gets square ends and sharp corners, room for them in `/Rect`, and its width
 /// scales with the Scale tool.
+/// RevuCraft: the key marking a drafted line as a hairline (`/PCHairline true`): its appearance
+/// strokes at width 0, the thinnest the printer or screen draws, as CAD plots without lineweights
+/// do. Its `/BS /W` holds [`HAIRLINE_FALLBACK`] for viewers that redraw it (a width of 0 there
+/// means no border at all).
+pub const HAIRLINE: &[u8] = b"PCHairline";
+pub const HAIRLINE_FALLBACK: f64 = 0.1;
+
+/// Whether the annotation is a RevuCraft hairline.
+pub fn is_hairline(d: &Dict) -> bool {
+    matches!(d.get(HAIRLINE), Some(Object::Bool(true)))
+        && matches!(d.name(b"Subtype"), Some(b"Line" | b"PolyLine" | b"Polygon" | b"Square" | b"Circle"))
+}
+
+/// Make the drafted line or shape at `(page, index)` a hairline and redraw it.
+pub fn mark_hairline(doc: &mut Document, page: usize, index: usize) -> Result<(), AnnotError> {
+    let (_, r) = annot_ref(doc, page, index)?;
+    let mut d = annot_dict(doc, r);
+    if !matches!(d.name(b"Subtype"), Some(b"Line" | b"PolyLine" | b"Polygon" | b"Square" | b"Circle")) {
+        return Err(AnnotError::Invalid("only drafted lines and shapes can be hairlines".into()));
+    }
+    crate::set_border_width(&mut d, HAIRLINE_FALLBACK);
+    d.set(HAIRLINE.to_vec(), Object::Bool(true));
+    doc.update_dict(r, |t| *t = d)?;
+    set_appearance(doc, r)
+}
+
 pub fn mark_real_width(doc: &mut Document, page: usize, index: usize, inches: f64) -> Result<(), AnnotError> {
     if !inches.is_finite() || inches <= 0.0 || inches > 1e5 {
         return Err(AnnotError::Invalid("invalid width".into()));
@@ -251,8 +277,13 @@ pub fn mark_real_width(doc: &mut Document, page: usize, index: usize, inches: f6
 /// on paper and, for a width drawn to scale, `real_inches` in the real world (`None` takes the
 /// real-world mark off, so it is a pen width again). `/Rect` grows to hold the wider line.
 pub fn set_line_width(doc: &mut Document, page: usize, index: usize, width: f64, real_inches: Option<f64>, meta: &Meta) -> Result<(), AnnotError> {
-    if !width.is_finite() || width <= 0.0 || width > 1e4 || real_inches.is_some_and(|i| !i.is_finite() || i <= 0.0 || i > 1e5) {
+    if !width.is_finite() || width < 0.0 || width > 1e4 || real_inches.is_some_and(|i| !i.is_finite() || i <= 0.0 || i > 1e5) {
         return Err(AnnotError::Invalid("invalid width".into()));
+    }
+    // 0: a hairline (RevuCraft drafting), for lines and shapes made of lines only.
+    let hairline = width == 0.0;
+    if hairline && real_inches.is_some() {
+        return Err(AnnotError::Invalid("a hairline has no real-world width".into()));
     }
     let (_, r) = annot_ref(doc, page, index)?;
     unlocked(doc, r)?;
@@ -260,7 +291,7 @@ pub fn set_line_width(doc: &mut Document, page: usize, index: usize, width: f64,
     let points = match d.name(b"Subtype") {
         Some(b"Line") => points_of(&numbers(doc, &d, b"L")),
         Some(b"PolyLine" | b"Polygon") => points_of(&numbers(doc, &d, b"Vertices")),
-        Some(b"Ink") if real_inches.is_none() => match d.get(b"InkList").map(|o| doc.resolve(o)).as_deref() {
+        Some(b"Ink") if real_inches.is_none() && !hairline => match d.get(b"InkList").map(|o| doc.resolve(o)).as_deref() {
             Some(Object::Array(list)) => list
                 .iter()
                 .flat_map(|s| {
@@ -273,7 +304,10 @@ pub fn set_line_width(doc: &mut Document, page: usize, index: usize, width: f64,
     };
     let old = numbers(doc, &d, b"Rect");
     let mut changed = d;
-    crate::set_border_width(&mut changed, width);
+    crate::set_border_width(&mut changed, if hairline { HAIRLINE_FALLBACK } else { width });
+    if hairline {
+        changed.set(HAIRLINE.to_vec(), Object::Bool(true));
+    }
     match real_inches {
         Some(inches) => changed.set(b"PCRealWidth".to_vec(), Object::Real(inches)),
         None => {

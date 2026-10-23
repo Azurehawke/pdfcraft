@@ -3028,7 +3028,6 @@ animation effects	Off	Ki
 	By layer	Réteg szerint
 	By layer ({w} pt)	Réteg szerint ({w} pt)
 	Change layer line width	Réteg vonalvastagságának módosítása
-	Format copied: new markups and lines take this look	Formátum másolva: az új jelölések és vonalak ezt a megjelenést kapják
 	Format copy	Formátum másolása
 	Format copy: click a markup or line to use its look (with markups selected: give them its look; Shift: its layer too)	Formátum másolása: kattintson egy jelölésre vagy vonalra a megjelenése átvételéhez (kijelölt jelöléseknél: azok kapják meg; Shift: a rétegét is)
 	Layer colour and line width	Réteg színe és vonalvastagsága
@@ -3038,3 +3037,10 @@ animation effects	Off	Ki
 	PDF line	PDF-vonal
 	The selected markups already look like that	A kijelölt jelölések már így néznek ki
 	hairline	hajszálvonal
+	Hairline (thinnest the printer draws)	Hajszálvonal (a legvékonyabb, amit a nyomtató rajzol)
+	By layer (hairline)	Réteg szerint (hajszálvonal)
+	A hairline: the thinnest line the printer or screen draws	Hajszálvonal: a legvékonyabb vonal, amit a nyomtató vagy a képernyő rajzol
+	Hairline	Hajszálvonal
+	Copied a hairline: drafting lines are hairlines now; markups take its colour and keep their width	Hajszálvonal másolva: a rajzolt vonalak mostantól hajszálvonalak; a jelölések átveszik a színét, és megtartják vastagságukat
+	Copied its look ({w} pt): new markups and drafted lines take it	Megjelenés másolva ({w} pt): az új jelölések és rajzolt vonalak ezt kapják
+	Copied its colour: new markups and drafted lines take it	Szín másolva: az új jelölések és rajzolt vonalak ezt kapják
