@@ -6,7 +6,9 @@
 //! Keys: `/PCPhotoImage` (the image), `/PCPhotoAspect` (its width over its height),
 //! `/PCPhotoH` (the photo's height in points when placed), `/PCBoxW` (the box's width then, so a
 //! wider box shows a larger photo), `/PCFrame` (the frame and leader colour) and `/PCTextSide`
-//! (`/Left` or `/Right`: where the description goes).
+//! (`/Left` or `/Right`: where the description goes). `/PCTextW`, once the photo or the text has
+//! been sized on its own ([`set_parts`]), is the description's width: the box is then the photo,
+//! the text column and the padding, and a box resized as a whole scales both.
 
 use pdfcraft_cos::{Dict, Document, ObjRef, Object, PdfString, Stream};
 
@@ -175,6 +177,78 @@ pub fn set_side(doc: &mut Document, page: usize, index: usize, side: TextSide, m
     set_appearance(doc, r)
 }
 
+/// The smallest and largest photo height and text width a callout takes, in points.
+pub const PHOTO_HEIGHTS: std::ops::RangeInclusive<f64> = 12.0..=2000.0;
+pub const TEXT_WIDTHS: std::ops::RangeInclusive<f64> = 30.0..=1500.0;
+
+/// A photo callout's parts on the page: the photo and the text column (user space), and the
+/// side the text is on.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct Parts {
+    pub photo: [f64; 4],
+    pub text: [f64; 4],
+    pub side: TextSide,
+}
+
+/// The text box (`/Rect` less `/RD`).
+fn text_box(d: &Dict) -> Option<[f64; 4]> {
+    let nums = |key: &[u8]| -> Option<Vec<f64>> { d.get(key)?.as_array()?.iter().map(Object::as_f64).collect() };
+    let rect = nums(b"Rect").filter(|v| v.len() == 4 && v.iter().all(|x| x.is_finite()))?;
+    let rd = nums(b"RD").filter(|v| v.len() == 4 && v.iter().all(|x| x.is_finite() && *x >= 0.0))?;
+    let (x0, y0, x1, y1) = (rect[0].min(rect[2]), rect[1].min(rect[3]), rect[0].max(rect[2]), rect[1].max(rect[3]));
+    let tb = [x0 + rd[0], y0 + rd[1], x1 - rd[2], y1 - rd[3]];
+    (tb[2] > tb[0] && tb[3] > tb[1]).then_some(tb)
+}
+
+/// Where the photo and the text of the photo callout at `(page, index)` are.
+pub fn parts_at(doc: &Document, page: usize, index: usize) -> Option<Parts> {
+    let d = dict_at(doc, page, index).filter(is_photo_callout)?;
+    let tb = text_box(&d)?;
+    let (photo, text_x, tw) = layout(&d, tb)?;
+    Some(Parts { photo, text: [text_x, tb[1] + PAD, text_x + tw, tb[3] - PAD], side: side_of(&d) })
+}
+
+/// Size the photo (`photo_height` points high, its proportions kept) and/or the description's
+/// column (`text_width` points wide) of the photo callout at `(page, index)`. The box fits the
+/// two, its top edge and its photo-side edge staying put; the description rewraps; the dot stays
+/// and the leader re-attaches.
+pub fn set_parts(
+    doc: &mut Document,
+    page: usize,
+    index: usize,
+    photo_height: Option<f64>,
+    text_width: Option<f64>,
+    meta: &Meta,
+) -> Result<(), AnnotError> {
+    let (_, r) = annot_ref(doc, page, index)?;
+    crate::unlocked(doc, r)?;
+    let d = annot_dict(doc, r);
+    if !is_photo_callout(&d) {
+        return Err(AnnotError::Invalid("not a photo callout".into()));
+    }
+    if photo_height.is_some_and(|h| !PHOTO_HEIGHTS.contains(&h)) || text_width.is_some_and(|w| !TEXT_WIDTHS.contains(&w)) {
+        return Err(AnnotError::Invalid("the photo must be 12 to 2000 pt high and the text 30 to 1500 pt wide".into()));
+    }
+    let aspect = num(&d, b"PCPhotoAspect").ok_or_else(|| AnnotError::Invalid("the photo's proportions can't be read".into()))?;
+    let tb = text_box(&d).ok_or_else(|| AnnotError::Invalid("the callout's box can't be read".into()))?;
+    let (photo, _, tw_now) = layout(&d, tb).ok_or_else(|| AnnotError::Invalid("the callout's box can't be read".into()))?;
+    let ph = photo_height.unwrap_or(photo[3] - photo[1]).clamp(*PHOTO_HEIGHTS.start(), *PHOTO_HEIGHTS.end());
+    let tw = text_width.unwrap_or(tw_now).clamp(*TEXT_WIDTHS.start(), *TEXT_WIDTHS.end());
+    let text = d.get(b"Contents").and_then(Object::as_string).map(PdfString::to_text).unwrap_or_default();
+    let w = 2.0 * PAD + GAP + ph * aspect + tw;
+    let h = ph.max(line_count(&text, tw) as f64 * LINE) + 2.0 * PAD;
+    let new_tb = match side_of(&d) {
+        TextSide::Right => [tb[0], tb[3] - h, tb[0] + w, tb[3]],
+        TextSide::Left => [tb[2] - w, tb[3] - h, tb[2], tb[3]],
+    };
+    doc.update_dict(r, |d| {
+        d.set(b"PCPhotoH".to_vec(), Object::Real(ph));
+        d.set(b"PCTextW".to_vec(), Object::Real(tw));
+        d.set(b"PCBoxW".to_vec(), Object::Real(w));
+    })?;
+    crate::resize_text_box(doc, r, new_tb, meta)
+}
+
 /// The side the description is on.
 pub fn side_of(d: &Dict) -> TextSide {
     if d.name(b"PCTextSide") == Some(b"Left") { TextSide::Left } else { TextSide::Right }
@@ -210,9 +284,23 @@ pub fn attachment_bytes(doc: &Document, page: usize, index: usize) -> Option<Vec
     }
 }
 
+/// With the photo and text sized apart (`/PCTextW`): the photo's height and the text's width in a
+/// box `w` wide (both scaled when the box was resized as a whole).
+fn parts(d: &Dict, w: f64) -> Option<(f64, f64)> {
+    let (aspect, ph, tw) = (num(d, b"PCPhotoAspect")?, num(d, b"PCPhotoH")?, num(d, b"PCTextW")?);
+    let natural = 2.0 * PAD + GAP + ph * aspect + tw;
+    let s = if natural > 1.0 && w.is_finite() && w > 0.0 { (w / natural).clamp(0.1, 10.0) } else { 1.0 };
+    Some((ph * s, tw * s))
+}
+
 /// The text box a photo callout needs for `text`: the width and top edge stay; the height fits
 /// the photo and the wrapped description.
 pub(crate) fn fitted(d: &Dict, tb: [f64; 4], text: &str) -> Option<[f64; 4]> {
+    let top = tb[1].max(tb[3]);
+    if let Some((ph, tw)) = parts(d, tb[2] - tb[0]) {
+        let h = ph.max(line_count(text, tw) as f64 * LINE) + 2.0 * PAD;
+        return Some([tb[0], top - h, tb[2], top]);
+    }
     let (aspect, ph) = (num(d, b"PCPhotoAspect")?, num(d, b"PCPhotoH")?);
     let w = tb[2] - tb[0];
     let scale = num(d, b"PCBoxW").filter(|v| *v > 1.0).map_or(1.0, |b| (w / b).clamp(0.25, 8.0));
@@ -232,6 +320,19 @@ fn num(d: &Dict, k: &[u8]) -> Option<f64> {
 pub(crate) fn layout(d: &Dict, tb: [f64; 4]) -> Option<([f64; 4], f64, f64)> {
     let aspect = num(d, b"PCPhotoAspect")?;
     let (w, h) = (tb[2] - tb[0], tb[3] - tb[1]);
+    if let Some((ph, tw)) = parts(d, w) {
+        let ph = ph.min(h - 2.0 * PAD);
+        let pw = ph * aspect;
+        if pw < 1.0 || ph < 1.0 {
+            return None;
+        }
+        let top = tb[3] - PAD;
+        let (photo_x, text_x) = match side_of(d) {
+            TextSide::Right => (tb[0] + PAD, tb[0] + PAD + pw + GAP),
+            TextSide::Left => (tb[2] - PAD - pw, tb[2] - PAD - pw - GAP - tw),
+        };
+        return Some(([photo_x, top - ph, photo_x + pw, top], text_x, tw.max(1.0)));
+    }
     let scale = num(d, b"PCBoxW").filter(|v| *v > 1.0).map_or(1.0, |b| (w / b).clamp(0.25, 8.0));
     let mut ph = num(d, b"PCPhotoH").map_or(h - 2.0 * PAD, |p| p * scale).min(h - 2.0 * PAD);
     let mut pw = ph * aspect;
@@ -328,5 +429,42 @@ mod tests {
         assert!(tb[0] > 300.0 - w / 2.0 + 30.0, "the box moved right: {tb:?}");
         assert_eq!([cl[2], cl[3]], nearest_on_box(tb, [100.0, 100.0]));
         assert!(rect[0] <= 100.0 && rect[1] <= 100.0, "the rectangle still holds the dot");
+    }
+
+    #[test]
+    fn the_photo_and_the_text_size_apart() {
+        let mut doc = blank();
+        let new = NewPhotoCallout {
+            page: 0,
+            point: [100.0, 100.0],
+            center: [300.0, 250.0],
+            jpeg: vec![0xFF, 0xD8, 0xFF, 0xD9],
+            pixels: (400, 300),
+            photo_height: 72.0,
+            text: "Rack A\n24-port switch and patch panel, fed from the MDF".into(),
+            side: TextSide::Right,
+            color: [0.18, 0.44, 0.69],
+            author: "Steve".into(),
+        };
+        let i = add(&mut doc, &new, &Meta::default()).unwrap();
+        let before = parts_at(&doc, 0, i).unwrap();
+        // A bigger photo: its proportions kept, the box's left and top edges where they were.
+        set_parts(&mut doc, 0, i, Some(144.0), None, &Meta::default()).unwrap();
+        let p = parts_at(&doc, 0, i).unwrap();
+        assert!((p.photo[3] - p.photo[1] - 144.0).abs() < 1e-6, "{p:?}");
+        assert!((p.photo[2] - p.photo[0] - 192.0).abs() < 1e-6, "4:3 kept");
+        assert!((p.photo[0] - before.photo[0]).abs() < 1e-6 && (p.photo[3] - before.photo[3]).abs() < 1e-6);
+        assert!((p.text[2] - p.text[0] - (before.text[2] - before.text[0])).abs() < 1e-6, "the text kept its width");
+        // A narrower text column: the photo stays as it is.
+        set_parts(&mut doc, 0, i, None, Some(60.0), &Meta::default()).unwrap();
+        let q = parts_at(&doc, 0, i).unwrap();
+        assert!((q.text[2] - q.text[0] - 60.0).abs() < 1e-6 && (q.photo[3] - q.photo[1] - 144.0).abs() < 1e-6, "{q:?}");
+        // The dot stayed; nonsense is refused.
+        let pg = crate::page_refs(&doc).unwrap()[0];
+        let d = doc.resolve(&crate::annots(&doc, pg)[i]).as_dict().unwrap().clone();
+        let cl: Vec<f64> = d.get(b"CL").unwrap().as_array().unwrap().iter().map(|o| o.as_f64().unwrap()).collect();
+        assert_eq!(&cl[..2], &[100.0, 100.0]);
+        assert!(set_parts(&mut doc, 0, i, Some(f64::NAN), None, &Meta::default()).is_err());
+        assert!(set_parts(&mut doc, 0, i, None, Some(5.0), &Meta::default()).is_err());
     }
 }

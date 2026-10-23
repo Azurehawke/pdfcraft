@@ -8,6 +8,11 @@
 //!
 //! An annotation is on a layer through its `/OC` entry (§12.5.2), which viewers honour when
 //! drawing it.
+//!
+//! Layers nest, as Illustrator's sublayers: the default configuration's `/Order` array lists a
+//! layer followed by an array of its children (§8.11.4.3), which other viewers show as a tree too.
+//! Locking a layer locks the layers inside it. A layer can carry a role (`/PCRole`): RevuCraft's
+//! Drafting layer and its Walls, Doors and windows, and Dimensions sublayers.
 
 use pdfcraft_cos::{Dict, Document, ObjRef, Object, PdfString};
 
@@ -29,6 +34,31 @@ pub struct LayerInfo {
     /// The line width (points) lines drafted on the layer take ("ByLayer"), when one is set
     /// (`/PCWidth`).
     pub width: Option<f64>,
+    /// The layer it is inside, and how deep (0: a top-level layer).
+    pub parent: Option<ObjRef>,
+    pub depth: usize,
+    /// RevuCraft's role for it (`/PCRole`), such as `drafting` or `walls`.
+    pub role: Option<String>,
+}
+
+/// How deep layers may nest.
+const MAX_DEPTH: usize = 16;
+
+/// Where a layer goes in the tree.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Place {
+    /// Inside this layer, after its sublayers.
+    Into(ObjRef),
+    Before(ObjRef),
+    After(ObjRef),
+}
+
+/// A layer in the tree: its group, its parent and its depth, in panel order.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+struct Node {
+    id: ObjRef,
+    parent: Option<ObjRef>,
+    depth: usize,
 }
 
 /// The line widths a layer may have, in points.
@@ -80,17 +110,182 @@ fn color_of(doc: &Document, d: &Dict) -> Rgb {
 /// Every layer of the document, in the catalog's order.
 pub fn list(doc: &Document) -> Vec<LayerInfo> {
     let Some((_, props)) = properties(doc) else { return Vec::new() };
-    group_refs(doc, &props)
+    tree(doc, &props)
         .into_iter()
-        .filter_map(|id| {
-            let obj = doc.get(id);
+        .filter_map(|n| {
+            let obj = doc.get(n.id);
             let d = obj.as_dict()?;
             let name = d.get(b"Name").and_then(Object::as_string).map(PdfString::to_text).unwrap_or_default();
             let locked = matches!(d.get(b"PCLocked").map(|o| doc.resolve(o)).as_deref(), Some(Object::Bool(true)));
             let width = d.get(b"PCWidth").map(|o| doc.resolve(o)).and_then(|o| o.as_f64()).filter(|w| *w == 0.0 || WIDTHS.contains(w));
-            Some(LayerInfo { id, name, color: color_of(doc, d), locked, width })
+            let role = d.name(b"PCRole").map(|r| String::from_utf8_lossy(r).into_owned());
+            Some(LayerInfo { id: n.id, name, color: color_of(doc, d), locked, width, parent: n.parent, depth: n.depth, role })
         })
         .collect()
+}
+
+/// The layers in panel order with their parents, from the default configuration's `/Order`
+/// (layers it leaves out come last, at the top level). Strings (labels) in `/Order` are skipped.
+fn tree(doc: &Document, props: &Dict) -> Vec<Node> {
+    let groups = group_refs(doc, props);
+    let known: std::collections::HashSet<ObjRef> = groups.iter().copied().collect();
+    let mut out = Vec::new();
+    let mut seen = std::collections::HashSet::new();
+    let order = props
+        .get(b"D")
+        .map(|o| doc.resolve(o))
+        .and_then(|o| o.as_dict().and_then(|d| d.get(b"Order").map(|o| doc.resolve(o)).and_then(|o| o.as_array().cloned())));
+    fn walk(
+        doc: &Document,
+        list: &[Object],
+        parent: Option<ObjRef>,
+        depth: usize,
+        known: &std::collections::HashSet<ObjRef>,
+        seen: &mut std::collections::HashSet<ObjRef>,
+        out: &mut Vec<Node>,
+    ) {
+        if depth > MAX_DEPTH {
+            return;
+        }
+        let mut last: Option<ObjRef> = None;
+        for item in list.iter().take(MAX_LAYERS * 4) {
+            match item {
+                Object::Ref(r) if known.contains(r) && seen.insert(*r) => {
+                    out.push(Node { id: *r, parent, depth });
+                    last = Some(*r);
+                }
+                Object::Array(a) => {
+                    // The children of the layer before it; an array with no layer before it is
+                    // a group of top-level layers (its label, if any, is skipped).
+                    match last {
+                        Some(p) => walk(doc, a, Some(p), depth + 1, known, seen, out),
+                        None => walk(doc, a, parent, depth, known, seen, out),
+                    }
+                }
+                _ => {
+                    if let Some(a) = item.as_ref().map(|r| doc.get(r)).and_then(|o| o.as_array().cloned()) {
+                        match last {
+                            Some(p) => walk(doc, &a, Some(p), depth + 1, known, seen, out),
+                            None => walk(doc, &a, parent, depth, known, seen, out),
+                        }
+                    }
+                }
+            }
+        }
+    }
+    if let Some(order) = order {
+        walk(doc, &order, None, 0, &known, &mut seen, &mut out);
+    }
+    for g in groups {
+        if seen.insert(g) {
+            out.push(Node { id: g, parent: None, depth: 0 });
+        }
+    }
+    out
+}
+
+/// The nested `/Order` array for `nodes` (in panel order).
+fn order_of(nodes: &[Node]) -> Vec<Object> {
+    fn level(nodes: &[Node], parent: Option<ObjRef>, depth: usize) -> Vec<Object> {
+        let mut out = Vec::new();
+        if depth > MAX_DEPTH {
+            return out;
+        }
+        for n in nodes.iter().filter(|n| n.parent == parent) {
+            out.push(Object::Ref(n.id));
+            let children = level(nodes, Some(n.id), depth + 1);
+            if !children.is_empty() {
+                out.push(Object::Array(children));
+            }
+        }
+        out
+    }
+    level(nodes, None, 0)
+}
+
+/// Write `nodes` as the default configuration's `/Order`.
+fn write_tree(doc: &mut Document, nodes: &[Node]) -> Result<(), AnnotError> {
+    let (at, mut props) = properties(doc).ok_or_else(|| AnnotError::Invalid("the document has no layers".into()))?;
+    let mut config = props.get(b"D").map(|o| doc.resolve(o)).and_then(|o| o.as_dict().cloned()).unwrap_or_default();
+    config.set(b"Order".to_vec(), Object::Array(order_of(nodes)));
+    props.set(b"D".to_vec(), Object::Dict(config));
+    write_properties(doc, at, props)
+}
+
+/// The layers inside `id`, at any depth.
+pub fn descendants(doc: &Document, id: ObjRef) -> Vec<ObjRef> {
+    let Some((_, props)) = properties(doc) else { return Vec::new() };
+    let nodes = tree(doc, &props);
+    subtree(&nodes, id).into_iter().skip(1).collect()
+}
+
+/// `id` and every layer inside it, in panel order.
+fn subtree(nodes: &[Node], id: ObjRef) -> Vec<ObjRef> {
+    let Some(start) = nodes.iter().position(|n| n.id == id) else { return Vec::new() };
+    let depth = nodes.get(start).map_or(0, |n| n.depth);
+    let mut out = vec![id];
+    for n in nodes.iter().skip(start + 1) {
+        if n.depth <= depth {
+            break;
+        }
+        out.push(n.id);
+    }
+    out
+}
+
+/// Move layer `id` (with the layers inside it) to `place`. Refused into itself or a layer inside it.
+pub fn move_layer(doc: &mut Document, id: ObjRef, place: Place) -> Result<(), AnnotError> {
+    let (_, props) = properties(doc).ok_or_else(|| AnnotError::Invalid("the document has no layers".into()))?;
+    let mut nodes = tree(doc, &props);
+    let moving = subtree(&nodes, id);
+    if moving.is_empty() {
+        return Err(AnnotError::Invalid("no such layer".into()));
+    }
+    let target = match place {
+        Place::Into(t) | Place::Before(t) | Place::After(t) => t,
+    };
+    if moving.contains(&target) {
+        return Err(AnnotError::Invalid("a layer can't go inside itself".into()));
+    }
+    let Some(start) = nodes.iter().position(|n| n.id == id) else { return Err(AnnotError::Invalid("no such layer".into())) };
+    let end = start.saturating_add(moving.len()).min(nodes.len());
+    let block: Vec<Node> = nodes.drain(start..end).collect();
+    let old_depth = block.first().map_or(0, |n| n.depth);
+    let Some(t) = nodes.iter().position(|n| n.id == target) else { return Err(AnnotError::Invalid("no such layer".into())) };
+    let tn = nodes.get(t).copied().ok_or_else(|| AnnotError::Invalid("no such layer".into()))?;
+    let (at, parent, depth) = match place {
+        Place::Before(_) => (t, tn.parent, tn.depth),
+        Place::After(_) => (t + subtree(&nodes, target).len(), tn.parent, tn.depth),
+        Place::Into(_) => (t + subtree(&nodes, target).len(), Some(target), tn.depth + 1),
+    };
+    if depth + block.iter().map(|n| n.depth.saturating_sub(old_depth)).max().unwrap_or(0) > MAX_DEPTH {
+        return Err(AnnotError::Invalid("layers can't nest that deep".into()));
+    }
+    let moved = block.into_iter().map(|mut n| {
+        if n.id == id {
+            n.parent = parent;
+        }
+        n.depth = n.depth.saturating_sub(old_depth) + depth;
+        n
+    });
+    let at = at.min(nodes.len());
+    nodes.splice(at..at, moved).for_each(drop);
+    write_tree(doc, &nodes)
+}
+
+/// Mark layer `id` with RevuCraft's `role` (`None` clears it).
+pub fn set_role(doc: &mut Document, id: ObjRef, role: Option<&str>) -> Result<(), AnnotError> {
+    layer(doc, id)?;
+    if role.is_some_and(|r| r.is_empty() || r.len() > 32 || !r.bytes().all(|b| b.is_ascii_lowercase() || b == b'-')) {
+        return Err(AnnotError::Invalid("invalid layer role".into()));
+    }
+    doc.update_dict(id, |d| match role {
+        Some(r) => d.set(b"PCRole".to_vec(), Object::name(r)),
+        None => {
+            d.remove(b"PCRole");
+        }
+    })?;
+    Ok(())
 }
 
 fn check_name(name: &str) -> Result<String, AnnotError> {
@@ -203,19 +398,26 @@ fn on_layer(doc: &Document, id: ObjRef) -> Vec<(usize, usize)> {
     out
 }
 
-/// Lock or unlock a layer and everything on it.
+/// Lock or unlock a layer, the layers inside it, and everything on them.
 pub fn set_locked(doc: &mut Document, id: ObjRef, locked: bool) -> Result<(), AnnotError> {
     layer(doc, id)?;
-    doc.update_dict(id, |d| {
-        if locked {
-            d.set(b"PCLocked".to_vec(), Object::Bool(true));
-        } else {
-            d.remove(b"PCLocked");
+    let mut all = vec![id];
+    all.extend(descendants(doc, id));
+    for l in all {
+        if layer(doc, l).is_err() {
+            continue;
         }
-    })?;
-    for (page, index) in on_layer(doc, id) {
-        let (_, r) = annot_ref(doc, page, index)?;
-        doc.update_dict(r, |d| apply_lock(d, locked))?;
+        doc.update_dict(l, |d| {
+            if locked {
+                d.set(b"PCLocked".to_vec(), Object::Bool(true));
+            } else {
+                d.remove(b"PCLocked");
+            }
+        })?;
+        for (page, index) in on_layer(doc, l) {
+            let (_, r) = annot_ref(doc, page, index)?;
+            doc.update_dict(r, |d| apply_lock(d, locked))?;
+        }
     }
     Ok(())
 }
@@ -320,5 +522,40 @@ mod tests {
         let (_, rc) = annot_ref(&mut doc, 0, c).unwrap();
         assert_eq!(layer_of(&doc.get(rc).as_dict().cloned().unwrap()), Some(layer_id));
         assert!(list(&doc)[0].locked);
+    }
+
+    #[test]
+    fn layers_nest_move_and_lock_together() {
+        let mut doc = blank();
+        let drafting = add(&mut doc, "Drafting", [0.0; 3]).unwrap();
+        let walls = add(&mut doc, "Walls", [0.0; 3]).unwrap();
+        let data = add(&mut doc, "Data", [0.0; 3]).unwrap();
+        move_layer(&mut doc, walls, Place::Into(drafting)).unwrap();
+        let tree: Vec<(String, usize, Option<ObjRef>)> = list(&doc).into_iter().map(|l| (l.name, l.depth, l.parent)).collect();
+        assert_eq!(tree, [("Drafting".to_string(), 0, None), ("Walls".to_string(), 1, Some(drafting)), ("Data".to_string(), 0, None)]);
+        assert_eq!(descendants(&doc, drafting), [walls]);
+        // Not into itself or below itself.
+        assert!(move_layer(&mut doc, drafting, Place::Into(walls)).is_err());
+        assert!(move_layer(&mut doc, drafting, Place::Into(drafting)).is_err());
+        // Data before Drafting, then Drafting (with Walls) after Data.
+        move_layer(&mut doc, data, Place::Before(drafting)).unwrap();
+        let names: Vec<String> = list(&doc).into_iter().map(|l| l.name).collect();
+        assert_eq!(names, ["Data", "Drafting", "Walls"]);
+        // Locking Drafting locks Walls and what is on it.
+        let a = square(&mut doc);
+        assign(&mut doc, 0, a, Some(walls)).unwrap();
+        set_locked(&mut doc, drafting, true).unwrap();
+        assert!(list(&doc).iter().find(|l| l.id == walls).is_some_and(|l| l.locked));
+        assert!(crate::move_annotation(&mut doc, 0, a, 5.0, 5.0, &Meta::default()).is_err());
+        set_locked(&mut doc, drafting, false).unwrap();
+        assert!(crate::move_annotation(&mut doc, 0, a, 5.0, 5.0, &Meta::default()).is_ok());
+        // Roles, and the tree survives saving.
+        set_role(&mut doc, drafting, Some("drafting")).unwrap();
+        assert!(set_role(&mut doc, drafting, Some("Not ok")).is_err());
+        let bytes = write_full(&doc, &SaveOptions::default()).unwrap();
+        let doc = Document::open(Arc::new(bytes)).unwrap();
+        let l = list(&doc);
+        assert_eq!(l.iter().find(|x| x.id == drafting).and_then(|x| x.role.clone()).as_deref(), Some("drafting"));
+        assert_eq!(l.iter().find(|x| x.id == walls).map(|x| x.parent), Some(Some(drafting)));
     }
 }

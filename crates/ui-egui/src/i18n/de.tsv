@@ -3046,3 +3046,19 @@ animation effects	Off	Aus
 	Copied a hairline: drafting lines are hairlines now; markups take its colour and keep their width	Haarlinie kopiert: Zeichenlinien sind jetzt Haarlinien; Markups übernehmen ihre Farbe und behalten ihre Stärke
 	Copied its look ({w} pt): new markups and drafted lines take it	Aussehen kopiert ({w} pt): neue Markups und gezeichnete Linien übernehmen es
 	Copied its colour: new markups and drafted lines take it	Farbe kopiert: neue Markups und gezeichnete Linien übernehmen sie
+	Drag to set how wide the text wraps	Ziehen, um die Umbruchbreite des Textes festzulegen
+	Drag to size the photo	Ziehen, um die Fotogröße zu ändern
+	Photo height	Fotohöhe
+	Resize photo callout	Fotolegende skalieren
+	Text width	Textbreite
+	Doors and windows	Türen und Fenster
+	Flatten into the page	In die Seite einbetten
+	Flatten layer	Ebene reduzieren
+	Hide sublayers	Unterebenen ausblenden
+	Make this the current layer; drag to move it	Zur aktuellen Ebene machen; zum Verschieben ziehen
+	Make what is on this layer and its sublayers part of the page: it still shows and hides with the layer, but can't be edited as markups any more	Was auf dieser Ebene und ihren Unterebenen liegt, wird Teil der Seite: Es wird weiter mit der Ebene ein- und ausgeblendet, lässt sich aber nicht mehr als Markup bearbeiten
+	Move layer	Ebene verschieben
+	Move out of its layer	Aus ihrer Ebene herausnehmen
+	New sublayer	Neue Unterebene
+	Show sublayers	Unterebenen einblenden
+	Sublayer	Unterebene

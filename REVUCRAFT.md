@@ -264,14 +264,15 @@ Markup and measuring
       PDF line makes the drafting width a hairline, so drafted lines match an all-hairline drawing on
       any printer. Markup and comment tools keep a real width: from a hairline they take only its colour.
       Format copy always says what it copied ("Copied: black, hairline (drafting); colour only (markup)").
-- [ ] **(Steve, next build)** Photo callouts: resize the photo and the text separately. With the callout
+- [x] **(Steve, build 162)** Photo callouts: resize the photo and the text separately. With the callout
       selected, a handle on the photo's outer corner scales the photo (keeping its proportions; the box's
       height follows), and a handle on the text's outer edge sets the text width (the description
       rewraps and the box grows or shrinks to fit). The dot stays put; the leader re-attaches. One undo
       each; the photo height and text width also in the Properties box for exact sizes.
-- [ ] **(Steve, next build)** Layers as Illustrator's: sublayers nested in layers (stored as the PDF's
+- [x] **(Steve, build 162)** Layers as Illustrator's: sublayers nested in layers (stored as the PDF's
       nested layer order, so other viewers show the tree), a parent's eye and lock acting on everything
-      inside, drag rows to reorder or nest, drag down the eye or lock column to set several. Drafted
+      inside, drag rows to reorder or nest, drag down the eye column to set several (the lock column
+      not yet). Drafted
       lines go on a Drafting layer by default (its own sublayers for walls, doors, dimensions) unless
       the current layer is inside it. Flatten per layer from its menu (Flatten Drafting burns only the
       drafting into the page; comments stay comments). Reuse VectorCraft's Layers panel (rows, columns,

@@ -53,14 +53,16 @@ fn placement(doc: &Document, form: &Dict, rect: [f64; 4]) -> Option<[f64; 6]> {
 }
 
 #[derive(Clone, Copy)]
-enum Which {
+enum Which<'a> {
+    /// Comments on these layers (`/OC`), RevuCraft's Flatten layer.
+    Layers(&'a [ObjRef]),
     /// Every comment and/or every form field.
     Comments { comments: bool, fields: bool },
     /// Fill & Sign text, marks and signatures only.
     FillSign,
 }
 
-fn selected(doc: &Document, d: &Dict, which: Which) -> bool {
+fn selected(doc: &Document, d: &Dict, which: Which<'_>) -> bool {
     let subtype = d.name(b"Subtype").unwrap_or_default();
     match which {
         // Comments are what the comment list calls comments: links, pop-ups and the non-markup
@@ -74,6 +76,9 @@ fn selected(doc: &Document, d: &Dict, which: Which) -> bool {
             }
         }
         Which::FillSign => !matches!(subtype, b"Link" | b"Popup" | b"Widget") && pdfcraft_annot::is_fill_sign(doc, d),
+        Which::Layers(layers) => {
+            pdfcraft_annot::is_comment_subtype(&String::from_utf8_lossy(subtype)) && d.reference(b"OC").is_some_and(|l| layers.contains(&l))
+        }
     }
 }
 
@@ -104,12 +109,19 @@ pub fn flatten_fill_sign(doc: &mut Document, pages: &[usize]) -> Result<usize, E
     flatten_which(doc, pages, Which::FillSign)
 }
 
+/// Flatten the comments on `layers` into `pages`, each drawing staying on its layer (its
+/// appearance takes the layer as `/OC`), so the layer still shows and hides it. Other comments
+/// stay. Returns how many were drawn.
+pub fn flatten_layers(doc: &mut Document, pages: &[usize], layers: &[ObjRef]) -> Result<usize, EditError> {
+    flatten_which(doc, pages, Which::Layers(layers))
+}
+
 /// The first annotation flattening would turn into page content with `?` in it, before anything
 /// changes: one whose appearance PdfCraft drew with `?` for characters its fonts can't draw
 /// (`pdfcraft_fonts::UNDRAWN_MARK`: a form field's value, a comment's text), or a comment without
 /// an appearance whose text the standard fonts can't draw. Its page (0-based), whether it is a
 /// form field, and the character.
-fn undrawn_on(doc: &Document, all: &[pdfcraft_model::Page], pages: &[usize], which: Which) -> Option<(usize, bool, char)> {
+fn undrawn_on(doc: &Document, all: &[pdfcraft_model::Page], pages: &[usize], which: Which<'_>) -> Option<(usize, bool, char)> {
     for &i in pages {
         let list = all.get(i)?.dict.get(b"Annots").map(|a| doc.resolve(a)).and_then(|a| a.as_array().cloned()).unwrap_or_default();
         for entry in &list {
@@ -129,7 +141,7 @@ fn undrawn_on(doc: &Document, all: &[pdfcraft_model::Page], pages: &[usize], whi
     None
 }
 
-fn flatten_which(doc: &mut Document, pages: &[usize], which: Which) -> Result<usize, EditError> {
+fn flatten_which(doc: &mut Document, pages: &[usize], which: Which<'_>) -> Result<usize, EditError> {
     let all = page_list(doc);
     check(pages, all.len())?;
     // `?` in an appearance can still be fixed (a field's value, a comment's text are stored as
@@ -182,6 +194,7 @@ fn flatten_which(doc: &mut Document, pages: &[usize], which: Which) -> Result<us
             // was refused before anything changed: `undrawn_on`.)
             let _ = pdfcraft_annot::set_appearance(doc, r);
         }
+        let mut keep_on_layer: Vec<(ObjRef, ObjRef)> = Vec::new();
         for (k, entry) in list.iter().enumerate() {
             let obj = doc.resolve(entry);
             let Some(d) = obj.as_dict() else { continue };
@@ -199,6 +212,13 @@ fn flatten_which(doc: &mut Document, pages: &[usize], which: Which) -> Result<us
             if let (Some(ap), Some(rect)) = (appearance(doc, d), rect) {
                 let form = doc.get(ap).as_dict().cloned().unwrap_or_default();
                 if let Some(m) = placement(doc, &form, rect) {
+                    // Flattened off a layer, the drawing stays on it.
+                    if let Which::Layers(_) = which
+                        && let Some(layer) = d.reference(b"OC")
+                        && !form.contains(b"OC")
+                    {
+                        keep_on_layer.push((ap, layer));
+                    }
                     let name = xobject_name(&existing_xo, &xobjects, &mut name_n);
                     content.push_str(&format!("q {} {} {} {} {} {} cm /{name} Do Q\n", n(m[0]), n(m[1]), n(m[2]), n(m[3]), n(m[4]), n(m[5])));
                     xobjects.set(name.into_bytes(), Object::Ref(ap));
@@ -231,6 +251,12 @@ fn flatten_which(doc: &mut Document, pages: &[usize], which: Which) -> Result<us
                 None => {
                     gone_inline.insert(k);
                 }
+            }
+        }
+        for (ap, layer) in keep_on_layer {
+            if let Object::Stream(mut st) = (*doc.get(ap)).clone() {
+                st.dict.set(b"OC".to_vec(), Object::Ref(layer));
+                doc.set(ap, Object::Stream(st));
             }
         }
         if gone.is_empty() && gone_inline.is_empty() {

@@ -103,6 +103,12 @@ pub struct LayerPanel {
     pub new_name: String,
     /// The layer being renamed, and the name typed so far.
     pub renaming: Option<((u32, u16), String)>,
+    /// Layers whose sublayers are folded away.
+    pub collapsed: std::collections::HashSet<(u32, u16)>,
+    /// The layer being dragged to another place in the tree.
+    pub dragging: Option<(u32, u16)>,
+    /// Dragging down the eye column: what it sets each layer to.
+    pub eye_paint: Option<bool>,
 }
 
 /// A photo shown full size.
@@ -553,7 +559,6 @@ pub fn layers_panel(app: &mut PdfCraftApp, ui: &mut egui::Ui, index: usize, id: 
     let selected = app.views.get(index).and_then(|v| v.comments.selected);
     let selected_layer = selected.and_then(|(p, i)| doc.info.annotations.iter().find(|a| a.page == p && a.index == i)).map(|a| a.layer);
     let mut edit: Option<Edit> = None;
-    let mut toggle: Option<(usize, bool)> = None;
     let mut set_current: Option<Option<(u32, u16)>> = None;
     let panel = &mut app.layer_panel;
 
@@ -587,35 +592,125 @@ pub fn layers_panel(app: &mut PdfCraftApp, ui: &mut egui::Ui, index: usize, id: 
             set_current = Some(None);
         }
     }
+    // The rows in tree order (layers RevuCraft doesn't manage last), with their depth.
+    struct Row<'a> {
+        key: (u32, u16),
+        name: String,
+        visible: bool,
+        li: usize,
+        depth: usize,
+        children: bool,
+        detail: Option<&'a pdfcraft_engine::layers::LayerInfo>,
+    }
+    let key_of = |l: &pdfcraft_engine::layers::LayerInfo| (l.id.num, l.id.generation);
+    let mut rows: Vec<Row<'_>> = Vec::new();
+    for (k, d) in details.iter().enumerate() {
+        let key = key_of(d);
+        let Some(li) = shown.iter().position(|s| s.0 == key) else { continue };
+        let children = details.get(k + 1).is_some_and(|n| n.depth > d.depth);
+        let name = shown.get(li).map(|s| s.1.clone()).unwrap_or_else(|| d.name.clone());
+        let visible = shown.get(li).is_some_and(|s| s.2);
+        rows.push(Row { key, name, visible, li, depth: d.depth, children, detail: Some(d) });
+    }
     for (li, (key, name, visible)) in shown.iter().enumerate() {
-        let detail = details.iter().find(|d| (d.id.num, d.id.generation) == *key);
+        if !rows.iter().any(|r| r.key == *key) {
+            rows.push(Row { key: *key, name: name.clone(), visible: *visible, li, depth: 0, children: false, detail: None });
+        }
+    }
+    // Each layer's place in the list and the layers inside it (for eyes and drops).
+    let inside = |k: usize| -> Vec<usize> {
+        let depth = rows.get(k).map_or(0, |r| r.depth);
+        rows.iter().enumerate().skip(k + 1).take_while(|(_, r)| r.depth > depth).map(|(j, _)| j).collect()
+    };
+    let mut toggles: Vec<(usize, bool)> = Vec::new();
+    let mut drop_target: Option<(Rect, (u32, u16))> = None;
+    let pointer = ui.input(|i| i.pointer.hover_pos());
+    let primary_down = ui.input(|i| i.pointer.primary_down());
+    if !primary_down {
+        panel.eye_paint = None;
+    }
+    let mut hidden_below: Option<usize> = None;
+    for k in 0..rows.len() {
+        let Some(row_info) = rows.get(k) else { continue };
+        // A folded layer's sublayers aren't shown.
+        if let Some(d) = hidden_below {
+            if row_info.depth > d {
+                continue;
+            }
+            hidden_below = None;
+        }
+        let (key, name, visible, depth, children, detail) =
+            (row_info.key, row_info.name.clone(), row_info.visible, row_info.depth, row_info.children, row_info.detail);
+        let folded = panel.collapsed.contains(&key);
+        if children && folded {
+            hidden_below = Some(depth);
+        }
         let ours = detail.is_some();
         let color = detail.map_or(Color32::GRAY, |d| color32(d.color));
         let locked = detail.is_some_and(|d| d.locked);
         let layer_width = detail.and_then(|d| d.width);
-        let is_current = current == Some(*key);
+        let is_current = current == Some(key);
         let r = row(ui);
         if is_current {
             ui.painter().rect_filled(r, CornerRadius::same(6), t.accent_soft);
         }
+        if panel.dragging.is_some_and(|d| d != key) && pointer.is_some_and(|p| r.contains(p)) {
+            drop_target = Some((r, key));
+        }
         let mut child = ui.new_child(egui::UiBuilder::new().max_rect(r).layout(egui::Layout::left_to_right(egui::Align::Center)));
         let ui = &mut child;
         ui.spacing_mut().item_spacing.x = 4.0;
-        if icons::button(ui, if *visible { "eye" } else { "eye-off" }, 26.0, false, if *visible { tl!("Hide layer") } else { tl!("Show layer") })
-            .clicked()
+        // The eye: click, or drag down the column to set several.
+        let eye =
+            icons::button(ui, if visible { "eye" } else { "eye-off" }, 26.0, false, if visible { tl!("Hide layer") } else { tl!("Show layer") });
+        let eye_rect = eye.rect;
+        let eye_drag = ui.interact(eye_rect, ui.id().with(("eye-drag", key)), Sense::drag());
+        let set_eye = |to: bool, toggles: &mut Vec<(usize, bool)>| {
+            // A layer's eye sets the layers inside it too.
+            for j in std::iter::once(k).chain(inside(k)) {
+                if let Some(rw) = rows.get(j)
+                    && rw.visible != to
+                {
+                    toggles.push((rw.li, to));
+                }
+            }
+        };
+        if eye.clicked() {
+            set_eye(!visible, &mut toggles);
+        } else if eye_drag.drag_started() {
+            panel.eye_paint = Some(!visible);
+            set_eye(!visible, &mut toggles);
+        } else if let Some(to) = panel.eye_paint
+            && primary_down
+            && pointer.is_some_and(|p| eye_rect.contains(p))
+            && visible != to
         {
-            toggle = Some((li, !visible));
+            set_eye(to, &mut toggles);
+        }
+        ui.add_space(depth as f32 * 14.0);
+        // The fold triangle.
+        if children {
+            let (icon, tip) = if folded { ("chevron-right", tl!("Show sublayers")) } else { ("chevron-down", tl!("Hide sublayers")) };
+            if icons::button(ui, icon, 18.0, false, tip).clicked() {
+                if folded {
+                    panel.collapsed.remove(&key);
+                } else {
+                    panel.collapsed.insert(key);
+                }
+            }
+        } else {
+            ui.add_space(18.0);
         }
         if ours {
             ui.add_enabled_ui(editable, |ui| {
                 let _ = ui
-                    .menu_button(egui::RichText::new("●").color(color).font(theme::regular(16.0)), |ui| {
+                    .menu_button(egui::RichText::new("\u{25CF}").color(color).font(theme::regular(16.0)), |ui| {
                         ui.horizontal(|ui| {
                             for c in LAYER_COLORS {
                                 let (sw, resp) = ui.allocate_exact_size(vec2(22.0, 22.0), Sense::click());
                                 ui.painter().circle_filled(sw.center(), 9.0, color32(c));
                                 if resp.clicked() {
-                                    edit = Some(Edit::SetLayerColor { layer: *key, color: c });
+                                    edit = Some(Edit::SetLayerColor { layer: key, color: c });
                                     ui.close();
                                 }
                             }
@@ -631,7 +726,7 @@ pub fn layers_panel(app: &mut PdfCraftApp, ui: &mut egui::Ui, index: usize, id: 
                                     Some(w) => format!("{w} pt"),
                                 };
                                 if ui.selectable_label(layer_width == w, label).clicked() {
-                                    edit = Some(Edit::SetLayerWidth { layer: *key, width: w });
+                                    edit = Some(Edit::SetLayerWidth { layer: key, width: w });
                                     ui.close();
                                 }
                             }
@@ -642,25 +737,52 @@ pub fn layers_panel(app: &mut PdfCraftApp, ui: &mut egui::Ui, index: usize, id: 
             });
         }
         match &mut panel.renaming {
-            Some((k, text)) if k == key => {
+            Some((rk, text)) if *rk == key => {
                 let field = ui.add(egui::TextEdit::singleline(text).desired_width(ui.available_width() - 64.0));
                 field.request_focus();
                 let done = field.lost_focus() || ui.input(|i| i.key_pressed(egui::Key::Enter));
                 if done {
                     if !text.trim().is_empty() && text.trim() != name.as_str() {
-                        edit = Some(Edit::RenameLayer { layer: *key, name: text.trim().to_string() });
+                        edit = Some(Edit::RenameLayer { layer: key, name: text.trim().to_string() });
                     }
                     panel.renaming = None;
                 }
             }
             _ => {
                 let font = if is_current { theme::semibold(13.0) } else { theme::regular(13.0) };
-                let label = egui::Label::new(egui::RichText::new(name).font(font).color(if *visible { t.text } else { t.text_faint }))
+                let label = egui::Label::new(egui::RichText::new(&name).font(font).color(if visible { t.text } else { t.text_faint }))
                     .truncate()
-                    .sense(Sense::click());
+                    .sense(Sense::click_and_drag());
                 let resp = ui.add_sized(vec2((ui.available_width() - 64.0).max(40.0), 26.0), label);
-                if resp.on_hover_text(tl!("Make this the current layer")).clicked() {
-                    set_current = Some(Some(*key));
+                // Drag a layer's name onto another to move it there.
+                if ours && editable && resp.drag_started() {
+                    panel.dragging = Some(key);
+                }
+                let resp = resp.on_hover_text(tl!("Make this the current layer; drag to move it"));
+                if resp.clicked() {
+                    set_current = Some(Some(key));
+                }
+                if ours && editable {
+                    resp.context_menu(|ui| {
+                        if ui.button(tl!("New sublayer")).clicked() {
+                            let name = if panel.new_name.trim().is_empty() { tl!("Sublayer").to_string() } else { panel.new_name.trim().to_string() };
+                            edit = Some(Edit::AddLayerIn { name, color: [0.0; 3], parent: Some(key), role: None });
+                            panel.new_name.clear();
+                            ui.close();
+                        }
+                        if depth > 0
+                            && let Some(parent) = detail.and_then(|d| d.parent)
+                            && ui.button(tl!("Move out of its layer")).clicked()
+                        {
+                            edit = Some(Edit::MoveLayer { layer: key, place: pdfcraft_engine::LayerPlace::After((parent.num, parent.generation)) });
+                            ui.close();
+                        }
+                        ui.separator();
+                        if ui.button(tl!("Flatten into the page")).on_hover_text(tl!("Make what is on this layer and its sublayers part of the page: it still shows and hides with the layer, but can't be edited as markups any more")).clicked() {
+                            edit = Some(Edit::FlattenLayer { layer: key });
+                            ui.close();
+                        }
+                    });
                 }
             }
         }
@@ -676,13 +798,40 @@ pub fn layers_panel(app: &mut PdfCraftApp, ui: &mut egui::Ui, index: usize, id: 
                     )
                     .clicked()
                     {
-                        edit = Some(Edit::SetLayerLocked { layer: *key, locked: !locked });
+                        edit = Some(Edit::SetLayerLocked { layer: key, locked: !locked });
                     }
                     if icons::button(ui, "pencil", 26.0, false, tl!("Rename layer")).clicked() {
-                        panel.renaming = Some((*key, name.clone()));
+                        panel.renaming = Some((key, name.clone()));
                     }
                 });
             });
+        }
+    }
+    // A layer being dragged: where it would go, and on letting go, the move.
+    if let Some(moving) = panel.dragging {
+        if let (Some((r, target)), Some(p)) = (drop_target, pointer) {
+            let third = r.height() / 4.0;
+            let place = if p.y < r.top() + third {
+                pdfcraft_engine::LayerPlace::Before(target)
+            } else if p.y > r.bottom() - third {
+                pdfcraft_engine::LayerPlace::After(target)
+            } else {
+                pdfcraft_engine::LayerPlace::Into(target)
+            };
+            let stroke = egui::Stroke::new(2.0, t.accent);
+            match place {
+                pdfcraft_engine::LayerPlace::Before(_) => ui.painter().hline(r.x_range(), r.top(), stroke),
+                pdfcraft_engine::LayerPlace::After(_) => ui.painter().hline(r.x_range(), r.bottom(), stroke),
+                pdfcraft_engine::LayerPlace::Into(_) => {
+                    ui.painter().rect_stroke(r, CornerRadius::same(6), stroke, egui::StrokeKind::Inside);
+                }
+            }
+            if !primary_down {
+                edit = Some(Edit::MoveLayer { layer: moving, place });
+            }
+        }
+        if !primary_down {
+            panel.dragging = None;
         }
     }
     // The selected markup's layer.
@@ -709,9 +858,11 @@ pub fn layers_panel(app: &mut PdfCraftApp, ui: &mut egui::Ui, index: usize, id: 
     if let Some(c) = set_current {
         let _ = app.session.set_current_layer(id, c);
     }
-    if let Some((layer, visible)) = toggle
-        && app.session.set_layer_visible(id, layer, visible)
-    {
+    let mut changed = false;
+    for (layer, visible) in toggles {
+        changed |= app.session.set_layer_visible(id, layer, visible);
+    }
+    if changed {
         app.views[index].invalidate_content();
     }
     if let Some(e) = edit {

@@ -3046,3 +3046,19 @@ animation effects	Off	Désactivés
 	Copied a hairline: drafting lines are hairlines now; markups take its colour and keep their width	Trait fin copié : les lignes dessinées sont désormais des traits fins ; les annotations prennent sa couleur et gardent leur épaisseur
 	Copied its look ({w} pt): new markups and drafted lines take it	Aspect copié ({w} pt) : les nouvelles annotations et lignes dessinées le prennent
 	Copied its colour: new markups and drafted lines take it	Couleur copiée : les nouvelles annotations et lignes dessinées la prennent
+	Drag to set how wide the text wraps	Faites glisser pour régler la largeur du texte
+	Drag to size the photo	Faites glisser pour redimensionner la photo
+	Photo height	Hauteur de la photo
+	Resize photo callout	Redimensionner la légende photo
+	Text width	Largeur du texte
+	Doors and windows	Portes et fenêtres
+	Flatten into the page	Aplatir dans la page
+	Flatten layer	Aplatir le calque
+	Hide sublayers	Masquer les sous-calques
+	Make this the current layer; drag to move it	En faire le calque actif ; faites glisser pour le déplacer
+	Make what is on this layer and its sublayers part of the page: it still shows and hides with the layer, but can't be edited as markups any more	Intégrer à la page ce qui se trouve sur ce calque et ses sous-calques : cela s’affiche et se masque toujours avec le calque, mais ne se modifie plus comme des annotations
+	Move layer	Déplacer le calque
+	Move out of its layer	Sortir de son calque
+	New sublayer	Nouveau sous-calque
+	Show sublayers	Afficher les sous-calques
+	Sublayer	Sous-calque

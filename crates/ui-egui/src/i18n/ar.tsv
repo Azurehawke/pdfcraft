@@ -3320,3 +3320,19 @@ certificate	Version	الإصدار
 	Copied a hairline: drafting lines are hairlines now; markups take its colour and keep their width	تم نسخ خط شعري: خطوط الرسم الآن شعرية؛ التعليقات تأخذ لونه وتحتفظ بعرضها
 	Copied its look ({w} pt): new markups and drafted lines take it	تم نسخ مظهره ({w} نقطة): التعليقات والخطوط المرسومة الجديدة تأخذه
 	Copied its colour: new markups and drafted lines take it	تم نسخ لونه: التعليقات والخطوط المرسومة الجديدة تأخذه
+	Drag to set how wide the text wraps	اسحب لتحديد عرض التفاف النص
+	Drag to size the photo	اسحب لتغيير حجم الصورة
+	Photo height	ارتفاع الصورة
+	Resize photo callout	تغيير حجم وسيلة شرح الصورة
+	Text width	عرض النص
+	Doors and windows	الأبواب والنوافذ
+	Flatten into the page	دمج في الصفحة
+	Flatten layer	دمج الطبقة
+	Hide sublayers	إخفاء الطبقات الفرعية
+	Make this the current layer; drag to move it	اجعلها الطبقة الحالية؛ اسحب لنقلها
+	Make what is on this layer and its sublayers part of the page: it still shows and hides with the layer, but can't be edited as markups any more	اجعل ما في هذه الطبقة وطبقاتها الفرعية جزءًا من الصفحة: يظل يظهر ويختفي مع الطبقة، لكن لا يمكن تحريره كتعليقات بعد ذلك
+	Move layer	نقل الطبقة
+	Move out of its layer	إخراج من طبقتها
+	New sublayer	طبقة فرعية جديدة
+	Show sublayers	إظهار الطبقات الفرعية
+	Sublayer	طبقة فرعية

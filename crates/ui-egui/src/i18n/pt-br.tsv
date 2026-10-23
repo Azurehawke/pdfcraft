@@ -3058,3 +3058,19 @@ animation effects	Off	Desativados
 	Copied a hairline: drafting lines are hairlines now; markups take its colour and keep their width	Linha fina copiada: as linhas desenhadas agora são linhas finas; as marcações pegam sua cor e mantêm a espessura
 	Copied its look ({w} pt): new markups and drafted lines take it	Aparência copiada ({w} pt): novas marcações e linhas desenhadas a usam
 	Copied its colour: new markups and drafted lines take it	Cor copiada: novas marcações e linhas desenhadas a usam
+	Drag to set how wide the text wraps	Arraste para definir a largura do texto
+	Drag to size the photo	Arraste para redimensionar a foto
+	Photo height	Altura da foto
+	Resize photo callout	Redimensionar chamada com foto
+	Text width	Largura do texto
+	Doors and windows	Portas e janelas
+	Flatten into the page	Mesclar na página
+	Flatten layer	Mesclar camada
+	Hide sublayers	Ocultar subcamadas
+	Make this the current layer; drag to move it	Torná-la a camada atual; arraste para movê-la
+	Make what is on this layer and its sublayers part of the page: it still shows and hides with the layer, but can't be edited as markups any more	Torna o que está nesta camada e suas subcamadas parte da página: continua aparecendo e sumindo com a camada, mas não pode mais ser editado como marcação
+	Move layer	Mover camada
+	Move out of its layer	Tirar da sua camada
+	New sublayer	Nova subcamada
+	Show sublayers	Mostrar subcamadas
+	Sublayer	Subcamada

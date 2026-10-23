@@ -37,6 +37,7 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
     let layers = app.session.layer_details(id);
     let rotation = doc.symbol_rotation(page, ai);
     let callout_side = doc.callout_side(page, ai);
+    let callout_parts = doc.callout_parts(page, ai);
     let fields = doc.annotation_fields(page, ai);
     let measurement_name = doc.measurement_name(page, ai);
     let stroke_align = doc.stroke_align(page, ai);
@@ -205,6 +206,44 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
                             }
                         });
                         ui.end_row();
+                    }
+                    // A photo callout: its photo's height and its text's width, in inches.
+                    if let Some(parts) = callout_parts {
+                        use pdfcraft_engine::photo_callout::{PHOTO_HEIGHTS, TEXT_WIDTHS};
+                        let rows = [
+                            (tl!("Photo height"), (parts.photo[3] - parts.photo[1]) / 72.0, true, PHOTO_HEIGHTS),
+                            (tl!("Text width"), (parts.text[2] - parts.text[0]) / 72.0, false, TEXT_WIDTHS),
+                        ];
+                        for (label, now, photo, range) in rows {
+                            ui.label(label);
+                            // The value being dragged or typed is kept until let go, so the change
+                            // is one edit.
+                            let key = egui::Id::new(("callout-part", page, ai, photo));
+                            let mut v = ui.data(|m| m.get_temp::<f64>(key)).unwrap_or(now);
+                            let r = ui.add(
+                                egui::DragValue::new(&mut v)
+                                    .range(range.start() / 72.0..=range.end() / 72.0)
+                                    .speed(0.02)
+                                    .max_decimals(2)
+                                    .suffix(" in"),
+                            );
+                            if r.dragged() || r.has_focus() {
+                                ui.data_mut(|m| m.insert_temp(key, v));
+                            }
+                            if r.drag_stopped() || r.lost_focus() {
+                                ui.data_mut(|m| m.remove::<f64>(key));
+                                if v.is_finite() && (v - now).abs() > 1e-3 {
+                                    let pts = Some(v * 72.0);
+                                    extra.push(Edit::SetCalloutParts {
+                                        page,
+                                        index: ai,
+                                        photo_height: pts.filter(|_| photo),
+                                        text_width: pts.filter(|_| !photo),
+                                    });
+                                }
+                            }
+                            ui.end_row();
+                        }
                     }
                     // A photo pin can become a photo callout.
                     if a.photo {

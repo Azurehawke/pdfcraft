@@ -3261,3 +3261,19 @@ certificate	SHA-256 digest	Impronta SHA-256
 	Copied a hairline: drafting lines are hairlines now; markups take its colour and keep their width	Copiata una linea sottilissima: le linee disegnate ora sono sottilissime; i markup ne prendono il colore e mantengono il loro spessore
 	Copied its look ({w} pt): new markups and drafted lines take it	Aspetto copiato ({w} pt): i nuovi markup e le linee disegnate lo prendono
 	Copied its colour: new markups and drafted lines take it	Colore copiato: i nuovi markup e le linee disegnate lo prendono
+	Drag to set how wide the text wraps	Trascina per impostare la larghezza del testo
+	Drag to size the photo	Trascina per ridimensionare la foto
+	Photo height	Altezza della foto
+	Resize photo callout	Ridimensiona richiamo foto
+	Text width	Larghezza del testo
+	Doors and windows	Porte e finestre
+	Flatten into the page	Unisci alla pagina
+	Flatten layer	Unisci livello
+	Hide sublayers	Nascondi sottolivelli
+	Make this the current layer; drag to move it	Rendilo il livello corrente; trascina per spostarlo
+	Make what is on this layer and its sublayers part of the page: it still shows and hides with the layer, but can't be edited as markups any more	Rende ciò che è su questo livello e sui suoi sottolivelli parte della pagina: si mostra e nasconde ancora con il livello, ma non si modifica più come markup
+	Move layer	Sposta livello
+	Move out of its layer	Togli dal suo livello
+	New sublayer	Nuovo sottolivello
+	Show sublayers	Mostra sottolivelli
+	Sublayer	Sottolivello

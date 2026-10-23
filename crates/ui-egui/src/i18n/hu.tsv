@@ -3044,3 +3044,19 @@ animation effects	Off	Ki
 	Copied a hairline: drafting lines are hairlines now; markups take its colour and keep their width	Hajszálvonal másolva: a rajzolt vonalak mostantól hajszálvonalak; a jelölések átveszik a színét, és megtartják vastagságukat
 	Copied its look ({w} pt): new markups and drafted lines take it	Megjelenés másolva ({w} pt): az új jelölések és rajzolt vonalak ezt kapják
 	Copied its colour: new markups and drafted lines take it	Szín másolva: az új jelölések és rajzolt vonalak ezt kapják
+	Drag to set how wide the text wraps	Húzza a szöveg tördelési szélességének beállításához
+	Drag to size the photo	Húzza a fénykép méretezéséhez
+	Photo height	Fénykép magassága
+	Resize photo callout	Fényképes felirat átméretezése
+	Text width	Szöveg szélessége
+	Doors and windows	Ajtók és ablakok
+	Flatten into the page	Beégetés az oldalba
+	Flatten layer	Réteg egyesítése
+	Hide sublayers	Alrétegek elrejtése
+	Make this the current layer; drag to move it	Legyen ez az aktuális réteg; húzza az áthelyezéshez
+	Make what is on this layer and its sublayers part of the page: it still shows and hides with the layer, but can't be edited as markups any more	A réteg és alrétegei tartalma az oldal része lesz: a réteggel együtt továbbra is megjeleníthető és elrejthető, de jelölésként már nem szerkeszthető
+	Move layer	Réteg áthelyezése
+	Move out of its layer	Kivétel a rétegéből
+	New sublayer	Új alréteg
+	Show sublayers	Alrétegek megjelenítése
+	Sublayer	Alréteg

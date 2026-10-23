@@ -1935,6 +1935,11 @@ fn resize_ink(doc: &mut Document, r: ObjRef, rect: [f64; 4], meta: &Meta) -> Res
     redraw_or_restore(doc, r, before)
 }
 
+/// Resize a text box (a photo callout's) to `rect`, its leader re-attached.
+pub(crate) fn resize_text_box(doc: &mut Document, r: ObjRef, rect: [f64; 4], meta: &Meta) -> Result<(), AnnotError> {
+    apply_text_box(doc, r, rect, meta, false)
+}
+
 /// Store `rect` as a FreeText annotation's text box (or a square's/oval's rectangle): a callout's
 /// leader line re-attaches and `/Rect` grows to hold it, and the appearance is redrawn
 /// (`new_text`: for changed contents, see [`set_appearance`] and `draw_appearance`).

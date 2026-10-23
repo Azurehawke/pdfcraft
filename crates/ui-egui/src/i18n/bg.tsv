@@ -3009,3 +3009,19 @@ animation effects	Off	Изключени
 	Copied a hairline: drafting lines are hairlines now; markups take its colour and keep their width	Копирана е косъмна линия: линиите при чертане вече са косъмни; маркировките вземат цвета ѝ и запазват дебелината си
 	Copied its look ({w} pt): new markups and drafted lines take it	Копиран е видът ({w} pt): новите маркировки и начертани линии го приемат
 	Copied its colour: new markups and drafted lines take it	Копиран е цветът: новите маркировки и начертани линии го приемат
+	Drag to set how wide the text wraps	Плъзнете, за да зададете ширината на текста
+	Drag to size the photo	Плъзнете, за да оразмерите снимката
+	Photo height	Височина на снимката
+	Resize photo callout	Преоразмеряване на износката със снимка
+	Text width	Ширина на текста
+	Doors and windows	Врати и прозорци
+	Flatten into the page	Сливане в страницата
+	Flatten layer	Сливане на слоя
+	Hide sublayers	Скриване на подслоевете
+	Make this the current layer; drag to move it	Направете го текущ слой; плъзнете, за да го преместите
+	Make what is on this layer and its sublayers part of the page: it still shows and hides with the layer, but can't be edited as markups any more	Направете съдържанието на този слой и подслоевете му част от страницата: то пак се показва и скрива със слоя, но вече не може да се редактира като маркировки
+	Move layer	Преместване на слоя
+	Move out of its layer	Изваждане от слоя му
+	New sublayer	Нов подслой
+	Show sublayers	Показване на подслоевете
+	Sublayer	Подслой

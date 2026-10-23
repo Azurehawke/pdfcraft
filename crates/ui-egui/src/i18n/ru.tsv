@@ -2962,3 +2962,19 @@ animation effects	Off	Выкл
 	Copied a hairline: drafting lines are hairlines now; markups take its colour and keep their width	Скопирована волосяная линия: линии черчения теперь волосяные; пометки берут её цвет и сохраняют свою толщину
 	Copied its look ({w} pt): new markups and drafted lines take it	Вид скопирован ({w} pt): новые пометки и начерченные линии получат его
 	Copied its colour: new markups and drafted lines take it	Цвет скопирован: новые пометки и начерченные линии получат его
+	Drag to set how wide the text wraps	Перетащите, чтобы задать ширину переноса текста
+	Drag to size the photo	Перетащите, чтобы изменить размер фото
+	Photo height	Высота фото
+	Resize photo callout	Изменение размера выноски с фото
+	Text width	Ширина текста
+	Doors and windows	Двери и окна
+	Flatten into the page	Встроить в страницу
+	Flatten layer	Свести слой
+	Hide sublayers	Скрыть подслои
+	Make this the current layer; drag to move it	Сделать текущим слоем; перетащите, чтобы переместить
+	Make what is on this layer and its sublayers part of the page: it still shows and hides with the layer, but can't be edited as markups any more	Сделать содержимое этого слоя и его подслоёв частью страницы: оно по-прежнему показывается и скрывается вместе со слоем, но больше не редактируется как пометки
+	Move layer	Переместить слой
+	Move out of its layer	Вынести из его слоя
+	New sublayer	Новый подслой
+	Show sublayers	Показать подслои
+	Sublayer	Подслой

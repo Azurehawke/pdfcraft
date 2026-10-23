@@ -1031,6 +1031,7 @@ fn comment_page(edit: &Edit) -> Option<usize> {
         | Edit::SetVertices { page, .. }
         | Edit::EditSymbol { page, .. }
         | Edit::SetCalloutSide { page, .. }
+        | Edit::SetCalloutParts { page, .. }
         | Edit::SetAnnotationField { page, .. }
         | Edit::TransformAnnotation { page, .. }
         | Edit::StyleAnnotation { page, .. }

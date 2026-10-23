@@ -288,6 +288,7 @@ fn scope_of(edit: &Edit) -> Scope {
         | Edit::TransformAnnotation { .. }
         | Edit::EditSymbol { .. }
         | Edit::SetCalloutSide { .. }
+        | Edit::SetCalloutParts { .. }
         | Edit::SetAnnotationField { .. }
         | Edit::SetStrokeAlign { .. }
         | Edit::RenameMeasurement { .. }
@@ -622,6 +623,13 @@ impl Document {
     /// The photo in the photo callout at `(page, index)` (JPEG bytes), if it is one.
     pub fn callout_photo(&self, page: usize, index: usize) -> Option<Vec<u8>> {
         self.editor.as_ref().and_then(|e| pdfcraft_annot::photo_callout::photo_jpeg(&e.cos, page, index))
+    }
+
+    /// Where a photo callout's photo and text column are (user space), or `None` when the
+    /// annotation at `(page, index)` isn't a photo callout.
+    pub fn callout_parts(&self, page: usize, index: usize) -> Option<pdfcraft_annot::photo_callout::Parts> {
+        let e = self.editor.as_ref()?;
+        pdfcraft_annot::photo_callout::parts_at(&e.cos, page, index)
     }
 
     /// The side the description of the photo callout at `(page, index)` is on, or `None` when
@@ -1557,6 +1565,24 @@ pub enum Edit {
         name: String,
         color: [f64; 3],
     },
+    /// RevuCraft: a new layer inside `parent` (a sublayer; `None`: top level), with RevuCraft's
+    /// `role` for it when it has one (`drafting`, `walls`…).
+    AddLayerIn {
+        name: String,
+        color: [f64; 3],
+        parent: Option<(u32, u16)>,
+        role: Option<String>,
+    },
+    /// RevuCraft: move a layer (with its sublayers) inside, before or after another.
+    MoveLayer {
+        layer: (u32, u16),
+        place: LayerPlace,
+    },
+    /// RevuCraft: flatten the markups on a layer and its sublayers into the pages; they stay on
+    /// their layer, so it still shows and hides them, but can't be edited as markups any more.
+    FlattenLayer {
+        layer: (u32, u16),
+    },
     RenameLayer {
         layer: (u32, u16),
         name: String,
@@ -1718,6 +1744,13 @@ pub enum Edit {
         page: usize,
         index: usize,
         side: pdfcraft_annot::photo_callout::TextSide,
+    },
+    /// RevuCraft: size a photo callout's photo (points high) and/or its text column (points wide).
+    SetCalloutParts {
+        page: usize,
+        index: usize,
+        photo_height: Option<f64>,
+        text_width: Option<f64>,
     },
     /// RevuCraft: change a placed symbol's label and/or turn (degrees anticlockwise, absolute).
     EditSymbol {
@@ -2252,8 +2285,12 @@ pub const EDIT_LABELS: &[&str] = &[
     "Name measurements",
     "Send quantities",
     "Change layer line width",
+    "New sublayer",
+    "Move layer",
+    "Flatten layer",
     "Format copy",
     "Change guides",
+    "Resize photo callout",
     "Move linked drawing",
     "Measure cable run",
     "Add legend",
@@ -2432,6 +2469,10 @@ impl Edit {
             Edit::AddDraftShape { caption: Some((_, subject)), .. } => Label::with("Measure {kind}", subject.to_lowercase()),
             Edit::AddDraftShape { new, .. } => Label::of(add_annotation(&new.shape)),
             Edit::AddLayer { .. } => Label::of("New layer"),
+            Edit::AddLayerIn { parent: Some(_), .. } => Label::of("New sublayer"),
+            Edit::AddLayerIn { .. } => Label::of("New layer"),
+            Edit::MoveLayer { .. } => Label::of("Move layer"),
+            Edit::FlattenLayer { .. } => Label::of("Flatten layer"),
             Edit::RenameLayer { .. } => Label::of("Rename layer"),
             Edit::SetLayerColor { .. } => Label::of("Change layer colour"),
             Edit::SetLayerWidth { .. } => Label::of("Change layer line width"),
@@ -2446,6 +2487,7 @@ impl Edit {
             Edit::AddPhotoCallout { .. } => Label::of("Add photo callout"),
             Edit::PinToCallout { .. } => Label::of("Make photo callout"),
             Edit::SetCalloutSide { .. } => Label::of("Move description"),
+            Edit::SetCalloutParts { .. } => Label::of("Resize photo callout"),
             Edit::SetAnnotationField { name, .. } => Label::with("Set {field}", name.as_str()),
             Edit::SetVertices { copy: true, .. } => Label::of("Offset"),
             Edit::TransformAnnotation { copy: true, .. } => Label::of("Copy markup"),
@@ -2533,6 +2575,8 @@ fn check_permission(edit: &Edit, p: &pdfcraft_cos::Permissions) -> Result<(), Ed
         | Edit::AddDraftShape { .. }
         | Edit::AddCustomStamp { .. }
         | Edit::AddLayer { .. }
+        | Edit::AddLayerIn { .. }
+        | Edit::MoveLayer { .. }
         | Edit::RenameLayer { .. }
         | Edit::SetLayerColor { .. }
         | Edit::SetLayerWidth { .. }
@@ -2556,6 +2600,7 @@ fn check_permission(edit: &Edit, p: &pdfcraft_cos::Permissions) -> Result<(), Ed
         | Edit::AddPhotoCallout { .. }
         | Edit::PinToCallout { .. }
         | Edit::SetCalloutSide { .. }
+        | Edit::SetCalloutParts { .. }
         | Edit::SetAnnotationField { .. }
         | Edit::SetStrokeAlign { .. }
         | Edit::SetGuides { .. }
@@ -2640,6 +2685,7 @@ fn check_permission(edit: &Edit, p: &pdfcraft_cos::Permissions) -> Result<(), Ed
         | Edit::RemoveCadLink { .. }
         | Edit::MoveCadLink { .. }
         | Edit::Flatten { .. }
+        | Edit::FlattenLayer { .. }
         | Edit::UnpackTextForms { .. }
         | Edit::FlattenFillSign => {
             if p.modify() {
@@ -2771,6 +2817,14 @@ fn layer_ref(id: (u32, u16)) -> pdfcraft_cos::ObjRef {
     pdfcraft_cos::ObjRef::new(id.0, id.1)
 }
 
+/// Where [`Edit::MoveLayer`] puts a layer.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum LayerPlace {
+    Into((u32, u16)),
+    Before((u32, u16)),
+    After((u32, u16)),
+}
+
 fn run_edit(doc: &mut pdfcraft_cos::Document, edit: &Edit, cx: &mut EditCtx) -> Result<(), EditError> {
     match edit {
         Edit::RotatePages { pages, degrees } => pdfcraft_organize::rotate_pages(doc, pages, *degrees)?,
@@ -2874,6 +2928,31 @@ fn run_edit(doc: &mut pdfcraft_cos::Document, edit: &Edit, cx: &mut EditCtx) -> 
         }
         Edit::AddLayer { name, color } => {
             pdfcraft_annot::layers::add(doc, name, *color)?;
+        }
+        Edit::AddLayerIn { name, color, parent, role } => {
+            let id = pdfcraft_annot::layers::add(doc, name, *color)?;
+            if let Some(p) = parent {
+                pdfcraft_annot::layers::move_layer(doc, id, pdfcraft_annot::layers::Place::Into(layer_ref(*p)))?;
+            }
+            if let Some(r) = role {
+                pdfcraft_annot::layers::set_role(doc, id, Some(r.as_str()))?;
+            }
+        }
+        Edit::MoveLayer { layer, place } => {
+            use pdfcraft_annot::layers::Place;
+            let place = match place {
+                LayerPlace::Into(t) => Place::Into(layer_ref(*t)),
+                LayerPlace::Before(t) => Place::Before(layer_ref(*t)),
+                LayerPlace::After(t) => Place::After(layer_ref(*t)),
+            };
+            pdfcraft_annot::layers::move_layer(doc, layer_ref(*layer), place)?;
+        }
+        Edit::FlattenLayer { layer } => {
+            let id = layer_ref(*layer);
+            let mut layers = vec![id];
+            layers.extend(pdfcraft_annot::layers::descendants(doc, id));
+            let n = pdfcraft_model::pages(doc).len();
+            pdfcraft_edit::flatten_layers(doc, &(0..n).collect::<Vec<_>>(), &layers)?;
         }
         Edit::RenameLayer { layer, name } => pdfcraft_annot::layers::rename(doc, layer_ref(*layer), name)?,
         Edit::SetLayerColor { layer, color } => pdfcraft_annot::layers::set_color(doc, layer_ref(*layer), *color)?,
@@ -2995,6 +3074,9 @@ fn run_edit(doc: &mut pdfcraft_cos::Document, edit: &Edit, cx: &mut EditCtx) -> 
         Edit::SetStrokeAlign { page, index, align } => pdfcraft_annot::stroke_align::set(doc, *page, *index, *align)?,
         Edit::SetAnnotationField { page, index, name, value } => pdfcraft_annot::fields::set_field(doc, *page, *index, name, value, &cx.meta())?,
         Edit::SetCalloutSide { page, index, side } => pdfcraft_annot::photo_callout::set_side(doc, *page, *index, *side, &cx.meta())?,
+        Edit::SetCalloutParts { page, index, photo_height, text_width } => {
+            pdfcraft_annot::photo_callout::set_parts(doc, *page, *index, *photo_height, *text_width, &cx.meta())?;
+        }
         Edit::EditSymbol { page, index, label, rotation } => {
             pdfcraft_annot::symbols::edit_symbol(doc, *page, *index, label.as_deref(), *rotation, &cx.meta())?;
         }

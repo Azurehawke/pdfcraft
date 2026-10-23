@@ -91,6 +91,8 @@ mod draft_edit;
 mod draft_panel;
 mod edit_text_ui;
 pub use edit_text_ui::CropMode;
+mod callout_handles;
+mod drafting_layers;
 mod editing;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod file_watch;
@@ -621,6 +623,8 @@ pub struct PdfCraftApp {
     pub(crate) draft: draft::DraftSettings,
     pub(crate) new_doc: new_dialog::NewDialog,
     pub(crate) layer_panel: revu::LayerPanel,
+    /// RevuCraft: the Drafting layer the drafting tools put the current layer on.
+    pub(crate) drafting_layers: drafting_layers::DraftingLayers,
     pub(crate) photo_viewer: Option<revu::PhotoViewer>,
     /// RevuCraft's Markups list: sort, filters and rows.
     pub(crate) markups: markups_list::MarkupsState,
@@ -1047,6 +1051,7 @@ impl PdfCraftApp {
             draft: Default::default(),
             new_doc: Default::default(),
             layer_panel: Default::default(),
+            drafting_layers: Default::default(),
             photo_viewer: None,
             markups: Default::default(),
             chest: Default::default(),
@@ -3612,6 +3617,7 @@ impl eframe::App for PdfCraftApp {
         if ended && matches!(self.quick_tool, QuickTool::Draft(t) if t.ends_after_one()) {
             self.quick_tool = QuickTool::Select;
         }
+        drafting_layers::follow_tool(self);
         links_ui::table_dialog(self, &ctx);
         takeoff_ui::dialog(self, &ctx);
         draft::keypad(self, &ctx);

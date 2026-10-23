@@ -3011,3 +3011,19 @@ animation effects	Off	关
 	Copied a hairline: drafting lines are hairlines now; markups take its colour and keep their width	已复制细线：绘图线条现为细线；标记采用其颜色并保留自身线宽
 	Copied its look ({w} pt): new markups and drafted lines take it	已复制外观（{w} pt）：新的标记和绘制线条将采用它
 	Copied its colour: new markups and drafted lines take it	已复制颜色：新的标记和绘制线条将采用它
+	Drag to set how wide the text wraps	拖动以设置文字换行宽度
+	Drag to size the photo	拖动以调整照片大小
+	Photo height	照片高度
+	Resize photo callout	调整照片标注大小
+	Text width	文字宽度
+	Doors and windows	门和窗
+	Flatten into the page	拼合到页面
+	Flatten layer	拼合图层
+	Hide sublayers	隐藏子图层
+	Make this the current layer; drag to move it	设为当前图层；拖动以移动
+	Make what is on this layer and its sublayers part of the page: it still shows and hides with the layer, but can't be edited as markups any more	将此图层及其子图层上的内容并入页面：仍随图层显示和隐藏，但不能再作为标记编辑
+	Move layer	移动图层
+	Move out of its layer	移出所在图层
+	New sublayer	新建子图层
+	Show sublayers	显示子图层
+	Sublayer	子图层

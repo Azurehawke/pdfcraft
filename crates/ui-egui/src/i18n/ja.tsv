@@ -3048,3 +3048,19 @@ animation effects	Off	オフ
 	Copied a hairline: drafting lines are hairlines now; markups take its colour and keep their width	極細線をコピーしました: 作図の線は極細線になります。マークアップは色だけを取り、線幅はそのままです
 	Copied its look ({w} pt): new markups and drafted lines take it	見た目をコピーしました（{w} pt）: 新しいマークアップと作図の線に適用されます
 	Copied its colour: new markups and drafted lines take it	色をコピーしました: 新しいマークアップと作図の線に適用されます
+	Drag to set how wide the text wraps	ドラッグして文字の折り返し幅を設定
+	Drag to size the photo	ドラッグして写真のサイズを変更
+	Photo height	写真の高さ
+	Resize photo callout	写真吹き出しのサイズ変更
+	Text width	テキストの幅
+	Doors and windows	ドアと窓
+	Flatten into the page	ページに統合
+	Flatten layer	レイヤーを統合
+	Hide sublayers	サブレイヤーを隠す
+	Make this the current layer; drag to move it	現在のレイヤーにする（ドラッグで移動）
+	Make what is on this layer and its sublayers part of the page: it still shows and hides with the layer, but can't be edited as markups any more	このレイヤーとサブレイヤーの内容をページの一部にします。レイヤーで表示・非表示はできますが、マークアップとしては編集できなくなります
+	Move layer	レイヤーを移動
+	Move out of its layer	親レイヤーから出す
+	New sublayer	新しいサブレイヤー
+	Show sublayers	サブレイヤーを表示
+	Sublayer	サブレイヤー

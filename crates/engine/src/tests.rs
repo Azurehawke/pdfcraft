@@ -6771,3 +6771,43 @@ fn drafted_hairlines_stroke_at_zero_and_take_a_width_again() {
     assert!(s.apply(id, Edit::SetLineWidth { page: a.page, index: a.index, width: 0.0, real_inches: Some(6.0) }).is_err());
     assert!(s.apply(id, Edit::SetLineWidth { page: a.page, index: a.index, width: -1.0, real_inches: None }).is_err());
 }
+
+#[test]
+fn sublayers_move_and_a_layer_flattens_on_its_own() {
+    let mut s = Session::default();
+    let id = s.open("plan.pdf", None, Arc::new(fixture(1)), None).unwrap();
+    s.apply(id, Edit::AddLayerIn { name: "Drafting".into(), color: [0.0; 3], parent: None, role: Some("drafting".into()) }).unwrap();
+    let drafting = s.layer_details(id)[0].id;
+    let key = (drafting.num, drafting.generation);
+    s.apply(id, Edit::AddLayerIn { name: "Walls".into(), color: [0.0; 3], parent: Some(key), role: Some("walls".into()) }).unwrap();
+    s.apply(id, Edit::AddLayer { name: "Comments".into(), color: [1.0, 0.0, 0.0] }).unwrap();
+    let layers = s.layer_details(id);
+    let names: Vec<(&str, usize)> = layers.iter().map(|l| (l.name.as_str(), l.depth)).collect();
+    assert_eq!(names, [("Drafting", 0), ("Walls", 1), ("Comments", 0)]);
+    let walls = layers[1].id;
+    let comments = layers[2].id;
+    // A drafted line on Walls and a cloud on Comments; flattening Drafting takes only the line.
+    let line = |page| {
+        Edit::AddAnnotation(NewAnnotation {
+            page,
+            shape: Shape::Line { from: [100.0, 100.0], to: [300.0, 100.0], start: LineEnding::None, end: LineEnding::None },
+            style: Style { color: [0.0, 0.0, 0.0], opacity: 1.0, width: 1.0, fill: None },
+            contents: String::new(),
+            author: "Steve".into(),
+        })
+    };
+    s.set_current_layer(id, Some((walls.num, walls.generation))).unwrap();
+    s.apply(id, line(0)).unwrap();
+    s.set_current_layer(id, Some((comments.num, comments.generation))).unwrap();
+    s.apply(id, line(0)).unwrap();
+    assert_eq!(s.get(id).unwrap().info.annotations.iter().filter(|a| a.subtype == "Line").count(), 2);
+    s.apply(id, Edit::FlattenLayer { layer: key }).unwrap();
+    let left: Vec<Option<(u32, u16)>> = s.get(id).unwrap().info.annotations.iter().filter(|a| a.subtype == "Line").map(|a| a.layer).collect();
+    assert_eq!(left, [Some((comments.num, comments.generation))], "only the comment stays a markup");
+    // Moving: Comments before Drafting; not into itself.
+    s.apply(id, Edit::MoveLayer { layer: (comments.num, comments.generation), place: LayerPlace::Before(key) }).unwrap();
+    assert_eq!(s.layer_details(id)[0].name, "Comments");
+    assert!(s.apply(id, Edit::MoveLayer { layer: key, place: LayerPlace::Into((walls.num, walls.generation)) }).is_err());
+    s.undo(id).unwrap();
+    assert_eq!(s.layer_details(id)[0].name, "Drafting");
+}

@@ -3068,3 +3068,19 @@ animation effects	Off	Вимкнено
 	Copied a hairline: drafting lines are hairlines now; markups take its colour and keep their width	Скопійовано волосяну лінію: лінії креслення тепер волосяні; позначки беруть її колір і зберігають свою товщину
 	Copied its look ({w} pt): new markups and drafted lines take it	Вигляд скопійовано ({w} pt): нові позначки й накреслені лінії отримають його
 	Copied its colour: new markups and drafted lines take it	Колір скопійовано: нові позначки й накреслені лінії отримають його
+	Drag to set how wide the text wraps	Перетягніть, щоб задати ширину перенесення тексту
+	Drag to size the photo	Перетягніть, щоб змінити розмір фото
+	Photo height	Висота фото
+	Resize photo callout	Зміна розміру виноски з фото
+	Text width	Ширина тексту
+	Doors and windows	Двері й вікна
+	Flatten into the page	Вбудувати в сторінку
+	Flatten layer	Звести шар
+	Hide sublayers	Сховати підшари
+	Make this the current layer; drag to move it	Зробити поточним шаром; перетягніть, щоб перемістити
+	Make what is on this layer and its sublayers part of the page: it still shows and hides with the layer, but can't be edited as markups any more	Зробити вміст цього шару та його підшарів частиною сторінки: він і далі показується й ховається разом із шаром, але більше не редагується як позначки
+	Move layer	Перемістити шар
+	Move out of its layer	Винести з його шару
+	New sublayer	Новий підшар
+	Show sublayers	Показати підшари
+	Sublayer	Підшар
