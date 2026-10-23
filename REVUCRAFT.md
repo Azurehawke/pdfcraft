@@ -303,6 +303,18 @@ Markup and measuring
   - [ ] Import Revu tool sets (.btx) into the Tool Chest, so company-standard markups match.
   - [ ] Check Revu's view of RevuCraft's extras (hairlines, photo callouts, drafted shapes, nested
         layers) and degrade gracefully where it differs.
+- [ ] **(Steve, queued after Revu compatibility)** Live sessions, as Studio Sessions but self-hosted:
+      a small Rust session server (its own app) on Steve's home server, reached over Tailscale
+      (guests get the server node shared with them; HTTPS from Tailscale). RevuCraft
+      connects only once a server address is set in Settings (off by default). Not interoperable
+      with Bluebeam Studio.
+  - [ ] Build 1: the server; start a session (the PDF uploaded once), join by link or code;
+        markup changes (add, move, restyle, delete, matched by each markup's `/NM`) synced
+        both ways, last change to a markup wins.
+  - [ ] Build 2: who is in and on which page, their pointers; a markup being dragged is held for
+        that person; offline changes queue and catch up.
+  - [ ] Build 3: invite tokens per session, End session (everyone's markups saved into the
+        PDF), a session report of who changed what, Android polish.
 - [ ] **(Steve, back burner)** Paragraph and character styles inside text boxes, as InDesign: a text
       box holds paragraphs with their own styles (Header, Body); Next style (Enter after a Header
       starts a Body paragraph); character styles for runs of text; nested styles (bold up to the
