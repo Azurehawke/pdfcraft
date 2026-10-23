@@ -252,9 +252,11 @@ Markup and measuring
       scale, snap and export stay on its ribbon). Symbols keeps its ribbon, which is already the
       symbol's options (library, layer, size, label), legend and counts. Compare moves to Document;
       Document and Forms, being one-off commands rather than tools, keep their buttons in the ribbon.
-- [ ] **(Steve, next build)** Match line: an eyedropper in the Draft ribbon; click a line in the PDF or a
-      placed DWG/DXF and the drafting tools take its width and colour (the PDF's line widths read
-      with the snapping geometry).
+- [ ] **(Steve, next build)** Format copy, as Illustrator's eyedropper: click a markup, drafted shape or
+      PDF/DWG line and its stroke colour, width, dash, line ends, stroke alignment, fill, opacity and
+      (for text) font become the current style for every markup and drafting tool. With markups
+      selected first, the click restyles them instead (one undo). From a PDF/DWG line only its width
+      and colour come. Shift-click (or an option) copies the layer too.
 - [ ] **(Steve, next build)** While drafting, the status bar shows the width of the line under the
       pointer ("PDF line 0.35 mm (1.0 pt)").
 - [ ] **(Steve, next build)** A default line width per layer ("ByLayer"): lines drawn on the layer take
