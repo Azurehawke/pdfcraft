@@ -64,9 +64,9 @@ weezl = "0.2"
 
 # RevuCraft: DWG and DXF drawings, through CADCraft's reader and plotter (MIT OR Apache-2.0; DWG
 # through acadrust, MPL-2.0, used unmodified).
-cadcraft-io = { git = "https://github.com/Azurehawke/cadcraft", rev = "e707ab4d7cc10102e550ad4c5bcecef1084a9baa" }
-cadcraft-doc = { git = "https://github.com/Azurehawke/cadcraft", rev = "e707ab4d7cc10102e550ad4c5bcecef1084a9baa" }
-cadcraft-render = { git = "https://github.com/Azurehawke/cadcraft", rev = "e707ab4d7cc10102e550ad4c5bcecef1084a9baa" }
+cadcraft-io = { git = "https://github.com/Azurehawke/cadcraft", rev = "7bf5905ac97316a7896de8cbc12d243f57b09bd8" }
+cadcraft-doc = { git = "https://github.com/Azurehawke/cadcraft", rev = "7bf5905ac97316a7896de8cbc12d243f57b09bd8" }
+cadcraft-render = { git = "https://github.com/Azurehawke/cadcraft", rev = "7bf5905ac97316a7896de8cbc12d243f57b09bd8" }
 # RevuCraft: linked tables from workbooks, through GridCraft's reader, calculation engine and printer.
 gridcraft-engine = { git = "https://github.com/Azurehawke/gridcraft", rev = "37e41424ed425b33520ae98c6b8f660e518cecad" }
 # RevuCraft: quantities written into a workbook's package part by part (the Takeoff sheet).

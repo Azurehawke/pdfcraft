@@ -293,6 +293,11 @@ Markup and measuring
       out of the Comments panel, so only real comments and markups show there. The Markups list
       keeps it under its own Drafting filter (off by default) for counting and editing; on the page
       it still selects and edits as before.
+- [x] **(Steve, build 175)** CADCraft brought up to date (169 commits): layouts in millimetres plot in
+      millimetres, plot windows kept, second-layout entities, DWG dimension text and DGN-bloated
+      drawings, thin wide polylines stay visible, import and rendering bounded against hostile drawings.
+- [ ] **(Steve, when asked)** PdfCraft brought up to date (about 1,080 commits since Oct 21): a merge build
+      on its own.
 - [ ] **(Steve, back burner)** Object styles, as Illustrator's graphic styles: save a markup's look (stroke,
       width, dash, line ends, alignment, fill, opacity, font) under a name ("Existing walls", "Demo")
       in a Styles box; apply one to the selection or make it the current tool style. A text style
