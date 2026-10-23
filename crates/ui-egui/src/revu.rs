@@ -553,7 +553,11 @@ pub fn layers_panel(app: &mut PdfCraftApp, ui: &mut egui::Ui, index: usize, id: 
     let t = Tokens::get(ui.ctx());
     let Some(doc) = app.session.get(id) else { return };
     let editable = doc.allows_annotation() && doc.read_only_reason.is_none();
-    let shown: Vec<((u32, u16), String, bool)> = doc.info.layers.iter().map(|l| (l.id, l.name.clone(), l.visible)).collect();
+    // Named by the editor's numbers, as the layer list and the current layer are (a repaired
+    // file's working copy is renumbered).
+    let keys = doc.layer_keys();
+    let shown: Vec<((u32, u16), String, bool)> =
+        doc.info.layers.iter().enumerate().map(|(i, l)| (keys.get(i).copied().unwrap_or(l.id), l.name.clone(), l.visible)).collect();
     let details = app.session.layer_details(id);
     let current = doc.current_layer;
     let selected = app.views.get(index).and_then(|v| v.comments.selected);
@@ -703,37 +707,38 @@ pub fn layers_panel(app: &mut PdfCraftApp, ui: &mut egui::Ui, index: usize, id: 
         }
         if ours {
             ui.add_enabled_ui(editable, |ui| {
-                let _ = ui
-                    .menu_button(egui::RichText::new("\u{25CF}").color(color).font(theme::regular(16.0)), |ui| {
-                        ui.horizontal(|ui| {
-                            for c in LAYER_COLORS {
-                                let (sw, resp) = ui.allocate_exact_size(vec2(22.0, 22.0), Sense::click());
-                                ui.painter().circle_filled(sw.center(), 9.0, color32(c));
-                                if resp.clicked() {
-                                    edit = Some(Edit::SetLayerColor { layer: key, color: c });
-                                    ui.close();
-                                }
+                // The layer's colour, ringed so a black or dark one still shows on a dark panel.
+                let (sw, dot) = ui.allocate_exact_size(vec2(18.0, 26.0), Sense::click());
+                ui.painter().circle(sw.center(), 6.0, color, egui::Stroke::new(1.0, t.text_faint));
+                let dot = dot.on_hover_text(tl!("Layer colour and line width"));
+                let _ = egui::Popup::menu(&dot).show(|ui| {
+                    ui.horizontal(|ui| {
+                        for c in LAYER_COLORS {
+                            let (sw, resp) = ui.allocate_exact_size(vec2(22.0, 22.0), Sense::click());
+                            ui.painter().circle_filled(sw.center(), 9.0, color32(c));
+                            if resp.clicked() {
+                                edit = Some(Edit::SetLayerColor { layer: key, color: c });
+                                ui.close();
                             }
-                        });
-                        // The width lines drafted on the layer take (By layer in the Draft ribbon).
-                        ui.separator();
-                        ui.label(egui::RichText::new(tl!("Line width for drafting on this layer")).font(theme::regular(11.0)).color(t.text_muted));
-                        ui.horizontal_wrapped(|ui| {
-                            for w in [None, Some(0.0), Some(0.5), Some(0.7), Some(1.0), Some(1.4), Some(2.0)] {
-                                let label = match w {
-                                    None => tl!("None").to_string(),
-                                    Some(0.0) => tl!("Hairline").to_string(),
-                                    Some(w) => format!("{w} pt"),
-                                };
-                                if ui.selectable_label(layer_width == w, label).clicked() {
-                                    edit = Some(Edit::SetLayerWidth { layer: key, width: w });
-                                    ui.close();
-                                }
+                        }
+                    });
+                    // The width lines drafted on the layer take (By layer in the Draft ribbon).
+                    ui.separator();
+                    ui.label(egui::RichText::new(tl!("Line width for drafting on this layer")).font(theme::regular(11.0)).color(t.text_muted));
+                    ui.horizontal_wrapped(|ui| {
+                        for w in [None, Some(0.0), Some(0.5), Some(0.7), Some(1.0), Some(1.4), Some(2.0)] {
+                            let label = match w {
+                                None => tl!("None").to_string(),
+                                Some(0.0) => tl!("Hairline").to_string(),
+                                Some(w) => format!("{w} pt"),
+                            };
+                            if ui.selectable_label(layer_width == w, label).clicked() {
+                                edit = Some(Edit::SetLayerWidth { layer: key, width: w });
+                                ui.close();
                             }
-                        });
-                    })
-                    .response
-                    .on_hover_text(tl!("Layer colour and line width"));
+                        }
+                    });
+                });
             });
         }
         match &mut panel.renaming {

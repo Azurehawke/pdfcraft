@@ -91,7 +91,11 @@ pub(crate) fn paint(painter: &Painter, cache: &mut Cache, doc: &Document, info: 
         xf.norm_to_screen(q[0] / xf.pw, q[1] / xf.ph)
     };
     let page_rect = xf.rect;
-    let hidden_layer = |l: Option<(u32, u16)>| l.is_some_and(|l| info.layers.iter().any(|x| x.id == l && !x.visible));
+    // Comments name their layer by the editor's numbers ([`Document::layer_keys`]).
+    let keys = doc.layer_keys();
+    let hidden_layer = |l: Option<(u32, u16)>| {
+        l.is_some_and(|l| info.layers.iter().enumerate().any(|(i, x)| keys.get(i).copied().unwrap_or(x.id) == l && !x.visible))
+    };
     let off: Vec<_> = info
         .annotations
         .iter()

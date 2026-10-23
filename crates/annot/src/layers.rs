@@ -95,6 +95,14 @@ fn group_refs(doc: &Document, props: &Dict) -> Vec<ObjRef> {
     out
 }
 
+/// The layers in `/OCProperties /OCGs` order, as a reader of the file lists them (entries that
+/// are references to dictionaries), uncapped.
+pub fn ocgs(doc: &Document) -> Vec<ObjRef> {
+    let Some((_, props)) = properties(doc) else { return Vec::new() };
+    let Some(list) = props.get(b"OCGs").map(|o| doc.resolve(o)) else { return Vec::new() };
+    list.as_array().map(|a| a.iter().filter_map(Object::as_ref).filter(|r| doc.get(*r).as_dict().is_some()).collect()).unwrap_or_default()
+}
+
 fn color_of(doc: &Document, d: &Dict) -> Rgb {
     let values: Vec<f64> = d
         .get(b"PCColor")

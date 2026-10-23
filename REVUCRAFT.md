@@ -277,6 +277,12 @@ Markup and measuring
       the current layer is inside it. Flatten per layer from its menu (Flatten Drafting burns only the
       drafting into the page; comments stay comments). Reuse VectorCraft's Layers panel (rows, columns,
       drag and drop), mapped onto PDF layers.
+- [x] **(build 166)** Layers on repaired files: a file whose cross-reference table had to be rebuilt
+      (CADCraft's and LibreCAD's often are) is rewritten at every edit, which renumbers its objects.
+      The Layers panel lost new layers' colour, fold, lock and rename controls and their current-layer
+      highlight; a hidden layer came back on after the next edit; Print could show hidden layers.
+      Layers are now matched by their place in the file. Each layer's colour dot has a ring, so a
+      black layer (Drafting) shows on the dark panel.
 - [ ] **(Steve, build after next)** Object styles, as Illustrator's graphic styles: save a markup's look (stroke,
       width, dash, line ends, alignment, fill, opacity, font) under a name ("Existing walls", "Demo")
       in a Styles box; apply one to the selection or make it the current tool style. A text style

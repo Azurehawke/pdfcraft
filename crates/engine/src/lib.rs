@@ -435,6 +435,8 @@ pub struct Document {
     pub xfa_warnings: Vec<String>,
     /// RevuCraft: the layer new comments, measurements, symbols and photos go on.
     pub current_layer: Option<(u32, u16)>,
+    /// The editor's object numbers for `info.layers`, one for one (see [`editor_layer_ids`]).
+    layer_ids: Vec<(u32, u16)>,
     /// What the last successful [`Session::apply`] wrote that its fonts can't draw: kept as typed,
     /// drawn with `?` in its place (see [`TextNotice`]). The interface shows it; tools return it.
     pub edit_notices: Vec<TextNotice>,
@@ -646,6 +648,13 @@ impl Document {
     }
 
     /// RevuCraft's layers, with their colours and locks.
+    /// The editor's object numbers for `info.layers`, one for one: the numbers
+    /// [`Self::layer_list`], [`Self::current_layer`] and comments' layers use. They differ from
+    /// `info.layers`' own once a repaired file has been edited (it is rewritten in full).
+    pub fn layer_keys(&self) -> &[(u32, u16)] {
+        &self.layer_ids
+    }
+
     pub fn layer_list(&self) -> Vec<pdfcraft_annot::layers::LayerInfo> {
         self.editor.as_ref().map(|e| pdfcraft_annot::layers::list(&e.cos)).unwrap_or_default()
     }
@@ -1109,6 +1118,15 @@ fn set_default_layer_state(cos: &mut pdfcraft_cos::Document, layers: &[Layer]) {
     properties.set(b"D".to_vec(), Object::Dict(config));
     root.set(b"OCProperties".to_vec(), Object::Dict(properties));
     cos.set(root_ref, Object::Dict(root));
+}
+
+/// The editor's object numbers for `layers` (read from the working file), matched by place in
+/// `/OCProperties /OCGs`. They differ when the working file was rewritten in full, which
+/// renumbers every object: a repaired file is, at every edit. Where the lists don't line up (or
+/// there is no editor), the working file's own numbers.
+fn editor_layer_ids(editor: Option<&Editor>, layers: &[Layer]) -> Vec<(u32, u16)> {
+    let ocgs = editor.map(|e| pdfcraft_annot::layers::ocgs(&e.cos)).unwrap_or_default();
+    if ocgs.len() == layers.len() { ocgs.iter().map(|r| (r.num, r.generation)).collect() } else { layers.iter().map(|l| l.id).collect() }
 }
 
 /// Render `doc` with the layer visibility in its `info.layers`.
@@ -4273,6 +4291,7 @@ impl Session {
             };
             e.cos.note_repair(line);
         }
+        let layer_ids = editor_layer_ids(editor.as_ref(), &info.layers);
         Document {
             id: DocId(0),
             name,
@@ -4301,6 +4320,7 @@ impl Session {
             fonts_stale: false,
             xfa_warnings: Vec::new(),
             current_layer: None,
+            layer_ids,
             edit_notices: Vec::new(),
         }
     }
@@ -4771,15 +4791,18 @@ impl Session {
             editor.cos.bytes().clone()
         };
         let info = inspect(bytes.clone(), doc.password.as_deref()).map_err(|e| EditError::Reopen(e.to_string()))?;
-        // Keep the user's layer choices where the layers still exist.
+        // Keep the user's layer choices where the layers still exist, matched by the editor's
+        // numbers: a repaired file is rewritten in full, renumbered, at every edit.
         let mut info = info;
-        for l in &mut info.layers {
-            if let Some(old) = doc.info.layers.iter().find(|o| o.id == l.id) {
+        let layer_ids = editor_layer_ids(Some(&*editor), &info.layers);
+        for (l, key) in info.layers.iter_mut().zip(&layer_ids) {
+            if let Some(old) = doc.layer_ids.iter().position(|o| o == key).and_then(|i| doc.info.layers.get(i)) {
                 l.visible = old.visible;
             }
         }
         note_warnings(&mut info.warnings, &doc.xfa_warnings);
         doc.info = info;
+        doc.layer_ids = layer_ids;
         doc.fonts_stale = false;
         let mut form = pdfcraft_forms::fields(&editor.cos);
         xfa::mark_script_buttons(&editor.cos, &mut form);
@@ -5125,7 +5148,12 @@ impl Session {
         // action) has changed one, the print copy's default configuration says which are on, so a
         // hidden layer stays off on paper too; untouched, the document's own configuration prints.
         if !doc.config.layers.is_empty() {
-            set_default_layer_state(&mut cos, &doc.info.layers);
+            // The editor's numbers, which a repaired file's working copy doesn't share.
+            let layers: Vec<Layer> = match doc.editor.as_ref() {
+                Some(_) => doc.info.layers.iter().zip(&doc.layer_ids).map(|(l, id)| Layer { id: *id, ..l.clone() }).collect(),
+                None => doc.info.layers.clone(),
+            };
+            set_default_layer_state(&mut cos, &layers);
         }
         pdfcraft_print::impose(&cos, settings).map_err(|e| EditError::Print(e.to_string()))
     }

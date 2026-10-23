@@ -6811,3 +6811,33 @@ fn sublayers_move_and_a_layer_flattens_on_its_own() {
     s.undo(id).unwrap();
     assert_eq!(s.layer_details(id)[0].name, "Drafting");
 }
+
+/// A repaired file is rewritten in full at every edit, which renumbers its objects: the
+/// Layers panel matched the working file's layer numbers against the editor's, so new layers
+/// lost their controls, and a hidden layer came back on after the next edit.
+#[test]
+fn a_repaired_files_layers_keep_their_names_and_choices() {
+    let good = fixture(2);
+    let mut lost = good.clone();
+    lost.truncate(good.windows(9).rposition(|w| w == b"startxref").unwrap());
+    lost.extend_from_slice(b"startxref\n999999\n%%EOF\n");
+    let mut s = Session::default();
+    let id = s.open("broken.pdf", None, Arc::new(lost), None).unwrap();
+    s.apply(id, Edit::AddLayer { name: "Notes".into(), color: [1.0, 0.0, 0.0] }).unwrap();
+    s.apply(id, Edit::AddLayerIn { name: "Drafting".into(), color: [0.0; 3], parent: None, role: Some("drafting".into()) }).unwrap();
+    let drafting = s.layer_details(id).iter().find(|l| l.name == "Drafting").unwrap().id;
+    s.apply(id, Edit::AddLayerIn { name: "Walls".into(), color: [0.0; 3], parent: Some((drafting.num, drafting.generation)), role: None }).unwrap();
+    let doc = s.get(id).unwrap();
+    let details: Vec<((u32, u16), String)> = s.layer_details(id).iter().map(|l| ((l.id.num, l.id.generation), l.name.clone())).collect();
+    assert_eq!(doc.layer_keys().len(), doc.info.layers.len());
+    for (key, l) in doc.layer_keys().iter().zip(&doc.info.layers) {
+        assert!(details.contains(&(*key, l.name.clone())), "{} as {key:?} in {details:?}", l.name);
+    }
+    // Hide Notes; another edit keeps it hidden.
+    let notes = doc.info.layers.iter().position(|l| l.name == "Notes").unwrap();
+    assert!(s.set_layer_visible(id, notes, false));
+    s.apply(id, Edit::AddLayer { name: "Later".into(), color: [0.0, 0.0, 1.0] }).unwrap();
+    let doc = s.get(id).unwrap();
+    assert!(doc.info.layers.iter().any(|l| l.name == "Notes" && !l.visible), "{:?}", doc.info.layers);
+    assert!(doc.info.layers.iter().filter(|l| l.name != "Notes").all(|l| l.visible));
+}
