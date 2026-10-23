@@ -269,6 +269,13 @@ Markup and measuring
       height follows), and a handle on the text's outer edge sets the text width (the description
       rewraps and the box grows or shrinks to fit). The dot stays put; the leader re-attaches. One undo
       each; the photo height and text width also in the Properties box for exact sizes.
+- [ ] **(Steve, next build)** Layers as Illustrator's: sublayers nested in layers (stored as the PDF's
+      nested layer order, so other viewers show the tree), a parent's eye and lock acting on everything
+      inside, drag rows to reorder or nest, drag down the eye or lock column to set several. Drafted
+      lines go on a Drafting layer by default (its own sublayers for walls, doors, dimensions) unless
+      the current layer is inside it. Flatten per layer from its menu (Flatten Drafting burns only the
+      drafting into the page; comments stay comments). Reuse VectorCraft's Layers panel (rows, columns,
+      drag and drop), mapped onto PDF layers.
 - [ ] **(Steve, build after next)** Object styles, as Illustrator's graphic styles: save a markup's look (stroke,
       width, dash, line ends, alignment, fill, opacity, font) under a name ("Existing walls", "Demo")
       in a Styles box; apply one to the selection or make it the current tool style. A text style
