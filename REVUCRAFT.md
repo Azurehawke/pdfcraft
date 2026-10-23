@@ -291,6 +291,18 @@ Markup and measuring
       PDF. Based on: a style can follow another and change only what differs.
       Reuse VectorCraft's graphic styles and style libraries (its Graphic Styles panel and library
       files), mapped onto markup properties.
+- [ ] **(Steve, queued)** Bluebeam Revu compatibility, so a PDF can go back and forth with a team on
+      Revu (Studio Sessions/Projects, Bluebeam's own cloud service, stay out of reach):
+  - [ ] Round trip: Revu-marked PDF → open, add and change markups in RevuCraft → reopen in Revu.
+        Check looks, Revu's markups intact, ours in its Markups list (subject, author, layer,
+        measurements and their scale). Synthetic test files only; Steve runs the Revu half once Revu is
+        installed. Fixed findings get synthetic regression tests.
+  - [ ] Keep, and show in the Markups list, what Revu stores on markups beyond the standard
+        (custom columns, statuses, subjects), learned from Revu's public documentation and from files
+        it writes; edits leave it intact.
+  - [ ] Import Revu tool sets (.btx) into the Tool Chest, so company-standard markups match.
+  - [ ] Check Revu's view of RevuCraft's extras (hairlines, photo callouts, drafted shapes, nested
+        layers) and degrade gracefully where it differs.
 - [ ] **(Steve, back burner)** Paragraph and character styles inside text boxes, as InDesign: a text
       box holds paragraphs with their own styles (Header, Body); Next style (Enter after a Header
       starts a Body paragraph); character styles for runs of text; nested styles (bold up to the
