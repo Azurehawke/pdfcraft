@@ -1400,7 +1400,7 @@ fn select_input(
                     let mut picked: Vec<usize> =
                         if add { cv.group().into_iter().filter(|(pg, _)| *pg == page).map(|(_, i)| i).collect() } else { Vec::new() };
                     for a in cx.comments() {
-                        let rects = cx.screen_rects(a);
+                        let rects: Vec<Rect> = cx.screen_rects(a).collect();
                         if !rects.is_empty() && rects.iter().all(|s| r.contains_rect(*s)) && !picked.contains(&a.index) {
                             picked.push(a.index);
                         }

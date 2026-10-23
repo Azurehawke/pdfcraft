@@ -634,12 +634,6 @@ fn crop_input(
     true
 }
 
-impl ImageSelection {
-    pub(crate) fn dragging(&self) -> bool {
-        self.drag.is_some()
-    }
-}
-
 /// The page raster's picture of the box `from`, stretched into `to`, over blanks at `blank` (where
 /// the screen may still show the picture).
 fn stretched_picture(painter: &egui::Painter, xf: &PageXform, tex: egui::TextureId, blank: &[Rect], from: Rect, to: Rect) {
