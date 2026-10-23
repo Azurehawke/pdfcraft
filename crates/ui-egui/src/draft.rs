@@ -370,8 +370,9 @@ pub struct DraftSettings {
     /// Lines take the current layer's line width when it has one ("By layer"); choosing a width
     /// in the ribbon turns it off.
     pub by_layer: bool,
-    /// A colour Format copy picked up for drafted lines; `None`: the current layer's colour.
-    pub color: Option<[f64; 3]>,
+    /// A colour Format copy picked up for drafted lines, and the layer that was current then:
+    /// it holds until the current layer changes (`None`: the current layer's colour).
+    pub color: Option<([f64; 3], Option<(u32, u16)>)>,
     /// The Draft tools panel shows only icons.
     pub panel_collapsed: bool,
     /// The tool each fly-out group shows, by group.
@@ -665,7 +666,7 @@ pub(crate) fn layer_width(doc: &Document) -> Option<f64> {
 
 /// The colour drafted lines take: what Format copy picked up, else the current layer's.
 pub(crate) fn draft_color(doc: &Document, settings: &DraftSettings) -> [f64; 3] {
-    settings.color.unwrap_or_else(|| layer_color(doc))
+    settings.color.filter(|(_, layer)| *layer == doc.current_layer).map_or_else(|| layer_color(doc), |(c, _)| c)
 }
 
 pub(crate) fn annotation(page: usize, shape: Shape, color: [f64; 3], width: f64, fill: Option<[f64; 3]>, author: &str) -> Edit {

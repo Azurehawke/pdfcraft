@@ -93,7 +93,7 @@ pub(crate) fn restyle(doc: &Document, targets: &[(usize, usize)], look: &Look, w
 
 /// Make `look` the current style: every markup tool's colour, width, opacity and fill, and the
 /// drafting tools' colour, width and stroke alignment.
-pub(crate) fn load(prefs: &mut CommentPrefs, draft: &mut DraftSettings, look: &Look) {
+pub(crate) fn load(prefs: &mut CommentPrefs, draft: &mut DraftSettings, look: &Look, layer: Option<(u32, u16)>) {
     let color = look.color.filter(|c| c.iter().all(|v| v.is_finite())).map(|c| c.map(|v| v.clamp(0.0, 1.0)));
     for tool in comments::ALL {
         if let Some(c) = color {
@@ -112,7 +112,7 @@ pub(crate) fn load(prefs: &mut CommentPrefs, draft: &mut DraftSettings, look: &L
         }
     }
     if let Some(c) = color {
-        draft.color = Some(c);
+        draft.color = Some((c, layer));
     }
     if let Some(w) = look.width {
         draft.line_width = LineWidth::Paper(w.clamp(0.1, 72.0));
@@ -147,10 +147,12 @@ pub(crate) fn pick(app: &mut crate::PdfCraftApp, index: usize, page: usize, sour
         }
         return;
     }
-    load(&mut app.comment_prefs, &mut app.draft, &look);
     if shift && let Some(layer) = look.layer {
         let _ = app.session.set_current_layer(id, layer);
     }
+    // The colour holds on the layer current now; another layer brings back its own colour.
+    let current = app.session.get(id).and_then(|d| d.current_layer);
+    load(&mut app.comment_prefs, &mut app.draft, &look, current);
     app.quick_tool = crate::QuickTool::Select;
     app.notify(tl!("Format copied: new markups and lines take this look"));
 }
@@ -164,19 +166,19 @@ mod tests {
         let mut prefs = CommentPrefs::default();
         let mut draft = DraftSettings::default();
         let look = Look { color: Some([1.0, 0.0, 0.0]), width: Some(2.5), opacity: Some(0.5), fill: Some(None), ..Look::default() };
-        load(&mut prefs, &mut draft, &look);
+        load(&mut prefs, &mut draft, &look, Some((7, 0)));
         let s = prefs.style(comments::CommentTool::Square);
         assert_eq!((s.color, s.width, s.opacity, s.fill), ([1.0, 0.0, 0.0], 2.5, 0.5, None));
-        assert_eq!(draft.color, Some([1.0, 0.0, 0.0]));
+        assert_eq!(draft.color, Some(([1.0, 0.0, 0.0], Some((7, 0)))));
         assert_eq!(draft.line_width, LineWidth::Paper(2.5));
         assert!(!draft.by_layer, "a picked width wins over the layer's");
         // A PDF line brings only its width and colour; a hairline has no width to copy.
         let line = from_line(0.0, [0.0, 0.0, 1.0]);
         assert_eq!((line.width, line.color, line.fill), (None, Some([0.0, 0.0, 1.0]), None));
         let mut draft = DraftSettings::default();
-        load(&mut prefs, &mut draft, &line);
+        load(&mut prefs, &mut draft, &line, None);
         assert_eq!(draft.line_width, DraftSettings::default().line_width);
         // Garbage colours don't panic.
-        load(&mut prefs, &mut draft, &Look { color: Some([f64::NAN, 2.0, -1.0]), ..Look::default() });
+        load(&mut prefs, &mut draft, &Look { color: Some([f64::NAN, 2.0, -1.0]), ..Look::default() }, None);
     }
 }
