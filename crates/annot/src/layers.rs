@@ -554,8 +554,11 @@ mod tests {
         assert!(set_role(&mut doc, drafting, Some("Not ok")).is_err());
         let bytes = write_full(&doc, &SaveOptions::default()).unwrap();
         let doc = Document::open(Arc::new(bytes)).unwrap();
+        // A full save may number the objects anew: find them by name.
         let l = list(&doc);
-        assert_eq!(l.iter().find(|x| x.id == drafting).and_then(|x| x.role.clone()).as_deref(), Some("drafting"));
-        assert_eq!(l.iter().find(|x| x.id == walls).map(|x| x.parent), Some(Some(drafting)));
+        let saved = |name: &str| l.iter().find(|x| x.name == name).cloned().unwrap();
+        assert_eq!(saved("Drafting").role.as_deref(), Some("drafting"));
+        assert_eq!(saved("Walls").parent, Some(saved("Drafting").id));
+        assert_eq!(saved("Walls").depth, 1);
     }
 }
