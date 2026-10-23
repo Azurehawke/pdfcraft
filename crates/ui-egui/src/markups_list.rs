@@ -320,7 +320,7 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
                 });
         }
         if all.iter().any(|r| r.drafting) {
-            ui.checkbox(&mut state.drafting, tl!("Drafting")).on_hover_text(tl!("List drafted linework too"));
+            ui.add(crate::widgets::checkbox(&mut state.drafting, tl!("Drafting"))).on_hover_text(tl!("List drafted linework too"));
         }
         if icons::button(ui, "file-spreadsheet", 26.0, false, tl!("Export the list as a spreadsheet (CSV)")).clicked() {
             export = true;

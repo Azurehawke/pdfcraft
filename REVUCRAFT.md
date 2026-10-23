@@ -283,7 +283,7 @@ Markup and measuring
       highlight; a hidden layer came back on after the next edit; Print could show hidden layers.
       Layers are now matched by their place in the file. Each layer's colour dot has a ring, so a
       black layer (Drafting) shows on the dark panel.
-- [x] **(Steve, build 170)** Drafting kept apart from comments: drafted linework (anything on the
+- [x] **(Steve, build 171)** Drafting kept apart from comments: drafted linework (anything on the
       Drafting layer or its sublayers, or drawn with a Draft tool and marked so in the PDF) is left
       out of the Comments panel, so only real comments and markups show there. The Markups list
       keeps it under its own Drafting filter (off by default) for counting and editing; on the page
