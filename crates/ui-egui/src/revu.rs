@@ -722,7 +722,7 @@ pub fn layers_panel(app: &mut PdfCraftApp, ui: &mut egui::Ui, index: usize, id: 
                             for w in [None, Some(0.0), Some(0.5), Some(0.7), Some(1.0), Some(1.4), Some(2.0)] {
                                 let label = match w {
                                     None => tl!("None").to_string(),
-                                    Some(w) if w == 0.0 => tl!("Hairline").to_string(),
+                                    Some(0.0) => tl!("Hairline").to_string(),
                                     Some(w) => format!("{w} pt"),
                                 };
                                 if ui.selectable_label(layer_width == w, label).clicked() {

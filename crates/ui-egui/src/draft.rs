@@ -1700,7 +1700,7 @@ fn line_width(ui: &mut egui::Ui, settings: &mut DraftSettings, layer_w: Option<f
     ui.horizontal(|ui| {
         ui.spacing_mut().item_spacing.x = 4.0;
         let current = match layer_w.filter(|_| by_layer) {
-            Some(lw) if lw == 0.0 => tl!("By layer (hairline)").to_string(),
+            Some(0.0) => tl!("By layer (hairline)").to_string(),
             Some(lw) => crate::i18n::fmt(tl!("By layer ({w} pt)"), &[("w", &format!("{}", (lw * 100.0).round() / 100.0))]),
             None => presets.iter().find(|(p, _)| *p == settings.line_width).map(|(_, l)| tl!(l)).unwrap_or_else(|| tl!("Custom")).to_string(),
         };

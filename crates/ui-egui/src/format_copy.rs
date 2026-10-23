@@ -174,7 +174,7 @@ pub(crate) fn pick(app: &mut crate::PdfCraftApp, index: usize, page: usize, sour
 /// What a pick copied, in words.
 fn copied_text(look: &Look) -> String {
     match look.width {
-        Some(w) if w == 0.0 => tl!("Copied a hairline: drafting lines are hairlines now; markups take its colour and keep their width").to_string(),
+        Some(0.0) => tl!("Copied a hairline: drafting lines are hairlines now; markups take its colour and keep their width").to_string(),
         Some(w) => crate::i18n::fmt(
             tl!("Copied its look ({w} pt): new markups and drafted lines take it"),
             &[("w", &format!("{}", (w * 100.0).round() / 100.0))],
