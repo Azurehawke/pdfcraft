@@ -240,6 +240,22 @@ pub fn is_hairline(d: &Dict) -> bool {
 }
 
 /// Make the drafted line or shape at `(page, index)` a hairline and redraw it.
+/// Marks drafted linework (drawn with a Draft tool): RevuCraft keeps it out of the Comments
+/// panel. Other viewers ignore the key.
+pub const DRAFTING: &[u8] = b"PCDraft";
+
+/// Whether the annotation was drawn with a Draft tool.
+pub fn is_drafting(d: &Dict) -> bool {
+    matches!(d.get(DRAFTING), Some(Object::Bool(true)))
+}
+
+/// Marks the annotation at (page, index) as drafted linework.
+pub fn mark_drafting(doc: &mut Document, page: usize, index: usize) -> Result<(), AnnotError> {
+    let (_, r) = annot_ref(doc, page, index)?;
+    doc.update_dict(r, |d| d.set(DRAFTING.to_vec(), Object::Bool(true)))?;
+    Ok(())
+}
+
 pub fn mark_hairline(doc: &mut Document, page: usize, index: usize) -> Result<(), AnnotError> {
     let (_, r) = annot_ref(doc, page, index)?;
     let mut d = annot_dict(doc, r);

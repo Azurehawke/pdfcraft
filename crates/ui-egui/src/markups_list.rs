@@ -79,6 +79,8 @@ pub struct Row {
     pub date: String,
     /// Your own columns' values (name, value).
     pub fields: Vec<(String, String)>,
+    /// Drafted linework (Draft tools, or on the Drafting layer).
+    pub drafting: bool,
 }
 
 impl Row {
@@ -110,6 +112,8 @@ pub struct MarkupsState {
     pub query: String,
     pub kind: Option<String>,
     pub layer: Option<String>,
+    /// Drafted linework listed too (off: only markups, unless a layer is chosen).
+    pub drafting: bool,
     rows: Option<(DocId, u64, Vec<Row>)>,
 }
 
@@ -196,6 +200,7 @@ pub fn rows(doc: &Document) -> Vec<Row> {
             amount: measurement.map(|m| m.reading.value),
             date: a.modified.as_deref().map(pdf_date).unwrap_or_default(),
             fields: all_fields.iter().find(|(p, i, _)| *p == a.page && *i == a.index).map(|(_, _, f)| f.clone()).unwrap_or_default(),
+            drafting: a.drafting,
         });
     }
     out
@@ -207,6 +212,7 @@ pub fn visible(rows: &[Row], state: &MarkupsState, custom: &[String]) -> Vec<Row
     let q = state.query.trim().to_lowercase();
     let mut out: Vec<Row> = rows
         .iter()
+        .filter(|r| !r.drafting || state.drafting || state.layer.is_some())
         .filter(|r| state.kind.as_ref().is_none_or(|k| &r.kind == k))
         .filter(|r| state.layer.as_ref().is_none_or(|l| &r.layer == l))
         .filter(|r| q.is_empty() || cols.iter().any(|c| r.text(*c, custom).to_lowercase().contains(&q)))
@@ -312,6 +318,9 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
                         ui.selectable_value(&mut state.layer, Some(l.clone()), l.as_str());
                     }
                 });
+        }
+        if all.iter().any(|r| r.drafting) {
+            ui.checkbox(&mut state.drafting, tl!("Drafting")).on_hover_text(tl!("List drafted linework too"));
         }
         if icons::button(ui, "file-spreadsheet", 26.0, false, tl!("Export the list as a spreadsheet (CSV)")).clicked() {
             export = true;
@@ -540,6 +549,7 @@ mod tests {
             amount: value,
             date: String::new(),
             fields: vec![("Progress".into(), "Pulled".into())],
+            drafting: false,
         }
     }
 
@@ -564,6 +574,17 @@ mod tests {
         let text = csv(&[row(0, "Note", "=SUM(A1), \"x\"", None)], &none);
         assert!(text.starts_with("Type,Label,Name,Layer,Page,Author,Status,Value,Date\r\n"));
         assert!(text.contains("\"'=SUM(A1), \"\"x\"\"\""), "{text}");
+        // Drafted linework is listed only when asked for, or by its layer.
+        let mut lines = vec![row(0, "Line", "", None), row(0, "Note", "", None)];
+        lines[0].drafting = true;
+        lines[0].layer = "Walls".into();
+        let mut d = MarkupsState::default();
+        assert_eq!(visible(&lines, &d, &none).len(), 1);
+        d.drafting = true;
+        assert_eq!(visible(&lines, &d, &none).len(), 2);
+        d.drafting = false;
+        d.layer = Some("Walls".into());
+        assert_eq!(visible(&lines, &d, &none).len(), 1);
         assert_eq!(pdf_date("D:20261015093000-07'00'"), "2026-10-15");
         assert_eq!(pdf_date("yesterday"), "yesterday");
     }

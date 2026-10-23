@@ -6841,3 +6841,35 @@ fn a_repaired_files_layers_keep_their_names_and_choices() {
     assert!(doc.info.layers.iter().any(|l| l.name == "Notes" && !l.visible), "{:?}", doc.info.layers);
     assert!(doc.info.layers.iter().filter(|l| l.name != "Notes").all(|l| l.visible));
 }
+
+/// RevuCraft: drafted linework (a Draft tool's, or anything on the Drafting layer or inside it)
+/// is drawing, not comments: the Comments panel leaves it out.
+#[test]
+fn drafted_linework_is_not_a_comment() {
+    let mut s = Session::default();
+    let id = s.open("plan.pdf", None, Arc::new(fixture(1)), None).unwrap();
+    let line = || NewAnnotation {
+        page: 0,
+        shape: Shape::Line { from: [100.0, 100.0], to: [300.0, 100.0], start: LineEnding::None, end: LineEnding::None },
+        style: Style { color: [0.0, 0.0, 0.0], opacity: 1.0, width: 1.0, fill: None },
+        contents: String::new(),
+        author: "Steve".into(),
+    };
+    let drafting = |s: &Session| -> (usize, usize) {
+        let a = &s.get(id).unwrap().info.annotations;
+        (a.iter().filter(|a| a.drafting).count(), a.len())
+    };
+    s.apply(id, Edit::AddDraftShape { new: line(), real_width: None, caption: None, align: None }).unwrap();
+    s.apply(id, Edit::AddAnnotation(line())).unwrap();
+    assert_eq!(drafting(&s), (1, 2), "the Draft tool's line only");
+    // A markup on a layer inside Drafting is drafting too, after a full re-read as well.
+    s.apply(id, Edit::AddLayerIn { name: "Drafting".into(), color: [0.0; 3], parent: None, role: Some("drafting".into()) }).unwrap();
+    let d = s.layer_details(id)[0].id;
+    s.apply(id, Edit::AddLayerIn { name: "Walls".into(), color: [0.0; 3], parent: Some((d.num, d.generation)), role: Some("walls".into()) }).unwrap();
+    let walls = s.layer_details(id).iter().find(|l| l.name == "Walls").unwrap().id;
+    s.set_current_layer(id, Some((walls.num, walls.generation))).unwrap();
+    s.apply(id, Edit::AddAnnotation(line())).unwrap();
+    assert_eq!(drafting(&s), (2, 3));
+    s.apply(id, Edit::AddLayer { name: "Notes".into(), color: [1.0, 0.0, 0.0] }).unwrap();
+    assert_eq!(drafting(&s), (2, 3), "kept through a full refresh");
+}

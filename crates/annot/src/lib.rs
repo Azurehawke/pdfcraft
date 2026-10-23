@@ -2225,6 +2225,8 @@ pub struct Summary {
     pub photo: bool,
     pub symbol: Option<String>,
     pub layer: Option<(u32, u16)>,
+    /// RevuCraft: drawn with a Draft tool (`/PCDraft`): linework, not a comment.
+    pub drafting: bool,
 }
 
 fn text_value(doc: &Document, d: &Dict, key: &[u8]) -> Option<String> {
@@ -2301,6 +2303,7 @@ pub fn summaries(doc: &Document) -> Vec<Summary> {
                 photo: is_photo(d),
                 symbol: text_value(doc, d, b"PCSymbol"),
                 layer: layers::layer_of(d).map(|r| (r.num, r.generation)),
+                drafting: geometry::is_drafting(d),
             });
         }
     }

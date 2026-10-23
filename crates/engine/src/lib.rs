@@ -2942,6 +2942,10 @@ fn run_edit(doc: &mut pdfcraft_cos::Document, edit: &Edit, cx: &mut EditCtx) -> 
             if let Some((text, subject)) = caption {
                 pdfcraft_annot::geometry::set_caption(doc, new.page, index, text, subject)?;
             }
+            // Drafted linework (a measurement carries a caption) stays out of the Comments panel.
+            if caption.is_none() {
+                pdfcraft_annot::geometry::mark_drafting(doc, new.page, index)?;
+            }
             cx.place_on_layer(doc, new.page, index)?;
         }
         Edit::AddLayer { name, color } => {
@@ -3418,7 +3422,7 @@ fn run_edit(doc: &mut pdfcraft_cos::Document, edit: &Edit, cx: &mut EditCtx) -> 
 
 /// The comment list, read from the object graph (as `inspect` lists comments).
 fn comment_list(doc: &pdfcraft_cos::Document) -> Vec<pdfcraft_render::Annotation> {
-    pdfcraft_annot::summaries(doc)
+    let mut list: Vec<pdfcraft_render::Annotation> = pdfcraft_annot::summaries(doc)
         .into_iter()
         .map(|s| pdfcraft_render::Annotation {
             page: s.page,
@@ -3439,8 +3443,39 @@ fn comment_list(doc: &pdfcraft_cos::Document) -> Vec<pdfcraft_render::Annotation
             photo: s.photo,
             symbol: s.symbol,
             layer: s.layer,
+            drafting: s.drafting,
         })
-        .collect()
+        .collect();
+    note_drafting_layers(doc, &mut list);
+    list
+}
+
+/// RevuCraft: what is on the Drafting layer or inside it is drafting too (the Comments panel
+/// leaves it out), wherever it was drawn.
+fn note_drafting_layers(doc: &pdfcraft_cos::Document, annotations: &mut [pdfcraft_render::Annotation]) {
+    let layers = pdfcraft_annot::layers::list(doc);
+    if !layers.iter().any(|l| l.role.as_deref() == Some("drafting")) {
+        return;
+    }
+    let by_id: std::collections::HashMap<pdfcraft_cos::ObjRef, &pdfcraft_annot::layers::LayerInfo> = layers.iter().map(|l| (l.id, l)).collect();
+    // Bounded: a layer tree is at most this deep (and a cycle can't loop for ever).
+    let within = |l: &pdfcraft_annot::layers::LayerInfo| {
+        let mut at = Some(l);
+        for _ in 0..64 {
+            let Some(x) = at else { return false };
+            if x.role.as_deref() == Some("drafting") {
+                return true;
+            }
+            at = x.parent.and_then(|p| by_id.get(&p).copied());
+        }
+        false
+    };
+    let inside: std::collections::HashSet<(u32, u16)> = layers.iter().filter(|l| within(l)).map(|l| (l.id.num, l.id.generation)).collect();
+    for a in annotations {
+        if a.layer.is_some_and(|k| inside.contains(&k)) {
+            a.drafting = true;
+        }
+    }
 }
 
 /// Seconds to add to UTC for local time (0 where unknown).
@@ -4292,6 +4327,10 @@ impl Session {
             e.cos.note_repair(line);
         }
         let layer_ids = editor_layer_ids(editor.as_ref(), &info.layers);
+        let mut info = info;
+        if let Some(e) = editor.as_ref() {
+            note_drafting_layers(&e.cos, &mut info.annotations);
+        }
         Document {
             id: DocId(0),
             name,
@@ -4800,6 +4839,15 @@ impl Session {
                 l.visible = old.visible;
             }
         }
+        // Comments name their layer by the editor's numbers too, as a comment-only refresh
+        // (read from the editor) does.
+        let renumbered: std::collections::HashMap<(u32, u16), (u32, u16)> = info.layers.iter().map(|l| l.id).zip(layer_ids.iter().copied()).collect();
+        for a in &mut info.annotations {
+            if let Some(k) = a.layer.and_then(|l| renumbered.get(&l)) {
+                a.layer = Some(*k);
+            }
+        }
+        note_drafting_layers(&editor.cos, &mut info.annotations);
         note_warnings(&mut info.warnings, &doc.xfa_warnings);
         doc.info = info;
         doc.layer_ids = layer_ids;

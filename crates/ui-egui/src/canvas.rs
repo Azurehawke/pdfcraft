@@ -5954,6 +5954,7 @@ mod tests {
             photo: false,
             symbol: None,
             layer: None,
+            drafting: false,
             rect: [0.0; 4],
             color: None,
             index: 0,

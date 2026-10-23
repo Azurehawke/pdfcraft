@@ -391,6 +391,8 @@ pub struct Annotation {
     pub photo: bool,
     pub symbol: Option<String>,
     pub layer: Option<(u32, u16)>,
+    /// RevuCraft: drawn with a Draft tool (`/PCDraft`): linework, not a comment.
+    pub drafting: bool,
 }
 
 impl Annotation {
@@ -1175,6 +1177,7 @@ impl<'a> Inspector<'a> {
                     photo: matches!(d.get(b"PCPhoto").map(|o| self.resolve(o)), Ok(Object::Boolean(true))),
                     symbol: self.text(d, b"PCSymbol"),
                     layer: d.get(b"OC").ok().and_then(|o| o.as_reference().ok()),
+                    drafting: matches!(d.get(b"PCDraft").map(|o| self.resolve(o)), Ok(Object::Boolean(true))),
                 });
             }
         }

@@ -248,6 +248,7 @@ Line width for drafting on this layer
 Linear dimension (horizontal or vertical)
 Lines
 Links
+List drafted linework too
 Lock guides
 Lock layer
 Make a callout

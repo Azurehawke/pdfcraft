@@ -84,9 +84,10 @@ pub fn is_marked(thread: &[&Annotation]) -> bool {
     thread.iter().rev().find(|r| r.is_mark()).is_some_and(|r| r.state.as_deref() == Some("Marked"))
 }
 
-/// The number shown in the header: comments and their replies (not status changes).
+/// The number shown in the header: comments and their replies (not status changes, nor
+/// RevuCraft's drafted linework).
 pub fn count(info: &DocInfo) -> usize {
-    info.annotations.iter().filter(|a| a.state.is_none()).count()
+    info.annotations.iter().filter(|a| a.state.is_none() && !a.drafting).count()
 }
 
 fn matches(a: &Annotation, q: &str) -> bool {
@@ -141,7 +142,8 @@ pub(crate) fn show(
         }
         ui.add_space(8.0);
     }
-    if info.annotations.is_empty() {
+    // RevuCraft: drafted linework is drawing, not comments; the Markups list has it.
+    if info.annotations.iter().all(|a| a.drafting) {
         ui.add_space(30.0);
         ui.vertical_centered(|ui| {
             ui.add(icons::image("message-square-text", 36.0, t.text_faint));
@@ -166,7 +168,7 @@ pub(crate) fn show(
     let mut roots: Vec<&Annotation> = info
         .annotations
         .iter()
-        .filter(|a| a.in_reply_to.is_none())
+        .filter(|a| a.in_reply_to.is_none() && !a.drafting)
         .filter(|a| query.as_deref().is_none_or(|q| matches(a, q) || replies_of(a).iter().any(|r| matches(r, q))))
         .filter(|a| !cv.hidden_types.iter().any(|t| t == kind_label(a)))
         .filter(|a| !cv.hidden_authors.contains(&a.author.clone().unwrap_or_default()))
@@ -221,7 +223,7 @@ pub(crate) fn show(
             }
         } else if a.page != page {
             page = a.page;
-            let n = info.annotations.iter().filter(|x| x.page == page && x.in_reply_to.is_none()).count();
+            let n = info.annotations.iter().filter(|x| x.page == page && x.in_reply_to.is_none() && !x.drafting).count();
             let open = !view.comments.collapsed_pages.contains(&page);
             ui.add_space(6.0);
             let clicked = ui
@@ -514,15 +516,14 @@ fn legible(c: Color32, t: &Tokens) -> Color32 {
 pub(crate) fn header_controls(ui: &mut egui::Ui, info: &DocInfo, view: &mut DocView, hidden: bool) -> Option<&'static str> {
     let mut command = None;
     let cv = &mut view.comments;
-    let mut types: Vec<String> = info.annotations.iter().filter(|a| a.in_reply_to.is_none()).map(|a| kind_label(a).to_string()).collect();
+    let roots = || info.annotations.iter().filter(|a| a.in_reply_to.is_none() && !a.drafting);
+    let mut types: Vec<String> = roots().map(|a| kind_label(a).to_string()).collect();
     types.sort();
     types.dedup();
-    let mut authors: Vec<String> =
-        info.annotations.iter().filter(|a| a.in_reply_to.is_none()).map(|a| a.author.clone().unwrap_or_default()).collect();
+    let mut authors: Vec<String> = roots().map(|a| a.author.clone().unwrap_or_default()).collect();
     authors.sort();
     authors.dedup();
-    let mut colors: Vec<(String, Option<[f32; 3]>)> =
-        info.annotations.iter().filter(|a| a.in_reply_to.is_none()).map(|a| (color_key(a), a.color)).collect();
+    let mut colors: Vec<(String, Option<[f32; 3]>)> = roots().map(|a| (color_key(a), a.color)).collect();
     colors.sort_by(|a, b| a.0.cmp(&b.0));
     colors.dedup_by(|a, b| a.0 == b.0);
     let active = !(cv.hidden_types.is_empty()
