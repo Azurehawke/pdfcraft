@@ -278,6 +278,8 @@ pub enum Found {
     NextToPdf,
     /// By name, in a folder below the PDF's.
     BelowPdf,
+    /// Through one of this device's folder mappings (Preferences).
+    Mapped,
 }
 
 /// The folders below the PDF's searched for a missing drawing: this many levels, this many
@@ -365,6 +367,11 @@ pub(crate) fn locate_path(path: &str, relative: Option<&str>, pdf: Option<&str>,
     }
     if exists(std::path::Path::new(path)) {
         return Some((path.to_string(), Found::AtPath));
+    }
+    for candidate in crate::folder_maps::mapped(path, &crate::folder_maps::current()) {
+        if exists(std::path::Path::new(&candidate)) {
+            return Some((candidate, Found::Mapped));
+        }
     }
     let dir = dir?;
     let name = file_name(path);
@@ -1175,6 +1182,7 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
                 Some(Found::FromPdf) => Some(tl!("Found relative to the PDF")),
                 Some(Found::NextToPdf) => Some(tl!("Found by name next to the PDF")),
                 Some(Found::BelowPdf) => Some(tl!("Found by name in a subfolder of the PDF's folder")),
+                Some(Found::Mapped) => Some(tl!("Found through a folder mapping (Preferences)")),
                 Some(Found::AtPath) | None => None,
             };
             if let Some(note) = note {
@@ -1529,6 +1537,28 @@ mod tests {
         let here = job.join("101.dwg").to_string_lossy().into_owned();
         assert_eq!(found(&link(&here, None), false), Some(Found::AtPath));
         assert_eq!(found(&link("M:\\Jobs\\Smith\\103.dwg", None), true), None);
+        let _ = std::fs::remove_dir_all(&root);
+        Ok(())
+    }
+
+    /// A drawing linked from another folder than the PDF's is found through this device's folder
+    /// mapping (a drive letter that is unlikely to be anyone else's test).
+    #[test]
+    fn a_drawing_is_found_through_a_folder_mapping() -> Result<(), String> {
+        let err = |e: std::io::Error| e.to_string();
+        let root = std::env::temp_dir().join(format!("revucraft-maps-{}", std::process::id()));
+        let drawings = root.join("Sync").join("Drawings");
+        std::fs::create_dir_all(drawings.join("Smith")).map_err(err)?;
+        std::fs::write(drawings.join("Smith").join("101.dwg"), b"room 101").map_err(err)?;
+        let pdf = root.join("Elsewhere").join("suite.pdf").to_string_lossy().into_owned();
+        let recorded = link("Q:\\MappedDrawings\\Smith\\101.dwg", None);
+        assert_eq!(locate(&recorded, Some(&pdf), false).map(|(_, how)| how), None, "no mapping yet");
+        crate::folder_maps::set(&[("Q:\\MappedDrawings".to_string(), drawings.to_string_lossy().into_owned())]);
+        let got = locate(&recorded, Some(&pdf), false);
+        crate::folder_maps::set(&[]);
+        let (path, how) = got.ok_or("not found through the mapping")?;
+        assert_eq!(how, Found::Mapped);
+        assert!(path.ends_with("101.dwg") && std::path::Path::new(&path).is_file(), "{path}");
         let _ = std::fs::remove_dir_all(&root);
         Ok(())
     }

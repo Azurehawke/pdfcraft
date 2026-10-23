@@ -325,6 +325,8 @@ pub(crate) fn preferences_body(ui: &mut egui::Ui, app: &mut PdfCraftApp, t: &Tok
     ui.add_space(8.0);
     crate::appearance::preferences_section(ui, app, t);
     ui.add_space(8.0);
+    folder_maps_section(ui, app, t);
+    ui.add_space(8.0);
     ui.label(egui::RichText::new(tl!("Documents and view")).font(theme::semibold(13.0)));
     ui.horizontal(|ui| {
         ui.label(tl!("Default workspace mode"));
@@ -583,4 +585,40 @@ fn date_format(ui: &mut egui::Ui, app: &mut PdfCraftApp, t: &Tokens) {
         .small()
         .color(t.text_muted),
     );
+}
+
+/// Preferences ▸ Folder mappings: the same folder as this device and another see it, so linked
+/// drawings recorded on one are found on the other.
+fn folder_maps_section(ui: &mut egui::Ui, app: &mut PdfCraftApp, t: &Tokens) {
+    ui.label(egui::RichText::new(tl!("Folder mappings")).font(theme::semibold(13.0)));
+    ui.label(
+        egui::RichText::new(tl!("The same folder as another device and this one see it (the Jobs drive on the PC, Sync/Jobs on the tablet): linked drawings recorded on one are found on the other."))
+            .small()
+            .color(t.text_muted),
+    );
+    let mut remove = None;
+    let mut changed = false;
+    for (i, (there, here)) in app.folder_maps.iter_mut().enumerate() {
+        ui.horizontal(|ui| {
+            let w = ((ui.available_width() - 80.0) / 2.0).max(80.0);
+            changed |= ui.add(egui::TextEdit::singleline(there).hint_text(tl!("On the other device")).desired_width(w)).changed();
+            ui.label("=");
+            changed |= ui.add(egui::TextEdit::singleline(here).hint_text(tl!("On this device")).desired_width(w)).changed();
+            if crate::icons::button(ui, "x", 22.0, false, tl!("Remove mapping")).clicked() {
+                remove = Some(i);
+            }
+        });
+    }
+    if let Some(i) = remove
+        && i < app.folder_maps.len()
+    {
+        app.folder_maps.remove(i);
+        changed = true;
+    }
+    if app.folder_maps.len() < crate::folder_maps::MAX_MAPS && ui.button(tl!("Add mapping")).clicked() {
+        app.folder_maps.push((String::new(), String::new()));
+    }
+    if changed {
+        crate::folder_maps::set(&app.folder_maps);
+    }
 }

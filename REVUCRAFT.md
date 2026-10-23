@@ -111,7 +111,12 @@ Markup and measuring
 - [x] **(Steve)** Rectangle area (two taps), angle and radius tools.
 - [x] **(Steve)** Symbols: rotate (and snap to the nearest wall), edit the label after placing, renumber a
       selection.
-- [ ] **(Steve, next build)** Symbols: electrical and security libraries; make a symbol from your own drawing.
+- [x] **(Steve, build 173)** Symbols: electrical and security libraries; make a symbol from your own drawing.
+      The Symbols panel lists Networking, Electrical (outlets, GFCI, dedicated, floor outlet, switches,
+      lights, exit sign, junction box, panel) and Security (motion, door contact, glass-break, keypad,
+      siren, smoke and heat detectors, electric strike, mag lock, request-to-exit). Make symbol (a
+      selection's menu) turns drawn lines and shapes into a symbol of your own, named and listed under a
+      trade or My symbols. Your symbols are kept in this device's settings.
 
 - [x] **(Steve)** Calibrate on the Measure tab: click two ends of a known length, type it in the
       value box beside the point (12'6", 150, 3.5m), on this page or every page.
@@ -334,8 +339,9 @@ Markup and measuring
       it unless the ribbon's width is changed.
 - [ ] **(Steve, back burner)** Select existing PDF linework (click, window or crossing) to delete, restyle,
       or Explode into editable lines (brings forward the Explode item below).
-- [ ] **(Steve, next build)** Folder mappings per device (`M:\Jobs` on the PC = `Sync/Jobs` on the
-      tablet), for drawings kept outside the PDF's folder.
+- [x] **(Steve, build 173)** Folder mappings per device (`M:\Jobs` on the PC = `Sync/Jobs` on the
+      tablet), for drawings kept outside the PDF's folder. Preferences ▸ Folder mappings; linked
+      drawings and workbooks are looked for through them (the Links pane says so).
 
 Tablet
 - [ ] **(Steve, later update)** Touch mode: bigger buttons and handles, long-press for the context menu, two-finger tap to

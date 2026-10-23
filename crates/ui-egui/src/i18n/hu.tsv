@@ -3061,3 +3061,39 @@ animation effects	Off	Ki
 	Show sublayers	Alrétegek megjelenítése
 	Sublayer	Alréteg
 	List drafted linework too	A rajzolt vonalak listázása is
+	Duplex outlet	Dupla aljzat
+	GFCI outlet	FI-relés aljzat
+	Dedicated outlet	Önálló áramkörös aljzat
+	Floor outlet	Padlóaljzat
+	Light switch	Villanykapcsoló
+	3-way switch	Alternatív kapcsoló
+	Ceiling light	Mennyezeti lámpa
+	Wall light	Fali lámpa
+	Exit sign	Kijárat jelzés
+	Junction box	Kötődoboz
+	Electrical panel	Elosztótábla
+	Motion sensor	Mozgásérzékelő
+	Door contact	Nyitásérzékelő
+	Glass-break detector	Üvegtörés-érzékelő
+	Siren	Sziréna
+	Smoke detector	Füstérzékelő
+	Heat detector	Hőérzékelő
+	Electric strike	Elektromos zárfogadó
+	Mag lock	Mágneszár
+	Request-to-exit button	Kilépés gomb
+	Electrical	Villamosság
+	Make symbol	Szimbólum létrehozása
+	Make symbol…	Szimbólum létrehozása…
+	Make a symbol of your own from the selected lines and shapes	Saját szimbólum létrehozása a kijelölt vonalakból és alakzatokból
+	The selected lines and shapes become a symbol of your own, kept with your symbols for every drawing. The drawing stays as it is.	A kijelölt vonalak és alakzatok saját szimbólummá válnak, amely a szimbólumai között marad minden rajzhoz. A rajz változatlan marad.
+	Symbol name	Szimbólum neve
+	List under	Kategória
+	The document is closed.	A dokumentum be van zárva.
+	To make a symbol from your own drawing, select the lines and choose Make symbol from their menu.	Saját rajzból szimbólumot a vonalak kijelölésével és a menüjükben a Szimbólum létrehozása paranccsal készíthet.
+	Found through a folder mapping (Preferences)	Mappa-megfeleltetéssel megtalálva (Beállítások)
+	Folder mappings	Mappa-megfeleltetések
+	The same folder as another device and this one see it (the Jobs drive on the PC, Sync/Jobs on the tablet): linked drawings recorded on one are found on the other.	Ugyanaz a mappa, ahogy egy másik eszköz és ez látja (a Jobs meghajtó a PC-n, a Sync/Jobs a táblagépen): az egyiken rögzített csatolt rajzok a másikon is megtalálhatók.
+	On the other device	A másik eszközön
+	On this device	Ezen az eszközön
+	Remove mapping	Megfeleltetés eltávolítása
+	Add mapping	Megfeleltetés hozzáadása

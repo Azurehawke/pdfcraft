@@ -2024,6 +2024,22 @@ pub(crate) fn context_menu(ui: &mut egui::Ui, view: &mut DocView, info: &DocInfo
                 ui.ctx().copy_text(a.contents.clone().unwrap_or_default());
                 ui.close();
             }
+            // RevuCraft: the selected lines and shapes as a symbol of your own.
+            let drawn: Vec<usize> = view
+                .comments
+                .group()
+                .into_iter()
+                .filter(|(p, i)| {
+                    *p == page && info.annotations.iter().any(|x| x.page == *p && x.index == *i && crate::make_symbol::drawable(&x.subtype))
+                })
+                .map(|(_, i)| i)
+                .collect();
+            if !drawn.is_empty()
+                && ui.button(tl!("Make symbol…")).on_hover_text(tl!("Make a symbol of your own from the selected lines and shapes")).clicked()
+            {
+                action = Some(CanvasAction::MakeSymbol(page, drawn));
+                ui.close();
+            }
             ui.separator();
             if ui.add_enabled(allowed && !a.locked, egui::Button::new(tl!("Delete"))).clicked() {
                 view.comments.selected = None;
@@ -2066,6 +2082,8 @@ pub enum CanvasAction {
     CopyImage(usize, usize),
     /// Copy Image in Original Format: the same image as a file (JPEG as stored, else PNG).
     CopyImageFile(usize, usize),
+    /// RevuCraft: Make symbol from these lines and shapes on the page.
+    MakeSymbol(usize, Vec<usize>),
 }
 
 /// How many custom colours the "Recent colours" row keeps.

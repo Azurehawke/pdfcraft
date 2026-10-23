@@ -3278,3 +3278,39 @@ certificate	SHA-256 digest	Impronta SHA-256
 	Show sublayers	Mostra sottolivelli
 	Sublayer	Sottolivello
 	List drafted linework too	Elenca anche le linee di disegno
+	Duplex outlet	Presa doppia
+	GFCI outlet	Presa con salvavita
+	Dedicated outlet	Presa dedicata
+	Floor outlet	Presa a pavimento
+	Light switch	Interruttore luce
+	3-way switch	Deviatore
+	Ceiling light	Plafoniera
+	Wall light	Applique
+	Exit sign	Segnale di uscita
+	Junction box	Scatola di derivazione
+	Electrical panel	Quadro elettrico
+	Motion sensor	Sensore di movimento
+	Door contact	Contatto porta
+	Glass-break detector	Rilevatore rottura vetri
+	Siren	Sirena
+	Smoke detector	Rilevatore di fumo
+	Heat detector	Rilevatore di calore
+	Electric strike	Incontro elettrico
+	Mag lock	Elettromagnete
+	Request-to-exit button	Pulsante di uscita
+	Electrical	Elettrico
+	Make symbol	Crea simbolo
+	Make symbol…	Crea simbolo…
+	Make a symbol of your own from the selected lines and shapes	Crea un tuo simbolo dalle linee e forme selezionate
+	The selected lines and shapes become a symbol of your own, kept with your symbols for every drawing. The drawing stays as it is.	Le linee e le forme selezionate diventano un tuo simbolo, conservato con i tuoi simboli per ogni disegno. Il disegno resta com'è.
+	Symbol name	Nome del simbolo
+	List under	Elenca in
+	The document is closed.	Il documento è chiuso.
+	To make a symbol from your own drawing, select the lines and choose Make symbol from their menu.	Per creare un simbolo dal tuo disegno, seleziona le linee e scegli Crea simbolo dal loro menu.
+	Found through a folder mapping (Preferences)	Trovato tramite una corrispondenza di cartelle (Preferenze)
+	Folder mappings	Corrispondenze cartelle
+	The same folder as another device and this one see it (the Jobs drive on the PC, Sync/Jobs on the tablet): linked drawings recorded on one are found on the other.	La stessa cartella come la vedono un altro dispositivo e questo (l'unità Jobs sul PC, Sync/Jobs sul tablet): i disegni collegati registrati su uno vengono trovati sull'altro.
+	On the other device	Sull'altro dispositivo
+	On this device	Su questo dispositivo
+	Remove mapping	Rimuovi corrispondenza
+	Add mapping	Aggiungi corrispondenza

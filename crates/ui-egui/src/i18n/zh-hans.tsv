@@ -3028,3 +3028,39 @@ animation effects	Off	关
 	Show sublayers	显示子图层
 	Sublayer	子图层
 	List drafted linework too	同时列出绘制的线条
+	Duplex outlet	双联插座
+	GFCI outlet	漏电保护插座
+	Dedicated outlet	专用插座
+	Floor outlet	地插
+	Light switch	照明开关
+	3-way switch	双控开关
+	Ceiling light	吸顶灯
+	Wall light	壁灯
+	Exit sign	出口标志
+	Junction box	接线盒
+	Electrical panel	配电箱
+	Motion sensor	移动探测器
+	Door contact	门磁
+	Glass-break detector	玻璃破碎探测器
+	Siren	警号
+	Smoke detector	烟雾探测器
+	Heat detector	感温探测器
+	Electric strike	电插锁
+	Mag lock	磁力锁
+	Request-to-exit button	出门按钮
+	Electrical	电气
+	Make symbol	制作符号
+	Make symbol…	制作符号…
+	Make a symbol of your own from the selected lines and shapes	用所选线条和形状制作自己的符号
+	The selected lines and shapes become a symbol of your own, kept with your symbols for every drawing. The drawing stays as it is.	所选线条和形状会成为你自己的符号，与你的符号一起保存，可用于所有图纸。图纸本身保持不变。
+	Symbol name	符号名称
+	List under	归入
+	The document is closed.	文档已关闭。
+	To make a symbol from your own drawing, select the lines and choose Make symbol from their menu.	要用自己的图纸制作符号，请选中线条，然后在其菜单中选择“制作符号”。
+	Found through a folder mapping (Preferences)	通过文件夹映射找到（偏好设置）
+	Folder mappings	文件夹映射
+	The same folder as another device and this one see it (the Jobs drive on the PC, Sync/Jobs on the tablet): linked drawings recorded on one are found on the other.	另一台设备和本设备上看到的同一个文件夹（电脑上的 Jobs 驱动器、平板上的 Sync/Jobs）：在一台设备上记录的链接图纸可在另一台上找到。
+	On the other device	在另一台设备上
+	On this device	在本设备上
+	Remove mapping	删除映射
+	Add mapping	添加映射

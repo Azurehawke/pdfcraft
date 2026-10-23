@@ -48,16 +48,65 @@ pub enum Symbol {
     Speaker,
     JHook,
     ConduitStub,
+    DuplexOutlet,
+    GfciOutlet,
+    DedicatedOutlet,
+    FloorOutlet,
+    LightSwitch,
+    ThreeWaySwitch,
+    CeilingLight,
+    WallLight,
+    ExitSign,
+    JunctionBox,
+    ElectricalPanel,
+    MotionSensor,
+    DoorContact,
+    GlassBreak,
+    Keypad,
+    Siren,
+    SmokeDetector,
+    HeatDetector,
+    ElectricStrike,
+    MagLock,
+    RequestToExit,
 }
 
 /// A trade the library groups symbols under.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum Trade {
     Networking,
+    Electrical,
+    Security,
+}
+
+impl Trade {
+    pub const ALL: [Trade; 3] = [Trade::Networking, Trade::Electrical, Trade::Security];
+
+    /// The English name, translated where it is shown.
+    pub fn name(self) -> &'static str {
+        match self {
+            Self::Networking => "Networking",
+            Self::Electrical => "Electrical",
+            Self::Security => "Security",
+        }
+    }
+
+    /// The stable id (settings, a symbol of your own's category).
+    pub fn id(self) -> &'static str {
+        match self {
+            Self::Networking => "networking",
+            Self::Electrical => "electrical",
+            Self::Security => "security",
+        }
+    }
+
+    pub fn from_id(id: &str) -> Option<Self> {
+        Self::ALL.into_iter().find(|t| t.id() == id)
+    }
 }
 
 impl Symbol {
-    pub const ALL: [Symbol; 19] = [
+    pub const ALL: [Symbol; 40] = [
         Symbol::DataJack,
         Symbol::DualJack,
         Symbol::QuadJack,
@@ -77,6 +126,27 @@ impl Symbol {
         Symbol::Speaker,
         Symbol::JHook,
         Symbol::ConduitStub,
+        Symbol::DuplexOutlet,
+        Symbol::GfciOutlet,
+        Symbol::DedicatedOutlet,
+        Symbol::FloorOutlet,
+        Symbol::LightSwitch,
+        Symbol::ThreeWaySwitch,
+        Symbol::CeilingLight,
+        Symbol::WallLight,
+        Symbol::ExitSign,
+        Symbol::JunctionBox,
+        Symbol::ElectricalPanel,
+        Symbol::MotionSensor,
+        Symbol::DoorContact,
+        Symbol::GlassBreak,
+        Symbol::Keypad,
+        Symbol::Siren,
+        Symbol::SmokeDetector,
+        Symbol::HeatDetector,
+        Symbol::ElectricStrike,
+        Symbol::MagLock,
+        Symbol::RequestToExit,
     ];
 
     /// The stable id written to `/PCSymbol`.
@@ -101,6 +171,27 @@ impl Symbol {
             Self::Speaker => "speaker",
             Self::JHook => "j-hook",
             Self::ConduitStub => "conduit-stub",
+            Self::DuplexOutlet => "duplex-outlet",
+            Self::GfciOutlet => "gfci-outlet",
+            Self::DedicatedOutlet => "dedicated-outlet",
+            Self::FloorOutlet => "floor-outlet",
+            Self::LightSwitch => "light-switch",
+            Self::ThreeWaySwitch => "three-way-switch",
+            Self::CeilingLight => "ceiling-light",
+            Self::WallLight => "wall-light",
+            Self::ExitSign => "exit-sign",
+            Self::JunctionBox => "junction-box",
+            Self::ElectricalPanel => "electrical-panel",
+            Self::MotionSensor => "motion-sensor",
+            Self::DoorContact => "door-contact",
+            Self::GlassBreak => "glass-break",
+            Self::Keypad => "keypad",
+            Self::Siren => "siren",
+            Self::SmokeDetector => "smoke-detector",
+            Self::HeatDetector => "heat-detector",
+            Self::ElectricStrike => "electric-strike",
+            Self::MagLock => "mag-lock",
+            Self::RequestToExit => "request-to-exit",
         }
     }
 
@@ -130,6 +221,27 @@ impl Symbol {
             Self::Speaker => "Speaker",
             Self::JHook => "J-hook",
             Self::ConduitStub => "Conduit stub-up",
+            Self::DuplexOutlet => "Duplex outlet",
+            Self::GfciOutlet => "GFCI outlet",
+            Self::DedicatedOutlet => "Dedicated outlet",
+            Self::FloorOutlet => "Floor outlet",
+            Self::LightSwitch => "Light switch",
+            Self::ThreeWaySwitch => "3-way switch",
+            Self::CeilingLight => "Ceiling light",
+            Self::WallLight => "Wall light",
+            Self::ExitSign => "Exit sign",
+            Self::JunctionBox => "Junction box",
+            Self::ElectricalPanel => "Electrical panel",
+            Self::MotionSensor => "Motion sensor",
+            Self::DoorContact => "Door contact",
+            Self::GlassBreak => "Glass-break detector",
+            Self::Keypad => "Keypad",
+            Self::Siren => "Siren",
+            Self::SmokeDetector => "Smoke detector",
+            Self::HeatDetector => "Heat detector",
+            Self::ElectricStrike => "Electric strike",
+            Self::MagLock => "Mag lock",
+            Self::RequestToExit => "Request-to-exit button",
         }
     }
 
@@ -139,7 +251,30 @@ impl Symbol {
     }
 
     pub fn trade(self) -> Trade {
-        Trade::Networking
+        match self {
+            Self::DuplexOutlet
+            | Self::GfciOutlet
+            | Self::DedicatedOutlet
+            | Self::FloorOutlet
+            | Self::LightSwitch
+            | Self::ThreeWaySwitch
+            | Self::CeilingLight
+            | Self::WallLight
+            | Self::ExitSign
+            | Self::JunctionBox
+            | Self::ElectricalPanel => Trade::Electrical,
+            Self::MotionSensor
+            | Self::DoorContact
+            | Self::GlassBreak
+            | Self::Keypad
+            | Self::Siren
+            | Self::SmokeDetector
+            | Self::HeatDetector
+            | Self::ElectricStrike
+            | Self::MagLock
+            | Self::RequestToExit => Trade::Security,
+            _ => Trade::Networking,
+        }
     }
 
     /// The artwork in the 100-unit square (y up), stroked and filled in the current colour:
@@ -226,6 +361,101 @@ impl Symbol {
                 a.poly(&[(38.0, 82.0), (50.0, 96.0), (62.0, 82.0)]);
                 a.tag(50.0, 40.0, 22.0, "C");
             }
+            Self::DuplexOutlet => a.receptacle(),
+            Self::GfciOutlet => {
+                a.receptacle();
+                a.tag(50.0, 12.0, 15.0, "GFCI");
+            }
+            Self::DedicatedOutlet => {
+                a.receptacle();
+                a.fill_poly(&[(38.0, 86.0), (62.0, 86.0), (50.0, 74.0)]);
+            }
+            Self::FloorOutlet => {
+                a.rect(14.0, 14.0, 72.0, 72.0);
+                a.circle(50.0, 50.0, 22.0);
+                a.line(30.0, 44.0, 70.0, 44.0);
+                a.line(30.0, 56.0, 70.0, 56.0);
+            }
+            Self::LightSwitch => a.tag(50.0, 50.0, 56.0, "S"),
+            Self::ThreeWaySwitch => {
+                a.tag(42.0, 54.0, 52.0, "S");
+                a.tag(72.0, 30.0, 26.0, "3");
+            }
+            Self::CeilingLight => {
+                a.circle(50.0, 50.0, 30.0);
+                a.line(29.0, 29.0, 71.0, 71.0);
+                a.line(29.0, 71.0, 71.0, 29.0);
+            }
+            Self::WallLight => {
+                a.circle(50.0, 44.0, 24.0);
+                a.line(33.0, 27.0, 67.0, 61.0);
+                a.line(33.0, 61.0, 67.0, 27.0);
+                a.line(50.0, 68.0, 50.0, 90.0);
+                a.line(28.0, 90.0, 72.0, 90.0);
+            }
+            Self::ExitSign => {
+                a.rect(8.0, 34.0, 84.0, 36.0);
+                a.tag(50.0, 52.0, 22.0, "EXIT");
+                a.poly(&[(40.0, 22.0), (60.0, 22.0), (60.0, 16.0), (72.0, 26.0), (60.0, 36.0), (60.0, 30.0), (40.0, 30.0)]);
+            }
+            Self::JunctionBox => {
+                a.circle(50.0, 50.0, 34.0);
+                a.tag(50.0, 50.0, 34.0, "J");
+            }
+            Self::ElectricalPanel => {
+                a.rect(8.0, 34.0, 84.0, 32.0);
+                a.fill_poly(&[(8.0, 34.0), (92.0, 34.0), (8.0, 66.0)]);
+            }
+            Self::MotionSensor => {
+                a.circle(50.0, 40.0, 26.0);
+                a.tag(50.0, 40.0, 22.0, "MD");
+                a.arc_up(50.0, 66.0, 12.0);
+                a.arc_up(50.0, 66.0, 22.0);
+            }
+            Self::DoorContact => {
+                a.rect(16.0, 36.0, 30.0, 28.0);
+                a.rect(54.0, 36.0, 30.0, 28.0);
+                a.tag(50.0, 82.0, 20.0, "DC");
+            }
+            Self::GlassBreak => {
+                a.circle(50.0, 50.0, 36.0);
+                a.tag(50.0, 50.0, 28.0, "GB");
+            }
+            Self::Keypad => {
+                a.rect(22.0, 8.0, 56.0, 84.0);
+                for y in [16.0, 34.0, 52.0] {
+                    for x in [30.0, 45.0, 60.0] {
+                        a.fill_rect(x, y, 10.0, 10.0);
+                    }
+                }
+                a.rect(30.0, 70.0, 40.0, 14.0);
+            }
+            Self::Siren => {
+                a.poly(&[(14.0, 38.0), (34.0, 38.0), (70.0, 14.0), (70.0, 86.0), (34.0, 62.0), (14.0, 62.0)]);
+                a.line(78.0, 50.0, 94.0, 50.0);
+                a.line(78.0, 66.0, 92.0, 76.0);
+                a.line(78.0, 34.0, 92.0, 24.0);
+            }
+            Self::SmokeDetector => {
+                a.circle(50.0, 50.0, 38.0);
+                a.tag(50.0, 50.0, 28.0, "SD");
+            }
+            Self::HeatDetector => {
+                a.circle(50.0, 50.0, 38.0);
+                a.tag(50.0, 50.0, 28.0, "HD");
+            }
+            Self::ElectricStrike => {
+                a.rect(30.0, 10.0, 40.0, 80.0);
+                a.tag(50.0, 50.0, 24.0, "ES");
+            }
+            Self::MagLock => {
+                a.rect(8.0, 34.0, 84.0, 32.0);
+                a.tag(50.0, 50.0, 24.0, "ML");
+            }
+            Self::RequestToExit => {
+                a.circle(50.0, 50.0, 40.0);
+                a.tag(50.0, 50.0, 24.0, "REX");
+            }
         }
         a.0
     }
@@ -257,6 +487,29 @@ impl Art {
             self.0.push_str(&format!("{} {} {}\n", n(*x), n(*y), if i == 0 { "m" } else { "l" }));
         }
         self.0.push_str("h S\n");
+    }
+    fn fill_poly(&mut self, pts: &[(f64, f64)]) {
+        for (i, (x, y)) in pts.iter().enumerate() {
+            self.0.push_str(&format!("{} {} {}\n", n(*x), n(*y), if i == 0 { "m" } else { "l" }));
+        }
+        self.0.push_str("h f\n");
+    }
+    /// An ellipse centred on (cx, cy) with radii rx, ry.
+    fn ellipse(&mut self, cx: f64, cy: f64, rx: f64, ry: f64) {
+        let (kx, ky) = (rx * 0.552_284_75, ry * 0.552_284_75);
+        let c = |v: [f64; 6]| format!("{} {} {} {} {} {} c ", n(v[0]), n(v[1]), n(v[2]), n(v[3]), n(v[4]), n(v[5]));
+        self.0.push_str(&format!("{} {} m ", n(cx + rx), n(cy)));
+        self.0.push_str(&c([cx + rx, cy + ky, cx + kx, cy + ry, cx, cy + ry]));
+        self.0.push_str(&c([cx - kx, cy + ry, cx - rx, cy + ky, cx - rx, cy]));
+        self.0.push_str(&c([cx - rx, cy - ky, cx - kx, cy - ry, cx, cy - ry]));
+        self.0.push_str(&c([cx + kx, cy - ry, cx + rx, cy - ky, cx + rx, cy]));
+        self.0.push_str("h S\n");
+    }
+    /// A receptacle: a circle with two lines through it.
+    fn receptacle(&mut self) {
+        self.circle(50.0, 50.0, 24.0);
+        self.line(12.0, 44.0, 88.0, 44.0);
+        self.line(12.0, 56.0, 88.0, 56.0);
     }
     fn circle(&mut self, cx: f64, cy: f64, r: f64) {
         let k = r * 0.552_284_75;
@@ -350,11 +603,141 @@ impl Art {
     }
 }
 
-/// One of your own symbols: its name and its artwork (from an SVG, [`crate::svg_art::svg_art`]).
+/// One of your own symbols: its name and its artwork (from an SVG, [`crate::svg_art::svg_art`],
+/// or from drafted lines, [`art_from_drawing`]), and the trade it is listed under (`None`: My
+/// symbols).
 #[derive(Clone, Debug, PartialEq)]
 pub struct CustomArt {
     pub name: String,
     pub art: String,
+    pub trade: Option<Trade>,
+}
+
+/// Points read from the drawing for one symbol, at most.
+const MAX_DRAWING_POINTS: usize = 20_000;
+
+/// One drawn part of a selection, in user space.
+enum Part {
+    /// An open or closed run of points.
+    Path(Vec<[f64; 2]>, bool),
+    /// A rectangle or an ellipse in it.
+    Rect([f64; 4], bool),
+}
+
+/// The artwork for a symbol of your own made from drawn lines and shapes on `page` (lines,
+/// polylines, polygons, rectangles, ellipses, ink): fitted into the symbol's square, centred,
+/// proportions kept. Errors when none of them is a line or shape.
+pub fn art_from_drawing(doc: &Document, page: usize, indices: &[usize]) -> Result<String, AnnotError> {
+    let p = crate::page_ref(doc, page)?;
+    let list = annots(doc, p);
+    let mut parts: Vec<Part> = Vec::new();
+    let mut points = 0usize;
+    let nums = |d: &Dict, key: &[u8]| -> Vec<f64> {
+        d.get(key)
+            .map(|o| doc.resolve(o))
+            .and_then(|o| o.as_array().map(|a| a.iter().filter_map(Object::as_f64).filter(|v| v.is_finite()).collect()))
+            .unwrap_or_default()
+    };
+    let pairs = |v: &[f64]| -> Vec<[f64; 2]> { v.as_chunks::<2>().0.iter().map(|c| [c[0], c[1]]).collect() };
+    for &i in indices {
+        let Some(entry) = list.get(i) else { continue };
+        let obj = doc.resolve(entry);
+        let Some(d) = obj.as_dict() else { continue };
+        let part = match d.name(b"Subtype") {
+            Some(b"Line") => Some(Part::Path(pairs(&nums(d, b"L")), false)),
+            Some(b"PolyLine") => Some(Part::Path(pairs(&nums(d, b"Vertices")), false)),
+            Some(b"Polygon") => Some(Part::Path(pairs(&nums(d, b"Vertices")), true)),
+            Some(kind @ (b"Square" | b"Circle")) => {
+                let r = nums(d, b"Rect");
+                let rd = nums(d, b"RD");
+                match (r.as_slice(), rd.as_slice()) {
+                    ([x0, y0, x1, y1], rd) => {
+                        let (l, b, rt, t) = match rd {
+                            [a, b, c, e] => (*a, *b, *c, *e),
+                            _ => (0.0, 0.0, 0.0, 0.0),
+                        };
+                        let rect = [x0.min(*x1) + l, y0.min(*y1) + b, x0.max(*x1) - rt, y0.max(*y1) - t];
+                        (rect[2] > rect[0] && rect[3] > rect[1]).then_some(Part::Rect(rect, kind == b"Circle"))
+                    }
+                    _ => None,
+                }
+            }
+            Some(b"Ink") => {
+                let strokes = d.get(b"InkList").map(|o| doc.resolve(o)).and_then(|o| o.as_array().cloned()).unwrap_or_default();
+                for stroke in strokes {
+                    let v: Vec<f64> = doc
+                        .resolve(&stroke)
+                        .as_array()
+                        .map(|a| a.iter().filter_map(Object::as_f64).filter(|v| v.is_finite()).collect())
+                        .unwrap_or_default();
+                    let path = pairs(&v);
+                    points = points.saturating_add(path.len());
+                    if path.len() >= 2 && points <= MAX_DRAWING_POINTS {
+                        parts.push(Part::Path(path, false));
+                    }
+                }
+                None
+            }
+            _ => None,
+        };
+        match part {
+            Some(Part::Path(path, closed)) if path.len() >= 2 => {
+                points = points.saturating_add(path.len());
+                if points <= MAX_DRAWING_POINTS {
+                    parts.push(Part::Path(path, closed));
+                }
+            }
+            Some(r @ Part::Rect(..)) => parts.push(r),
+            _ => {}
+        }
+    }
+    // The bounds of it all.
+    let mut b = [f64::INFINITY, f64::INFINITY, f64::NEG_INFINITY, f64::NEG_INFINITY];
+    let mut grow = |x: f64, y: f64| {
+        b = [b[0].min(x), b[1].min(y), b[2].max(x), b[3].max(y)];
+    };
+    for part in &parts {
+        match part {
+            Part::Path(path, _) => path.iter().for_each(|q| grow(q[0], q[1])),
+            Part::Rect(r, _) => {
+                grow(r[0], r[1]);
+                grow(r[2], r[3]);
+            }
+        }
+    }
+    let span = (b[2] - b[0]).max(b[3] - b[1]);
+    if parts.is_empty() || !span.is_finite() || span <= 1e-6 {
+        return Err(AnnotError::Invalid("choose drawn lines or shapes to make a symbol from".into()));
+    }
+    // Fitted into the square with a margin for the line weight.
+    let scale = (BOX - 2.0 * WEIGHT) / span;
+    let (cx, cy) = ((b[0] + b[2]) / 2.0, (b[1] + b[3]) / 2.0);
+    let at = |x: f64, y: f64| ((x - cx) * scale + BOX / 2.0, (y - cy) * scale + BOX / 2.0);
+    let mut a = Art::default();
+    for part in &parts {
+        match part {
+            Part::Path(path, closed) => {
+                let pts: Vec<(f64, f64)> = path.iter().map(|q| at(q[0], q[1])).collect();
+                for (i, (x, y)) in pts.iter().enumerate() {
+                    a.raw(&format!("{} {} {}\n", n(*x), n(*y), if i == 0 { "m" } else { "l" }));
+                }
+                a.raw(if *closed { "h S\n" } else { "S\n" });
+            }
+            Part::Rect(r, ellipse) => {
+                let (x0, y0) = at(r[0], r[1]);
+                let (x1, y1) = at(r[2], r[3]);
+                if *ellipse {
+                    a.ellipse((x0 + x1) / 2.0, (y0 + y1) / 2.0, (x1 - x0) / 2.0, (y1 - y0) / 2.0);
+                } else {
+                    a.rect(x0, y0, x1 - x0, y1 - y0);
+                }
+            }
+        }
+    }
+    if a.0.len() > crate::svg_art::MAX_ART {
+        return Err(AnnotError::Invalid("the drawing is too detailed for a symbol".into()));
+    }
+    Ok(a.0)
 }
 
 /// The id a symbol of your own is recorded under (`/PCSymbol`).
@@ -753,6 +1136,33 @@ mod tests {
             assert!(art.contains(" S\n") || art.contains(" f\n"), "{s:?} draws something");
             assert_eq!(art.matches("BT").count(), art.matches("ET").count());
         }
+        // Every trade has symbols; the ids of trades read back.
+        for t in Trade::ALL {
+            assert!(Symbol::ALL.iter().any(|s| s.trade() == t), "{t:?}");
+            assert_eq!(Trade::from_id(t.id()), Some(t));
+        }
+    }
+
+    #[test]
+    fn drawn_lines_make_a_symbol_fitted_to_its_square() {
+        let mut doc = blank();
+        let style = Style { color: [0.0, 0.0, 0.0], opacity: 1.0, width: 1.0, fill: None };
+        let new = |shape| NewAnnotation { page: 0, shape, style: style.clone(), contents: String::new(), author: String::new() };
+        let line = add_annotation(
+            &mut doc,
+            &new(Shape::Line { from: [100.0, 100.0], to: [300.0, 100.0], start: crate::LineEnding::None, end: crate::LineEnding::None }),
+            &Meta::default(),
+        )
+        .unwrap();
+        let box_ = add_annotation(&mut doc, &new(Shape::Rectangle { rect: [150.0, 50.0, 250.0, 150.0] }), &Meta::default()).unwrap();
+        let art = art_from_drawing(&doc, 0, &[line, box_]).unwrap();
+        // 200 wide across: the line spans the square less its margins, centred.
+        assert!(art.starts_with("6 50 m 94 50 l S\n"), "{art}");
+        assert!(art.contains(" re S\n"), "{art}");
+        // Nothing drawable, or nothing at all: an error, not an empty symbol.
+        assert!(art_from_drawing(&doc, 0, &[]).is_err());
+        assert!(art_from_drawing(&doc, 0, &[99]).is_err());
+        assert!(art_from_drawing(&doc, 5, &[0]).is_err());
     }
 
     #[test]
@@ -881,7 +1291,7 @@ mod tests {
         }
         assert_eq!(clean_label(&"x".repeat(100)).len(), MAX_LABEL);
         // Your own symbol with no artwork is refused.
-        let empty = CustomArt { name: "Mine".into(), art: String::new() };
+        let empty = CustomArt { name: "Mine".into(), art: String::new(), trade: None };
         assert!(add_symbol(&mut doc, &NewSymbol { custom: Some(empty), ..base.clone() }, &Meta::default()).is_err());
     }
 
@@ -901,7 +1311,7 @@ mod tests {
             color: [0.8, 0.1, 0.1],
             author: "Steve".into(),
             rotation: 0.0,
-            custom: Some(CustomArt { name: "Duplex outlet".into(), art }),
+            custom: Some(CustomArt { name: "Duplex outlet".into(), art, trade: None }),
         };
         let i = add_symbol(&mut doc, &new, &Meta::default()).unwrap();
         edit_symbol(&mut doc, 0, i, Some("X-2"), Some(45.0), &Meta::default()).unwrap();

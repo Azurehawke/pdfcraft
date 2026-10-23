@@ -3337,3 +3337,39 @@ certificate	Version	الإصدار
 	Show sublayers	إظهار الطبقات الفرعية
 	Sublayer	طبقة فرعية
 	List drafted linework too	إدراج خطوط الرسم أيضًا
+	Duplex outlet	مقبس مزدوج
+	GFCI outlet	مقبس بقاطع تسرب أرضي
+	Dedicated outlet	مقبس مخصص
+	Floor outlet	مقبس أرضي
+	Light switch	مفتاح إنارة
+	3-way switch	مفتاح ثلاثي الاتجاه
+	Ceiling light	إنارة سقفية
+	Wall light	إنارة جدارية
+	Exit sign	لافتة مخرج
+	Junction box	علبة توصيل
+	Electrical panel	لوحة كهرباء
+	Motion sensor	حساس حركة
+	Door contact	حساس باب
+	Glass-break detector	كاشف كسر الزجاج
+	Siren	صفارة إنذار
+	Smoke detector	كاشف دخان
+	Heat detector	كاشف حرارة
+	Electric strike	قفل كهربائي للباب
+	Mag lock	قفل مغناطيسي
+	Request-to-exit button	زر طلب الخروج
+	Electrical	كهرباء
+	Make symbol	إنشاء رمز
+	Make symbol…	إنشاء رمز…
+	Make a symbol of your own from the selected lines and shapes	إنشاء رمز خاص بك من الخطوط والأشكال المحددة
+	The selected lines and shapes become a symbol of your own, kept with your symbols for every drawing. The drawing stays as it is.	تصبح الخطوط والأشكال المحددة رمزًا خاصًا بك، يُحفظ مع رموزك لكل الرسومات. يبقى الرسم كما هو.
+	Symbol name	اسم الرمز
+	List under	إدراج ضمن
+	The document is closed.	المستند مغلق.
+	To make a symbol from your own drawing, select the lines and choose Make symbol from their menu.	لإنشاء رمز من رسمك، حدد الخطوط واختر «إنشاء رمز» من قائمتها.
+	Found through a folder mapping (Preferences)	عُثر عليه عبر ربط مجلدات (التفضيلات)
+	Folder mappings	ربط المجلدات
+	The same folder as another device and this one see it (the Jobs drive on the PC, Sync/Jobs on the tablet): linked drawings recorded on one are found on the other.	المجلد نفسه كما يراه جهاز آخر وهذا الجهاز (محرك Jobs على الحاسوب، وSync/Jobs على الجهاز اللوحي): الرسومات المرتبطة المسجلة على أحدهما يُعثر عليها على الآخر.
+	On the other device	على الجهاز الآخر
+	On this device	على هذا الجهاز
+	Remove mapping	إزالة الربط
+	Add mapping	إضافة ربط

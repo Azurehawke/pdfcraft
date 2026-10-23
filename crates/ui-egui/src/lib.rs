@@ -99,6 +99,7 @@ pub mod file_watch;
 mod files;
 pub mod fill_sign;
 mod fling;
+mod folder_maps;
 pub mod folders_ui;
 mod format_copy;
 pub mod forms_ui;
@@ -108,6 +109,7 @@ mod icon_data;
 pub mod icons;
 pub mod last_session;
 mod links_ui;
+mod make_symbol;
 mod markups_list;
 pub mod motion;
 mod new_dialog;
@@ -632,6 +634,8 @@ pub struct PdfCraftApp {
     pub(crate) chest: tool_chest::ToolChest,
     /// RevuCraft: your own symbols (from SVG files), kept with the app.
     pub(crate) my_symbols: Vec<pdfcraft_engine::symbols::CustomArt>,
+    /// RevuCraft: Make symbol, waiting for its name and trade.
+    pub(crate) make_symbol: Option<make_symbol::Pending>,
     /// RevuCraft: your own columns on markups (drop ID, progress…).
     pub(crate) markup_columns: Vec<columns::MarkupColumn>,
     /// RevuCraft: the side panels open in the dock, in the order opened.
@@ -656,6 +660,9 @@ pub struct PdfCraftApp {
     pub show_guides: bool,
     pub guides_locked: bool,
     pub print_margin: f32,
+    /// RevuCraft: this device's folder mappings (Preferences), rows as typed; the usable ones
+    /// are in [`folder_maps`].
+    pub(crate) folder_maps: Vec<(String, String)>,
     /// The reading-colours preference (Preferences ▸ Reading colours): applied to every open
     /// document, and documents open with it (Acrobat's Replace Document Colors).
     pub reading_colors: pdfcraft_render::ReadingColors,
@@ -1056,6 +1063,7 @@ impl PdfCraftApp {
             markups: Default::default(),
             chest: Default::default(),
             my_symbols: Vec::new(),
+            make_symbol: None,
             markup_columns: columns::defaults(),
             dock: Vec::new(),
             dock_collapsed: Vec::new(),
@@ -1069,6 +1077,7 @@ impl PdfCraftApp {
             show_guides: true,
             guides_locked: false,
             print_margin: 0.0,
+            folder_maps: Vec::new(),
             reading_colors: Default::default(),
             #[cfg(target_os = "linux")]
             desktop_theme: None,
@@ -2518,6 +2527,8 @@ impl PdfCraftApp {
         v["show_guides"] = serde_json::Value::Bool(self.show_guides);
         v["guides_locked"] = serde_json::Value::Bool(self.guides_locked);
         v["print_margin"] = serde_json::json!(self.print_margin);
+        v["folder_maps"] =
+            serde_json::Value::Array(folder_maps::usable(&self.folder_maps).into_iter().map(|(a, b)| serde_json::json!([a, b])).collect());
         v["link_keep_revisions"] = serde_json::Value::Bool(self.links.keep_revisions);
         v["draw_pen"] = serde_json::json!(self.comment_prefs.pen.name());
         v["hover_tips"] = serde_json::Value::Bool(self.comment_prefs.hover_tips);
@@ -2525,7 +2536,9 @@ impl PdfCraftApp {
         v["dock"] = self.dock_layout();
         v["tool_chest"] = self.chest.to_json();
         v["markup_columns"] = columns::to_json(&self.markup_columns);
-        v["my_symbols"] = serde_json::Value::Array(self.my_symbols.iter().map(|s| serde_json::json!({ "name": s.name, "art": s.art })).collect());
+        v["my_symbols"] = serde_json::Value::Array(
+            self.my_symbols.iter().map(|s| serde_json::json!({ "name": s.name, "art": s.art, "trade": s.trade.map(|t| t.id()) })).collect(),
+        );
         v.to_string()
     }
 
@@ -2666,6 +2679,16 @@ impl PdfCraftApp {
         if v["dock"].is_object() {
             self.restore_dock_layout(&v["dock"]);
         }
+        // Folder mappings: pairs of strings only, checked as Preferences checks them.
+        if let Some(list) = v["folder_maps"].as_array() {
+            let rows: Vec<(String, String)> = list
+                .iter()
+                .take(folder_maps::MAX_MAPS)
+                .filter_map(|r| Some((r.get(0)?.as_str()?.to_string(), r.get(1)?.as_str()?.to_string())))
+                .collect();
+            self.folder_maps = folder_maps::usable(&rows);
+            folder_maps::set(&self.folder_maps);
+        }
         // Your own symbols: capped, and each one's artwork limited (settings are untrusted).
         if let Some(list) = v["my_symbols"].as_array() {
             self.my_symbols = list
@@ -2674,8 +2697,13 @@ impl PdfCraftApp {
                 .filter_map(|s| {
                     let name = pdfcraft_engine::symbols::clean_label(s["name"].as_str()?);
                     let art = s["art"].as_str()?;
-                    (!name.is_empty() && !art.is_empty() && art.len() <= pdfcraft_engine::svg_art::MAX_ART)
-                        .then(|| pdfcraft_engine::symbols::CustomArt { name, art: art.to_string() })
+                    (!name.is_empty() && !art.is_empty() && art.len() <= pdfcraft_engine::svg_art::MAX_ART).then(|| {
+                        pdfcraft_engine::symbols::CustomArt {
+                            name,
+                            art: art.to_string(),
+                            trade: s["trade"].as_str().and_then(pdfcraft_engine::symbols::Trade::from_id),
+                        }
+                    })
                 })
                 .collect();
         }
@@ -3618,6 +3646,7 @@ impl eframe::App for PdfCraftApp {
             self.quick_tool = QuickTool::Select;
         }
         drafting_layers::follow_tool(self);
+        make_symbol::dialog(self, &ctx);
         links_ui::table_dialog(self, &ctx);
         takeoff_ui::dialog(self, &ctx);
         draft::keypad(self, &ctx);

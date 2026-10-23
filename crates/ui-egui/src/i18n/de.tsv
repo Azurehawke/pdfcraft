@@ -3063,3 +3063,39 @@ animation effects	Off	Aus
 	Show sublayers	Unterebenen einblenden
 	Sublayer	Unterebene
 	List drafted linework too	Auch gezeichnete Linien auflisten
+	Duplex outlet	Doppelsteckdose
+	GFCI outlet	FI-Steckdose
+	Dedicated outlet	Eigene Steckdose
+	Floor outlet	Bodensteckdose
+	Light switch	Lichtschalter
+	3-way switch	Wechselschalter
+	Ceiling light	Deckenleuchte
+	Wall light	Wandleuchte
+	Exit sign	Notausgangsschild
+	Junction box	Abzweigdose
+	Electrical panel	Verteilerkasten
+	Motion sensor	Bewegungsmelder
+	Door contact	Türkontakt
+	Glass-break detector	Glasbruchmelder
+	Siren	Sirene
+	Smoke detector	Rauchmelder
+	Heat detector	Wärmemelder
+	Electric strike	Türöffner
+	Mag lock	Magnetverschluss
+	Request-to-exit button	Austaster
+	Electrical	Elektro
+	Make symbol	Symbol erstellen
+	Make symbol…	Symbol erstellen…
+	Make a symbol of your own from the selected lines and shapes	Aus den gewählten Linien und Formen ein eigenes Symbol erstellen
+	The selected lines and shapes become a symbol of your own, kept with your symbols for every drawing. The drawing stays as it is.	Die gewählten Linien und Formen werden zu einem eigenen Symbol, das bei Ihren Symbolen für alle Zeichnungen bleibt. Die Zeichnung selbst bleibt unverändert.
+	Symbol name	Symbolname
+	List under	Einordnen unter
+	The document is closed.	Das Dokument ist geschlossen.
+	To make a symbol from your own drawing, select the lines and choose Make symbol from their menu.	Für ein Symbol aus Ihrer eigenen Zeichnung die Linien auswählen und in ihrem Menü „Symbol erstellen“ wählen.
+	Found through a folder mapping (Preferences)	Über eine Ordnerzuordnung gefunden (Einstellungen)
+	Folder mappings	Ordnerzuordnungen
+	The same folder as another device and this one see it (the Jobs drive on the PC, Sync/Jobs on the tablet): linked drawings recorded on one are found on the other.	Derselbe Ordner, wie ihn ein anderes Gerät und dieses sehen (das Jobs-Laufwerk am PC, Sync/Jobs auf dem Tablet): Verknüpfte Zeichnungen, die auf einem erfasst wurden, werden auf dem anderen gefunden.
+	On the other device	Auf dem anderen Gerät
+	On this device	Auf diesem Gerät
+	Remove mapping	Zuordnung entfernen
+	Add mapping	Zuordnung hinzufügen

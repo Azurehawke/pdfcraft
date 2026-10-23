@@ -3026,3 +3026,39 @@ animation effects	Off	Изключени
 	Show sublayers	Показване на подслоевете
 	Sublayer	Подслой
 	List drafted linework too	Показване и на начертаните линии
+	Duplex outlet	Двоен контакт
+	GFCI outlet	Контакт с дефектнотокова защита
+	Dedicated outlet	Самостоятелен контакт
+	Floor outlet	Подов контакт
+	Light switch	Ключ за осветление
+	3-way switch	Девиаторен ключ
+	Ceiling light	Таванно осветително тяло
+	Wall light	Аплик
+	Exit sign	Табела „Изход“
+	Junction box	Разклонителна кутия
+	Electrical panel	Електрическо табло
+	Motion sensor	Датчик за движение
+	Door contact	Магнитен контакт за врата
+	Glass-break detector	Датчик за счупване на стъкло
+	Siren	Сирена
+	Smoke detector	Димен датчик
+	Heat detector	Топлинен датчик
+	Electric strike	Електрическа насрещна планка
+	Mag lock	Електромагнитна брава
+	Request-to-exit button	Бутон за изход
+	Electrical	Електро
+	Make symbol	Създаване на символ
+	Make symbol…	Създаване на символ…
+	Make a symbol of your own from the selected lines and shapes	Създаване на собствен символ от избраните линии и фигури
+	The selected lines and shapes become a symbol of your own, kept with your symbols for every drawing. The drawing stays as it is.	Избраните линии и фигури стават ваш собствен символ, запазен с вашите символи за всички чертежи. Чертежът остава непроменен.
+	Symbol name	Име на символа
+	List under	Показване в
+	The document is closed.	Документът е затворен.
+	To make a symbol from your own drawing, select the lines and choose Make symbol from their menu.	За да създадете символ от свой чертеж, изберете линиите и изберете „Създаване на символ“ от менюто им.
+	Found through a folder mapping (Preferences)	Намерен чрез съпоставяне на папки (Предпочитания)
+	Folder mappings	Съпоставяне на папки
+	The same folder as another device and this one see it (the Jobs drive on the PC, Sync/Jobs on the tablet): linked drawings recorded on one are found on the other.	Една и съща папка, както я виждат друго устройство и това (дискът Jobs на компютъра, Sync/Jobs на таблета): свързаните чертежи, записани на едното, се намират на другото.
+	On the other device	На другото устройство
+	On this device	На това устройство
+	Remove mapping	Премахване на съпоставянето
+	Add mapping	Добавяне на съпоставяне

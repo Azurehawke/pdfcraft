@@ -655,6 +655,13 @@ impl Document {
         &self.layer_ids
     }
 
+    /// RevuCraft: artwork for a symbol of your own from the drawn lines and shapes at
+    /// (`page`, `indices`) ([`pdfcraft_annot::symbols::art_from_drawing`]).
+    pub fn symbol_art_from(&self, page: usize, indices: &[usize]) -> Result<String, String> {
+        let e = self.editor.as_ref().ok_or("the document can't be read")?;
+        pdfcraft_annot::symbols::art_from_drawing(&e.cos, page, indices).map_err(|e| e.to_string())
+    }
+
     pub fn layer_list(&self) -> Vec<pdfcraft_annot::layers::LayerInfo> {
         self.editor.as_ref().map(|e| pdfcraft_annot::layers::list(&e.cos)).unwrap_or_default()
     }

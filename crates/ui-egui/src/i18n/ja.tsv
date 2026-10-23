@@ -3065,3 +3065,39 @@ animation effects	Off	オフ
 	Show sublayers	サブレイヤーを表示
 	Sublayer	サブレイヤー
 	List drafted linework too	作図した線も一覧に表示
+	Duplex outlet	二口コンセント
+	GFCI outlet	漏電遮断器付きコンセント
+	Dedicated outlet	専用コンセント
+	Floor outlet	床コンセント
+	Light switch	照明スイッチ
+	3-way switch	3路スイッチ
+	Ceiling light	天井照明
+	Wall light	壁付け照明
+	Exit sign	非常口誘導灯
+	Junction box	ジャンクションボックス
+	Electrical panel	分電盤
+	Motion sensor	人感センサー
+	Door contact	ドアセンサー
+	Glass-break detector	ガラス破壊センサー
+	Siren	サイレン
+	Smoke detector	煙感知器
+	Heat detector	熱感知器
+	Electric strike	電気錠ストライク
+	Mag lock	電磁ロック
+	Request-to-exit button	退室ボタン
+	Electrical	電気
+	Make symbol	シンボルを作成
+	Make symbol…	シンボルを作成…
+	Make a symbol of your own from the selected lines and shapes	選択した線と図形から独自のシンボルを作成
+	The selected lines and shapes become a symbol of your own, kept with your symbols for every drawing. The drawing stays as it is.	選択した線と図形が独自のシンボルになり、すべての図面で使えるようにシンボルと一緒に保存されます。図面はそのままです。
+	Symbol name	シンボル名
+	List under	分類
+	The document is closed.	ドキュメントは閉じられています。
+	To make a symbol from your own drawing, select the lines and choose Make symbol from their menu.	自分の図面からシンボルを作るには、線を選択し、そのメニューから「シンボルを作成」を選びます。
+	Found through a folder mapping (Preferences)	フォルダーの対応付けで見つかりました（環境設定）
+	Folder mappings	フォルダーの対応付け
+	The same folder as another device and this one see it (the Jobs drive on the PC, Sync/Jobs on the tablet): linked drawings recorded on one are found on the other.	別のデバイスとこのデバイスで見え方が異なる同じフォルダー（PC の Jobs ドライブ、タブレットの Sync/Jobs）：一方で記録したリンク図面がもう一方でも見つかります。
+	On the other device	別のデバイス上
+	On this device	このデバイス上
+	Remove mapping	対応付けを削除
+	Add mapping	対応付けを追加

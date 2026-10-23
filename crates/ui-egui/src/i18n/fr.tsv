@@ -3063,3 +3063,39 @@ animation effects	Off	Désactivés
 	Show sublayers	Afficher les sous-calques
 	Sublayer	Sous-calque
 	List drafted linework too	Lister aussi les tracés de dessin
+	Duplex outlet	Prise double
+	GFCI outlet	Prise avec disjoncteur différentiel
+	Dedicated outlet	Prise dédiée
+	Floor outlet	Prise de sol
+	Light switch	Interrupteur
+	3-way switch	Interrupteur va-et-vient
+	Ceiling light	Plafonnier
+	Wall light	Applique murale
+	Exit sign	Panneau de sortie
+	Junction box	Boîte de dérivation
+	Electrical panel	Tableau électrique
+	Motion sensor	Détecteur de mouvement
+	Door contact	Contact de porte
+	Glass-break detector	Détecteur de bris de vitre
+	Siren	Sirène
+	Smoke detector	Détecteur de fumée
+	Heat detector	Détecteur de chaleur
+	Electric strike	Gâche électrique
+	Mag lock	Ventouse électromagnétique
+	Request-to-exit button	Bouton de sortie
+	Electrical	Électricité
+	Make symbol	Créer un symbole
+	Make symbol…	Créer un symbole…
+	Make a symbol of your own from the selected lines and shapes	Créer votre propre symbole à partir des lignes et formes sélectionnées
+	The selected lines and shapes become a symbol of your own, kept with your symbols for every drawing. The drawing stays as it is.	Les lignes et formes sélectionnées deviennent votre propre symbole, conservé avec vos symboles pour tous les dessins. Le dessin reste tel quel.
+	Symbol name	Nom du symbole
+	List under	Classer dans
+	The document is closed.	Le document est fermé.
+	To make a symbol from your own drawing, select the lines and choose Make symbol from their menu.	Pour créer un symbole à partir de votre dessin, sélectionnez les lignes et choisissez Créer un symbole dans leur menu.
+	Found through a folder mapping (Preferences)	Trouvé grâce à une correspondance de dossiers (Préférences)
+	Folder mappings	Correspondances de dossiers
+	The same folder as another device and this one see it (the Jobs drive on the PC, Sync/Jobs on the tablet): linked drawings recorded on one are found on the other.	Le même dossier tel que le voient un autre appareil et celui-ci (le lecteur Jobs sur le PC, Sync/Jobs sur la tablette) : les dessins liés enregistrés sur l'un sont retrouvés sur l'autre.
+	On the other device	Sur l'autre appareil
+	On this device	Sur cet appareil
+	Remove mapping	Supprimer la correspondance
+	Add mapping	Ajouter une correspondance

@@ -4487,6 +4487,9 @@ fn document_area_pages(app: &mut PdfCraftApp, index: usize, ui: &mut egui::Ui) {
         Some(comments::CanvasAction::Properties(p, i)) => open_props = Some((p, i)),
         Some(comments::CanvasAction::CopyImage(p, i)) => image_action = Some(crate::edit_text_ui::ImageAction::Copy(p, i)),
         Some(comments::CanvasAction::CopyImageFile(p, i)) => image_action = Some(crate::edit_text_ui::ImageAction::CopyFile(p, i)),
+        Some(comments::CanvasAction::MakeSymbol(page, indices)) => {
+            app.make_symbol = Some(crate::make_symbol::Pending { doc: view.id, page, indices, name: String::new(), trade: None });
+        }
         None => {}
     }
     match clicked_link {

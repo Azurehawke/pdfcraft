@@ -3075,3 +3075,39 @@ animation effects	Off	Desativados
 	Show sublayers	Mostrar subcamadas
 	Sublayer	Subcamada
 	List drafted linework too	Listar também as linhas desenhadas
+	Duplex outlet	Tomada dupla
+	GFCI outlet	Tomada com DR
+	Dedicated outlet	Tomada dedicada
+	Floor outlet	Tomada de piso
+	Light switch	Interruptor de luz
+	3-way switch	Interruptor three-way
+	Ceiling light	Luminária de teto
+	Wall light	Arandela
+	Exit sign	Placa de saída
+	Junction box	Caixa de passagem
+	Electrical panel	Quadro elétrico
+	Motion sensor	Sensor de movimento
+	Door contact	Sensor de porta
+	Glass-break detector	Detector de quebra de vidro
+	Siren	Sirene
+	Smoke detector	Detector de fumaça
+	Heat detector	Detector de calor
+	Electric strike	Fechadura elétrica
+	Mag lock	Fechadura magnética
+	Request-to-exit button	Botão de saída
+	Electrical	Elétrica
+	Make symbol	Criar símbolo
+	Make symbol…	Criar símbolo…
+	Make a symbol of your own from the selected lines and shapes	Criar um símbolo próprio com as linhas e formas selecionadas
+	The selected lines and shapes become a symbol of your own, kept with your symbols for every drawing. The drawing stays as it is.	As linhas e formas selecionadas viram um símbolo seu, guardado com seus símbolos para todos os desenhos. O desenho continua como está.
+	Symbol name	Nome do símbolo
+	List under	Listar em
+	The document is closed.	O documento está fechado.
+	To make a symbol from your own drawing, select the lines and choose Make symbol from their menu.	Para criar um símbolo do seu desenho, selecione as linhas e escolha Criar símbolo no menu delas.
+	Found through a folder mapping (Preferences)	Encontrado por um mapeamento de pastas (Preferências)
+	Folder mappings	Mapeamento de pastas
+	The same folder as another device and this one see it (the Jobs drive on the PC, Sync/Jobs on the tablet): linked drawings recorded on one are found on the other.	A mesma pasta como outro dispositivo e este a veem (a unidade Jobs no PC, Sync/Jobs no tablet): desenhos vinculados registrados em um são encontrados no outro.
+	On the other device	No outro dispositivo
+	On this device	Neste dispositivo
+	Remove mapping	Remover mapeamento
+	Add mapping	Adicionar mapeamento

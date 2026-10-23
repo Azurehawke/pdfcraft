@@ -1,6 +1,7 @@
 # RevuCraft's own wording (escaped as in the catalogs), translated into its 11 languages. Other
 # catalogs, kept in step with PdfCraft, fall back to English for these, so their coverage tests
 # leave them out. Regenerate when RevuCraft adds wording.
+3-way switch
 A hairline: the thinnest line the printer or screen draws
 A new document
 About RevuCraft
@@ -8,6 +9,7 @@ Accent color
 Add a column
 Add layer
 Add legend
+Add mapping
 Add photo callout
 Add symbol from SVG…
 Add to
@@ -55,6 +57,7 @@ Camera (bullet)
 Camera (dome)
 Caption
 Card reader
+Ceiling light
 Cells such as B2:F30, a named range, or leave it empty for the sheet's print area.
 Centre line
 Chamfer (two lines: a cut corner)
@@ -124,6 +127,7 @@ Data jack (RJ-45)
 Data jacks · Access points · Your own symbols
 Decimal
 Decimal feet
+Dedicated outlet
 Delete markups
 Delete this workspace
 Demarc
@@ -140,6 +144,7 @@ Dock this panel
 Documents
 Done editing
 Door (click a wall where it goes)
+Door contact
 Door width (the opening cut in the wall)
 Doors and windows
 Double-click a size to create it
@@ -162,14 +167,19 @@ Drawings and tables opened with Edit original update on the sheet by themselves 
 Drawings opened with Edit original update their sheets by themselves when you save them in CADCraft.
 Drop ID
 Dual data jack
+Duplex outlet
 Edit original
 Edit points
 Edit symbol
+Electric strike
+Electrical
+Electrical panel
 Ellipse (centre, then a corner)
 Equipment rack
 Erase (click the markup to delete)
 Every page (otherwise this page)
 Exchange
+Exit sign
 Expand panel
 Explode (a polyline or shape into separate lines)
 Export CSV
@@ -195,20 +205,26 @@ Flip hinge
 Flip side
 Float this panel
 Floor box
+Floor outlet
+Folder mappings
 Form
 Format copy
 Format copy: click a markup or line to use its look (with markups selected: give them its look; Shift: its layer too)
 Found by name in a subfolder of the PDF's folder
 Found by name next to the PDF
 Found relative to the PDF
+Found through a folder mapping (Preferences)
+GFCI outlet
 Get started
 Give coordinates for the base point.
 Given when sent
+Glass-break detector
 Google Drive and other apps…
 Guide
 Guide position
 Hairline
 Hairline (thinnest the printer draws)
+Heat detector
 Heavy (2 pt)
 Hide rulers
 Hide sublayers
@@ -231,6 +247,7 @@ Internal storage
 Its quantity's name in the workbook's Takeoff sheet, for formulas such as ={name}*6.50
 J-hook
 Join (two lines that meet become one)
+Junction box
 Keep previous drawings as hidden Rev layers
 Keep the original
 Keypad
@@ -242,6 +259,7 @@ Leave the choices empty for a column you type into.
 Legend
 Length format
 Length, or @x,y
+Light switch
 Line up with walls
 Line width
 Line width for drafting on this layer
@@ -249,10 +267,15 @@ Linear dimension (horizontal or vertical)
 Lines
 Links
 List drafted linework too
+List under
 Lock guides
 Lock layer
+Mag lock
 Make a callout
+Make a symbol of your own from the selected lines and shapes
 Make photo callout
+Make symbol
+Make symbol…
 Make text editable
 Make this the current layer
 Make this the current layer; drag to move it
@@ -281,6 +304,7 @@ Mirror (pick, then two points on the mirror line)
 Missing
 Modify
 More properties…
+Motion sensor
 Move (pick, base point, then where to)
 Move description
 Move layer
@@ -330,6 +354,8 @@ Offset distance
 Offset distance (or type it with the Offset tool, then Enter)
 On paper = in real life
 On sheet
+On the other device
+On this device
 Open a file
 Open from Google Drive, Dropbox, OneDrive and other apps with Android's picker. Saving updates the file there.
 Open from device…
@@ -427,6 +453,7 @@ Remove drawing
 Remove from my symbols
 Remove from the sheet
 Remove from the tool chest
+Remove mapping
 Remove table
 Remove this column
 Rename layer
@@ -435,6 +462,7 @@ Renumber
 Renumber symbols in order across the page
 Renumbered {n} symbols.
 Reopen the files that were open when RevuCraft last closed
+Request-to-exit button
 Resize photo callout
 Resize table
 Reveal file
@@ -503,7 +531,9 @@ Show tool names
 Showing files isn't available here.
 Showing the first {rows} rows and {cols} columns.
 Sides
+Siren
 Sizes you make appear here.
+Smoke detector
 Snap
 Snap settings
 Snap to ends, middles and crossings of the drawing
@@ -521,6 +551,7 @@ Stroke
 Sublayer
 Summary report (PDF): the markups shown, with photos, by layer
 Symbol
+Symbol name
 Symbols
 Symbols in the whole document
 Symbols on this page
@@ -542,6 +573,7 @@ That page size can't be made; pages are 1 to 200 inches a side.
 That tool isn't available in this version.
 That wall is locked
 The angle they fill (360 goes all the way round)
+The document is closed.
 The first one becomes {label}
 The first sheet
 The form asks to be submitted to {u}; RevuCraft doesn't send form data. Save the document to keep your entries.
@@ -551,6 +583,8 @@ The page can't be measured.
 The photo couldn't be found.
 The photo's height on the sheet
 The quantities have changed since they were sent to {name}.
+The same folder as another device and this one see it (the Jobs drive on the PC, Sync/Jobs on the tablet): linked drawings recorded on one are found on the other.
+The selected lines and shapes become a symbol of your own, kept with your symbols for every drawing. The drawing stays as it is.
 The selected markups already look like that
 The two points are in the same place; pick two ends of a length.
 The wall is shorter than the opening
@@ -573,6 +607,7 @@ This page
 This sheet is empty.
 Ticks
 Tips
+To make a symbol from your own drawing, select the lines and choose Make symbol from their menu.
 To open and save PDFs anywhere on this device, turn on All files access for RevuCraft. Settings opens on the switch; come back here afterwards.
 To scale
 Tool chest
@@ -607,6 +642,7 @@ Violet
 Voice jack
 Waiting for the document… (Google Drive downloads it first when it isn't on the tablet yet)
 Wall
+Wall light
 Wall thickness
 Walls
 Walls · Doors and windows · Dimensions

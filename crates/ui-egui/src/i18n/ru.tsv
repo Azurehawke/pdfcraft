@@ -2979,3 +2979,39 @@ animation effects	Off	Выкл
 	Show sublayers	Показать подслои
 	Sublayer	Подслой
 	List drafted linework too	Показывать и начерченные линии
+	Duplex outlet	Двойная розетка
+	GFCI outlet	Розетка с УЗО
+	Dedicated outlet	Выделенная розетка
+	Floor outlet	Напольная розетка
+	Light switch	Выключатель света
+	3-way switch	Проходной выключатель
+	Ceiling light	Потолочный светильник
+	Wall light	Настенный светильник
+	Exit sign	Указатель выхода
+	Junction box	Распределительная коробка
+	Electrical panel	Электрощит
+	Motion sensor	Датчик движения
+	Door contact	Датчик открытия двери
+	Glass-break detector	Датчик разбития стекла
+	Siren	Сирена
+	Smoke detector	Дымовой извещатель
+	Heat detector	Тепловой извещатель
+	Electric strike	Электромеханическая защёлка
+	Mag lock	Электромагнитный замок
+	Request-to-exit button	Кнопка выхода
+	Electrical	Электрика
+	Make symbol	Создать символ
+	Make symbol…	Создать символ…
+	Make a symbol of your own from the selected lines and shapes	Создать собственный символ из выбранных линий и фигур
+	The selected lines and shapes become a symbol of your own, kept with your symbols for every drawing. The drawing stays as it is.	Выбранные линии и фигуры становятся вашим символом и хранятся вместе с вашими символами для всех чертежей. Сам чертёж не меняется.
+	Symbol name	Имя символа
+	List under	Раздел
+	The document is closed.	Документ закрыт.
+	To make a symbol from your own drawing, select the lines and choose Make symbol from their menu.	Чтобы сделать символ из своего чертежа, выделите линии и выберите «Создать символ» в их меню.
+	Found through a folder mapping (Preferences)	Найден через сопоставление папок (Настройки)
+	Folder mappings	Сопоставление папок
+	The same folder as another device and this one see it (the Jobs drive on the PC, Sync/Jobs on the tablet): linked drawings recorded on one are found on the other.	Одна и та же папка, как её видят другое устройство и это (диск Jobs на ПК, Sync/Jobs на планшете): связанные чертежи, записанные на одном, находятся на другом.
+	On the other device	На другом устройстве
+	On this device	На этом устройстве
+	Remove mapping	Удалить сопоставление
+	Add mapping	Добавить сопоставление

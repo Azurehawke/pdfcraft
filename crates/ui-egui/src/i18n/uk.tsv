@@ -3085,3 +3085,39 @@ animation effects	Off	Вимкнено
 	Show sublayers	Показати підшари
 	Sublayer	Підшар
 	List drafted linework too	Показувати й накреслені лінії
+	Duplex outlet	Подвійна розетка
+	GFCI outlet	Розетка з ПЗВ
+	Dedicated outlet	Окрема розетка
+	Floor outlet	Підлогова розетка
+	Light switch	Вимикач світла
+	3-way switch	Прохідний вимикач
+	Ceiling light	Стельовий світильник
+	Wall light	Настінний світильник
+	Exit sign	Покажчик виходу
+	Junction box	Розподільна коробка
+	Electrical panel	Електрощит
+	Motion sensor	Датчик руху
+	Door contact	Датчик відчинення дверей
+	Glass-break detector	Датчик розбиття скла
+	Siren	Сирена
+	Smoke detector	Димовий сповіщувач
+	Heat detector	Тепловий сповіщувач
+	Electric strike	Електромеханічна клямка
+	Mag lock	Електромагнітний замок
+	Request-to-exit button	Кнопка виходу
+	Electrical	Електрика
+	Make symbol	Створити символ
+	Make symbol…	Створити символ…
+	Make a symbol of your own from the selected lines and shapes	Створити власний символ з вибраних ліній і фігур
+	The selected lines and shapes become a symbol of your own, kept with your symbols for every drawing. The drawing stays as it is.	Вибрані лінії та фігури стають вашим символом і зберігаються з вашими символами для всіх креслень. Саме креслення не змінюється.
+	Symbol name	Назва символу
+	List under	Розділ
+	The document is closed.	Документ закрито.
+	To make a symbol from your own drawing, select the lines and choose Make symbol from their menu.	Щоб зробити символ зі свого креслення, виділіть лінії та виберіть «Створити символ» у їхньому меню.
+	Found through a folder mapping (Preferences)	Знайдено через зіставлення тек (Налаштування)
+	Folder mappings	Зіставлення тек
+	The same folder as another device and this one see it (the Jobs drive on the PC, Sync/Jobs on the tablet): linked drawings recorded on one are found on the other.	Та сама тека, як її бачать інший пристрій і цей (диск Jobs на ПК, Sync/Jobs на планшеті): пов'язані креслення, записані на одному, знаходяться на іншому.
+	On the other device	На іншому пристрої
+	On this device	На цьому пристрої
+	Remove mapping	Видалити зіставлення
+	Add mapping	Додати зіставлення

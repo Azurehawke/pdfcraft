@@ -404,46 +404,50 @@ fn group(ui: &mut egui::Ui, t: &Tokens, caption: &str, body: impl FnOnce(&mut eg
     });
 }
 
-/// The symbol library: a grid of previews.
+/// The symbol library: a grid of previews per trade (Networking, Electrical, Security), your
+/// own symbols listed under the trade you chose for them, the rest under My symbols.
 /// Returns whether "Add symbol from SVG" was chosen.
 fn library(ui: &mut egui::Ui, t: &Tokens, color: Color32, s: &mut SymbolSettings, mine: &mut Vec<CustomArt>, tool: &mut QuickTool) -> bool {
+    use pdfcraft_engine::symbols::Trade;
+    /// One square of the grid: a library symbol or one of yours (its place in your list).
+    #[derive(Clone, Copy)]
+    enum Entry {
+        Built(Symbol),
+        Mine(usize),
+    }
     let current = if s.custom.is_some() { None } else { Some(s.symbol) };
     let mut chosen: Option<Symbol> = None;
-    let mut add = false;
-    ui.label(egui::RichText::new(tl!("Networking")).font(theme::semibold(12.0)).color(t.text_muted));
-    egui::Grid::new("symbol-library").spacing(vec2(4.0, 4.0)).show(ui, |ui| {
-        for (i, symbol) in Symbol::ALL.into_iter().enumerate() {
-            let (rect, resp) = ui.allocate_exact_size(vec2(64.0, 60.0), Sense::click());
-            let fill = if Some(symbol) == current {
-                t.accent_soft
-            } else if resp.hovered() {
-                t.hover
-            } else {
-                Color32::TRANSPARENT
-            };
-            ui.painter().rect_filled(rect, CornerRadius::same(6), fill);
-            paint_symbol(ui.painter(), Rect::from_center_size(rect.center() - vec2(0.0, 7.0), vec2(36.0, 36.0)), symbol, color);
-            let name = crate::i18n::t(symbol.name());
-            let short: String = name.chars().take(11).collect();
-            ui.painter().text(rect.center_bottom() - vec2(0.0, 3.0), Align2::CENTER_BOTTOM, short, theme::regular(10.0), t.text_muted);
-            if resp.on_hover_text(name).clicked() {
-                chosen = Some(symbol);
-            }
-            if i % 5 == 4 {
-                ui.end_row();
-            }
-        }
-    });
-    // Your own symbols, from SVG files.
-    ui.add_space(6.0);
-    ui.label(egui::RichText::new(tl!("My symbols")).font(theme::semibold(12.0)).color(t.text_muted));
     let mut pick_mine: Option<usize> = None;
     let mut remove: Option<usize> = None;
-    if !mine.is_empty() {
-        egui::Grid::new("symbol-library-mine").spacing(vec2(4.0, 4.0)).show(ui, |ui| {
-            for (i, art) in mine.iter().enumerate() {
+    let mut add = false;
+    let sections: Vec<(&str, Vec<Entry>)> = Trade::ALL
+        .into_iter()
+        .map(|trade| {
+            let built = Symbol::ALL.into_iter().filter(|x| x.trade() == trade).map(Entry::Built);
+            let yours = mine.iter().enumerate().filter(|(_, a)| a.trade == Some(trade)).map(|(i, _)| Entry::Mine(i));
+            (trade.name(), built.chain(yours).collect())
+        })
+        .chain(std::iter::once(("My symbols", mine.iter().enumerate().filter(|(_, a)| a.trade.is_none()).map(|(i, _)| Entry::Mine(i)).collect())))
+        .collect();
+    for (title, entries) in &sections {
+        if entries.is_empty() && *title != "My symbols" {
+            continue;
+        }
+        ui.add_space(4.0);
+        ui.label(egui::RichText::new(tl!(title)).font(theme::semibold(12.0)).color(t.text_muted));
+        if entries.is_empty() {
+            continue;
+        }
+        egui::Grid::new(("symbol-library", *title)).spacing(vec2(4.0, 4.0)).show(ui, |ui| {
+            for (k, entry) in entries.iter().enumerate() {
                 let (rect, resp) = ui.allocate_exact_size(vec2(64.0, 60.0), Sense::click());
-                let selected = s.custom.as_ref().is_some_and(|c| c.name == art.name);
+                let (selected, name): (bool, String) = match *entry {
+                    Entry::Built(symbol) => (Some(symbol) == current, crate::i18n::t(symbol.name()).to_string()),
+                    Entry::Mine(i) => match mine.get(i) {
+                        Some(art) => (s.custom.as_ref().is_some_and(|c| c.name == art.name), art.name.clone()),
+                        None => continue,
+                    },
+                };
                 let fill = if selected {
                     t.accent_soft
                 } else if resp.hovered() {
@@ -452,25 +456,44 @@ fn library(ui: &mut egui::Ui, t: &Tokens, color: Color32, s: &mut SymbolSettings
                     Color32::TRANSPARENT
                 };
                 ui.painter().rect_filled(rect, CornerRadius::same(6), fill);
-                paint_art(ui.painter(), Rect::from_center_size(rect.center() - vec2(0.0, 7.0), vec2(36.0, 36.0)), &art.art, color);
-                let short: String = art.name.chars().take(11).collect();
-                ui.painter().text(rect.center_bottom() - vec2(0.0, 3.0), Align2::CENTER_BOTTOM, short, theme::regular(10.0), t.text_muted);
-                let resp = resp.on_hover_text(art.name.as_str());
-                resp.context_menu(|ui| {
-                    if ui.button(tl!("Remove from my symbols")).clicked() {
-                        remove = Some(i);
-                        ui.close();
+                let art_rect = Rect::from_center_size(rect.center() - vec2(0.0, 7.0), vec2(36.0, 36.0));
+                match *entry {
+                    Entry::Built(symbol) => paint_symbol(ui.painter(), art_rect, symbol, color),
+                    Entry::Mine(i) => {
+                        if let Some(art) = mine.get(i) {
+                            paint_art(ui.painter(), art_rect, &art.art, color);
+                        }
                     }
-                });
-                if resp.clicked() {
-                    pick_mine = Some(i);
                 }
-                if i % 5 == 4 {
+                let short: String = name.chars().take(11).collect();
+                ui.painter().text(rect.center_bottom() - vec2(0.0, 3.0), Align2::CENTER_BOTTOM, short, theme::regular(10.0), t.text_muted);
+                let resp = resp.on_hover_text(name);
+                if let Entry::Mine(i) = *entry {
+                    resp.context_menu(|ui| {
+                        if ui.button(tl!("Remove from my symbols")).clicked() {
+                            remove = Some(i);
+                            ui.close();
+                        }
+                    });
+                }
+                if resp.clicked() {
+                    match *entry {
+                        Entry::Built(symbol) => chosen = Some(symbol),
+                        Entry::Mine(i) => pick_mine = Some(i),
+                    }
+                }
+                if k % 5 == 4 {
                     ui.end_row();
                 }
             }
         });
     }
+    ui.add_space(4.0);
+    ui.label(
+        egui::RichText::new(tl!("To make a symbol from your own drawing, select the lines and choose Make symbol from their menu."))
+            .font(theme::regular(11.0))
+            .color(t.text_faint),
+    );
     if ui.button(tl!("Add symbol from SVG…")).on_hover_text(tl!("Use a line drawing saved as SVG as a symbol of your own")).clicked() {
         add = true;
         ui.close();
@@ -1055,22 +1078,25 @@ impl PdfCraftApp {
         let name = pdfcraft_engine::symbols::clean_label(name);
         let name = if name.is_empty() { tl!("My symbol").to_string() } else { name };
         match pdfcraft_engine::svg_art::svg_art(svg) {
-            Ok(art) => {
-                let new = CustomArt { name: name.clone(), art };
-                if let Some(slot) = self.my_symbols.iter_mut().find(|s| s.name == name) {
-                    *slot = new.clone();
-                } else if self.my_symbols.len() < MAX_MY_SYMBOLS {
-                    self.my_symbols.push(new.clone());
-                } else {
-                    self.notify(tl!("You have as many symbols of your own as can be kept; remove one first.").to_string());
-                    return;
-                }
-                self.symbols.custom = Some(std::sync::Arc::new(new));
-                self.quick_tool = QuickTool::Symbol;
-                self.notify_fmt("Added {name} to your symbols.", &[("name", &name)]);
-            }
+            Ok(art) => self.keep_my_symbol(CustomArt { name, art, trade: None }),
             Err(e) => self.notify(e.to_string()),
         }
+    }
+
+    /// Keep `new` among your symbols (replacing one of the same name) and choose it to place.
+    pub(crate) fn keep_my_symbol(&mut self, new: CustomArt) {
+        let name = new.name.clone();
+        if let Some(slot) = self.my_symbols.iter_mut().find(|s| s.name == name) {
+            *slot = new.clone();
+        } else if self.my_symbols.len() < MAX_MY_SYMBOLS {
+            self.my_symbols.push(new.clone());
+        } else {
+            self.notify(tl!("You have as many symbols of your own as can be kept; remove one first.").to_string());
+            return;
+        }
+        self.symbols.custom = Some(std::sync::Arc::new(new));
+        self.quick_tool = QuickTool::Symbol;
+        self.notify_fmt("Added {name} to your symbols.", &[("name", &name)]);
     }
 
     /// Show the photo pinned at (page, index) of the active document.
