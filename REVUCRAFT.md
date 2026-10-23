@@ -111,7 +111,7 @@ Markup and measuring
 - [x] **(Steve)** Rectangle area (two taps), angle and radius tools.
 - [x] **(Steve)** Symbols: rotate (and snap to the nearest wall), edit the label after placing, renumber a
       selection.
-- [x] **(Steve, build 173)** Symbols: electrical and security libraries; make a symbol from your own drawing.
+- [x] **(Steve, build 174)** Symbols: electrical and security libraries; make a symbol from your own drawing.
       The Symbols panel lists Networking, Electrical (outlets, GFCI, dedicated, floor outlet, switches,
       lights, exit sign, junction box, panel) and Security (motion, door contact, glass-break, keypad,
       siren, smoke and heat detectors, electric strike, mag lock, request-to-exit). Make symbol (a
@@ -339,7 +339,7 @@ Markup and measuring
       it unless the ribbon's width is changed.
 - [ ] **(Steve, back burner)** Select existing PDF linework (click, window or crossing) to delete, restyle,
       or Explode into editable lines (brings forward the Explode item below).
-- [x] **(Steve, build 173)** Folder mappings per device (`M:\Jobs` on the PC = `Sync/Jobs` on the
+- [x] **(Steve, build 174)** Folder mappings per device (`M:\Jobs` on the PC = `Sync/Jobs` on the
       tablet), for drawings kept outside the PDF's folder. Preferences ▸ Folder mappings; linked
       drawings and workbooks are looked for through them (the Links pane says so).
 

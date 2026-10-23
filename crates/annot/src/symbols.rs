@@ -376,10 +376,15 @@ impl Symbol {
                 a.line(30.0, 44.0, 70.0, 44.0);
                 a.line(30.0, 56.0, 70.0, 56.0);
             }
-            Self::LightSwitch => a.tag(50.0, 50.0, 56.0, "S"),
+            // An S on a short stub to the wall it is on.
+            Self::LightSwitch => {
+                a.tag(50.0, 56.0, 56.0, "S");
+                a.line(50.0, 8.0, 50.0, 24.0);
+            }
             Self::ThreeWaySwitch => {
-                a.tag(42.0, 54.0, 52.0, "S");
-                a.tag(72.0, 30.0, 26.0, "3");
+                a.tag(42.0, 58.0, 52.0, "S");
+                a.tag(72.0, 36.0, 26.0, "3");
+                a.line(42.0, 8.0, 42.0, 26.0);
             }
             Self::CeilingLight => {
                 a.circle(50.0, 50.0, 30.0);
@@ -1157,8 +1162,8 @@ mod tests {
         let box_ = add_annotation(&mut doc, &new(Shape::Rectangle { rect: [150.0, 50.0, 250.0, 150.0] }), &Meta::default()).unwrap();
         let art = art_from_drawing(&doc, 0, &[line, box_]).unwrap();
         // 200 wide across: the line spans the square less its margins, centred.
-        assert!(art.starts_with("6 50 m 94 50 l S\n"), "{art}");
-        assert!(art.contains(" re S\n"), "{art}");
+        assert!(art.starts_with("6 50 m\n94 50 l\nS\n"), "{art}");
+        assert!(art.contains("28 28 44 44 re S\n"), "the box, centred: {art}");
         // Nothing drawable, or nothing at all: an error, not an empty symbol.
         assert!(art_from_drawing(&doc, 0, &[]).is_err());
         assert!(art_from_drawing(&doc, 0, &[99]).is_err());
