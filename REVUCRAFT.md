@@ -257,6 +257,17 @@ Markup and measuring
       (for text) font become the current style for every markup and drafting tool. With markups
       selected first, the click restyles them instead (one undo). From a PDF/DWG line only its width
       and colour come. Shift-click (or an option) copies the layer too.
+- [ ] **(Steve, next build)** Object styles, as Illustrator's graphic styles: save a markup's look (stroke,
+      width, dash, line ends, alignment, fill, opacity, font) under a name ("Existing walls", "Demo")
+      in a Styles box; apply one to the selection or make it the current tool style. A text style
+      sets a whole text box's font, size, colour and alignment. Styles are kept in RevuCraft's
+      settings (every drawing), can be exported/imported as a file, and the ones used travel in the
+      PDF. Based on: a style can follow another and change only what differs.
+- [ ] **(Steve, later build)** Paragraph and character styles inside text boxes, as InDesign: a text
+      box holds paragraphs with their own styles (Header, Body); Next style (Enter after a Header
+      starts a Body paragraph); character styles for runs of text; nested styles (bold up to the
+      first colon, then the paragraph's style). Needs rich text editing in text boxes and their
+      appearance (today a text box has one font, size and colour).
 - [ ] **(Steve, next build)** While drafting, the status bar shows the width of the line under the
       pointer ("PDF line 0.35 mm (1.0 pt)").
 - [ ] **(Steve, next build)** A default line width per layer ("ByLayer"): lines drawn on the layer take
