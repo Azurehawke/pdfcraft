@@ -142,7 +142,9 @@ pub(crate) fn pick(app: &mut crate::PdfCraftApp, index: usize, page: usize, sour
     if !targets.is_empty() {
         let edit = restyle(doc, &targets, &look, shift);
         match edit {
-            Some(edit) => app.apply_edit(edit),
+            Some(edit) => {
+                app.apply_edit(edit);
+            }
             None => app.notify(tl!("The selected markups already look like that")),
         }
         return;

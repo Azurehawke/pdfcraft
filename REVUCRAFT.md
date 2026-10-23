@@ -252,12 +252,12 @@ Markup and measuring
       scale, snap and export stay on its ribbon). Symbols keeps its ribbon, which is already the
       symbol's options (library, layer, size, label), legend and counts. Compare moves to Document;
       Document and Forms, being one-off commands rather than tools, keep their buttons in the ribbon.
-- [x] **(Steve, build 155)** Format copy, as Illustrator's eyedropper: click a markup, drafted shape or
+- [x] **(Steve, build 156)** Format copy, as Illustrator's eyedropper: click a markup, drafted shape or
       PDF/DWG line and its stroke colour, width, dash, line ends, stroke alignment, fill, opacity and
       (for text) font become the current style for every markup and drafting tool. With markups
       selected first, the click restyles them instead (one undo). From a PDF/DWG line only its width
       and colour come. Shift-click (or an option) copies the layer too.
-- [x] **(Steve, build 155)** Photo callouts: the dot stays anchored to the drawing; moving the photo box
+- [x] **(Steve, build 156)** Photo callouts: the dot stays anchored to the drawing; moving the photo box
       moves only the box, and the leader re-runs from the dot to the box's nearest point.
 - [ ] **(Steve, build after next)** Object styles, as Illustrator's graphic styles: save a markup's look (stroke,
       width, dash, line ends, alignment, fill, opacity, font) under a name ("Existing walls", "Demo")
@@ -275,9 +275,9 @@ Markup and measuring
       Reuse DesignCraft's style model (designcraft-doc: paragraph and character styles with
       Based on, Next style, nested and nested line styles, and how they resolve) as a pinned git
       dependency, as GridCraft is; its composer only if its bundled fonts can come from craft-fonts.
-- [x] **(Steve, build 155)** While drafting (and with Format copy), the status bar shows the width of the line under the
+- [x] **(Steve, build 156)** While drafting (and with Format copy), the status bar shows the width of the line under the
       pointer ("PDF line 0.35 mm (1.0 pt)").
-- [x] **(Steve, build 155)** A default line width per layer ("ByLayer"; set from the layer's colour dot): lines drawn on the layer take
+- [x] **(Steve, build 156)** A default line width per layer ("ByLayer"; set from the layer's colour dot): lines drawn on the layer take
       it unless the ribbon's width is changed.
 - [ ] **(Steve, back burner)** Select existing PDF linework (click, window or crossing) to delete, restyle,
       or Explode into editable lines (brings forward the Explode item below).

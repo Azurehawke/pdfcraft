@@ -3141,6 +3141,7 @@ fn document_area_pages(app: &mut PdfCraftApp, index: usize, ui: &mut egui::Ui) {
         | QuickTool::Symbol
         | QuickTool::PhotoPin
         | QuickTool::PhotoCallout
+        | QuickTool::FormatCopy
         | QuickTool::Draft(_) => false,
     };
     let prefs = &app.comment_prefs;
