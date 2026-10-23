@@ -252,6 +252,13 @@ Markup and measuring
       scale, snap and export stay on its ribbon). Symbols keeps its ribbon, which is already the
       symbol's options (library, layer, size, label), legend and counts. Compare moves to Document;
       Document and Forms, being one-off commands rather than tools, keep their buttons in the ribbon.
+- [ ] **(Steve, next build)** Match line: an eyedropper in the Draft ribbon; click a line in the PDF or a
+      placed DWG/DXF and the drafting tools take its width and colour (the PDF's line widths read
+      with the snapping geometry).
+- [ ] **(Steve, next build)** While drafting, the status bar shows the width of the line under the
+      pointer ("PDF line 0.35 mm (1.0 pt)").
+- [ ] **(Steve, next build)** A default line width per layer ("ByLayer"): lines drawn on the layer take
+      it unless the ribbon's width is changed.
 - [ ] **(Steve, back burner)** Select existing PDF linework (click, window or crossing) to delete, restyle,
       or Explode into editable lines (brings forward the Explode item below).
 - [ ] **(Steve, later update)** Folder mappings per device (`M:\Jobs` on the PC = `Sync/Jobs` on the
