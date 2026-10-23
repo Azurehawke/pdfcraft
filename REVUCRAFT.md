@@ -283,6 +283,11 @@ Markup and measuring
       highlight; a hidden layer came back on after the next edit; Print could show hidden layers.
       Layers are now matched by their place in the file. Each layer's colour dot has a ring, so a
       black layer (Drafting) shows on the dark panel.
+- [ ] **(Steve, next build)** Drafting kept apart from comments: drafted linework (anything on the
+      Drafting layer or its sublayers, or drawn with a Draft tool and marked so in the PDF) is left
+      out of the Comments panel, so only real comments and markups show there. The Markups list
+      keeps it under its own Drafting filter (off by default) for counting and editing; on the page
+      it still selects and edits as before.
 - [ ] **(Steve, build after next)** Object styles, as Illustrator's graphic styles: save a markup's look (stroke,
       width, dash, line ends, alignment, fill, opacity, font) under a name ("Existing walls", "Demo")
       in a Styles box; apply one to the selection or make it the current tool style. A text style
