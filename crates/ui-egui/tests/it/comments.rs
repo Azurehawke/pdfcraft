@@ -810,7 +810,7 @@ fn comments_are_selected_moved_and_deleted_with_the_select_tool() {
 }
 
 /// A line's ends have handles: dragging one with the Select tool changes the line's length and
-/// angle (Shift holds it to 45°), as one undo step. The line tool keeps drawing from an end: a
+/// angle (in RevuCraft its grips: Shift squares it to the other end), as one undo step. The line tool keeps drawing from an end: a
 /// new line starts there rather than dragging the one just drawn.
 #[test]
 fn line_ends_are_dragged_to_change_length_and_angle() {
@@ -834,8 +834,8 @@ fn line_ends_are_dragged_to_change_length_and_angle() {
     assert!((p[0][0] - 40.0).abs() < 1.0 && (p[0][1] - 100.0).abs() < 1.0, "the other end stays: {p:?}");
     assert!((p[1][0] - 200.0).abs() < 1.0 && (p[1][1] - 160.0).abs() < 1.0, "the dragged end follows: {p:?}");
     let id = h.state().views[0].id;
-    assert_eq!(h.state().session.get(id).unwrap().can_undo(), Some("Reshape comment"));
-    // Shift: held to the nearest 45° from the other end (39° here).
+    assert_eq!(h.state().session.get(id).unwrap().can_undo(), Some("Edit points"));
+    // Shift: squared to the other end (RevuCraft's grips keep drafted lines square).
     let a = at(&h, 200.0, 160.0);
     let b = at(&h, 150.0, 190.0);
     h.hover_at(a);
@@ -853,7 +853,7 @@ fn line_ends_are_dragged_to_change_length_and_angle() {
     h.run_steps(1);
     let p = ends(&h);
     let (dx, dy) = (p[1][0] - p[0][0], p[1][1] - p[0][1]);
-    assert!(dx > 50.0 && (dx - dy).abs() < 0.5, "45°: {p:?}");
+    assert!(dx.abs() < 0.5 || dy.abs() < 0.5, "square: {p:?}");
     // Undo puts the line back as it was before the drag.
     h.state_mut().undo();
     h.run_steps(2);

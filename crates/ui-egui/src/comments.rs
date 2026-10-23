@@ -822,8 +822,10 @@ fn reshapable(a: &Annotation) -> bool {
 /// Whether `tool` picks up a line's end and corner handles: the Select and Fill & Sign tools.
 /// The drawing tools draw from where they are pressed, so a new line starts at the end of the
 /// one just drawn rather than dragging it.
+/// RevuCraft: with the Select tool, its own grips (`draft_edit::grips`, which snap and keep
+/// lines square) move the points instead.
 fn grabs_points(tool: QuickTool) -> bool {
-    !matches!(tool, QuickTool::Comment(t) if t.draws() || t.clicks_points())
+    !matches!(tool, QuickTool::Select) && !matches!(tool, QuickTool::Comment(t) if t.draws() || t.clicks_points())
 }
 
 /// The point of `a` (an end or a corner) whose handle is at `p` on screen.
