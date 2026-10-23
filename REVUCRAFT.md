@@ -259,6 +259,11 @@ Markup and measuring
       and colour come. Shift-click (or an option) copies the layer too.
 - [x] **(Steve, build 157)** Photo callouts: the dot stays anchored to the drawing; moving the photo box
       moves only the box, and the leader re-runs from the dot to the box's nearest point.
+- [ ] **(Steve, next build)** Hairlines in the drafting tools only: the Draft ribbon's Line width gets a
+      Hairline (0 pt) choice, a layer's drafting width can be Hairline, and Format copy from a hairline
+      PDF line makes the drafting width a hairline, so drafted lines match an all-hairline drawing on
+      any printer. Markup and comment tools keep a real width: from a hairline they take only its colour.
+      Format copy always says what it copied ("Copied: black, hairline (drafting); colour only (markup)").
 - [ ] **(Steve, build after next)** Object styles, as Illustrator's graphic styles: save a markup's look (stroke,
       width, dash, line ends, alignment, fill, opacity, font) under a name ("Existing walls", "Demo")
       in a Styles box; apply one to the selection or make it the current tool style. A text style
