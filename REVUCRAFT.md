@@ -111,7 +111,7 @@ Markup and measuring
 - [x] **(Steve)** Rectangle area (two taps), angle and radius tools.
 - [x] **(Steve)** Symbols: rotate (and snap to the nearest wall), edit the label after placing, renumber a
       selection.
-- [ ] Symbols: electrical and security libraries; make a symbol from your own drawing.
+- [ ] **(Steve, next build)** Symbols: electrical and security libraries; make a symbol from your own drawing.
 
 - [x] **(Steve)** Calibrate on the Measure tab: click two ends of a known length, type it in the
       value box beside the point (12'6", 150, 3.5m), on this page or every page.
@@ -288,7 +288,7 @@ Markup and measuring
       out of the Comments panel, so only real comments and markups show there. The Markups list
       keeps it under its own Drafting filter (off by default) for counting and editing; on the page
       it still selects and edits as before.
-- [ ] **(Steve, build after next)** Object styles, as Illustrator's graphic styles: save a markup's look (stroke,
+- [ ] **(Steve, back burner)** Object styles, as Illustrator's graphic styles: save a markup's look (stroke,
       width, dash, line ends, alignment, fill, opacity, font) under a name ("Existing walls", "Demo")
       in a Styles box; apply one to the selection or make it the current tool style. A text style
       sets a whole text box's font, size, colour and alignment. Styles are kept in RevuCraft's
@@ -334,7 +334,7 @@ Markup and measuring
       it unless the ribbon's width is changed.
 - [ ] **(Steve, back burner)** Select existing PDF linework (click, window or crossing) to delete, restyle,
       or Explode into editable lines (brings forward the Explode item below).
-- [ ] **(Steve, later update)** Folder mappings per device (`M:\Jobs` on the PC = `Sync/Jobs` on the
+- [ ] **(Steve, next build)** Folder mappings per device (`M:\Jobs` on the PC = `Sync/Jobs` on the
       tablet), for drawings kept outside the PDF's folder.
 
 Tablet
