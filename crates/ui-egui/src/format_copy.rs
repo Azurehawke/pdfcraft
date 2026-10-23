@@ -112,7 +112,8 @@ pub(crate) fn load(prefs: &mut CommentPrefs, draft: &mut DraftSettings, look: &L
         }
     }
     if let Some(c) = color {
-        draft.color = Some((c, layer));
+        draft.color = Some(c);
+        draft.color_layer = layer;
     }
     if let Some(w) = look.width {
         draft.line_width = LineWidth::Paper(w.clamp(0.1, 72.0));
@@ -122,6 +123,9 @@ pub(crate) fn load(prefs: &mut CommentPrefs, draft: &mut DraftSettings, look: &L
         draft.stroke_align = a;
     }
 }
+
+/// A Format copy click: the sheet, the markup there, the point, the tolerance and Shift.
+pub(crate) type Click = (usize, Option<usize>, [f64; 2], f64, bool);
 
 /// A Format copy click on sheet `page`: the markup `source` there, else the line of the PDF at
 /// `at` (within `tolerance`). With markups selected they take its look; otherwise it becomes the
@@ -169,9 +173,9 @@ mod tests {
         let mut draft = DraftSettings::default();
         let look = Look { color: Some([1.0, 0.0, 0.0]), width: Some(2.5), opacity: Some(0.5), fill: Some(None), ..Look::default() };
         load(&mut prefs, &mut draft, &look, Some((7, 0)));
-        let s = prefs.style(comments::CommentTool::Square);
+        let s = prefs.style(comments::CommentTool::Rectangle);
         assert_eq!((s.color, s.width, s.opacity, s.fill), ([1.0, 0.0, 0.0], 2.5, 0.5, None));
-        assert_eq!(draft.color, Some(([1.0, 0.0, 0.0], Some((7, 0)))));
+        assert_eq!((draft.color, draft.color_layer), (Some([1.0, 0.0, 0.0]), Some((7, 0))));
         assert_eq!(draft.line_width, LineWidth::Paper(2.5));
         assert!(!draft.by_layer, "a picked width wins over the layer's");
         // A PDF line brings only its width and colour; a hairline has no width to copy.

@@ -3175,7 +3175,7 @@ fn document_area_pages(app: &mut PdfCraftApp, index: usize, ui: &mut egui::Ui) {
     let mut symbol_placed = false;
     let mut photo_at: Option<(usize, [f64; 2])> = None;
     // RevuCraft: a Format copy click: page, the markup there, the point, tolerance, Shift.
-    let mut format_pick: Option<(usize, Option<usize>, [f64; 2], f64, bool)> = None;
+    let mut format_pick: Option<crate::format_copy::Click> = None;
     let mut callout_spot = if tool == QuickTool::PhotoCallout { app.symbols.callout_spot } else { None };
     if callout_spot.is_some() && ui.input(|inp| inp.key_pressed(egui::Key::Escape)) {
         callout_spot = None;

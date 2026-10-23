@@ -372,7 +372,8 @@ pub struct DraftSettings {
     pub by_layer: bool,
     /// A colour Format copy picked up for drafted lines, and the layer that was current then:
     /// it holds until the current layer changes (`None`: the current layer's colour).
-    pub color: Option<([f64; 3], Option<(u32, u16)>)>,
+    pub color: Option<[f64; 3]>,
+    pub color_layer: Option<(u32, u16)>,
     /// The Draft tools panel shows only icons.
     pub panel_collapsed: bool,
     /// The tool each fly-out group shows, by group.
@@ -412,6 +413,7 @@ impl Default for DraftSettings {
             line_width: LineWidth::Paper(1.0),
             by_layer: true,
             color: None,
+            color_layer: None,
             panel_collapsed: false,
             group_tool: Vec::new(),
             cable_inches: 120.0,
@@ -666,7 +668,7 @@ pub(crate) fn layer_width(doc: &Document) -> Option<f64> {
 
 /// The colour drafted lines take: what Format copy picked up, else the current layer's.
 pub(crate) fn draft_color(doc: &Document, settings: &DraftSettings) -> [f64; 3] {
-    settings.color.filter(|(_, layer)| *layer == doc.current_layer).map_or_else(|| layer_color(doc), |(c, _)| c)
+    settings.color.filter(|_| settings.color_layer == doc.current_layer).unwrap_or_else(|| layer_color(doc))
 }
 
 pub(crate) fn annotation(page: usize, shape: Shape, color: [f64; 3], width: f64, fill: Option<[f64; 3]>, author: &str) -> Edit {
