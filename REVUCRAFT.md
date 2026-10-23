@@ -259,17 +259,17 @@ Markup and measuring
       and colour come. Shift-click (or an option) copies the layer too.
 - [x] **(Steve, build 157)** Photo callouts: the dot stays anchored to the drawing; moving the photo box
       moves only the box, and the leader re-runs from the dot to the box's nearest point.
-- [x] **(Steve, build 161)** Hairlines in the drafting tools only: the Draft ribbon's Line width gets a
+- [x] **(Steve, build 163)** Hairlines in the drafting tools only: the Draft ribbon's Line width gets a
       Hairline (0 pt) choice, a layer's drafting width can be Hairline, and Format copy from a hairline
       PDF line makes the drafting width a hairline, so drafted lines match an all-hairline drawing on
       any printer. Markup and comment tools keep a real width: from a hairline they take only its colour.
       Format copy always says what it copied ("Copied: black, hairline (drafting); colour only (markup)").
-- [x] **(Steve, build 162)** Photo callouts: resize the photo and the text separately. With the callout
+- [x] **(Steve, build 163)** Photo callouts: resize the photo and the text separately. With the callout
       selected, a handle on the photo's outer corner scales the photo (keeping its proportions; the box's
       height follows), and a handle on the text's outer edge sets the text width (the description
       rewraps and the box grows or shrinks to fit). The dot stays put; the leader re-attaches. One undo
       each; the photo height and text width also in the Properties box for exact sizes.
-- [x] **(Steve, build 162)** Layers as Illustrator's: sublayers nested in layers (stored as the PDF's
+- [x] **(Steve, build 163)** Layers as Illustrator's: sublayers nested in layers (stored as the PDF's
       nested layer order, so other viewers show the tree), a parent's eye and lock acting on everything
       inside, drag rows to reorder or nest, drag down the eye column to set several (the lock column
       not yet). Drafted

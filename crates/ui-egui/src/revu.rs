@@ -820,8 +820,12 @@ pub fn layers_panel(app: &mut PdfCraftApp, ui: &mut egui::Ui, index: usize, id: 
             };
             let stroke = egui::Stroke::new(2.0, t.accent);
             match place {
-                pdfcraft_engine::LayerPlace::Before(_) => ui.painter().hline(r.x_range(), r.top(), stroke),
-                pdfcraft_engine::LayerPlace::After(_) => ui.painter().hline(r.x_range(), r.bottom(), stroke),
+                pdfcraft_engine::LayerPlace::Before(_) => {
+                    ui.painter().hline(r.x_range(), r.top(), stroke);
+                }
+                pdfcraft_engine::LayerPlace::After(_) => {
+                    ui.painter().hline(r.x_range(), r.bottom(), stroke);
+                }
                 pdfcraft_engine::LayerPlace::Into(_) => {
                     ui.painter().rect_stroke(r, CornerRadius::same(6), stroke, egui::StrokeKind::Inside);
                 }
