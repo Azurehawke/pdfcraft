@@ -73,21 +73,13 @@ pub(crate) struct State<'a> {
 
 impl Default for State<'_> {
     fn default() -> Self {
-        State {
-            ctm: Affine::IDENTITY,
-            clips: vec![],
-            text_state: TextState::default(),
-            graphics_state: GraphicsState::default(),
-        }
+        State { ctm: Affine::IDENTITY, clips: vec![], text_state: TextState::default(), graphics_state: GraphicsState::default() }
     }
 }
 
 impl<'a> State<'a> {
     pub(crate) fn new(initial_transform: Affine) -> Self {
-        Self {
-            ctm: initial_transform,
-            ..Self::default()
-        }
+        Self { ctm: initial_transform, ..Self::default() }
     }
 
     pub(crate) fn stroke_data(&self) -> PaintData<'a> {
@@ -153,14 +145,7 @@ pub(crate) struct TextState<'a> {
 
 impl<'a> TextState<'a> {
     fn temp_transform(&self) -> Affine {
-        Affine::new([
-            self.font_size as f64 * self.horizontal_scaling() as f64,
-            0.0,
-            0.0,
-            self.font_size as f64,
-            0.0,
-            self.rise as f64,
-        ])
+        Affine::new([self.font_size as f64 * self.horizontal_scaling() as f64, 0.0, 0.0, self.font_size as f64, 0.0, self.rise as f64])
     }
 
     fn horizontal_scaling(&self) -> f32 {
@@ -168,59 +153,31 @@ impl<'a> TextState<'a> {
     }
 
     fn font_horizontal(&self) -> bool {
-        self.font
-            .as_ref()
-            .map(|f| f.is_horizontal())
-            .unwrap_or(false)
+        self.font.as_ref().map(|f| f.is_horizontal()).unwrap_or(false)
     }
 
     pub(crate) fn apply_adjustment(&mut self, adjustment: f32) {
         let horizontal = self.font_horizontal();
 
-        let horizontal_scaling = if horizontal {
-            self.horizontal_scaling()
-        } else {
-            1.0
-        };
+        let horizontal_scaling = if horizontal { self.horizontal_scaling() } else { 1.0 };
 
         let scaled_adjustment = -adjustment / UNITS_PER_EM * self.font_size * horizontal_scaling;
-        let (tx, ty) = if horizontal {
-            (scaled_adjustment, 0.0)
-        } else {
-            (0.0, scaled_adjustment)
-        };
+        let (tx, ty) = if horizontal { (scaled_adjustment, 0.0) } else { (0.0, scaled_adjustment) };
 
         self.text_matrix *= Affine::new([1.0, 0.0, 0.0, 1.0, tx as f64, ty as f64]);
     }
 
     pub(crate) fn apply_code_advance(&mut self, char_code: u32, code_len: usize) {
-        let glyph_advance = self
-            .font
-            .as_ref()
-            .map(|f| f.code_advance(char_code))
-            .unwrap_or(Vec2::ZERO);
+        let glyph_advance = self.font.as_ref().map(|f| f.code_advance(char_code)).unwrap_or(Vec2::ZERO);
         let horizontal = self.font_horizontal();
 
-        let word_space = if char_code == 32 && code_len == 1 {
-            self.word_space
-        } else {
-            0.0
-        };
+        let word_space = if char_code == 32 && code_len == 1 { self.word_space } else { 0.0 };
 
-        let base_advance =
-            |advance: f32| advance / UNITS_PER_EM * self.font_size + self.char_space + word_space;
+        let base_advance = |advance: f32| advance / UNITS_PER_EM * self.font_size + self.char_space + word_space;
 
-        let tx = if horizontal {
-            base_advance(glyph_advance.x as f32) * self.horizontal_scaling()
-        } else {
-            0.0
-        };
+        let tx = if horizontal { base_advance(glyph_advance.x as f32) * self.horizontal_scaling() } else { 0.0 };
 
-        let ty = if !horizontal {
-            base_advance(glyph_advance.y as f32)
-        } else {
-            0.0
-        };
+        let ty = if !horizontal { base_advance(glyph_advance.y as f32) } else { 0.0 };
 
         self.text_matrix *= Affine::new([1.0, 0.0, 0.0, 1.0, tx as f64, ty as f64]);
     }
@@ -298,52 +255,31 @@ pub(crate) struct PaintData<'a> {
     pub(crate) transfer_function: Option<ActiveTransferFunction>,
 }
 
-pub(crate) fn handle_gs<'a>(
-    dict: &Dict<'a>,
-    context: &mut Context<'a>,
-    parent_resources: &Resources<'a>,
-) {
+pub(crate) fn handle_gs<'a>(dict: &Dict<'a>, context: &mut Context<'a>, parent_resources: &Resources<'a>) {
     for key in dict.keys() {
-        handle_gs_single(dict, key.clone(), context, parent_resources).warn_none(&format!(
-            "invalid value in graphics state for {}",
-            key.as_str()
-        ));
+        handle_gs_single(dict, key.clone(), context, parent_resources).warn_none(&format!("invalid value in graphics state for {}", key.as_str()));
     }
 }
 
-pub(crate) fn handle_gs_single<'a>(
-    dict: &Dict<'a>,
-    key: Name<'_>,
-    context: &mut Context<'a>,
-    parent_resources: &Resources<'a>,
-) -> Option<()> {
+pub(crate) fn handle_gs_single<'a>(dict: &Dict<'a>, key: Name<'_>, context: &mut Context<'a>, parent_resources: &Resources<'a>) -> Option<()> {
     // TODO Can we use constants here somehow?
     match key.as_str() {
         "LW" => context.get_mut().graphics_state.stroke_props.line_width = dict.get::<f32>(key)?,
         "LC" => {
-            context.get_mut().graphics_state.stroke_props.line_cap =
-                convert_line_cap(LineCap(dict.get::<Number>(key)?));
+            context.get_mut().graphics_state.stroke_props.line_cap = convert_line_cap(LineCap(dict.get::<Number>(key)?));
         }
         "LJ" => {
-            context.get_mut().graphics_state.stroke_props.line_join =
-                convert_line_join(LineJoin(dict.get::<Number>(key)?));
+            context.get_mut().graphics_state.stroke_props.line_join = convert_line_join(LineJoin(dict.get::<Number>(key)?));
         }
         "ML" => context.get_mut().graphics_state.stroke_props.miter_limit = dict.get::<f32>(key)?,
         "CA" => context.get_mut().graphics_state.stroke_alpha = dict.get::<f32>(key)?,
         "ca" => context.get_mut().graphics_state.non_stroke_alpha = dict.get::<f32>(key)?,
         "TR" | "TR2" => {
-            let function = match dict
-                .get::<Object<'_>>(TR2)
-                .or_else(|| dict.get::<Object<'_>>(TR))?
-            {
+            let function = match dict.get::<Object<'_>>(TR2).or_else(|| dict.get::<Object<'_>>(TR))? {
                 Object::Array(array) => {
                     let mut iter = array.iter::<Object<'_>>();
-                    let functions = [
-                        Function::new(&iter.next()?)?,
-                        Function::new(&iter.next()?)?,
-                        Function::new(&iter.next()?)?,
-                        Function::new(&iter.next()?)?,
-                    ];
+                    let functions =
+                        [Function::new(&iter.next()?)?, Function::new(&iter.next()?)?, Function::new(&iter.next()?)?, Function::new(&iter.next()?)?];
 
                     Some(ActiveTransferFunction::Four(functions))
                 }
@@ -360,9 +296,8 @@ pub(crate) fn handle_gs_single<'a>(
                     context.get_mut().graphics_state.soft_mask = None;
                 }
             } else {
-                context.get_mut().graphics_state.soft_mask = dict
-                    .get::<Dict<'_>>(SMASK)
-                    .and_then(|d| SoftMask::new(&d, context, parent_resources.clone()));
+                context.get_mut().graphics_state.soft_mask =
+                    dict.get::<Dict<'_>>(SMASK).and_then(|d| SoftMask::new(&d, context, parent_resources.clone()));
             }
         }
         "BM" => {

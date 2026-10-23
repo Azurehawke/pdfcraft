@@ -8,12 +8,7 @@ use hayro_syntax::object;
 use hayro_syntax::page::Resources;
 use kurbo::Affine;
 
-pub(crate) fn show_text_string<'a>(
-    ctx: &mut Context<'a>,
-    device: &mut impl Device<'a>,
-    resources: &Resources<'a>,
-    text: &object::String<'_>,
-) {
+pub(crate) fn show_text_string<'a>(ctx: &mut Context<'a>, device: &mut impl Device<'a>, resources: &Resources<'a>, text: &object::String<'_>) {
     let Some(font) = ctx.get().text_state.font.clone() else {
         warn!("tried to show text without active font");
 
@@ -25,8 +20,7 @@ pub(crate) fn show_text_string<'a>(
     // In case we have a fallback font (which occurs if either no font was set at all
     // in the content stream, or an invalid one), we only want to show the glyphs
     // using Helvetica if the bytes are actually valid ASCII.
-    let show_glyphs = matches!(font, TextStateFont::Font(_))
-        || (matches!(font, TextStateFont::Fallback(_)) && bytes.is_ascii());
+    let show_glyphs = matches!(font, TextStateFont::Font(_)) || (matches!(font, TextStateFont::Fallback(_)) && bytes.is_ascii());
 
     let mut cur_idx = 0;
 
@@ -35,13 +29,7 @@ pub(crate) fn show_text_string<'a>(
         cur_idx += adv;
 
         if show_glyphs {
-            let (glyph, glyph_transform) = font.get_glyph(
-                font.map_code(code),
-                code,
-                ctx,
-                resources,
-                font.origin_displacement(code),
-            );
+            let (glyph, glyph_transform) = font.get_glyph(font.map_code(code), code, ctx, resources, font.origin_displacement(code));
             show_glyph(ctx, device, &glyph, glyph_transform);
         }
 
@@ -55,12 +43,7 @@ pub(crate) fn next_line(ctx: &mut Context<'_>, tx: f64, ty: f64) {
     ctx.get_mut().text_state.text_matrix = new_matrix;
 }
 
-pub(crate) fn show_glyph<'a>(
-    ctx: &mut Context<'a>,
-    device: &mut impl Device<'a>,
-    glyph: &Glyph<'a>,
-    glyph_transform: Affine,
-) {
+pub(crate) fn show_glyph<'a>(ctx: &mut Context<'a>, device: &mut impl Device<'a>, glyph: &Glyph<'a>, glyph_transform: Affine) {
     if !ctx.ocg_state.is_visible() {
         return;
     }
@@ -80,89 +63,39 @@ pub(crate) fn show_glyph<'a>(
 
     match render_mode {
         TextRenderingMode::Fill => {
-            device.draw_glyph(
-                glyph,
-                ctx.get().ctm,
-                glyph_transform,
-                &get_paint(ctx, false),
-                &GlyphDrawMode::Fill,
-            );
+            device.draw_glyph(glyph, ctx.get().ctm, glyph_transform, &get_paint(ctx, false), &GlyphDrawMode::Fill);
         }
         TextRenderingMode::Stroke => {
-            device.draw_glyph(
-                glyph,
-                ctx.get().ctm,
-                glyph_transform,
-                &get_paint(ctx, true),
-                &GlyphDrawMode::Stroke(stroke_props),
-            );
+            device.draw_glyph(glyph, ctx.get().ctm, glyph_transform, &get_paint(ctx, true), &GlyphDrawMode::Stroke(stroke_props));
         }
         TextRenderingMode::FillStroke => {
-            device.draw_glyph(
-                glyph,
-                ctx.get().ctm,
-                glyph_transform,
-                &get_paint(ctx, false),
-                &GlyphDrawMode::Fill,
-            );
-            device.draw_glyph(
-                glyph,
-                ctx.get().ctm,
-                glyph_transform,
-                &get_paint(ctx, true),
-                &GlyphDrawMode::Stroke(stroke_props),
-            );
+            device.draw_glyph(glyph, ctx.get().ctm, glyph_transform, &get_paint(ctx, false), &GlyphDrawMode::Fill);
+            device.draw_glyph(glyph, ctx.get().ctm, glyph_transform, &get_paint(ctx, true), &GlyphDrawMode::Stroke(stroke_props));
         }
         TextRenderingMode::Invisible => {
             // Still call draw_glyph for invisible text, so that it can
             // for example be used for text extraction.
-            device.draw_glyph(
-                glyph,
-                ctx.get().ctm,
-                glyph_transform,
-                &get_paint(ctx, false),
-                &GlyphDrawMode::Invisible,
-            );
+            device.draw_glyph(glyph, ctx.get().ctm, glyph_transform, &get_paint(ctx, false), &GlyphDrawMode::Invisible);
         }
         TextRenderingMode::Clip => {
             clip_glyph(ctx, glyph, glyph_transform);
+            // PdfCraft patch: report clipping text separately from invisible OCR text.
+            // Extraction filters must retain text that is filled through its
+            // clipping path without rendering devices drawing it directly.
+            device.draw_glyph(glyph, ctx.get().ctm, glyph_transform, &get_paint(ctx, false), &GlyphDrawMode::Clip);
         }
         TextRenderingMode::FillAndClip => {
             clip_glyph(ctx, glyph, glyph_transform);
-            device.draw_glyph(
-                glyph,
-                ctx.get().ctm,
-                glyph_transform,
-                &get_paint(ctx, false),
-                &GlyphDrawMode::Fill,
-            );
+            device.draw_glyph(glyph, ctx.get().ctm, glyph_transform, &get_paint(ctx, false), &GlyphDrawMode::Fill);
         }
         TextRenderingMode::StrokeAndClip => {
             clip_glyph(ctx, glyph, glyph_transform);
-            device.draw_glyph(
-                glyph,
-                ctx.get().ctm,
-                glyph_transform,
-                &get_paint(ctx, true),
-                &GlyphDrawMode::Stroke(stroke_props),
-            );
+            device.draw_glyph(glyph, ctx.get().ctm, glyph_transform, &get_paint(ctx, true), &GlyphDrawMode::Stroke(stroke_props));
         }
         TextRenderingMode::FillAndStrokeAndClip => {
             clip_glyph(ctx, glyph, glyph_transform);
-            device.draw_glyph(
-                glyph,
-                ctx.get().ctm,
-                glyph_transform,
-                &get_paint(ctx, false),
-                &GlyphDrawMode::Fill,
-            );
-            device.draw_glyph(
-                glyph,
-                ctx.get().ctm,
-                glyph_transform,
-                &get_paint(ctx, true),
-                &GlyphDrawMode::Stroke(stroke_props),
-            );
+            device.draw_glyph(glyph, ctx.get().ctm, glyph_transform, &get_paint(ctx, false), &GlyphDrawMode::Fill);
+            device.draw_glyph(glyph, ctx.get().ctm, glyph_transform, &get_paint(ctx, true), &GlyphDrawMode::Stroke(stroke_props));
         }
     }
 }

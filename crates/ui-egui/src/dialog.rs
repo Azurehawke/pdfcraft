@@ -42,4 +42,10 @@ impl AsyncFileDialog {
         self.file_name = Some(name.into());
         self
     }
+
+    /// The folder to start in: the in-app picker starts in its own places, so this is noted only.
+    #[must_use]
+    pub fn set_directory(self, _dir: impl AsRef<std::path::Path>) -> Self {
+        self
+    }
 }

@@ -296,8 +296,9 @@ Markup and measuring
 - [x] **(Steve, build 175)** CADCraft brought up to date (169 commits): layouts in millimetres plot in
       millimetres, plot windows kept, second-layout entities, DWG dimension text and DGN-bloated
       drawings, thin wide polylines stay visible, import and rendering bounded against hostile drawings.
-- [ ] **(Steve, when asked)** PdfCraft brought up to date (about 1,080 commits since Oct 21): a merge build
-      on its own.
+- [x] **(Steve, build 176)** PdfCraft brought up to date (about 1,080 commits since Oct 21, upstream a2ec27b): a
+      merge build on its own. RevuCraft keeps its scale panel, dock rail and layer panel; upstream's
+      line and polygon reshaping, comment hover order, page gaps and repair work come in.
 - [ ] **(Steve, back burner)** Object styles, as Illustrator's graphic styles: save a markup's look (stroke,
       width, dash, line ends, alignment, fill, opacity, font) under a name ("Existing walls", "Demo")
       in a Styles box; apply one to the selection or make it the current tool style. A text style

@@ -6,11 +6,7 @@ use crate::{FillRule, Paint, PathDrawMode, StrokeProps};
 use kurbo::{BezPath, Cap, Join, PathEl};
 use smallvec::smallvec;
 
-pub(crate) fn fill_path<'a>(
-    context: &mut Context<'a>,
-    device: &mut impl Device<'a>,
-    fill_rule: FillRule,
-) {
+pub(crate) fn fill_path<'a>(context: &mut Context<'a>, device: &mut impl Device<'a>, fill_rule: FillRule) {
     fill_path_impl(context, device, fill_rule, None);
     apply_pending_clip(context, device);
 
@@ -24,11 +20,7 @@ pub(crate) fn stroke_path<'a>(context: &mut Context<'a>, device: &mut impl Devic
     context.path_mut().truncate(0);
 }
 
-pub(crate) fn fill_stroke_path<'a>(
-    context: &mut Context<'a>,
-    device: &mut impl Device<'a>,
-    fill_rule: FillRule,
-) {
+pub(crate) fn fill_stroke_path<'a>(context: &mut Context<'a>, device: &mut impl Device<'a>, fill_rule: FillRule) {
     fill_path_impl(context, device, fill_rule, None);
     stroke_path_impl(context, device, None);
     apply_pending_clip(context, device);
@@ -59,12 +51,7 @@ pub(crate) fn close_path(context: &mut Context<'_>) {
     }
 }
 
-pub(crate) fn fill_path_impl<'a>(
-    context: &mut Context<'a>,
-    device: &mut impl Device<'a>,
-    fill_rule: FillRule,
-    path: Option<&BezPath>,
-) {
+pub(crate) fn fill_path_impl<'a>(context: &mut Context<'a>, device: &mut impl Device<'a>, fill_rule: FillRule, path: Option<&BezPath>) {
     if !context.ocg_state.is_visible() {
         return;
     }
@@ -79,10 +66,7 @@ pub(crate) fn fill_path_impl<'a>(
         // pdf.js issue 4260: Replace zero-sized paths with a small stroke instead.
         let bbox = path.fast_bounding_box();
 
-        match (
-            (bbox.width() as f32).is_nearly_zero(),
-            (bbox.height() as f32).is_nearly_zero(),
-        ) {
+        match ((bbox.width() as f32).is_nearly_zero(), (bbox.height() as f32).is_nearly_zero()) {
             (false, false) => {
                 let draw_mode = PathDrawMode::Fill(fill_rule);
                 if let Some(rect) = path_as_rect(path) {
@@ -104,12 +88,7 @@ pub(crate) fn fill_path_impl<'a>(
                     ..Default::default()
                 };
 
-                device.draw_path(
-                    &path,
-                    base_transform,
-                    &paint,
-                    &PathDrawMode::Stroke(stroke_props),
-                );
+                device.draw_path(&path, base_transform, &paint, &PathDrawMode::Stroke(stroke_props));
             }
         };
     };
@@ -120,11 +99,7 @@ pub(crate) fn fill_path_impl<'a>(
     };
 }
 
-pub(crate) fn stroke_path_impl<'a>(
-    context: &mut Context<'a>,
-    device: &mut impl Device<'a>,
-    path: Option<&BezPath>,
-) {
+pub(crate) fn stroke_path_impl<'a>(context: &mut Context<'a>, device: &mut impl Device<'a>, path: Option<&BezPath>) {
     if !context.ocg_state.is_visible() {
         return;
     }
@@ -147,11 +122,7 @@ pub(crate) fn stroke_path_impl<'a>(
 }
 
 pub(crate) fn get_paint<'a>(context: &Context<'a>, is_stroke: bool) -> Paint<'a> {
-    let data = if is_stroke {
-        context.get().stroke_data()
-    } else {
-        context.get().non_stroke_data()
-    };
+    let data = if is_stroke { context.get().stroke_data() } else { context.get().non_stroke_data() };
 
     if data.color_space.is_pattern() || data.pattern.is_some() {
         if let Some(mut pattern) = data.pattern {
@@ -159,6 +130,8 @@ pub(crate) fn get_paint<'a>(context: &Context<'a>, is_stroke: bool) -> Paint<'a>
                 pattern.set_transfer_function(tf.clone());
             }
 
+            // PdfCraft patch: `CA`/`ca` can be set by a `gs` after the pattern colour operator, so use the alpha current at paint time.
+            pattern.set_alpha(data.alpha);
             pattern.pre_concat_transform(context.root_transform());
 
             Paint::Pattern(Box::new(pattern))
@@ -169,10 +142,6 @@ pub(crate) fn get_paint<'a>(context: &Context<'a>, is_stroke: bool) -> Paint<'a>
     } else {
         let color = Color::new(data.color_space, data.color, data.alpha);
 
-        if let Some(tf) = &data.transfer_function {
-            Paint::Color(Color::from_rgba(tf.apply(&color.to_rgba())))
-        } else {
-            Paint::Color(color)
-        }
+        if let Some(tf) = &data.transfer_function { Paint::Color(Color::from_rgba(tf.apply(&color.to_rgba()))) } else { Paint::Color(color) }
     }
 }
