@@ -27,9 +27,11 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
     let Some((index, id)) = app.active_ids() else { return };
     let t = Tokens::get(ui.ctx());
     let pos = position(app, index);
+    let mut under = None;
     if let Some(v) = app.views.get_mut(index) {
-        // The canvas sets it again while the pointer is over a page.
+        // The canvas sets them again while the pointer is over a page.
         v.cursor = None;
+        under = v.draft.under.take();
     }
     let layers = app.session.layer_details(id);
     let current = app.session.get(id).and_then(|d| d.current_layer);
@@ -63,6 +65,10 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
                         ui.label(egui::RichText::new(tl!("Point at the drawing to see coordinates")).font(font.clone()).color(t.text_faint));
                     }
                     None => {}
+                }
+                // The width of the line under the pointer, while drafting.
+                if let Some(under) = &under {
+                    ui.label(egui::RichText::new(under).font(font.clone()).color(t.text_muted));
                 }
                 if let Some(hint) = hint.filter(|_| !compact) {
                     ui.label(egui::RichText::new(hint).font(font.clone()).color(t.text_muted));

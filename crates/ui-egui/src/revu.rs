@@ -592,6 +592,7 @@ pub fn layers_panel(app: &mut PdfCraftApp, ui: &mut egui::Ui, index: usize, id: 
         let ours = detail.is_some();
         let color = detail.map_or(Color32::GRAY, |d| color32(d.color));
         let locked = detail.is_some_and(|d| d.locked);
+        let layer_width = detail.and_then(|d| d.width);
         let is_current = current == Some(*key);
         let r = row(ui);
         if is_current {
@@ -619,9 +620,24 @@ pub fn layers_panel(app: &mut PdfCraftApp, ui: &mut egui::Ui, index: usize, id: 
                                 }
                             }
                         });
+                        // The width lines drafted on the layer take (By layer in the Draft ribbon).
+                        ui.separator();
+                        ui.label(egui::RichText::new(tl!("Line width for drafting on this layer")).font(theme::regular(11.0)).color(t.text_muted));
+                        ui.horizontal_wrapped(|ui| {
+                            for w in [None, Some(0.5), Some(0.7), Some(1.0), Some(1.4), Some(2.0)] {
+                                let label = match w {
+                                    None => tl!("None").to_string(),
+                                    Some(w) => format!("{w} pt"),
+                                };
+                                if ui.selectable_label(layer_width == w, label).clicked() {
+                                    edit = Some(Edit::SetLayerWidth { layer: *key, width: w });
+                                    ui.close();
+                                }
+                            }
+                        });
                     })
                     .response
-                    .on_hover_text(tl!("Layer colour"));
+                    .on_hover_text(tl!("Layer colour and line width"));
             });
         }
         match &mut panel.renaming {

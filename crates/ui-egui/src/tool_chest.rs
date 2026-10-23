@@ -266,6 +266,7 @@ impl PdfCraftApp {
         }
         if let Some(w) = t.line_width {
             self.draft.line_width = w;
+            self.draft.by_layer = false;
         }
         if let Some(s) = &t.symbol
             && let Some(symbol) = pdfcraft_engine::symbols::Symbol::from_id(&s.symbol)

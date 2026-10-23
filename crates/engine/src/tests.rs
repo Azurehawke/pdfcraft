@@ -5388,6 +5388,14 @@ fn layers_symbols_and_photos() {
     s.apply(id, Edit::RenameLayer { layer: data, name: "Data drops".into() }).unwrap();
     s.apply(id, Edit::SetLayerColor { layer: data, color: [1.0, 0.0, 0.0] }).unwrap();
     assert_eq!((s.layer_details(id)[0].name.as_str(), s.layer_details(id)[0].color), ("Data drops", [1.0, 0.0, 0.0]));
+    // A layer's line width: set, cleared, and refused out of range.
+    assert_eq!(s.layer_details(id)[0].width, None);
+    s.apply(id, Edit::SetLayerWidth { layer: data, width: Some(1.4) }).unwrap();
+    assert_eq!(s.layer_details(id)[0].width, Some(1.4));
+    s.apply(id, Edit::SetLayerWidth { layer: data, width: None }).unwrap();
+    assert_eq!(s.layer_details(id)[0].width, None);
+    assert!(s.apply(id, Edit::SetLayerWidth { layer: data, width: Some(f64::NAN) }).is_err());
+    assert!(s.apply(id, Edit::SetLayerWidth { layer: data, width: Some(500.0) }).is_err());
     // A current layer deleted elsewhere is ignored rather than failing new markup.
     s.set_current_layer(id, Some((9999, 0))).unwrap();
     s.apply(id, jack("AP", 20.0)).unwrap();

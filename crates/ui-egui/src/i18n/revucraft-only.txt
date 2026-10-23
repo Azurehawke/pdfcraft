@@ -35,6 +35,8 @@ Base point (x,y from the origin)
 Break (click a line where it splits)
 Break and join
 Built on PdfCraft
+By layer
+By layer ({w} pt)
 Cable
 Cable ({layer}): {runs} runs, {length}
 Cable run
@@ -57,6 +59,7 @@ Chamfer (two lines: a cut corner)
 Chamfer distance
 Change guides
 Change layer colour
+Change layer line width
 Change line width
 Change…
 Choices (comma-separated)
@@ -183,6 +186,9 @@ Flip side
 Float this panel
 Floor box
 Form
+Format copied: new markups and lines take this look
+Format copy
+Format copy: click a markup or line to use its look (with markups selected: give them its look; Shift: its layer too)
 Found by name in a subfolder of the PDF's folder
 Found by name next to the PDF
 Found relative to the PDF
@@ -218,6 +224,7 @@ Keep the original
 Keypad
 Layer
 Layer colour
+Layer colour and line width
 Layout
 Leave the choices empty for a column you type into.
 Legend
@@ -225,6 +232,7 @@ Length format
 Length, or @x,y
 Line up with walls
 Line width
+Line width for drafting on this layer
 Linear dimension (horizontal or vertical)
 Lines
 Links
@@ -236,6 +244,7 @@ Make text editable
 Make this the current layer
 Manage layers
 Markup and takeoff for construction drawings, built on PdfCraft.
+Markup line
 Markup tools
 Markups and reports
 Markups list
@@ -294,6 +303,7 @@ Not found at this path
 Not started
 Nothing ahead of this end to extend to
 Nothing crosses this line to trim to
+Nothing to copy there: click a markup or a line
 Number each symbol, counting up
 Off: an update replaces the drawing. On: the drawing it replaces stays as a hidden layer, to compare.
 Offset
@@ -318,6 +328,7 @@ Outside
 Outside face
 PC, VoIP…
 PDF and images
+PDF line
 PDF, drawings and images
 Paper
 Paste markups
@@ -517,6 +528,7 @@ The page can't be measured.
 The photo couldn't be found.
 The photo's height on the sheet
 The quantities have changed since they were sent to {name}.
+The selected markups already look like that
 The two points are in the same place; pick two ends of a length.
 The wall is shorter than the opening
 The workbook is too large to show here.
@@ -598,6 +610,7 @@ Your columns: drop ID, progress and others
 Your size
 already exists. Replace it?
 ft
+hairline
 in
 the text recognition models are not installed (reinstall RevuCraft, or set PDFCRAFT_MODELS to the folder that holds them)
 {name} can't be found.

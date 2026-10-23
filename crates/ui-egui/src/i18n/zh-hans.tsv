@@ -2992,3 +2992,16 @@ animation effects	Off	关
 	Markup tools	标记工具
 	Measure tools	测量工具
 	Pick a tool in the Markup tools panel on the left	请在左侧的标记工具面板中选择工具
+	By layer	随图层
+	By layer ({w} pt)	随图层 ({w} pt)
+	Change layer line width	更改图层线宽
+	Format copied: new markups and lines take this look	已复制格式：新的标记和线条将使用此外观
+	Format copy	格式刷
+	Format copy: click a markup or line to use its look (with markups selected: give them its look; Shift: its layer too)	格式刷：单击标记或线条以使用其外观（已选择标记时：将外观应用到它们；Shift：同时复制图层）
+	Layer colour and line width	图层颜色和线宽
+	Line width for drafting on this layer	在此图层上绘图时的线宽
+	Markup line	标记线
+	Nothing to copy there: click a markup or a line	此处没有可复制的内容：请单击标记或线条
+	PDF line	PDF 线条
+	The selected markups already look like that	所选标记已是此外观
+	hairline	细线

@@ -98,6 +98,7 @@ mod files;
 pub mod fill_sign;
 mod fling;
 pub mod folders_ui;
+mod format_copy;
 pub mod forms_ui;
 mod guides_ui;
 mod home;
@@ -291,6 +292,8 @@ pub enum QuickTool {
     PhotoPin,
     /// RevuCraft: a photo callout: tap the spot, then where the box goes.
     PhotoCallout,
+    /// RevuCraft: Format copy: click a markup or line to take its look ([`format_copy`]).
+    FormatCopy,
     /// RevuCraft: draw at scale (the Draft tab).
     Draft(draft::DraftTool),
 }
@@ -317,6 +320,7 @@ impl QuickTool {
             QuickTool::Symbol => "symbol".to_string(),
             QuickTool::PhotoPin => "photo-pin".to_string(),
             QuickTool::PhotoCallout => "photo-callout".to_string(),
+            QuickTool::FormatCopy => "format-copy".to_string(),
             QuickTool::Draft(t) => format!("draft-{}", t.name()),
             QuickTool::Stamp(k) => format!("stamp-{}", k.name().trim_start_matches("PC").to_ascii_lowercase()),
             QuickTool::CustomStamp(i) => format!("custom-stamp-{i}"),
@@ -2541,6 +2545,7 @@ impl PdfCraftApp {
             "symbol" => QuickTool::Symbol,
             "photo-pin" => QuickTool::PhotoPin,
             "photo-callout" => QuickTool::PhotoCallout,
+            "format-copy" => QuickTool::FormatCopy,
             d if d.starts_with("draft-") => QuickTool::Draft(draft::DraftTool::from_name(&d[6..]).ok_or_else(|| format!("unknown draft tool {d}"))?),
             "certify" => QuickTool::SignArea { certify: true },
             custom if custom.starts_with("custom-stamp-") => {

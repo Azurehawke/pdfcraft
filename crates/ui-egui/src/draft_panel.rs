@@ -107,7 +107,14 @@ const fn run(id: &'static str) -> Entry {
 }
 
 /// The Markup tab's tools: markups, photos and dimensions, then the comments themselves.
-pub const MARKUP_GROUPS: [(&str, &str, &[Entry]); 9] = [
+/// Format copy: click a markup or line to take its look (selected markups: give them its look).
+pub const FORMAT_COPY: Entry = Entry::Quick {
+    tool: QuickTool::FormatCopy,
+    icon: "pipette",
+    label: "Format copy: click a markup or line to use its look (with markups selected: give them its look; Shift: its layer too)",
+};
+
+pub const MARKUP_GROUPS: [(&str, &str, &[Entry]); 10] = [
     (
         "Text markup",
         "Markup",
@@ -142,6 +149,7 @@ pub const MARKUP_GROUPS: [(&str, &str, &[Entry]); 9] = [
         ],
     ),
     ("Dimensions", "Markup", &[Entry::Tool(D::Dimension), Entry::Tool(D::DimLinear), Entry::Tool(D::DimRadius), Entry::Tool(D::DimDiameter)]),
+    ("Format", "Markup", &[FORMAT_COPY]),
     ("Comments", "Comments", &[run("comment.list"), run("comment.summarize"), run("comment.hide_all"), run("comment.flatten")]),
     ("Exchange", "Comments", &[run("comment.import"), run("comment.export")]),
 ];

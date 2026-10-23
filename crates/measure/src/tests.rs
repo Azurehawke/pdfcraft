@@ -550,3 +550,23 @@ fn unnamed_and_copied_measurements_are_named_once() {
     assert_eq!(got, ["Area_1", "Area_2", "Area_1_2"]);
     assert_eq!(names::name_all(&mut d).unwrap(), 0, "nothing left to name");
 }
+
+#[test]
+fn stroked_lines_keep_their_width_and_colour() {
+    let content = "2 w 1 0 0 RG 0 0 m 100 0 l S q 0.5 0 0 0.5 0 0 cm 4 w 0 0 1 0 K 0 100 m 100 100 l S Q 0 200 m 50 200 l 50 250 l f 0.25 w 0 300 m 100 300 l S";
+    let d = fixture(content, "", &[]);
+    let g = snap::geometry(&d, 0).unwrap();
+    assert_eq!(g.strokes.len(), g.segments.len(), "a stroke for every segment");
+    let red = g.stroke_at([50.0, 1.0], 3.0).unwrap().0;
+    assert_eq!(red.width, 2.0);
+    assert_eq!(red.color, [1.0, 0.0, 0.0]);
+    // 4 wide at half scale is 2 in user space; CMYK yellow is RGB (1, 1, 0).
+    let scaled = g.stroke_at([25.0, 50.0], 3.0).unwrap().0;
+    assert!((scaled.width - 2.0).abs() < 1e-9);
+    assert_eq!(scaled.color, [1.0, 1.0, 0.0]);
+    // A fill only isn't a stroke; nothing near, nothing found.
+    assert!(g.stroke_at([50.0, 225.0], 1.0).is_none());
+    assert_eq!(g.stroke_at([50.0, 300.0], 1.0).unwrap().0.width, 0.25);
+    assert!(g.stroke_at([500.0, 500.0], 3.0).is_none());
+    assert!(g.stroke_at([f64::NAN, 0.0], 3.0).is_none());
+}

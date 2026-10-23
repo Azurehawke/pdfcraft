@@ -1799,6 +1799,13 @@ pub fn move_annotation(doc: &mut Document, page: usize, index: usize, dx: f64, d
     }
     let (_, r) = annot_ref(doc, page, index)?;
     unlocked(doc, r)?;
+    // RevuCraft: a photo callout's dot stays on the drawing; only its box moves.
+    let before = annot_dict(doc, r);
+    let anchored = if photo_callout::is_photo_callout(&before) {
+        before.get(b"CL").and_then(|o| o.as_array()).and_then(|a| Some([a.first()?.as_f64()?, a.get(1)?.as_f64()?])).filter(|p| finite(p))
+    } else {
+        None
+    };
     let shift = |o: &Object, every: bool| -> Option<Object> {
         let a = o.as_array()?;
         Some(Object::Array(
@@ -1832,6 +1839,24 @@ pub fn move_annotation(doc: &mut Document, page: usize, index: usize, dx: f64, d
                 d.set(b"Rect".to_vec(), v);
             }
         })?;
+    }
+    if let Some(spot) = anchored {
+        let d = annot_dict(doc, r);
+        let rect =
+            d.get(b"Rect").and_then(|o| o.as_array()).map(|a| a.iter().filter_map(Object::as_f64).collect::<Vec<f64>>()).filter(|v| v.len() == 4);
+        let rd = d.get(b"RD").and_then(|o| o.as_array()).map(|a| a.iter().filter_map(Object::as_f64).collect::<Vec<f64>>()).filter(|v| v.len() == 4);
+        if let (Some(rect), Some(rd)) = (rect, rd) {
+            let rect = normalize([rect[0], rect[1], rect[2], rect[3]]);
+            let tb = [rect[0] + rd[0], rect[1] + rd[1], rect[2] - rd[2], rect[3] - rd[3]];
+            if let Some(Object::Array(mut cl)) = d.get(b"CL").cloned()
+                && cl.len() == 6
+            {
+                cl[0] = Object::Real(spot[0]);
+                cl[1] = Object::Real(spot[1]);
+                doc.update_dict(r, |d| d.set(b"CL".to_vec(), Object::Array(cl)))?;
+                return apply_text_box(doc, r, tb, meta, false);
+            }
+        }
     }
     Ok(())
 }
@@ -1926,6 +1951,11 @@ fn apply_text_box(doc: &mut Document, r: ObjRef, rect: [f64; 4], meta: &Meta, ne
     let callout = d.get(b"CL").and_then(|o| o.as_array()).map(|a| a.iter().filter_map(|x| x.as_f64()).collect::<Vec<f64>>()).filter(|l| l.len() == 6);
     let (outer, cl) = match callout {
         Some(mut l) => {
+            // A photo callout's leader runs straight from its dot to the nearest point of its box.
+            if photo_callout::is_photo_callout(&d) {
+                let knee = photo_callout::nearest_on_box(rect, [l[0], l[1]]);
+                (l[2], l[3]) = (knee[0], knee[1]);
+            }
             let attach = callout_attach(rect, [l[2], l[3]]);
             (l[4], l[5]) = (attach[0], attach[1]);
             let pad = border_width_of(&d) / 2.0 + appearance::arrow_size(border_width_of(&d)) + 1.0;

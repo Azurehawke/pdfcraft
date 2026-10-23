@@ -26,7 +26,13 @@ pub struct LayerInfo {
     /// The colour new symbols and markups on the layer take (black when none was set).
     pub color: Rgb,
     pub locked: bool,
+    /// The line width (points) lines drafted on the layer take ("ByLayer"), when one is set
+    /// (`/PCWidth`).
+    pub width: Option<f64>,
 }
+
+/// The line widths a layer may have, in points.
+pub const WIDTHS: std::ops::RangeInclusive<f64> = 0.05..=72.0;
 
 /// The catalog's `/OCProperties` dictionary, and the object holding it when it is indirect.
 fn properties(doc: &Document) -> Option<(Option<ObjRef>, Dict)> {
@@ -81,7 +87,8 @@ pub fn list(doc: &Document) -> Vec<LayerInfo> {
             let d = obj.as_dict()?;
             let name = d.get(b"Name").and_then(Object::as_string).map(PdfString::to_text).unwrap_or_default();
             let locked = matches!(d.get(b"PCLocked").map(|o| doc.resolve(o)).as_deref(), Some(Object::Bool(true)));
-            Some(LayerInfo { id, name, color: color_of(doc, d), locked })
+            let width = d.get(b"PCWidth").map(|o| doc.resolve(o)).and_then(|o| o.as_f64()).filter(|w| WIDTHS.contains(w));
+            Some(LayerInfo { id, name, color: color_of(doc, d), locked, width })
         })
         .collect()
 }
@@ -158,6 +165,21 @@ pub fn set_color(doc: &mut Document, id: ObjRef, color: Rgb) -> Result<(), Annot
     let color = check_color(color)?;
     layer(doc, id)?;
     doc.update_dict(id, |d| d.set(b"PCColor".to_vec(), color_array(color)))?;
+    Ok(())
+}
+
+/// Set the line width lines drafted on layer `id` take (`None`: none, the ribbon's width).
+pub fn set_width(doc: &mut Document, id: ObjRef, width: Option<f64>) -> Result<(), AnnotError> {
+    if width.is_some_and(|w| !WIDTHS.contains(&w)) {
+        return Err(AnnotError::Invalid("a layer's line width must be from 0.05 to 72 pt".into()));
+    }
+    layer(doc, id)?;
+    doc.update_dict(id, |d| match width {
+        Some(w) => d.set(b"PCWidth".to_vec(), Object::Real(w)),
+        None => {
+            d.remove(b"PCWidth");
+        }
+    })?;
     Ok(())
 }
 

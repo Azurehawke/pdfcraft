@@ -263,7 +263,11 @@ fn scope_of(edit: &Edit) -> Scope {
         // A file attachment also changes the Attachments list.
         Edit::AddAnnotation(a) if matches!(a.shape, Shape::Attachment { .. }) => Scope::Full,
         Edit::AddPhoto { .. } => Scope::Full,
-        Edit::SetAnnotationLayer { .. } | Edit::AddSymbol(_) | Edit::SetLayerColor { .. } | Edit::SetLayerLocked { .. } => Scope::Comments,
+        Edit::SetAnnotationLayer { .. }
+        | Edit::AddSymbol(_)
+        | Edit::SetLayerColor { .. }
+        | Edit::SetLayerWidth { .. }
+        | Edit::SetLayerLocked { .. } => Scope::Comments,
         Edit::AddMeasurement(_)
         | Edit::AddCableRun { .. }
         | Edit::AddLegend { .. }
@@ -1561,6 +1565,11 @@ pub enum Edit {
         layer: (u32, u16),
         color: [f64; 3],
     },
+    /// RevuCraft: the line width lines drafted on a layer take (`None`: the ribbon's width).
+    SetLayerWidth {
+        layer: (u32, u16),
+        width: Option<f64>,
+    },
     /// Lock or unlock a layer and everything on it.
     SetLayerLocked {
         layer: (u32, u16),
@@ -2242,6 +2251,8 @@ pub const EDIT_LABELS: &[&str] = &[
     "Remove from the sheet",
     "Name measurements",
     "Send quantities",
+    "Change layer line width",
+    "Format copy",
     "Change guides",
     "Move linked drawing",
     "Measure cable run",
@@ -2423,6 +2434,7 @@ impl Edit {
             Edit::AddLayer { .. } => Label::of("New layer"),
             Edit::RenameLayer { .. } => Label::of("Rename layer"),
             Edit::SetLayerColor { .. } => Label::of("Change layer colour"),
+            Edit::SetLayerWidth { .. } => Label::of("Change layer line width"),
             Edit::SetLayerLocked { locked: true, .. } => Label::of("Lock layer"),
             Edit::SetLayerLocked { .. } => Label::of("Unlock layer"),
             Edit::SetAnnotationLayer { .. } => Label::of("Move to layer"),
@@ -2523,6 +2535,7 @@ fn check_permission(edit: &Edit, p: &pdfcraft_cos::Permissions) -> Result<(), Ed
         | Edit::AddLayer { .. }
         | Edit::RenameLayer { .. }
         | Edit::SetLayerColor { .. }
+        | Edit::SetLayerWidth { .. }
         | Edit::SetLayerLocked { .. }
         | Edit::SetAnnotationLayer { .. }
         | Edit::AddSymbol(_)
@@ -2860,6 +2873,7 @@ fn run_edit(doc: &mut pdfcraft_cos::Document, edit: &Edit, cx: &mut EditCtx) -> 
         }
         Edit::RenameLayer { layer, name } => pdfcraft_annot::layers::rename(doc, layer_ref(*layer), name)?,
         Edit::SetLayerColor { layer, color } => pdfcraft_annot::layers::set_color(doc, layer_ref(*layer), *color)?,
+        Edit::SetLayerWidth { layer, width } => pdfcraft_annot::layers::set_width(doc, layer_ref(*layer), *width)?,
         Edit::SetLayerLocked { layer, locked } => pdfcraft_annot::layers::set_locked(doc, layer_ref(*layer), *locked)?,
         Edit::SetAnnotationLayer { page, index, layer } => pdfcraft_annot::layers::assign(doc, *page, *index, layer.map(layer_ref))?,
         Edit::AddSymbol(new) => {

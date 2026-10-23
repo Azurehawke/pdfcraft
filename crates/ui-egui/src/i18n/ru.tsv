@@ -2943,3 +2943,16 @@ animation effects	Off	Выкл
 	Markup tools	Инструменты пометок
 	Measure tools	Инструменты измерения
 	Pick a tool in the Markup tools panel on the left	Выберите инструмент на панели «Инструменты пометок» слева
+	By layer	По слою
+	By layer ({w} pt)	По слою ({w} pt)
+	Change layer line width	Изменение толщины линии слоя
+	Format copied: new markups and lines take this look	Формат скопирован: новые пометки и линии получат этот вид
+	Format copy	Копировать формат
+	Format copy: click a markup or line to use its look (with markups selected: give them its look; Shift: its layer too)	Копировать формат: щёлкните пометку или линию, чтобы взять её вид (при выбранных пометках — применить к ним; Shift — и слой)
+	Layer colour and line width	Цвет и толщина линии слоя
+	Line width for drafting on this layer	Толщина линии для черчения на этом слое
+	Markup line	Линия пометки
+	Nothing to copy there: click a markup or a line	Здесь нечего копировать: щёлкните пометку или линию
+	PDF line	Линия PDF
+	The selected markups already look like that	Выбранные пометки уже так выглядят
+	hairline	волосяная линия

@@ -91,7 +91,7 @@ fn box_for(center: [f64; 2], ph: f64, aspect: f64, text: &str) -> [f64; 4] {
 }
 
 /// The point on the box's outline nearest `p` (where the leader meets it).
-fn nearest_on_box(b: [f64; 4], p: [f64; 2]) -> [f64; 2] {
+pub(crate) fn nearest_on_box(b: [f64; 4], p: [f64; 2]) -> [f64; 2] {
     let x = p[0].clamp(b[0], b[2]);
     let y = p[1].clamp(b[1], b[3]);
     if x > b[0] && x < b[2] && y > b[1] && y < b[3] {
@@ -297,5 +297,36 @@ mod tests {
         assert!(photo[0] > text_x, "the description moved to the left");
         assert!(add(&mut doc, &NewPhotoCallout { pixels: (0, 0), ..new.clone() }, &Meta::default()).is_err());
         assert!(add(&mut doc, &NewPhotoCallout { photo_height: f64::NAN, ..new }, &Meta::default()).is_err());
+    }
+
+    #[test]
+    fn moving_a_photo_callout_keeps_its_dot_on_the_drawing() {
+        let mut doc = blank();
+        let new = NewPhotoCallout {
+            page: 0,
+            point: [100.0, 100.0],
+            center: [300.0, 250.0],
+            jpeg: vec![0xFF, 0xD8, 0xFF, 0xD9],
+            pixels: (400, 300),
+            photo_height: 72.0,
+            text: "Rack A".into(),
+            side: TextSide::Right,
+            color: [0.18, 0.44, 0.69],
+            author: "Steve".into(),
+        };
+        let i = add(&mut doc, &new, &Meta::default()).unwrap();
+        crate::move_annotation(&mut doc, 0, i, 60.0, -40.0, &Meta::default()).unwrap();
+        let p = crate::page_refs(&doc).unwrap()[0];
+        let d = doc.resolve(&crate::annots(&doc, p)[i]).as_dict().unwrap().clone();
+        let cl: Vec<f64> = d.get(b"CL").unwrap().as_array().unwrap().iter().map(|o| o.as_f64().unwrap()).collect();
+        assert_eq!(&cl[..2], &[100.0, 100.0], "the dot stayed");
+        // The box moved, and the leader meets it at its nearest point.
+        let rect: Vec<f64> = d.get(b"Rect").unwrap().as_array().unwrap().iter().map(|o| o.as_f64().unwrap()).collect();
+        let rd: Vec<f64> = d.get(b"RD").unwrap().as_array().unwrap().iter().map(|o| o.as_f64().unwrap()).collect();
+        let tb = [rect[0] + rd[0], rect[1] + rd[1], rect[2] - rd[2], rect[3] - rd[3]];
+        let w = PAD + 96.0 + GAP + TEXT_W + PAD;
+        assert!(tb[0] > 300.0 - w / 2.0 + 30.0, "the box moved right: {tb:?}");
+        assert_eq!([cl[2], cl[3]], nearest_on_box(tb, [100.0, 100.0]));
+        assert!(rect[0] <= 100.0 && rect[1] <= 100.0, "the rectangle still holds the dot");
     }
 }

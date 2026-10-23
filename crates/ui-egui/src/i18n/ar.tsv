@@ -3301,3 +3301,16 @@ certificate	Version	الإصدار
 	Markup tools	أدوات التعليق
 	Measure tools	أدوات القياس
 	Pick a tool in the Markup tools panel on the left	اختر أداة من لوحة أدوات التعليق على اليسار
+	By layer	حسب الطبقة
+	By layer ({w} pt)	حسب الطبقة ({w} نقطة)
+	Change layer line width	تغيير عرض خط الطبقة
+	Format copied: new markups and lines take this look	تم نسخ التنسيق: التعليقات والخطوط الجديدة تأخذ هذا المظهر
+	Format copy	نسخ التنسيق
+	Format copy: click a markup or line to use its look (with markups selected: give them its look; Shift: its layer too)	نسخ التنسيق: انقر تعليقًا أو خطًا لاستخدام مظهره (مع تحديد تعليقات: امنحها مظهره؛ Shift: وطبقته أيضًا)
+	Layer colour and line width	لون الطبقة وعرض الخط
+	Line width for drafting on this layer	عرض الخط للرسم على هذه الطبقة
+	Markup line	خط تعليق
+	Nothing to copy there: click a markup or a line	لا شيء لنسخه هناك: انقر تعليقًا أو خطًا
+	PDF line	خط PDF
+	The selected markups already look like that	التعليقات المحددة لها هذا المظهر بالفعل
+	hairline	خط شعري

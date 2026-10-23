@@ -3029,3 +3029,16 @@ animation effects	Off	オフ
 	Markup tools	マークアップツール
 	Measure tools	計測ツール
 	Pick a tool in the Markup tools panel on the left	左のマークアップツールパネルからツールを選んでください
+	By layer	レイヤー準拠
+	By layer ({w} pt)	レイヤー準拠 ({w} pt)
+	Change layer line width	レイヤーの線幅を変更
+	Format copied: new markups and lines take this look	書式をコピーしました: 新しいマークアップと線はこの見た目になります
+	Format copy	書式のコピー
+	Format copy: click a markup or line to use its look (with markups selected: give them its look; Shift: its layer too)	書式のコピー: マークアップや線をクリックしてその見た目を使用（マークアップを選択中はそれらに適用、Shift でレイヤーも）
+	Layer colour and line width	レイヤーの色と線幅
+	Line width for drafting on this layer	このレイヤーで作図するときの線幅
+	Markup line	マークアップの線
+	Nothing to copy there: click a markup or a line	コピーできるものがありません: マークアップか線をクリックしてください
+	PDF line	PDF の線
+	The selected markups already look like that	選択したマークアップはすでにこの見た目です
+	hairline	極細線

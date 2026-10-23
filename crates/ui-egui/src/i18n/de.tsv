@@ -3027,3 +3027,16 @@ animation effects	Off	Aus
 	Markup tools	Markup-Werkzeuge
 	Measure tools	Messwerkzeuge
 	Pick a tool in the Markup tools panel on the left	Wählen Sie links im Bereich „Markup-Werkzeuge“ ein Werkzeug
+	By layer	Nach Ebene
+	By layer ({w} pt)	Nach Ebene ({w} pt)
+	Change layer line width	Linienstärke der Ebene ändern
+	Format copied: new markups and lines take this look	Format kopiert: Neue Markups und Linien übernehmen dieses Aussehen
+	Format copy	Format kopieren
+	Format copy: click a markup or line to use its look (with markups selected: give them its look; Shift: its layer too)	Format kopieren: Klicken Sie auf ein Markup oder eine Linie, um deren Aussehen zu übernehmen (mit ausgewählten Markups: diese erhalten das Aussehen; Umschalt: auch die Ebene)
+	Layer colour and line width	Ebenenfarbe und Linienstärke
+	Line width for drafting on this layer	Linienstärke zum Zeichnen auf dieser Ebene
+	Markup line	Markup-Linie
+	Nothing to copy there: click a markup or a line	Dort gibt es nichts zu kopieren: Klicken Sie auf ein Markup oder eine Linie
+	PDF line	PDF-Linie
+	The selected markups already look like that	Die ausgewählten Markups sehen bereits so aus
+	hairline	Haarlinie

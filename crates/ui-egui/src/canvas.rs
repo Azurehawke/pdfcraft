@@ -3173,6 +3173,8 @@ fn document_area_pages(app: &mut PdfCraftApp, index: usize, ui: &mut egui::Ui) {
     let symbols = app.symbols.clone();
     let mut symbol_placed = false;
     let mut photo_at: Option<(usize, [f64; 2])> = None;
+    // RevuCraft: a Format copy click: page, the markup there, the point, tolerance, Shift.
+    let mut format_pick: Option<(usize, Option<usize>, [f64; 2], f64, bool)> = None;
     let mut callout_spot = if tool == QuickTool::PhotoCallout { app.symbols.callout_spot } else { None };
     if callout_spot.is_some() && ui.input(|inp| inp.key_pressed(egui::Key::Escape)) {
         callout_spot = None;
@@ -3544,6 +3546,22 @@ fn document_area_pages(app: &mut PdfCraftApp, index: usize, ui: &mut egui::Ui) {
                     } else {
                         photo_at = Some((i, at));
                     }
+                }
+            }
+            // RevuCraft: Format copy: the markup (outlined) or line under the pointer.
+            if tool == QuickTool::FormatCopy
+                && let Some(p) = ui.input(|inp| inp.pointer.hover_pos()).filter(|p| zone.contains(*p))
+            {
+                ui.ctx().set_cursor_icon(egui::CursorIcon::Crosshair);
+                let source = pcx.hit(p).map(|a| (a.index, xf.user_rect(info, i, a.rect)));
+                if let Some((_, r)) = source {
+                    painter.rect_stroke(r.expand(3.0), CornerRadius::ZERO, Stroke::new(1.5, crate::guides_ui::COLOR), egui::StrokeKind::Outside);
+                }
+                let at = pcx.to_user(p);
+                let tolerance = 8.0 / f64::from((xf.rect.width() / xf.pw).max(1e-6));
+                view.draft.under = crate::draft::line_under(view, doc, i, at, tolerance);
+                if resp.clicked() {
+                    format_pick = Some((i, source.map(|s| s.0), at, tolerance, ui.input(|inp| inp.modifiers.shift)));
                 }
             }
             // RevuCraft: the caption, description or label of what was just placed.
@@ -4522,6 +4540,9 @@ fn document_area_pages(app: &mut PdfCraftApp, index: usize, ui: &mut egui::Ui) {
     if let Some((page, at)) = photo_at {
         app.quick_tool = QuickTool::Select;
         app.pick_photo(page, at);
+    }
+    if let Some((page, source, at, tolerance, shift)) = format_pick {
+        crate::format_copy::pick(app, index, page, source, at, tolerance, shift);
     }
     if let Some((page, i)) = app.views[index].comments.open_photo.take() {
         app.open_photo(page, i);

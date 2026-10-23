@@ -3242,3 +3242,16 @@ certificate	SHA-256 digest	Impronta SHA-256
 	Markup tools	Strumenti di markup
 	Measure tools	Strumenti di misura
 	Pick a tool in the Markup tools panel on the left	Scegli uno strumento nel pannello Strumenti di markup a sinistra
+	By layer	Per livello
+	By layer ({w} pt)	Per livello ({w} pt)
+	Change layer line width	Cambia spessore linea del livello
+	Format copied: new markups and lines take this look	Formato copiato: i nuovi markup e le nuove linee prendono questo aspetto
+	Format copy	Copia formato
+	Format copy: click a markup or line to use its look (with markups selected: give them its look; Shift: its layer too)	Copia formato: fai clic su un markup o una linea per usarne l’aspetto (con markup selezionati: assegna loro l’aspetto; Maiusc: anche il livello)
+	Layer colour and line width	Colore e spessore linea del livello
+	Line width for drafting on this layer	Spessore linea per disegnare su questo livello
+	Markup line	Linea di markup
+	Nothing to copy there: click a markup or a line	Niente da copiare lì: fai clic su un markup o una linea
+	PDF line	Linea del PDF
+	The selected markups already look like that	I markup selezionati hanno già questo aspetto
+	hairline	linea sottile

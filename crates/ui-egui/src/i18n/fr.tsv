@@ -3027,3 +3027,16 @@ animation effects	Off	Désactivés
 	Markup tools	Outils d’annotation
 	Measure tools	Outils de mesure
 	Pick a tool in the Markup tools panel on the left	Choisissez un outil dans le panneau Outils d’annotation à gauche
+	By layer	Par calque
+	By layer ({w} pt)	Par calque ({w} pt)
+	Change layer line width	Modifier l’épaisseur de trait du calque
+	Format copied: new markups and lines take this look	Format copié : les nouvelles annotations et lignes prennent cet aspect
+	Format copy	Copier le format
+	Format copy: click a markup or line to use its look (with markups selected: give them its look; Shift: its layer too)	Copier le format : cliquez sur une annotation ou une ligne pour reprendre son aspect (annotations sélectionnées : elles prennent cet aspect ; Maj : son calque aussi)
+	Layer colour and line width	Couleur et épaisseur de trait du calque
+	Line width for drafting on this layer	Épaisseur de trait pour dessiner sur ce calque
+	Markup line	Ligne d’annotation
+	Nothing to copy there: click a markup or a line	Rien à copier ici : cliquez sur une annotation ou une ligne
+	PDF line	Ligne du PDF
+	The selected markups already look like that	Les annotations sélectionnées ont déjà cet aspect
+	hairline	trait fin

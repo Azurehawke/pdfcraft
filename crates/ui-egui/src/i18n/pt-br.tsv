@@ -3039,3 +3039,16 @@ animation effects	Off	Desativados
 	Markup tools	Ferramentas de marcação
 	Measure tools	Ferramentas de medição
 	Pick a tool in the Markup tools panel on the left	Escolha uma ferramenta no painel Ferramentas de marcação à esquerda
+	By layer	Por camada
+	By layer ({w} pt)	Por camada ({w} pt)
+	Change layer line width	Alterar espessura de linha da camada
+	Format copied: new markups and lines take this look	Formato copiado: novas marcações e linhas usam esta aparência
+	Format copy	Copiar formato
+	Format copy: click a markup or line to use its look (with markups selected: give them its look; Shift: its layer too)	Copiar formato: clique em uma marcação ou linha para usar sua aparência (com marcações selecionadas: aplica a elas; Shift: a camada também)
+	Layer colour and line width	Cor e espessura de linha da camada
+	Line width for drafting on this layer	Espessura de linha para desenhar nesta camada
+	Markup line	Linha de marcação
+	Nothing to copy there: click a markup or a line	Nada para copiar aí: clique em uma marcação ou linha
+	PDF line	Linha do PDF
+	The selected markups already look like that	As marcações selecionadas já têm essa aparência
+	hairline	linha fina

@@ -3049,3 +3049,16 @@ animation effects	Off	Вимкнено
 	Markup tools	Інструменти позначок
 	Measure tools	Інструменти вимірювання
 	Pick a tool in the Markup tools panel on the left	Виберіть інструмент на панелі «Інструменти позначок» ліворуч
+	By layer	За шаром
+	By layer ({w} pt)	За шаром ({w} pt)
+	Change layer line width	Зміна товщини лінії шару
+	Format copied: new markups and lines take this look	Формат скопійовано: нові позначки й лінії матимуть цей вигляд
+	Format copy	Копіювати формат
+	Format copy: click a markup or line to use its look (with markups selected: give them its look; Shift: its layer too)	Копіювати формат: клацніть позначку або лінію, щоб узяти її вигляд (з вибраними позначками — застосувати до них; Shift — і шар)
+	Layer colour and line width	Колір і товщина лінії шару
+	Line width for drafting on this layer	Товщина лінії для креслення на цьому шарі
+	Markup line	Лінія позначки
+	Nothing to copy there: click a markup or a line	Тут нічого копіювати: клацніть позначку або лінію
+	PDF line	Лінія PDF
+	The selected markups already look like that	Вибрані позначки вже так виглядають
+	hairline	волосяна лінія

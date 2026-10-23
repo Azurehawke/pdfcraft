@@ -367,6 +367,11 @@ pub struct DraftSettings {
     pub dim_ticks: bool,
     /// How wide new lines, polylines and shapes are drawn.
     pub line_width: LineWidth,
+    /// Lines take the current layer's line width when it has one ("By layer"); choosing a width
+    /// in the ribbon turns it off.
+    pub by_layer: bool,
+    /// A colour Format copy picked up for drafted lines; `None`: the current layer's colour.
+    pub color: Option<[f64; 3]>,
     /// The Draft tools panel shows only icons.
     pub panel_collapsed: bool,
     /// The tool each fly-out group shows, by group.
@@ -404,6 +409,8 @@ impl Default for DraftSettings {
             mirror_keep: true,
             dim_ticks: false,
             line_width: LineWidth::Paper(1.0),
+            by_layer: true,
+            color: None,
             panel_collapsed: false,
             group_tool: Vec::new(),
             cable_inches: 120.0,
@@ -444,6 +451,9 @@ pub struct DraftView {
     /// A shape was just drawn with a tool that ends with it (as in CADCraft): the Select tool
     /// comes back so the shape can be picked at once.
     pub ended: bool,
+    /// The width of the line under the pointer, for the status bar ("PDF line 0.35 mm (1 pt)");
+    /// set each frame the pointer is over a sheet while drafting.
+    pub under: Option<String>,
 }
 
 impl DraftView {
@@ -455,6 +465,42 @@ impl DraftView {
         self.grip = None;
         self.scale_ref = None;
     }
+}
+
+/// Distance from `p` to the segment `a`–`b`.
+fn segment_distance(p: [f64; 2], a: [f64; 2], b: [f64; 2]) -> f64 {
+    let (vx, vy) = (b[0] - a[0], b[1] - a[1]);
+    let len = vx * vx + vy * vy;
+    let t = if len > 1e-18 { (((p[0] - a[0]) * vx + (p[1] - a[1]) * vy) / len).clamp(0.0, 1.0) } else { 0.0 };
+    (p[0] - (a[0] + t * vx)).hypot(p[1] - (a[1] + t * vy))
+}
+
+/// A line's width as the status bar shows it.
+pub(crate) fn width_text(what: &str, pt: f64) -> String {
+    if !(pt.is_finite() && pt > 0.0) {
+        return format!("{what}: {}", tl!("hairline"));
+    }
+    let round = |v: f64| (v * 100.0).round() / 100.0;
+    format!("{what} {} mm ({} pt)", round(pt * 25.4 / 72.0), round(pt))
+}
+
+/// The markup line or PDF line under `p` (within `tolerance`), and its width; markup first.
+pub(crate) fn line_under(view: &mut DocView, doc: &Document, page: usize, p: [f64; 2], tolerance: f64) -> Option<String> {
+    let shapes = crate::draft_edit::shapes(view, doc, page);
+    let markup = shapes
+        .iter()
+        .flat_map(|g| g.segments().map(move |(a, b)| (segment_distance(p, a, b), g.width)))
+        .filter(|(d, _)| d.is_finite() && *d <= tolerance)
+        .min_by(|x, y| x.0.total_cmp(&y.0));
+    if let Some((_, w)) = markup {
+        return Some(width_text(tl!("Markup line"), w));
+    }
+    if view.draft.paths.as_ref().is_none_or(|(pg, g, _)| *pg != page || *g != doc.edit_generation()) {
+        view.draft.paths = Some((page, doc.edit_generation(), doc.measurement_paths(page).ok()));
+    }
+    let Some((_, _, Some(paths))) = &view.draft.paths else { return None };
+    let (stroke, _) = paths.stroke_at(p, tolerance)?;
+    Some(width_text(tl!("PDF line"), stroke.width))
 }
 
 /// The drawing origin on `page` in user space.
@@ -612,6 +658,16 @@ pub(crate) fn layer_color(doc: &Document) -> [f64; 3] {
     doc.current_layer.and_then(|c| doc.layer_list().into_iter().find(|l| (l.id.num, l.id.generation) == c)).map_or([0.0; 3], |l| l.color)
 }
 
+/// The current layer's line width, when it has one.
+pub(crate) fn layer_width(doc: &Document) -> Option<f64> {
+    doc.current_layer.and_then(|c| doc.layer_list().into_iter().find(|l| (l.id.num, l.id.generation) == c)).and_then(|l| l.width)
+}
+
+/// The colour drafted lines take: what Format copy picked up, else the current layer's.
+pub(crate) fn draft_color(doc: &Document, settings: &DraftSettings) -> [f64; 3] {
+    settings.color.unwrap_or_else(|| layer_color(doc))
+}
+
 pub(crate) fn annotation(page: usize, shape: Shape, color: [f64; 3], width: f64, fill: Option<[f64; 3]>, author: &str) -> Edit {
     Edit::AddAnnotation(NewAnnotation {
         page,
@@ -634,6 +690,11 @@ pub enum LineWidth {
 /// The width in points for a line drawn on `page` near `at`, and its real-world width when it has
 /// one.
 fn pen(doc: &Document, page: usize, at: [f64; 2], settings: &DraftSettings) -> (f64, Option<f64>) {
+    if settings.by_layer
+        && let Some(w) = layer_width(doc)
+    {
+        return (w.clamp(0.1, 72.0), None);
+    }
     match settings.line_width {
         LineWidth::Paper(pt) => (pt.clamp(0.1, 72.0), None),
         LineWidth::Real(inches) => {
@@ -859,7 +920,7 @@ fn dimension_with(
 
 /// The markup for a finished shape (none when it has too few points).
 fn finish_edit(tool: DraftTool, page: usize, points: &[[f64; 2]], closed: bool, doc: &Document, settings: &DraftSettings) -> Option<Edit> {
-    let color = layer_color(doc);
+    let color = draft_color(doc, settings);
     let author = settings.author.as_str();
     match tool {
         DraftTool::Line => match points {
@@ -1183,6 +1244,7 @@ pub(crate) fn page_input(
     if let Some(pos) = pos {
         ui.ctx().set_cursor_icon(egui::CursorIcon::Crosshair);
         let mut point = cx.to_user(pos);
+        view.draft.under = line_under(view, doc, page, point, tolerance);
         // Snap: the shape's own points and other markup's corners and middles first, then the
         // page's drawing, then square off the last point to a line.
         let mut kind: Option<SnapKind> = None;
@@ -1501,10 +1563,20 @@ pub fn ribbon(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
                     });
                 });
                 separator(ui, &t);
+                let layer_w = active.and_then(|(_, id)| app.session.get(id)).and_then(layer_width);
                 group(ui, &t, tl!("Line width"), |ui| {
-                    if line_width(ui, &mut app.draft.line_width) {
-                        restyle = true;
-                    }
+                    ui.horizontal(|ui| {
+                        if line_width(ui, &mut app.draft, layer_w) {
+                            restyle = true;
+                        }
+                        let on = app.quick_tool == QuickTool::FormatCopy;
+                        let tip = tl!(
+                            "Format copy: click a markup or line to use its look (with markups selected: give them its look; Shift: its layer too)"
+                        );
+                        if icons::button(ui, "pipette", 28.0, on, tip).clicked() {
+                            app.quick_tool = if on { QuickTool::Select } else { QuickTool::FormatCopy };
+                        }
+                    });
                 });
                 separator(ui, &t);
                 ui.add_enabled_ui(allowed, |ui| tool_options(app, ui, &t));
@@ -1606,7 +1678,7 @@ fn restyle_selected(app: &PdfCraftApp) -> Option<Edit> {
 /// The ribbon's line width: presets, the number, and whether it is a real-world size (drawn to the
 /// page's scale) or a pen width on paper.
 /// Returns `true` when the width was set (a preset, a typed or dragged number let go, or To scale).
-fn line_width(ui: &mut egui::Ui, w: &mut LineWidth) -> bool {
+fn line_width(ui: &mut egui::Ui, settings: &mut DraftSettings, layer_w: Option<f64>) -> bool {
     let mut set = false;
     let presets: [(LineWidth, &str); 5] = [
         (LineWidth::Paper(0.5), "Fine (1/2 pt)"),
@@ -1615,14 +1687,28 @@ fn line_width(ui: &mut egui::Ui, w: &mut LineWidth) -> bool {
         (LineWidth::Real(4.5), "Interior wall (4 1/2 in)"),
         (LineWidth::Real(6.0), "Exterior wall (6 in)"),
     ];
+    // The current layer's width wins while By layer is on and the layer has one.
+    let by_layer = settings.by_layer && layer_w.is_some();
     ui.horizontal(|ui| {
         ui.spacing_mut().item_spacing.x = 4.0;
-        let current = presets.iter().find(|(p, _)| p == w).map(|(_, l)| tl!(l)).unwrap_or_else(|| tl!("Custom"));
+        let current = match layer_w.filter(|_| by_layer) {
+            Some(lw) => crate::i18n::fmt(tl!("By layer ({w} pt)"), &[("w", &format!("{}", (lw * 100.0).round() / 100.0))]),
+            None => presets.iter().find(|(p, _)| *p == settings.line_width).map(|(_, l)| tl!(l)).unwrap_or_else(|| tl!("Custom")).to_string(),
+        };
         egui::ComboBox::from_id_salt("draft-line-width").selected_text(current).width(150.0).show_ui(ui, |ui| {
+            if layer_w.is_some() && ui.selectable_label(by_layer, tl!("By layer")).clicked() {
+                settings.by_layer = true;
+                set = true;
+            }
             for (p, label) in presets {
-                set |= ui.selectable_value(w, p, tl!(label)).clicked();
+                if ui.selectable_label(!by_layer && settings.line_width == p, tl!(label)).clicked() {
+                    settings.line_width = p;
+                    settings.by_layer = false;
+                    set = true;
+                }
             }
         });
+        let w = &mut settings.line_width;
         let r = match w {
             LineWidth::Paper(pt) => {
                 ui.add(egui::DragValue::new(pt).range(0.1..=72.0).speed(0.1).suffix(" pt")).on_hover_text(tl!("Pen width on paper"))
@@ -1631,16 +1717,19 @@ fn line_width(ui: &mut egui::Ui, w: &mut LineWidth) -> bool {
                 .add(egui::DragValue::new(inches).range(0.25..=1200.0).speed(0.25).suffix(" in"))
                 .on_hover_text(tl!("Real-world width, drawn to the page's scale")),
         };
-        set |= r.drag_stopped() || r.lost_focus() || (r.changed() && !r.dragged() && !r.has_focus());
+        let typed = r.drag_stopped() || r.lost_focus() || (r.changed() && !r.dragged() && !r.has_focus());
         let mut real = matches!(w, LineWidth::Real(_));
-        if ui
+        let to_scale = ui
             .add(crate::widgets::checkbox(&mut real, tl!("To scale")))
             .on_hover_text(tl!("Width in real-world inches, drawn to the page's scale (walls)"))
-            .changed()
-        {
+            .changed();
+        if to_scale {
             *w = if real { LineWidth::Real(6.0) } else { LineWidth::Paper(1.0) };
-            set = true;
         }
+        if typed || to_scale || r.changed() {
+            settings.by_layer = false;
+        }
+        set |= typed || to_scale;
     });
     set
 }

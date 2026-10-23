@@ -3025,3 +3025,16 @@ animation effects	Off	Ki
 	Markup tools	Jelölőeszközök
 	Measure tools	Mérőeszközök
 	Pick a tool in the Markup tools panel on the left	Válasszon eszközt a bal oldali Jelölőeszközök panelen
+	By layer	Réteg szerint
+	By layer ({w} pt)	Réteg szerint ({w} pt)
+	Change layer line width	Réteg vonalvastagságának módosítása
+	Format copied: new markups and lines take this look	Formátum másolva: az új jelölések és vonalak ezt a megjelenést kapják
+	Format copy	Formátum másolása
+	Format copy: click a markup or line to use its look (with markups selected: give them its look; Shift: its layer too)	Formátum másolása: kattintson egy jelölésre vagy vonalra a megjelenése átvételéhez (kijelölt jelöléseknél: azok kapják meg; Shift: a rétegét is)
+	Layer colour and line width	Réteg színe és vonalvastagsága
+	Line width for drafting on this layer	Vonalvastagság a rétegen való rajzoláshoz
+	Markup line	Jelölés vonala
+	Nothing to copy there: click a markup or a line	Ott nincs mit másolni: kattintson egy jelölésre vagy vonalra
+	PDF line	PDF-vonal
+	The selected markups already look like that	A kijelölt jelölések már így néznek ki
+	hairline	hajszálvonal

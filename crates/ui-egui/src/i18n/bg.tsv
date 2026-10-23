@@ -2990,3 +2990,16 @@ animation effects	Off	Изключени
 	Markup tools	Инструменти за маркиране
 	Measure tools	Инструменти за измерване
 	Pick a tool in the Markup tools panel on the left	Изберете инструмент от панела с инструменти за маркиране вляво
+	By layer	По слой
+	By layer ({w} pt)	По слой ({w} pt)
+	Change layer line width	Промяна на дебелината на линията на слоя
+	Format copied: new markups and lines take this look	Форматът е копиран: новите маркировки и линии приемат този вид
+	Format copy	Копиране на формат
+	Format copy: click a markup or line to use its look (with markups selected: give them its look; Shift: its layer too)	Копиране на формат: щракнете маркировка или линия, за да използвате вида ѝ (с избрани маркировки: дайте им този вид; Shift: и слоя ѝ)
+	Layer colour and line width	Цвят и дебелина на линията на слоя
+	Line width for drafting on this layer	Дебелина на линията за чертане на този слой
+	Markup line	Линия на маркировка
+	Nothing to copy there: click a markup or a line	Няма какво да се копира там: щракнете маркировка или линия
+	PDF line	PDF линия
+	The selected markups already look like that	Избраните маркировки вече изглеждат така
+	hairline	косъмна линия

@@ -18,6 +18,50 @@ pub struct Geometry {
     pub truncated: bool,
     /// Content streams that couldn't be decoded and were skipped.
     pub unreadable: usize,
+    /// How each of [`Self::segments`] was painted, in step with it: stroked, its width and colour;
+    /// `None` for a filled edge that wasn't stroked.
+    pub strokes: Vec<Option<Stroke>>,
+}
+
+/// A stroked segment's line: its width in user space (0 is the thinnest a device can draw) and its
+/// colour as RGB.
+#[derive(Clone, Copy, Debug, PartialEq, Serialize)]
+pub struct Stroke {
+    pub width: f64,
+    pub color: [f64; 3],
+}
+
+/// The graphics state the walker follows: the transform, line width and stroking colour.
+#[derive(Clone, Copy, Debug)]
+struct Gs {
+    matrix: Matrix,
+    width: f64,
+    color: [f64; 3],
+}
+
+impl Gs {
+    fn new(matrix: Matrix) -> Self {
+        Gs { matrix, width: 1.0, color: [0.0; 3] }
+    }
+
+    /// The line width in user space: scaled by the transform's average scale.
+    fn stroke(&self) -> Stroke {
+        let [a, b, c, d, _, _] = self.matrix.0;
+        let scale = (a * d - b * c).abs().sqrt();
+        let width = self.width * scale;
+        Stroke { width: if width.is_finite() && width >= 0.0 { width.min(10_000.0) } else { 1.0 }, color: self.color }
+    }
+}
+
+/// A colour from stroking-colour operands: gray, RGB or CMYK by their count.
+fn color_of(n: &[f64]) -> Option<[f64; 3]> {
+    let c = |v: f64| if v.is_finite() { v.clamp(0.0, 1.0) } else { 0.0 };
+    match n {
+        [g] => Some([c(*g); 3]),
+        [r, g, b] => Some([c(*r), c(*g), c(*b)]),
+        [cy, m, y, k] => Some([(1.0 - c(*cy)) * (1.0 - c(*k)), (1.0 - c(*m)) * (1.0 - c(*k)), (1.0 - c(*y)) * (1.0 - c(*k))]),
+        _ => None,
+    }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "lowercase")]
@@ -121,6 +165,18 @@ fn remember_close(closures: &mut Vec<[Point; 2]>, current: Option<Point>, start:
 }
 
 impl Geometry {
+    /// The stroked line nearest `at` within `tolerance`: its stroke and how far it is.
+    pub fn stroke_at(&self, at: Point, tolerance: f64) -> Option<(Stroke, f64)> {
+        if check_points(&[at]).is_err() || !tolerance.is_finite() {
+            return None;
+        }
+        self.segments
+            .iter()
+            .zip(&self.strokes)
+            .filter_map(|([a, b], s)| s.map(|s| (s, distance(at, nearest(at, *a, *b)))))
+            .filter(|(_, d)| *d <= tolerance)
+            .min_by(|x, y| x.1.total_cmp(&y.1))
+    }
     /// Dense intersection searches are capped independently from path extraction.
     pub fn intersection_limited(&self, at: Point, tolerance: f64) -> bool {
         self.segments.iter().filter(|[a, b]| distance(at, nearest(at, *a, *b)) <= tolerance).take(257).count() > 256
@@ -229,7 +285,7 @@ struct Walker<'a> {
     streams: usize,
 }
 impl Walker<'_> {
-    fn walk(&mut self, object: &Object, resources: &Dict, initial: Matrix, depth: usize) -> Result<()> {
+    fn walk(&mut self, object: &Object, resources: &Dict, initial: Gs, depth: usize) -> Result<()> {
         if depth >= 32 || self.streams >= 4096 || self.geometry.truncated {
             self.geometry.truncated = true;
             return Ok(());
@@ -272,11 +328,11 @@ impl Walker<'_> {
             }
         }
     }
-    fn ops(&mut self, data: &[u8], resources: &Dict, initial: Matrix, depth: usize) -> Result<()> {
+    fn ops(&mut self, data: &[u8], resources: &Dict, initial: Gs, depth: usize) -> Result<()> {
         self.bytes = self.bytes.saturating_add(data.len());
         self.streams = self.streams.saturating_add(1);
-        let mut matrix = initial;
-        let mut stack = Vec::new();
+        let mut gs = initial;
+        let mut stack: Vec<Gs> = Vec::new();
         let mut start = None;
         let mut current = None;
         let mut closures = Vec::new();
@@ -295,7 +351,7 @@ impl Walker<'_> {
             match String::from_utf8_lossy(&op.op).as_ref() {
                 "q" => {
                     if stack.len() < 256 {
-                        stack.push(matrix);
+                        stack.push(gs);
                     } else {
                         // Later transforms can't be tracked reliably; keep what was found.
                         self.geometry.truncated = true;
@@ -303,11 +359,38 @@ impl Walker<'_> {
                     }
                 }
                 "Q" => {
-                    matrix = stack.pop().unwrap_or(initial);
+                    gs = stack.pop().unwrap_or(initial);
                 }
                 "cm" => {
                     if let Some(m) = Matrix::from_operands(&op.operands) {
-                        matrix = m.then(&matrix);
+                        gs.matrix = m.then(&gs.matrix);
+                    }
+                }
+                "w" => {
+                    if let Some([w]) = op.nums::<1>()
+                        && w.is_finite()
+                        && w >= 0.0
+                    {
+                        gs.width = w;
+                    }
+                }
+                "G" | "RG" | "K" | "SC" | "SCN" => {
+                    let n: Vec<f64> = op.operands.iter().filter_map(Object::as_f64).collect();
+                    if let Some(c) = color_of(&n) {
+                        gs.color = c;
+                    }
+                }
+                "gs" => {
+                    // An ExtGState's line width.
+                    if let Some(name) = op.name(0) {
+                        let states = resources.get(b"ExtGState").map(|o| self.doc.resolve(o));
+                        let state = states.as_ref().and_then(|o| o.as_dict()).and_then(|d| d.get(name)).map(|o| self.doc.resolve(o));
+                        if let Some(w) = state.as_ref().and_then(|o| o.as_dict()).and_then(|d| d.get(b"LW")).and_then(Object::as_f64)
+                            && w.is_finite()
+                            && w >= 0.0
+                        {
+                            gs.width = w;
+                        }
                     }
                 }
                 "m" => {
@@ -316,14 +399,14 @@ impl Walker<'_> {
                             self.geometry.truncated = true;
                             break;
                         }
-                        let p = point(matrix, x, y);
+                        let p = point(gs.matrix, x, y);
                         current = Some(p);
                         start = Some(p);
                     }
                 }
                 "l" => {
                     if let (Some(a), Some([x, y])) = (current, op.nums::<2>()) {
-                        let b = point(matrix, x, y);
+                        let b = point(gs.matrix, x, y);
                         path.edge(a, b);
                         current = Some(b);
                     }
@@ -333,11 +416,11 @@ impl Walker<'_> {
                         let curve = match String::from_utf8_lossy(&op.op).as_ref() {
                             "c" => op
                                 .nums::<6>()
-                                .map(|[x1, y1, x2, y2, x3, y3]| [a, point(matrix, x1, y1), point(matrix, x2, y2), point(matrix, x3, y3)]),
-                            "v" => op.nums::<4>().map(|[x2, y2, x3, y3]| [a, a, point(matrix, x2, y2), point(matrix, x3, y3)]),
+                                .map(|[x1, y1, x2, y2, x3, y3]| [a, point(gs.matrix, x1, y1), point(gs.matrix, x2, y2), point(gs.matrix, x3, y3)]),
+                            "v" => op.nums::<4>().map(|[x2, y2, x3, y3]| [a, a, point(gs.matrix, x2, y2), point(gs.matrix, x3, y3)]),
                             _ => op.nums::<4>().map(|[x1, y1, x3, y3]| {
-                                let d = point(matrix, x3, y3);
-                                [a, point(matrix, x1, y1), d, d]
+                                let d = point(gs.matrix, x3, y3);
+                                [a, point(gs.matrix, x1, y1), d, d]
                             }),
                         };
                         if let Some([a, b, c, d]) = curve
@@ -364,10 +447,10 @@ impl Walker<'_> {
                             self.geometry.truncated = true;
                             break;
                         }
-                        let a = point(matrix, x, y);
-                        let b = point(matrix, x + w, y);
-                        let c = point(matrix, x + w, y + h);
-                        let d = point(matrix, x, y + h);
+                        let a = point(gs.matrix, x, y);
+                        let b = point(gs.matrix, x + w, y);
+                        let c = point(gs.matrix, x + w, y + h);
+                        let d = point(gs.matrix, x, y + h);
                         for (f, t) in [(a, b), (b, c), (c, d), (d, a)] {
                             path.edge(f, t);
                         }
@@ -398,6 +481,9 @@ impl Walker<'_> {
                     {
                         path.edge(a, b);
                     }
+                    let stroked = matches!(paint.as_ref(), "S" | "s" | "B" | "B*" | "b" | "b*");
+                    let stroke = stroked.then(|| gs.stroke());
+                    self.geometry.strokes.extend(std::iter::repeat_n(stroke, path.segments.len()));
                     self.geometry.segments.append(&mut path.segments);
                     self.geometry.endpoints.append(&mut path.endpoints);
                     self.geometry.midpoints.append(&mut path.midpoints);
@@ -431,13 +517,13 @@ impl Walker<'_> {
                                     .map(|m| self.doc.resolve(m))
                                     .and_then(|o| o.as_array().and_then(|a| Matrix::from_operands(a)))
                                     .unwrap_or_default()
-                                    .then(&matrix);
+                                    .then(&gs.matrix);
                                 let own = s.dict.get(b"Resources").map(|o| self.doc.resolve(o));
                                 let res = own.as_ref().and_then(|o| o.as_dict()).unwrap_or(resources);
                                 if let Some(r) = r {
                                     self.seen.insert(r);
                                 }
-                                self.walk(o, res, m, depth + 1)?;
+                                self.walk(o, res, Gs { matrix: m, ..gs }, depth + 1)?;
                                 if let Some(r) = r {
                                     self.seen.remove(&r);
                                 }
@@ -459,7 +545,7 @@ pub fn geometry(doc: &Document, page_index: usize) -> Result<Geometry> {
     let mut walker = Walker { doc, geometry: Geometry::default(), seen: HashSet::new(), bytes: 0, streams: 0 };
     // Extraction is lenient: limits and unreadable streams are reported in the geometry.
     if let Some(contents) = p.dict.get(b"Contents") {
-        walker.walk(contents, resources, Matrix::IDENTITY, 0)?;
+        walker.walk(contents, resources, Gs::new(Matrix::IDENTITY), 0)?;
     }
     Ok(walker.geometry)
 }

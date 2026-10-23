@@ -792,7 +792,7 @@ mod tests {
 
     #[test]
     fn counts_group_by_symbol_label_and_layer() {
-        let layer = crate::layers::LayerInfo { id: ObjRef::new(9, 0), name: "Data, 2nd floor".into(), color: [0.0; 3], locked: false };
+        let layer = crate::layers::LayerInfo { id: ObjRef::new(9, 0), name: "Data, 2nd floor".into(), color: [0.0; 3], locked: false, width: None };
         let at = |page, symbol: &str, label: &str, layer| Placed { page, index: 0, symbol: symbol.into(), label: label.into(), layer };
         let placed = [
             at(0, "data-jack", "PC", Some(layer.id)),

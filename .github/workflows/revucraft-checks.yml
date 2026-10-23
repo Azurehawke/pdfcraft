@@ -135,6 +135,7 @@ jobs:
           sed -i 's/^          //' "$pboard"
           shot plan-pasteboard "$pboard" --workflow draft --panel none --zoom 35
           shot plan-rulers "$plan" --workflow draft --panel none --zoom 100 --print-margin 0.25
+          shot plan-format-copy "$pboard" --workflow draft --panel none --zoom 35 --quick format-copy
           shot plan-markup "$plan" --workflow markup
           shot plan-photo-callout "$plan" --workflow markup --quick photo-callout
           shot plan-cable "$plan" --workflow measure --quick measure-cable
