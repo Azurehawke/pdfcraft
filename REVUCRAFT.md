@@ -257,7 +257,7 @@ Markup and measuring
       (for text) font become the current style for every markup and drafting tool. With markups
       selected first, the click restyles them instead (one undo). From a PDF/DWG line only its width
       and colour come. Shift-click (or an option) copies the layer too.
-- [ ] **(Steve, next build)** Object styles, as Illustrator's graphic styles: save a markup's look (stroke,
+- [ ] **(Steve, build after next)** Object styles, as Illustrator's graphic styles: save a markup's look (stroke,
       width, dash, line ends, alignment, fill, opacity, font) under a name ("Existing walls", "Demo")
       in a Styles box; apply one to the selection or make it the current tool style. A text style
       sets a whole text box's font, size, colour and alignment. Styles are kept in RevuCraft's
@@ -265,7 +265,7 @@ Markup and measuring
       PDF. Based on: a style can follow another and change only what differs.
       Reuse VectorCraft's graphic styles and style libraries (its Graphic Styles panel and library
       files), mapped onto markup properties.
-- [ ] **(Steve, later build)** Paragraph and character styles inside text boxes, as InDesign: a text
+- [ ] **(Steve, back burner)** Paragraph and character styles inside text boxes, as InDesign: a text
       box holds paragraphs with their own styles (Header, Body); Next style (Enter after a Header
       starts a Body paragraph); character styles for runs of text; nested styles (bold up to the
       first colon, then the paragraph's style). Needs rich text editing in text boxes and their
