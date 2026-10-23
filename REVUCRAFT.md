@@ -264,6 +264,11 @@ Markup and measuring
       PDF line makes the drafting width a hairline, so drafted lines match an all-hairline drawing on
       any printer. Markup and comment tools keep a real width: from a hairline they take only its colour.
       Format copy always says what it copied ("Copied: black, hairline (drafting); colour only (markup)").
+- [ ] **(Steve, next build)** Photo callouts: resize the photo and the text separately. With the callout
+      selected, a handle on the photo's outer corner scales the photo (keeping its proportions; the box's
+      height follows), and a handle on the text's outer edge sets the text width (the description
+      rewraps and the box grows or shrinks to fit). The dot stays put; the leader re-attaches. One undo
+      each; the photo height and text width also in the Properties box for exact sizes.
 - [ ] **(Steve, build after next)** Object styles, as Illustrator's graphic styles: save a markup's look (stroke,
       width, dash, line ends, alignment, fill, opacity, font) under a name ("Existing walls", "Demo")
       in a Styles box; apply one to the selection or make it the current tool style. A text style
