@@ -1,6 +1,11 @@
 //! RevuCraft's Markups list (in the dock): every markup and measurement of the document in one
 //! table (type, label, layer, page, author, status, value, date), sorted by any column, filtered
 //! by text, type and layer, a click away from the page, and exported as a spreadsheet.
+//!
+//! As BIMCraft's (and Revit's) schedules: your calculated columns are worked out for each row
+//! ([`crate::formula`]), rules filter the rows (`Value` greater than 50, `System` equals Data),
+//! and the rows can be grouped by a column, each group with its count and totals, the totals of
+//! everything shown under the list.
 
 use egui::{Align, Layout, Sense};
 use egui_extras::{Column, TableBuilder};
@@ -74,8 +79,9 @@ pub struct Row {
     pub author: String,
     pub status: String,
     pub value: String,
-    /// The value as a number, for sorting.
+    /// The value as a number, for sorting and totals, and its unit (`ft`, `sq ft`).
     pub amount: Option<f64>,
+    pub unit: String,
     pub date: String,
     /// Your own columns' values (name, value).
     pub fields: Vec<(String, String)>,
@@ -114,7 +120,139 @@ pub struct MarkupsState {
     pub layer: Option<String>,
     /// Drafted linework listed too (off: only markups, unless a layer is chosen).
     pub drafting: bool,
+    /// Rules every row shown holds to.
+    pub rules: Vec<Rule>,
+    /// The column the rows are grouped by.
+    pub group: Option<Col>,
     rows: Option<(DocId, u64, Vec<Row>)>,
+}
+
+/// How a filter rule compares a row's value with its own.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
+pub enum Op {
+    #[default]
+    Contains,
+    Equals,
+    Greater,
+    Less,
+    HasValue,
+    NoValue,
+}
+
+impl Op {
+    const ALL: [Op; 6] = [Op::Contains, Op::Equals, Op::Greater, Op::Less, Op::HasValue, Op::NoValue];
+
+    fn label(self) -> &'static str {
+        match self {
+            Op::Contains => "contains",
+            Op::Equals => "equals",
+            Op::Greater => "is greater than",
+            Op::Less => "is less than",
+            Op::HasValue => "has a value",
+            Op::NoValue => "has no value",
+        }
+    }
+
+    fn takes_value(self) -> bool {
+        !matches!(self, Op::HasValue | Op::NoValue)
+    }
+}
+
+/// A filter rule: a column, how to compare, and the value to compare with.
+#[derive(Clone, Debug, PartialEq, Default)]
+pub struct Rule {
+    pub col: Col,
+    pub op: Op,
+    pub value: String,
+}
+
+/// Rules kept at most.
+const MAX_RULES: usize = 8;
+
+impl Rule {
+    /// Whether `r` holds to the rule. Greater and less compare numbers (the value's own for
+    /// Value, the number a column's text starts with otherwise); a row without one doesn't hold.
+    pub fn matches(&self, r: &Row, custom: &[String]) -> bool {
+        let text = r.text(self.col, custom);
+        let number = || if self.col == Col::Value { r.amount } else { crate::formula::leading_number(&text) };
+        match self.op {
+            Op::Contains => text.to_lowercase().contains(&self.value.trim().to_lowercase()),
+            Op::Equals => text.trim().eq_ignore_ascii_case(self.value.trim()),
+            Op::Greater => matches!((number(), crate::formula::leading_number(&self.value)), (Some(a), Some(b)) if a > b),
+            Op::Less => matches!((number(), crate::formula::leading_number(&self.value)), (Some(a), Some(b)) if a < b),
+            Op::HasValue => !text.trim().is_empty(),
+            Op::NoValue => text.trim().is_empty(),
+        }
+    }
+}
+
+/// Fill in your calculated columns for each row: `formulas` are (name, formula), worked out in
+/// order, so one can use those before it. A formula that can't be worked out shows why.
+pub fn calculate(rows: &mut [Row], formulas: &[(String, String)]) {
+    for r in rows.iter_mut() {
+        for (name, formula) in formulas {
+            let value = {
+                let row: &Row = r;
+                let value_of = |n: &str| -> Option<f64> {
+                    match n.to_lowercase().as_str() {
+                        "value" => row.amount,
+                        "count" => Some(1.0),
+                        "page" => Some((row.page + 1) as f64),
+                        lower => row.fields.iter().find(|(f, _)| f.to_lowercase() == lower).and_then(|(_, v)| crate::formula::leading_number(v)),
+                    }
+                };
+                match crate::formula::evaluate(formula, value_of) {
+                    Ok(v) => crate::formula::show(v),
+                    Err(e) => format!("⚠ {e}"),
+                }
+            };
+            match r.fields.iter_mut().find(|(f, _)| f == name) {
+                Some(slot) => slot.1 = value,
+                None => r.fields.push((name.clone(), value)),
+            }
+        }
+    }
+}
+
+/// The count and totals of some rows: values summed per unit, and each calculated column summed.
+#[derive(Clone, Debug, PartialEq, Default)]
+pub struct Totals {
+    pub count: usize,
+    pub values: Vec<(String, f64)>,
+    pub calculated: Vec<(String, f64)>,
+}
+
+pub fn totals(rows: &[&Row], calculated: &[String]) -> Totals {
+    let mut t = Totals { count: rows.len(), ..Totals::default() };
+    for r in rows {
+        if let Some(a) = r.amount.filter(|a| a.is_finite()) {
+            match t.values.iter_mut().find(|(u, _)| *u == r.unit) {
+                Some(slot) => slot.1 += a,
+                None => t.values.push((r.unit.clone(), a)),
+            }
+        }
+    }
+    for name in calculated {
+        let sum: f64 =
+            rows.iter().filter_map(|r| r.fields.iter().find(|(f, _)| f == name).and_then(|(_, v)| crate::formula::leading_number(v))).sum();
+        t.calculated.push((name.clone(), sum));
+    }
+    t
+}
+
+impl Totals {
+    /// The values as one line: `1,234.5 ft  ·  56 sq ft`.
+    fn values_text(&self) -> String {
+        self.values
+            .iter()
+            .map(|(u, v)| if u.is_empty() { crate::formula::show(*v) } else { format!("{} {u}", crate::formula::show(*v)) })
+            .collect::<Vec<_>>()
+            .join("  ·  ")
+    }
+
+    fn calculated_of(&self, name: &str) -> Option<String> {
+        self.calculated.iter().find(|(n, _)| n == name).map(|(_, v)| crate::formula::show(*v))
+    }
 }
 
 /// `D:20261015…` as `2026-10-15` (anything else as written, cut short).
@@ -198,6 +336,7 @@ pub fn rows(doc: &Document) -> Vec<Row> {
             status,
             value: measurement.map(|m| m.reading.label.clone()).unwrap_or_default(),
             amount: measurement.map(|m| m.reading.value),
+            unit: measurement.map(|m| m.reading.unit.clone()).unwrap_or_default(),
             date: a.modified.as_deref().map(pdf_date).unwrap_or_default(),
             fields: all_fields.iter().find(|(p, i, _)| *p == a.page && *i == a.index).map(|(_, _, f)| f.clone()).unwrap_or_default(),
             drafting: a.drafting,
@@ -213,6 +352,7 @@ pub fn visible(rows: &[Row], state: &MarkupsState, custom: &[String]) -> Vec<Row
     let mut out: Vec<Row> = rows
         .iter()
         .filter(|r| !r.drafting || state.drafting || state.layer.is_some())
+        .filter(|r| state.rules.iter().all(|rule| rule.matches(r, custom)))
         .filter(|r| state.kind.as_ref().is_none_or(|k| &r.kind == k))
         .filter(|r| state.layer.as_ref().is_none_or(|l| &r.layer == l))
         .filter(|r| q.is_empty() || cols.iter().any(|c| r.text(*c, custom).to_lowercase().contains(&q)))
@@ -223,14 +363,19 @@ pub fn visible(rows: &[Row], state: &MarkupsState, custom: &[String]) -> Vec<Row
         let order = match col {
             Col::Page => (a.page, a.index).cmp(&(b.page, b.index)),
             Col::Value => a.amount.partial_cmp(&b.amount).unwrap_or(std::cmp::Ordering::Equal).then_with(|| a.value.cmp(&b.value)),
-            other => a
-                .text(other, custom)
-                .to_lowercase()
-                .cmp(&b.text(other, custom).to_lowercase())
-                .then_with(|| (a.page, a.index).cmp(&(b.page, b.index))),
+            // Your columns of numbers (and calculated ones) sort as numbers.
+            other => match (crate::formula::leading_number(&a.text(other, custom)), crate::formula::leading_number(&b.text(other, custom))) {
+                (Some(x), Some(y)) if matches!(other, Col::Custom(_)) => x.partial_cmp(&y).unwrap_or(std::cmp::Ordering::Equal),
+                _ => a.text(other, custom).to_lowercase().cmp(&b.text(other, custom).to_lowercase()),
+            }
+            .then_with(|| (a.page, a.index).cmp(&(b.page, b.index))),
         };
         if state.descending { order.reverse() } else { order }
     });
+    // Grouped: the groups in order of their name, the chosen order within each (a stable sort).
+    if let Some(g) = state.group {
+        out.sort_by(|a, b| a.text(g, custom).to_lowercase().cmp(&b.text(g, custom).to_lowercase()));
+    }
     out
 }
 
@@ -284,7 +429,11 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
     if state.rows.as_ref().is_none_or(|(d, g, _)| *d != id || *g != generation) {
         state.rows = Some((id, generation, rows(doc)));
     }
-    let all = state.rows.as_ref().map(|(_, _, r)| r.clone()).unwrap_or_default();
+    let mut all = state.rows.as_ref().map(|(_, _, r)| r.clone()).unwrap_or_default();
+    let formulas: Vec<(String, String)> =
+        app.markup_columns.iter().filter(|c| !c.formula.trim().is_empty()).map(|c| (c.name.clone(), c.formula.clone())).collect();
+    calculate(&mut all, &formulas);
+    let calculated: Vec<String> = formulas.iter().map(|(n, _)| n.clone()).collect();
     let mut kinds: Vec<String> = all.iter().map(|r| r.kind.clone()).collect();
     kinds.sort();
     kinds.dedup();
@@ -331,6 +480,49 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
         if icons::button(ui, "send", 26.0, false, tl!("Send quantities to a workbook's Takeoff sheet, each a named cell")).clicked() {
             send = true;
         }
+        // Filter rules and grouping, as a schedule's.
+        let f = icons::button(ui, "filter", 26.0, !state.rules.is_empty(), tl!("Filter rules"));
+        egui::Popup::from_toggle_button_response(&f).close_behavior(egui::PopupCloseBehavior::CloseOnClickOutside).show(|ui| {
+            ui.set_min_width(320.0);
+            ui.label(egui::RichText::new(tl!("Show the markups where")).strong());
+            let mut remove = None;
+            for (i, rule) in state.rules.iter_mut().enumerate() {
+                ui.horizontal(|ui| {
+                    egui::ComboBox::from_id_salt(("rule-col", i)).selected_text(heading(rule.col, &custom)).width(100.0).show_ui(ui, |ui| {
+                        for c in cols.iter().copied() {
+                            ui.selectable_value(&mut rule.col, c, heading(c, &custom));
+                        }
+                    });
+                    egui::ComboBox::from_id_salt(("rule-op", i)).selected_text(tl!(rule.op.label())).width(110.0).show_ui(ui, |ui| {
+                        for op in Op::ALL {
+                            ui.selectable_value(&mut rule.op, op, tl!(op.label()));
+                        }
+                    });
+                    if rule.op.takes_value() {
+                        ui.add(egui::TextEdit::singleline(&mut rule.value).desired_width(80.0).char_limit(80));
+                    }
+                    if icons::button(ui, "x", 20.0, false, tl!("Remove this rule")).clicked() {
+                        remove = Some(i);
+                    }
+                });
+            }
+            if let Some(i) = remove
+                && i < state.rules.len()
+            {
+                state.rules.remove(i);
+            }
+            if state.rules.len() < MAX_RULES && ui.button(tl!("Add a rule")).clicked() {
+                state.rules.push(Rule::default());
+            }
+        });
+        let group_text =
+            state.group.map_or_else(|| tl!("No grouping").to_string(), |g| crate::i18n::fmt(tl!("By {column}"), &[("column", &heading(g, &custom))]));
+        egui::ComboBox::from_id_salt("markups-group").selected_text(group_text).width(110.0).show_ui(ui, |ui| {
+            ui.selectable_value(&mut state.group, None, tl!("No grouping"));
+            for c in cols.iter().copied().filter(|c| *c != Col::Date) {
+                ui.selectable_value(&mut state.group, Some(c), heading(c, &custom));
+            }
+        });
         let r = icons::button(ui, "columns-3", 26.0, false, tl!("Your columns: drop ID, progress and others"));
         egui::Popup::from_toggle_button_response(&r)
             .close_behavior(egui::PopupCloseBehavior::CloseOnClickOutside)
@@ -345,6 +537,27 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
     ui.label(egui::RichText::new(count).small().color(t.text_muted));
     let selected = app.views.get(index).and_then(|v| v.comments.selected);
     let mut clicked: Option<Row> = None;
+    // The table's lines: each group's heading (with its count and totals) before its rows.
+    enum Line {
+        Group(String, Totals),
+        Row(usize),
+    }
+    let mut lines: Vec<Line> = Vec::with_capacity(shown.len());
+    match state.group {
+        Some(g) => {
+            let mut k = 0;
+            while k < shown.len() {
+                let key = shown.get(k).map(|r| r.text(g, &custom)).unwrap_or_default();
+                let end = shown.iter().skip(k).position(|r| r.text(g, &custom).to_lowercase() != key.to_lowercase()).map_or(shown.len(), |n| k + n);
+                let members: Vec<&Row> = shown.get(k..end).map(|s| s.iter().collect()).unwrap_or_default();
+                let key = if key.is_empty() { tl!("(none)").to_string() } else { key };
+                lines.push(Line::Group(key, totals(&members, &calculated)));
+                lines.extend((k..end).map(Line::Row));
+                k = end.max(k + 1);
+            }
+        }
+        None => lines.extend((0..shown.len()).map(Line::Row)),
+    }
     let mut sort_by: Option<Col> = None;
     egui::ScrollArea::horizontal().id_salt("markups-scroll").auto_shrink([false, true]).show(ui, |ui| {
         let mut builder = TableBuilder::new(ui)
@@ -369,8 +582,28 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
                 }
             })
             .body(|body| {
-                body.rows(22.0, shown.len(), |mut row| {
-                    let Some(r) = shown.get(row.index()) else { return };
+                body.rows(22.0, lines.len(), |mut row| {
+                    let r = match lines.get(row.index()) {
+                        Some(Line::Row(i)) => match shown.get(*i) {
+                            Some(r) => r,
+                            None => return,
+                        },
+                        Some(Line::Group(key, tot)) => {
+                            for (n, c) in cols.iter().copied().enumerate() {
+                                row.col(|ui| {
+                                    let text = match c {
+                                        _ if n == 0 => format!("{key}  ({})", tot.count),
+                                        Col::Value => tot.values_text(),
+                                        Col::Custom(i) => custom.get(i).and_then(|name| tot.calculated_of(name)).unwrap_or_default(),
+                                        _ => String::new(),
+                                    };
+                                    ui.add(egui::Label::new(egui::RichText::new(text).strong()).truncate().selectable(false));
+                                });
+                            }
+                            return;
+                        }
+                        None => return,
+                    };
                     row.set_selected(selected == Some((r.page, r.index)));
                     for c in cols.iter().copied() {
                         row.col(|ui| {
@@ -383,6 +616,20 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
                 });
             });
     });
+    // The totals of everything shown.
+    if !shown.is_empty() {
+        let refs: Vec<&Row> = shown.iter().collect();
+        let tot = totals(&refs, &calculated);
+        let mut parts = vec![crate::i18n::fmt(tl!("Total: {n}"), &[("n", &tot.count.to_string())])];
+        let values = tot.values_text();
+        if !values.is_empty() {
+            parts.push(values);
+        }
+        for (name, v) in &tot.calculated {
+            parts.push(format!("{name} {}", crate::formula::show(*v)));
+        }
+        ui.label(egui::RichText::new(parts.join("   ·   ")).font(crate::theme::semibold(12.0)));
+    }
     if all.is_empty() {
         ui.add_space(8.0);
         ui.label(egui::RichText::new(tl!("No markups yet. Everything you draw, measure or place is listed here.")).color(t.text_muted));
@@ -547,6 +794,7 @@ mod tests {
             status: String::new(),
             value: value.map(|v| format!("{v}'")).unwrap_or_default(),
             amount: value,
+            unit: "ft".into(),
             date: String::new(),
             fields: vec![("Progress".into(), "Pulled".into())],
             drafting: false,
@@ -586,6 +834,41 @@ mod tests {
         d.layer = Some("Walls".into());
         assert_eq!(visible(&lines, &d, &none).len(), 1);
         assert_eq!(pdf_date("D:20261015093000-07'00'"), "2026-10-15");
+    }
+
+    #[test]
+    fn calculated_columns_rules_groups_and_totals() {
+        let none: [String; 0] = [];
+        let mut rows = vec![row(0, "Cable run", "A", Some(100.0)), row(1, "Cable run", "B", Some(50.0)), row(1, "Data jack", "PC", None)];
+        rows[0].fields.push(("System".into(), "Data".into()));
+        rows[1].fields.push(("System".into(), "Voice".into()));
+        calculate(
+            &mut rows,
+            &[("With slack".into(), "Value * 1.1".into()), ("Cost".into(), "[With slack] * 2".into()), ("Bad".into(), "Value +".into())],
+        );
+        let field = |r: &Row, n: &str| r.fields.iter().find(|(f, _)| f == n).map(|(_, v)| v.clone()).unwrap_or_default();
+        assert_eq!(field(&rows[0], "With slack"), "110");
+        assert_eq!(field(&rows[0], "Cost"), "220");
+        assert!(field(&rows[2], "With slack").starts_with('⚠'), "a jack has no value");
+        assert!(field(&rows[0], "Bad").starts_with('⚠'));
+        // Totals: values per unit, calculated columns summed (rows without a number left out).
+        let refs: Vec<&Row> = rows.iter().collect();
+        let t = totals(&refs, &["With slack".to_string()]);
+        assert_eq!(t.count, 3);
+        assert_eq!(t.values, vec![("ft".to_string(), 150.0)]);
+        assert!((t.calculated[0].1 - 165.0).abs() < 1e-9);
+        // Rules: greater than on the value, equals on a column.
+        let custom = ["System".to_string()];
+        let mut s = MarkupsState { rules: vec![Rule { col: Col::Value, op: Op::Greater, value: "60".into() }], ..MarkupsState::default() };
+        assert_eq!(visible(&rows, &s, &custom).iter().map(|r| r.label.as_str()).collect::<Vec<_>>(), ["A"]);
+        s.rules = vec![Rule { col: Col::Custom(0), op: Op::Equals, value: "voice".into() }];
+        assert_eq!(visible(&rows, &s, &custom).len(), 1);
+        s.rules = vec![Rule { col: Col::Custom(0), op: Op::NoValue, value: String::new() }];
+        assert_eq!(visible(&rows, &s, &custom).len(), 1);
+        // Grouped by type: the groups' rows together.
+        s.rules.clear();
+        s.group = Some(Col::Type);
+        assert_eq!(visible(&rows, &s, &none).iter().map(|r| r.kind.as_str()).collect::<Vec<_>>(), ["Cable run", "Cable run", "Data jack"]);
         assert_eq!(pdf_date("yesterday"), "yesterday");
     }
 }

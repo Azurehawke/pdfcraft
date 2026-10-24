@@ -94,6 +94,7 @@ mod dock;
 mod draft;
 mod draft_edit;
 mod draft_panel;
+mod draft_snap;
 mod edit_text_ui;
 pub mod field_table_ui;
 pub use edit_text_ui::CropMode;
@@ -110,6 +111,7 @@ pub mod folders_ui;
 mod format_copy;
 mod format_text_ui;
 pub mod forms_ui;
+mod formula;
 mod guides_ui;
 mod home;
 mod icon_data;
@@ -2654,6 +2656,9 @@ impl PdfCraftApp {
         v["draw_pen"] = serde_json::json!(self.comment_prefs.pen.name());
         v["hover_tips"] = serde_json::Value::Bool(self.comment_prefs.hover_tips);
         v["draft_panel_collapsed"] = serde_json::Value::Bool(self.draft.panel_collapsed);
+        v["draft_angle_step"] = serde_json::json!(self.draft.angle_step);
+        v["cable_system"] = serde_json::json!(self.draft.cable_system);
+        v["cable_type"] = serde_json::json!(self.draft.cable_type);
         v["dock"] = self.dock_layout();
         v["tool_chest"] = self.chest.to_json();
         v["markup_columns"] = columns::to_json(&self.markup_columns);
@@ -2894,6 +2899,17 @@ impl PdfCraftApp {
         }
         if let Some(tips) = v["hover_tips"].as_bool() {
             self.comment_prefs.hover_tips = tips;
+        }
+        // Cable runs' system and type: names, cleaned and capped as fields are.
+        if let Some(s) = v["cable_system"].as_str() {
+            self.draft.cable_system = pdfcraft_engine::fields::clean_name(s).chars().take(40).collect();
+        }
+        if let Some(s) = v["cable_type"].as_str() {
+            self.draft.cable_type = pdfcraft_engine::fields::clean_name(s).chars().take(40).collect();
+        }
+        // One of the offered steps only (settings are untrusted).
+        if let Some(a) = v["draft_angle_step"].as_f64().filter(|a| crate::draft_snap::ANGLE_STEPS.contains(a)) {
+            self.draft.angle_step = a;
         }
         if let Some(c) = v["draft_panel_collapsed"].as_bool() {
             self.draft.panel_collapsed = c;

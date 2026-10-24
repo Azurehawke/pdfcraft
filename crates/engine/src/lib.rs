@@ -1844,6 +1844,8 @@ pub enum Edit {
     AddCableRun {
         new: measure::NewMeasurement,
         extra_inches: f64,
+        /// Your columns filled in on the new run (its system and cable type, say): (name, value).
+        fields: Vec<(String, String)>,
     },
     /// RevuCraft: a legend of the symbols used (on `page`, or in the whole document), its top-left
     /// corner at `top_left`; it keeps itself up to date.
@@ -3067,9 +3069,12 @@ fn run_edit(doc: &mut pdfcraft_cos::Document, edit: &Edit, cx: &mut EditCtx) -> 
             let index = pdfcraft_annot::legend::add_legend(doc, *page, *top_left, *whole_document, title, author, &cx.meta())?;
             cx.place_on_layer(doc, *page, index)?;
         }
-        Edit::AddCableRun { new, extra_inches } => {
+        Edit::AddCableRun { new, extra_inches, fields } => {
             let index = measure::add(doc, new, &cx.meta())?;
             measure::set_cable(doc, new.page, index, *extra_inches)?;
+            for (name, value) in fields.iter().filter(|(n, v)| !n.trim().is_empty() && !v.trim().is_empty()) {
+                pdfcraft_annot::fields::set_field(doc, new.page, index, name, value, &cx.meta())?;
+            }
             cx.place_on_layer(doc, new.page, index)?;
         }
         Edit::SetMeasurementScale { page, bbox, name, scale } => measure::set_scale(doc, *page, *bbox, name, scale)?,

@@ -3092,3 +3092,28 @@ animation effects	Off	Выкл
 	field names can't contain a period: {name}	имена полей не могут содержать точку: {name}
 	two cells would both be named {name}	две ячейки получили бы одно имя {name}
 	a field named {name} already exists	поле с именем {name} уже существует
+	No snap	Без привязки
+	Next point: {snap}	Следующая точка: {snap}
+	Angle steps while drafting	Шаг угла при черчении
+	Type SE, SM, SI, SP or SN while drafting for one snap alone on the next point (SO none, SS all).	Введите SE, SM, SI, SP или SN при черчении, чтобы для следующей точки работала только эта привязка (SO — без, SS — все).
+	System	Система
+	A formula makes a calculated column: Value * 1.1, Count * 85, [Drop count] * 2 (Value, Count, Page and your columns).	Формула делает столбец вычисляемым: Value * 1.1, Count * 85, [Drop count] * 2 (Value, Count, Page и ваши столбцы).
+	Formula	Формула
+	This formula can't be calculated	Эту формулу нельзя вычислить
+	contains	содержит
+	equals	равно
+	is greater than	больше
+	is less than	меньше
+	has a value	имеет значение
+	has no value	не имеет значения
+	Filter rules	Правила фильтра
+	Show the markups where	Показывать пометки, где
+	Remove this rule	Удалить это правило
+	Add a rule	Добавить правило
+	No grouping	Без группировки
+	By {column}	По {column}
+	Total: {n}	Итого: {n}
+	The system new runs belong to: a network, a link or a circuit (Data, Voice, Cameras)	Система новых трасс: сеть, линия или цепь (Данные, Голос, Камеры)
+	Cable totals by layer, system or cable type	Итоги кабеля по слою, системе или типу
+	By system	По системе
+	By cable type	По типу кабеля

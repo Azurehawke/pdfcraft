@@ -3141,3 +3141,28 @@ animation effects	Off	关
 	field names can't contain a period: {name}	字段名称不能包含句点：{name}
 	two cells would both be named {name}	两个单元格的名称都会是 {name}
 	a field named {name} already exists	已存在名为 {name} 的字段
+	No snap	不捕捉
+	Next point: {snap}	下一点：{snap}
+	Angle steps while drafting	绘图时的角度步长
+	Type SE, SM, SI, SP or SN while drafting for one snap alone on the next point (SO none, SS all).	绘图时输入 SE、SM、SI、SP 或 SN，下一点只使用该捕捉（SO 不捕捉，SS 全部）。
+	System	系统
+	A formula makes a calculated column: Value * 1.1, Count * 85, [Drop count] * 2 (Value, Count, Page and your columns).	公式会生成计算列：Value * 1.1、Count * 85、[Drop count] * 2（Value、Count、Page 及你的列）。
+	Formula	公式
+	This formula can't be calculated	无法计算此公式
+	contains	包含
+	equals	等于
+	is greater than	大于
+	is less than	小于
+	has a value	有值
+	has no value	无值
+	Filter rules	筛选规则
+	Show the markups where	显示满足以下条件的标记
+	Remove this rule	删除此规则
+	Add a rule	添加规则
+	No grouping	不分组
+	By {column}	按{column}
+	Total: {n}	合计：{n}
+	The system new runs belong to: a network, a link or a circuit (Data, Voice, Cameras)	新线缆所属的系统：网络、链路或回路（数据、语音、摄像头）
+	Cable totals by layer, system or cable type	按图层、系统或线缆类型统计线缆
+	By system	按系统
+	By cable type	按线缆类型

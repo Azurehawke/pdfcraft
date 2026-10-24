@@ -3455,3 +3455,27 @@ theme	Appearance	Aparência
 	a table has 1 to {max} columns	uma tabela tem de 1 a {max} colunas
 	the first row number can be at most {max}	o número da primeira linha pode ser no máximo {max}
 	the area, the spacing and the column widths must be numbers, the spacing 0 or more and each width more than 0	a área, o espaçamento e as larguras das colunas devem ser números, o espaçamento 0 ou mais e cada largura maior que 0
+	No snap	Sem ajuste
+	Next point: {snap}	Próximo ponto: {snap}
+	Angle steps while drafting	Passos de ângulo ao desenhar
+	Type SE, SM, SI, SP or SN while drafting for one snap alone on the next point (SO none, SS all).	Digite SE, SM, SI, SP ou SN ao desenhar para um único ajuste no próximo ponto (SO nenhum, SS todos).
+	A formula makes a calculated column: Value * 1.1, Count * 85, [Drop count] * 2 (Value, Count, Page and your columns).	Uma fórmula cria uma coluna calculada: Value * 1.1, Count * 85, [Drop count] * 2 (Value, Count, Page e suas colunas).
+	Formula	Fórmula
+	This formula can't be calculated	Esta fórmula não pode ser calculada
+	contains	contém
+	equals	é igual a
+	is greater than	é maior que
+	is less than	é menor que
+	has a value	tem valor
+	has no value	não tem valor
+	Filter rules	Regras de filtro
+	Show the markups where	Mostrar as marcações em que
+	Remove this rule	Remover esta regra
+	Add a rule	Adicionar regra
+	No grouping	Sem agrupamento
+	By {column}	Por {column}
+	Total: {n}	Total: {n}
+	The system new runs belong to: a network, a link or a circuit (Data, Voice, Cameras)	O sistema das novas rotas: uma rede, um enlace ou um circuito (Dados, Voz, Câmeras)
+	Cable totals by layer, system or cable type	Totais de cabo por camada, sistema ou tipo de cabo
+	By system	Por sistema
+	By cable type	Por tipo de cabo

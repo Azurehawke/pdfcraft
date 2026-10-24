@@ -258,7 +258,8 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
                     }
                 }
                 // Your own columns.
-                for col in &columns {
+                // Calculated columns have nothing to fill in.
+                for col in columns.iter().filter(|c| c.formula.trim().is_empty()) {
                     let current = fields.iter().find(|(n, _)| *n == col.name).map(|(_, v)| v.clone()).unwrap_or_default();
                     ui.label(col.name.as_str());
                     if col.choices.is_empty() {

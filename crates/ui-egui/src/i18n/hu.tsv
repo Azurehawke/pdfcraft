@@ -3174,3 +3174,28 @@ animation effects	Off	Ki
 	field names can't contain a period: {name}	a mezőnevek nem tartalmazhatnak pontot: {name}
 	two cells would both be named {name}	két cella neve is {name} lenne
 	a field named {name} already exists	már van {name} nevű mező
+	No snap	Nincs illesztés
+	Next point: {snap}	Következő pont: {snap}
+	Angle steps while drafting	Szöglépések rajzoláskor
+	Type SE, SM, SI, SP or SN while drafting for one snap alone on the next point (SO none, SS all).	Rajzolás közben írja be: SE, SM, SI, SP vagy SN – a következő pontnál csak az az illesztés él (SO egyik sem, SS mind).
+	System	Rendszer
+	A formula makes a calculated column: Value * 1.1, Count * 85, [Drop count] * 2 (Value, Count, Page and your columns).	A képlet számított oszlopot hoz létre: Value * 1.1, Count * 85, [Drop count] * 2 (Value, Count, Page és a saját oszlopai).
+	Formula	Képlet
+	This formula can't be calculated	Ez a képlet nem számítható ki
+	contains	tartalmazza
+	equals	egyenlő
+	is greater than	nagyobb mint
+	is less than	kisebb mint
+	has a value	van értéke
+	has no value	nincs értéke
+	Filter rules	Szűrési szabályok
+	Show the markups where	Azok a jelölések, ahol
+	Remove this rule	Szabály eltávolítása
+	Add a rule	Szabály hozzáadása
+	No grouping	Nincs csoportosítás
+	By {column}	{column} szerint
+	Total: {n}	Összesen: {n}
+	The system new runs belong to: a network, a link or a circuit (Data, Voice, Cameras)	Az új nyomvonalak rendszere: hálózat, kapcsolat vagy áramkör (Adat, Hang, Kamerák)
+	Cable totals by layer, system or cable type	Kábelösszegek réteg, rendszer vagy kábeltípus szerint
+	By system	Rendszer szerint
+	By cable type	Kábeltípus szerint

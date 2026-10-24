@@ -3176,3 +3176,28 @@ animation effects	Off	Aus
 	field names can't contain a period: {name}	Feldnamen dürfen keinen Punkt enthalten: {name}
 	two cells would both be named {name}	zwei Zellen hätten beide den Namen {name}
 	a field named {name} already exists	ein Feld namens {name} ist bereits vorhanden
+	No snap	Kein Fang
+	Next point: {snap}	Nächster Punkt: {snap}
+	Angle steps while drafting	Winkelschritte beim Zeichnen
+	Type SE, SM, SI, SP or SN while drafting for one snap alone on the next point (SO none, SS all).	Beim Zeichnen SE, SM, SI, SP oder SN tippen, um für den nächsten Punkt nur diesen Fang zu nutzen (SO keiner, SS alle).
+	System	System
+	A formula makes a calculated column: Value * 1.1, Count * 85, [Drop count] * 2 (Value, Count, Page and your columns).	Eine Formel macht eine berechnete Spalte: Value * 1.1, Count * 85, [Drop count] * 2 (Value, Count, Page und Ihre Spalten).
+	Formula	Formel
+	This formula can't be calculated	Diese Formel lässt sich nicht berechnen
+	contains	enthält
+	equals	ist gleich
+	is greater than	ist größer als
+	is less than	ist kleiner als
+	has a value	hat einen Wert
+	has no value	hat keinen Wert
+	Filter rules	Filterregeln
+	Show the markups where	Markierungen anzeigen, bei denen
+	Remove this rule	Diese Regel entfernen
+	Add a rule	Regel hinzufügen
+	No grouping	Keine Gruppierung
+	By {column}	Nach {column}
+	Total: {n}	Gesamt: {n}
+	The system new runs belong to: a network, a link or a circuit (Data, Voice, Cameras)	Das System neuer Kabelwege: ein Netz, eine Verbindung oder ein Stromkreis (Daten, Sprache, Kameras)
+	Cable totals by layer, system or cable type	Kabelsummen nach Ebene, System oder Kabeltyp
+	By system	Nach System
+	By cable type	Nach Kabeltyp

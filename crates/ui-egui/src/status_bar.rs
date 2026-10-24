@@ -102,6 +102,24 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
                             ui.add(crate::widgets::checkbox(&mut m.snaps.intersections, tl!("Intersections")));
                             ui.add(crate::widgets::checkbox(&mut m.snaps.paths, tl!("Paths")));
                             ui.add(egui::Slider::new(&mut m.sensitivity, 1.0..=20.0).text(tl!("Sensitivity")));
+                            // Drafting: the angle steps a direction sticks to, along a dashed guide.
+                            ui.separator();
+                            ui.label(tl!("Angle steps while drafting"));
+                            ui.horizontal_wrapped(|ui| {
+                                for step in crate::draft_snap::ANGLE_STEPS {
+                                    let label = if step == 0.0 { tl!("Off").to_string() } else { format!("{step:.0}°") };
+                                    if ui.selectable_label(app.draft.angle_step == step, label).clicked() {
+                                        app.draft.angle_step = step;
+                                    }
+                                }
+                            });
+                            ui.label(
+                                egui::RichText::new(tl!(
+                                    "Type SE, SM, SI, SP or SN while drafting for one snap alone on the next point (SO none, SS all)."
+                                ))
+                                .small()
+                                .weak(),
+                            );
                         });
                         let _ = ui
                             .toggle_value(&mut v.measure.snap_enabled, egui::RichText::new(tl!("Snap")).font(font.clone()))

@@ -194,6 +194,8 @@ pub struct MeasureView {
     pub calibrated: bool,
     /// The allowance a cable run adds (inches; Draft's setting).
     pub cable_inches: f64,
+    /// Your columns filled in on each new cable run: its system and cable type (`cable`).
+    pub cable_fields: Vec<(String, String)>,
     /// Snapping geometry (or why it failed) per (page, edit generation): extraction is not
     /// repeated on every hover frame.
     paths: Option<(usize, u64, Result<measure::snap::Geometry, String>)>,
@@ -288,6 +290,7 @@ impl Default for MeasureView {
             bare: crate::draft::BareUnit::Feet,
             calibrated: false,
             cable_inches: 0.0,
+            cable_fields: Vec::new(),
             paths: None,
             listing: None,
             set_by: SetBy::Preset,
@@ -770,7 +773,7 @@ fn finish(state: &mut MeasureView, pending: &mut Option<Edit>, doc: &Document, p
             dimension: None,
         };
         *pending = Some(if tool == Tool::CableRun {
-            Edit::AddCableRun { new, extra_inches: state.cable_inches.clamp(0.0, 1e6) }
+            Edit::AddCableRun { new, extra_inches: state.cable_inches.clamp(0.0, 1e6), fields: state.cable_fields.clone() }
         } else {
             Edit::AddMeasurement(new)
         });

@@ -2,11 +2,13 @@
 # catalogs, kept in step with PdfCraft, fall back to English for these, so their coverage tests
 # leave them out. Regenerate when RevuCraft adds wording.
 3-way switch
+A formula makes a calculated column: Value * 1.1, Count * 85, [Drop count] * 2 (Value, Count, Page and your columns).
 A hairline: the thinnest line the printer or screen draws
 A new document
 About RevuCraft
 Accent color
 Add a column
+Add a rule
 Add layer
 Add legend
 Add mapping
@@ -28,6 +30,7 @@ Amber
 An area
 Android closes RevuCraft when it installs the update, so unsaved work is asked about first.
 Angle in degrees
+Angle steps while drafting
 Annotate
 App folder
 Arc (start, a point on it, end)
@@ -38,15 +41,19 @@ Base point (x,y from the origin)
 Break (click a line where it splits)
 Break and join
 Built on PdfCraft
+By cable type
 By layer
 By layer (hairline)
 By layer ({w} pt)
+By system
+By {column}
 Cable
 Cable ({layer}): {runs} runs, {length}
 Cable run
 Cable run: click along the route, then Finish
 Cable runs
 Cable totals by layer
+Cable totals by layer, system or cable type
 Cable type
 Cables
 Calibrate
@@ -197,6 +204,7 @@ Files you open in RevuCraft appear here. Drop a PDF anywhere to open it.
 Fillet (two lines: a clean or rounded corner)
 Fillet radius
 Fillet radius (0 makes a sharp corner)
+Filter rules
 Fine (1/2 pt)
 Finish
 Flatten into the page
@@ -210,6 +218,7 @@ Folder mappings
 Form
 Format copy
 Format copy: click a markup or line to use its look (with markups selected: give them its look; Shift: its layer too)
+Formula
 Found by name in a subfolder of the PDF's folder
 Found by name next to the PDF
 Found relative to the PDF
@@ -333,12 +342,15 @@ New sublayer
 New workbook…
 New…
 Next measurement
+Next point: {snap}
 No XLSX workbook is placed in this document yet (a CSV can't hold a Takeoff sheet).
 No cable runs yet.
 No drawings here.
+No grouping
 No layer
 No layers yet. Add one, then choose it as the current layer: new markups, symbols and photos go on it.
 No markups yet. Everything you draw, measure or place is listed here.
+No snap
 None (paper size)
 Not calibrated (paper size)
 Not found at this path
@@ -456,6 +468,7 @@ Remove from the tool chest
 Remove mapping
 Remove table
 Remove this column
+Remove this rule
 Rename layer
 Rename measurement
 Renumber
@@ -526,6 +539,7 @@ Show guides
 Show lengths as
 Show sublayers
 Show the author and comment when pointing at a markup
+Show the markups where
 Show the photo in a box with its description, pointing at this spot
 Show tool names
 Showing files isn't available here.
@@ -555,6 +569,7 @@ Symbol name
 Symbols
 Symbols in the whole document
 Symbols on this page
+System
 THIS PAGE
 Take a photo with the camera…
 Take it off the sheet. The file stays as it is, and Undo brings it back.
@@ -586,6 +601,7 @@ The quantities have changed since they were sent to {name}.
 The same folder as another device and this one see it (the Jobs drive on the PC, Sync/Jobs on the tablet): linked drawings recorded on one are found on the other.
 The selected lines and shapes become a symbol of your own, kept with your symbols for every drawing. The drawing stays as it is.
 The selected markups already look like that
+The system new runs belong to: a network, a link or a circuit (Data, Voice, Cameras)
 The two points are in the same place; pick two ends of a length.
 The wall is shorter than the opening
 The workbook is too large to show here.
@@ -602,6 +618,7 @@ This computer
 This document
 This folder is empty
 This form also contains XFA data, which RevuCraft doesn't read yet. You can fill its fields, but Acrobat may show the XFA values instead.
+This formula can't be calculated
 This is a dynamic XFA form, which RevuCraft can't display yet. What you see is the file's placeholder page.
 This page
 This sheet is empty.
@@ -614,10 +631,12 @@ Tool chest
 Tool icons
 Tool options
 Tools you use show up here.
+Total: {n}
 Transform
 Trim (click the part to cut away at crossing lines)
 Turn new symbols to line up with the nearest wall or line
 Turn the symbol to line up with the nearest wall or line
+Type SE, SM, SI, SP or SN while drafting for one snap alone on the next point (SO none, SS all).
 Type a length after placing the first point, or give coordinates.
 Type a length or coordinates, then Enter
 Type a name first
@@ -668,9 +687,15 @@ Your columns
 Your columns: drop ID, progress and others
 Your size
 already exists. Replace it?
+contains
+equals
 ft
 hairline
+has a value
+has no value
 in
+is greater than
+is less than
 the text recognition models are not installed (reinstall RevuCraft, or set PDFCRAFT_MODELS to the folder that holds them)
 {name} can't be found.
 {name} is updated on the sheet; the markups stayed put.

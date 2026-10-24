@@ -3409,3 +3409,27 @@ certificate	SHA-256 digest	Impronta SHA-256
 	field names can't contain a period: {name}	i nomi dei campi non possono contenere un punto: {name}
 	two cells would both be named {name}	due celle si chiamerebbero entrambe {name}
 	a field named {name} already exists	esiste già un campo chiamato {name}
+	No snap	Nessuno snap
+	Next point: {snap}	Punto successivo: {snap}
+	Angle steps while drafting	Passi angolari durante il disegno
+	Type SE, SM, SI, SP or SN while drafting for one snap alone on the next point (SO none, SS all).	Digita SE, SM, SI, SP o SN durante il disegno per un solo snap sul punto successivo (SO nessuno, SS tutti).
+	A formula makes a calculated column: Value * 1.1, Count * 85, [Drop count] * 2 (Value, Count, Page and your columns).	Una formula crea una colonna calcolata: Value * 1.1, Count * 85, [Drop count] * 2 (Value, Count, Page e le tue colonne).
+	Formula	Formula
+	This formula can't be calculated	Questa formula non si può calcolare
+	contains	contiene
+	equals	è uguale a
+	is greater than	è maggiore di
+	is less than	è minore di
+	has a value	ha un valore
+	has no value	non ha valore
+	Filter rules	Regole di filtro
+	Show the markups where	Mostra le annotazioni dove
+	Remove this rule	Rimuovi questa regola
+	Add a rule	Aggiungi una regola
+	No grouping	Nessun raggruppamento
+	By {column}	Per {column}
+	Total: {n}	Totale: {n}
+	The system new runs belong to: a network, a link or a circuit (Data, Voice, Cameras)	Il sistema dei nuovi percorsi: una rete, un collegamento o un circuito (Dati, Voce, Telecamere)
+	Cable totals by layer, system or cable type	Totali cavo per livello, sistema o tipo di cavo
+	By system	Per sistema
+	By cable type	Per tipo di cavo

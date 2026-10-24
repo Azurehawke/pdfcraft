@@ -3440,3 +3440,27 @@ certificate	Version	Version
 	field names can't contain a period: {name}	les noms de champ ne peuvent pas contenir de point : {name}
 	two cells would both be named {name}	deux cellules porteraient le nom {name}
 	a field named {name} already exists	un champ nommé {name} existe déjà
+	No snap	Aucun accrochage
+	Next point: {snap}	Point suivant : {snap}
+	Angle steps while drafting	Pas d'angle pendant le dessin
+	Type SE, SM, SI, SP or SN while drafting for one snap alone on the next point (SO none, SS all).	Tapez SE, SM, SI, SP ou SN pendant le dessin pour un seul accrochage au point suivant (SO aucun, SS tous).
+	A formula makes a calculated column: Value * 1.1, Count * 85, [Drop count] * 2 (Value, Count, Page and your columns).	Une formule crée une colonne calculée : Value * 1.1, Count * 85, [Drop count] * 2 (Value, Count, Page et vos colonnes).
+	Formula	Formule
+	This formula can't be calculated	Cette formule ne peut pas être calculée
+	contains	contient
+	equals	est égal à
+	is greater than	est supérieur à
+	is less than	est inférieur à
+	has a value	a une valeur
+	has no value	n'a pas de valeur
+	Filter rules	Règles de filtre
+	Show the markups where	Afficher les annotations où
+	Remove this rule	Supprimer cette règle
+	Add a rule	Ajouter une règle
+	No grouping	Aucun regroupement
+	By {column}	Par {column}
+	Total: {n}	Total : {n}
+	The system new runs belong to: a network, a link or a circuit (Data, Voice, Cameras)	Le système des nouveaux tracés : un réseau, une liaison ou un circuit (Données, Voix, Caméras)
+	Cable totals by layer, system or cable type	Totaux de câble par calque, système ou type de câble
+	By system	Par système
+	By cable type	Par type de câble

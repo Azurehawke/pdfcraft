@@ -3198,3 +3198,28 @@ animation effects	Off	Вимкнено
 	field names can't contain a period: {name}	імена полів не можуть містити крапку: {name}
 	two cells would both be named {name}	дві клітинки мали б однакове ім'я {name}
 	a field named {name} already exists	поле з іменем {name} уже існує
+	No snap	Без прив'язки
+	Next point: {snap}	Наступна точка: {snap}
+	Angle steps while drafting	Крок кута під час креслення
+	Type SE, SM, SI, SP or SN while drafting for one snap alone on the next point (SO none, SS all).	Введіть SE, SM, SI, SP або SN під час креслення, щоб для наступної точки діяла лише ця прив'язка (SO — без, SS — усі).
+	System	Система
+	A formula makes a calculated column: Value * 1.1, Count * 85, [Drop count] * 2 (Value, Count, Page and your columns).	Формула робить стовпець обчислюваним: Value * 1.1, Count * 85, [Drop count] * 2 (Value, Count, Page і ваші стовпці).
+	Formula	Формула
+	This formula can't be calculated	Цю формулу не можна обчислити
+	contains	містить
+	equals	дорівнює
+	is greater than	більше за
+	is less than	менше за
+	has a value	має значення
+	has no value	не має значення
+	Filter rules	Правила фільтра
+	Show the markups where	Показувати позначки, де
+	Remove this rule	Видалити це правило
+	Add a rule	Додати правило
+	No grouping	Без групування
+	By {column}	За {column}
+	Total: {n}	Разом: {n}
+	The system new runs belong to: a network, a link or a circuit (Data, Voice, Cameras)	Система нових трас: мережа, лінія або коло (Дані, Голос, Камери)
+	Cable totals by layer, system or cable type	Підсумки кабелю за шаром, системою чи типом
+	By system	За системою
+	By cable type	За типом кабелю

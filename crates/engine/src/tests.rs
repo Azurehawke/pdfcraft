@@ -6523,7 +6523,16 @@ fn cable_runs_add_their_allowance_and_fields_stay_with_the_markup() {
         author: "Steve".into(),
         dimension: None,
     };
-    session.apply(id, Edit::AddCableRun { new: new.clone(), extra_inches: 1.0 / 0.0254 }).unwrap();
+    session
+        .apply(
+            id,
+            Edit::AddCableRun {
+                new: new.clone(),
+                extra_inches: 1.0 / 0.0254,
+                fields: vec![("System".into(), "Data".into()), ("Cable type".into(), String::new())],
+            },
+        )
+        .unwrap();
     let doc = session.get(id).unwrap();
     let runs = doc.measurements().unwrap().measurements;
     assert_eq!(runs.len(), 1);
@@ -6531,14 +6540,25 @@ fn cable_runs_add_their_allowance_and_fields_stay_with_the_markup() {
     assert_eq!(runs[0].reading.label, "8.00 m");
     let index = runs[0].index;
     session.apply(id, Edit::SetAnnotationField { page: 0, index, name: "Progress".into(), value: "Pulled".into() }).unwrap();
-    assert_eq!(session.get(id).unwrap().annotation_fields(0, index), vec![("Progress".to_string(), "Pulled".to_string())]);
+    // The run's system came with it; an empty cable type wasn't written.
+    let fields = session.get(id).unwrap().annotation_fields(0, index);
+    assert!(fields.contains(&("Progress".to_string(), "Pulled".to_string())), "{fields:?}");
+    assert!(fields.contains(&("System".to_string(), "Data".to_string())), "{fields:?}");
+    assert!(!fields.iter().any(|(n, _)| n == "Cable type"), "{fields:?}");
     // A distance can't be a cable run; a bad allowance is refused.
     assert!(
         session
-            .apply(id, Edit::AddCableRun { new: measure::NewMeasurement { kind: measure::Kind::Distance, ..new.clone() }, extra_inches: 12.0 })
+            .apply(
+                id,
+                Edit::AddCableRun {
+                    new: measure::NewMeasurement { kind: measure::Kind::Distance, ..new.clone() },
+                    extra_inches: 12.0,
+                    fields: Vec::new()
+                }
+            )
             .is_err()
     );
-    assert!(session.apply(id, Edit::AddCableRun { new, extra_inches: f64::NAN }).is_err());
+    assert!(session.apply(id, Edit::AddCableRun { new, extra_inches: f64::NAN, fields: Vec::new() }).is_err());
 }
 
 /// AES-256 passwords as typed, each with its SASLprep form, which ISO 32000-2 keys the file on:

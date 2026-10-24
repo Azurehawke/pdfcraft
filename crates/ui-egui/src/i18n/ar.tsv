@@ -3449,3 +3449,27 @@ certificate	Version	الإصدار
 	field names can't contain a period: {name}	لا يمكن أن تحتوي أسماء الحقول على نقطة: {name}
 	two cells would both be named {name}	ستحمل خليتان الاسم نفسه {name}
 	a field named {name} already exists	يوجد حقل باسم {name} بالفعل
+	No snap	بلا التقاط
+	Next point: {snap}	النقطة التالية: {snap}
+	Angle steps while drafting	خطوات الزاوية أثناء الرسم
+	Type SE, SM, SI, SP or SN while drafting for one snap alone on the next point (SO none, SS all).	اكتب SE أو SM أو SI أو SP أو SN أثناء الرسم لالتقاط نوع واحد فقط في النقطة التالية (SO بلا التقاط، SS الكل).
+	A formula makes a calculated column: Value * 1.1, Count * 85, [Drop count] * 2 (Value, Count, Page and your columns).	الصيغة تجعل العمود محسوبًا: Value * 1.1 أو Count * 85 أو [Drop count] * 2 (Value وCount وPage وأعمدتك).
+	Formula	الصيغة
+	This formula can't be calculated	لا يمكن حساب هذه الصيغة
+	contains	يحتوي على
+	equals	يساوي
+	is greater than	أكبر من
+	is less than	أصغر من
+	has a value	له قيمة
+	has no value	بلا قيمة
+	Filter rules	قواعد التصفية
+	Show the markups where	إظهار التعليقات حيث
+	Remove this rule	إزالة هذه القاعدة
+	Add a rule	إضافة قاعدة
+	No grouping	بلا تجميع
+	By {column}	حسب {column}
+	Total: {n}	الإجمالي: {n}
+	The system new runs belong to: a network, a link or a circuit (Data, Voice, Cameras)	النظام الذي تنتمي إليه المسارات الجديدة: شبكة أو وصلة أو دائرة (Data وVoice وCameras)
+	Cable totals by layer, system or cable type	إجماليات الكابلات حسب الطبقة أو النظام أو نوع الكابل
+	By system	حسب النظام
+	By cable type	حسب نوع الكابل

@@ -68,7 +68,7 @@ impl TakeoffState {
 
 /// Your own columns' names, written after the fixed columns.
 fn columns(app: &PdfCraftApp) -> Vec<String> {
-    app.markup_columns.iter().map(|c| c.name.clone()).collect()
+    app.markup_columns.iter().filter(|c| c.formula.trim().is_empty()).map(|c| c.name.clone()).collect()
 }
 
 /// The workbooks quantities could go to: those of the tables placed in the document.

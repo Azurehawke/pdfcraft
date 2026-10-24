@@ -3139,3 +3139,28 @@ animation effects	Off	Изключени
 	field names can't contain a period: {name}	имената на полетата не може да съдържат точка: {name}
 	two cells would both be named {name}	две клетки биха имали едно и също име {name}
 	a field named {name} already exists	вече съществува поле с име {name}
+	No snap	Без прихващане
+	Next point: {snap}	Следваща точка: {snap}
+	Angle steps while drafting	Ъглови стъпки при чертане
+	Type SE, SM, SI, SP or SN while drafting for one snap alone on the next point (SO none, SS all).	Въведете SE, SM, SI, SP или SN при чертане за само едно прихващане при следващата точка (SO без, SS всички).
+	System	Система
+	A formula makes a calculated column: Value * 1.1, Count * 85, [Drop count] * 2 (Value, Count, Page and your columns).	Формулата прави изчисляема колона: Value * 1.1, Count * 85, [Drop count] * 2 (Value, Count, Page и вашите колони).
+	Formula	Формула
+	This formula can't be calculated	Тази формула не може да се изчисли
+	contains	съдържа
+	equals	е равно на
+	is greater than	е по-голямо от
+	is less than	е по-малко от
+	has a value	има стойност
+	has no value	няма стойност
+	Filter rules	Правила за филтриране
+	Show the markups where	Показване на маркировките, при които
+	Remove this rule	Премахване на това правило
+	Add a rule	Добавяне на правило
+	No grouping	Без групиране
+	By {column}	По {column}
+	Total: {n}	Общо: {n}
+	The system new runs belong to: a network, a link or a circuit (Data, Voice, Cameras)	Системата на новите трасета: мрежа, връзка или верига (Data, Voice, Cameras)
+	Cable totals by layer, system or cable type	Общо кабел по слой, система или тип кабел
+	By system	По система
+	By cable type	По тип кабел

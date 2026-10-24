@@ -328,6 +328,9 @@ pub struct SheetDraft {
 #[derive(Clone, Debug)]
 pub struct DraftSettings {
     pub ortho: bool,
+    /// The angle steps a direction from the last point sticks to, in degrees (0: off);
+    /// one of [`crate::draft_snap::ANGLE_STEPS`].
+    pub angle_step: f64,
     /// Wall thickness, inches.
     pub wall_inches: f64,
     /// Door and window widths, inches; doors hinge at the other end of the opening.
@@ -380,12 +383,16 @@ pub struct DraftSettings {
     pub group_tool: Vec<DraftTool>,
     /// What a cable run adds for the drop down the wall and the service loop (inches).
     pub cable_inches: f64,
+    /// The system (a network, a circuit) and cable type new cable runs get.
+    pub cable_system: String,
+    pub cable_type: String,
 }
 
 impl Default for DraftSettings {
     fn default() -> Self {
         Self {
             ortho: false,
+            angle_step: 15.0,
             wall_inches: 4.5,
             door_inches: 32.0,
             window_inches: 36.0,
@@ -417,6 +424,8 @@ impl Default for DraftSettings {
             panel_collapsed: false,
             group_tool: Vec::new(),
             cable_inches: 120.0,
+            cable_system: String::new(),
+            cable_type: String::new(),
         }
     }
 }
@@ -457,6 +466,8 @@ pub struct DraftView {
     /// The width of the line under the pointer, for the status bar ("PDF line 0.35 mm (1 pt)");
     /// set each frame the pointer is over a sheet while drafting.
     pub under: Option<String>,
+    /// A snap typed for the next point alone (SE, SM, SI, SP, SN; SO none).
+    pub one_shot: Option<crate::draft_snap::OneShot>,
 }
 
 impl DraftView {
@@ -1252,10 +1263,18 @@ pub(crate) fn page_input(
         ui.ctx().set_cursor_icon(egui::CursorIcon::Crosshair);
         let mut point = cx.to_user(pos);
         view.draft.under = line_under(view, doc, page, point, tolerance);
+        // SE, SM, SI, SP, SN typed: that snap alone for the next point (SO none, SS all again).
+        if let Some(code) = crate::draft_snap::one_shot_code(&view.draft.input) {
+            view.draft.one_shot = code;
+            view.draft.input.clear();
+        }
+        let one_shot = view.draft.one_shot;
+        let may = |k: SnapKind| crate::draft_snap::allowed(one_shot, k);
+        let mut guide: Option<([f64; 2], [f64; 2])> = None;
         // Snap: the shape's own points and other markup's corners and middles first, then the
         // page's drawing, then square off the last point to a line.
         let mut kind: Option<SnapKind> = None;
-        if view.measure.snap_enabled {
+        if view.measure.snap_enabled && one_shot != Some(crate::draft_snap::OneShot::Off) {
             let raw = point;
             let shapes = crate::draft_edit::shapes(view, doc, page);
             let last = view.draft.points.last().copied().filter(|_| view.draft.page == Some(page));
@@ -1267,12 +1286,12 @@ pub(crate) fn page_input(
                 }
             };
             let own = view.draft.points.iter().copied().filter(|_| view.draft.page == Some(page));
-            if view.measure.snaps.endpoints {
+            if view.measure.snaps.endpoints && may(SnapKind::Endpoint) {
                 for v in own.chain(doc.markup_vertices(page)) {
                     consider(v, SnapKind::Endpoint);
                 }
             }
-            if view.measure.snaps.midpoints {
+            if view.measure.snaps.midpoints && may(SnapKind::Midpoint) {
                 for g in &shapes {
                     for (a, b) in g.segments() {
                         consider([(a[0] + b[0]) / 2.0, (a[1] + b[1]) / 2.0], SnapKind::Midpoint);
@@ -1286,14 +1305,36 @@ pub(crate) fn page_input(
                 Some((_, _, Some(paths))) => Some(paths),
                 _ => None,
             };
+            // Where two drawn lines cross (the page's own crossings come from its drawing).
+            if best.is_none()
+                && view.measure.snaps.intersections
+                && may(SnapKind::Intersection)
+                && let Some(x) = crate::draft_snap::nearest_crossing(
+                    shapes.iter().flat_map(|g| g.segments().map(|(a, b)| [a, b]).collect::<Vec<_>>()),
+                    raw,
+                    tolerance,
+                )
+            {
+                best = Some((x, 0.0, SnapKind::Intersection));
+            }
             match best {
                 Some((v, _, k)) => {
                     point = v;
                     kind = Some(k);
                 }
                 None => {
+                    // A one-off snap asks the page's drawing for that kind alone.
+                    let opts = match one_shot {
+                        Some(crate::draft_snap::OneShot::Only(k)) => measure::snap::SnapOptions {
+                            endpoints: k == SnapKind::Endpoint,
+                            midpoints: k == SnapKind::Midpoint,
+                            intersections: k == SnapKind::Intersection,
+                            paths: k == SnapKind::Path,
+                        },
+                        _ => view.measure.snaps,
+                    };
                     if let Some(paths) = pdf
-                        && let Ok(Some(hit)) = paths.snap(raw, tolerance, view.measure.snaps)
+                        && let Ok(Some(hit)) = paths.snap(raw, tolerance, opts)
                     {
                         point = hit.point;
                         kind = Some(hit.kind);
@@ -1301,6 +1342,7 @@ pub(crate) fn page_input(
                 }
             }
             if kind.is_none_or(|k| k == SnapKind::Path)
+                && may(SnapKind::Perpendicular)
                 && let Some(last) = last
             {
                 let markup = shapes.iter().flat_map(|g| g.segments().map(|(a, b)| [a, b]).collect::<Vec<_>>());
@@ -1322,12 +1364,41 @@ pub(crate) fn page_input(
             on_guide = true;
         }
         let shift = ui.input(|i| i.modifiers.shift);
+        let squared = settings.ortho != shift;
         if let Some(last) = view.draft.points.last().filter(|_| view.draft.page == Some(page))
-            && settings.ortho != shift
+            && squared
             && kind != Some(SnapKind::Perpendicular)
         {
             point = orthogonal(*last, point);
             kind = None;
+        }
+        // Angle steps: with nothing caught, a direction near a step sticks to it along a dashed
+        // guide, and lands where the guide meets a line.
+        let on_page = view.draft.page == Some(page);
+        if !squared
+            && !on_guide
+            && kind.is_none_or(|k| k == SnapKind::Path)
+            && one_shot.is_none()
+            && let Some(last) = view.draft.points.last().copied().filter(|_| on_page)
+        {
+            let prev = view.draft.points.len().checked_sub(2).and_then(|i| view.draft.points.get(i)).copied();
+            if let Some((q, dir)) = crate::draft_snap::polar(last, prev, point, settings.angle_step, tolerance * 1.5) {
+                point = q;
+                kind = None;
+                guide = Some((last, dir));
+                if view.measure.snap_enabled {
+                    let shapes = crate::draft_edit::shapes(view, doc, page);
+                    let mut segments: Vec<[[f64; 2]; 2]> =
+                        shapes.iter().flat_map(|g| g.segments().map(|(a, b)| [a, b]).collect::<Vec<_>>()).collect();
+                    if let Some((_, _, Some(paths))) = &view.draft.paths {
+                        segments.extend(paths.segments.iter().copied());
+                    }
+                    if let Some(x) = crate::draft_snap::guide_crossing(last, dir, segments, q, tolerance) {
+                        point = x;
+                        kind = Some(SnapKind::Intersection);
+                    }
+                }
+            }
         }
         hover = Some(point);
         // What the pointer caught, as measuring shows it.
@@ -1341,6 +1412,20 @@ pub(crate) fn page_input(
             let c = crate::guides_ui::COLOR;
             ui.painter().circle_stroke(at, 6.0, Stroke::new(1.0, c));
             ui.painter().text(at + vec2(10.0, -10.0), egui::Align2::LEFT_BOTTOM, tl!("Guide"), theme::regular(11.0), c);
+        }
+        if let Some((from, dir)) = guide {
+            let a = cx.to_screen(from);
+            let reach = (point[0] - from[0]).hypot(point[1] - from[1]) * 4.0 + 1.0;
+            let b = cx.to_screen([from[0] + dir[0] * reach, from[1] + dir[1] * reach]);
+            let c = Color32::from_rgb(90, 160, 230);
+            ui.painter().extend(egui::Shape::dashed_line(&[a, b], Stroke::new(1.0, c.gamma_multiply(0.8)), 6.0, 4.0));
+        }
+        if let Some(o) = one_shot {
+            let name = match o {
+                crate::draft_snap::OneShot::Only(k) => tl!(snap_name(k)).to_string(),
+                crate::draft_snap::OneShot::Off => tl!("No snap").to_string(),
+            };
+            crate::draft_edit::chip(ui.painter(), pos + vec2(14.0, -34.0), &crate::i18n::fmt(tl!("Next point: {snap}"), &[("snap", &name)]));
         }
         if tool.modifies() {
             if resp.clicked() && view.draft.setting_origin {
@@ -1361,6 +1446,7 @@ pub(crate) fn page_input(
                     && view.draft.points.len() >= 3
                     && view.draft.points.first().is_some_and(|f| cx.to_screen(*f).distance(pos) <= crate::point_bar::CLOSE_RADIUS);
                 let edit = if closes { finish(view, doc, tool, true, settings) } else { add_point(view, doc, page, tool, point, settings) };
+                view.draft.one_shot = None;
                 if edit.is_some() {
                     view.pending_edit = edit;
                 }
@@ -1476,6 +1562,63 @@ pub(crate) fn page_input(
     {
         let near = pos.is_some_and(|p| p.distance(*first) <= crate::point_bar::CLOSE_RADIUS);
         painter.circle_stroke(*first, if near { crate::point_bar::CLOSE_RADIUS } else { 7.0 }, stroke);
+    }
+    // The ruler along the rubber band: graduations at round lengths, the longer every fifth.
+    if let (Some(h), Some(last)) = (hover, view.draft.points.last().copied())
+        && let Ok(scale) = doc.measurement_scale(page, last)
+    {
+        let per_unit = scale.x * scale.distance_factor;
+        let (dx, dy) = (h[0] - last[0], h[1] - last[1]);
+        let user_len = dx.hypot(dy);
+        if per_unit.is_finite()
+            && per_unit > 0.0
+            && user_len > 1e-9
+            && let Some(step) = crate::draft_snap::ruler_step(user_len * per_unit)
+        {
+            let (ux, uy) = (dx / user_len, dy / user_len);
+            let a = cx.to_screen(last);
+            let b = cx.to_screen(h);
+            let along = b - a;
+            let normal = if along.length() > 1e-3 { vec2(-along.y, along.x) / along.length() } else { vec2(0.0, 0.0) };
+            let tick = Stroke::new(1.0, accent.gamma_multiply(0.85));
+            let count = ((user_len * per_unit) / step).floor().min(200.0) as usize;
+            for k in 1..=count {
+                let d = k as f64 * step / per_unit;
+                let p = cx.to_screen([last[0] + ux * d, last[1] + uy * d]);
+                let size = if k.is_multiple_of(5) { 7.0 } else { 4.0 };
+                painter.line_segment([p - normal * size, p + normal * size], tick);
+            }
+        }
+        // The corner it turns from the line before, as an arc with its angle.
+        let n = view.draft.points.len();
+        if n >= 2
+            && let Some(prev) = view.draft.points.get(n - 2).copied()
+            && let Some(deg) = crate::draft_snap::corner_angle(prev, last, h)
+        {
+            let c = cx.to_screen(last);
+            let (pa, pb) = (cx.to_screen(prev) - c, cx.to_screen(h) - c);
+            if pa.length() > 1e-3 && pb.length() > 1e-3 {
+                let r = (pa.length().min(pb.length()) * 0.5).clamp(8.0, 22.0);
+                let (a0, a1) = (pa.y.atan2(pa.x), pb.y.atan2(pb.x));
+                let mut sweep = a1 - a0;
+                while sweep > std::f32::consts::PI {
+                    sweep -= std::f32::consts::TAU;
+                }
+                while sweep < -std::f32::consts::PI {
+                    sweep += std::f32::consts::TAU;
+                }
+                let arc: Vec<Pos2> = (0..=16)
+                    .map(|i| {
+                        let t = a0 + sweep * i as f32 / 16.0;
+                        c + vec2(t.cos(), t.sin()) * r
+                    })
+                    .collect();
+                painter.add(egui::Shape::line(arc, Stroke::new(1.0, accent)));
+                let mid = a0 + sweep / 2.0;
+                let at = c + vec2(mid.cos(), mid.sin()) * (r + 12.0);
+                painter.text(at, egui::Align2::CENTER_CENTER, format!("{deg:.0}°"), theme::semibold(11.0), accent);
+            }
+        }
     }
     // The rubber band's length and angle, as the scale writes lengths.
     if let (Some(h), Some(last)) = (hover, view.draft.points.last())

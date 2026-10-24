@@ -299,6 +299,17 @@ Markup and measuring
 - [x] **(Steve, build 176)** PdfCraft brought up to date (about 1,080 commits since Oct 21, upstream a2ec27b): a
       merge build on its own. RevuCraft keeps its scale panel, dock rail and layer panel; upstream's
       line and polygon reshaping, comment hover order, page gaps and repair work come in.
+- [x] **(Steve, build 181)** From BIMCraft (its snaps and schedules, after Revit's):
+  - Drafting: a direction sticks to angle steps (15° to start; 5, 30, 45, 90 or off in the Snap
+    settings) from east and from the line before, along a dashed guide, landing where the guide
+    meets a line; markup lines snap where they cross; a ruler with graduations along the line being
+    drawn and the angle at its corner; SE, SM, SI, SP, SN typed for one snap alone on the next point
+    (SO none, SS all).
+  - Markups list: calculated columns (a formula over Value, Count, Page and your columns), filter
+    rules (contains, equals, greater or less than, has or hasn't a value), grouping by any column with
+    each group's count and totals, and the totals of everything shown.
+  - Cable runs: a system (network, link, circuit) and cable type for new runs, kept in your System
+    and Cable type columns (added when first used); cable totals by layer, system or cable type.
 - [ ] **(Steve, back burner)** Object styles, as Illustrator's graphic styles: save a markup's look (stroke,
       width, dash, line ends, alignment, fill, opacity, font) under a name ("Existing walls", "Demo")
       in a Styles box; apply one to the selection or make it the current tool style. A text style

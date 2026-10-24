@@ -2991,6 +2991,7 @@ fn document_area_pages(app: &mut PdfCraftApp, index: usize, ui: &mut egui::Ui) {
     }
     let mut draft_settings = app.draft.clone();
     draft_settings.author = app.comment_prefs.author.clone();
+    let cable_fields = crate::cable::run_fields(&app.markup_columns, &app.draft);
     let draft_tool = match app.quick_tool {
         QuickTool::Draft(t) => Some(t),
         _ => None,
@@ -3757,6 +3758,7 @@ fn document_area_pages(app: &mut PdfCraftApp, index: usize, ui: &mut egui::Ui) {
             if let QuickTool::Measure(measure_tool) = tool {
                 view.measure.bare = draft_settings.bare;
                 view.measure.cable_inches = draft_settings.cable_inches;
+                view.measure.cable_fields.clone_from(&cable_fields);
                 crate::measure_ui::page_input(ui, &resp, doc, view, &pcx, measure_tool, units);
             }
             if let QuickTool::Draft(draft_tool) = tool {

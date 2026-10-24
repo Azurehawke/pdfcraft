@@ -2,6 +2,9 @@
 //! each free text or a pick list. The columns are yours, kept with the app (like a Revu profile);
 //! the values are kept in each markup in the PDF (`pdfcraft_engine::fields`). They show in the
 //! Properties box, the Markups list, its spreadsheet export and the summary report.
+//!
+//! A column with a formula is calculated instead (`Value * 1.1`, `Count * 85`;
+//! [`crate::formula`]): the Markups list works it out for each row and totals it.
 
 use serde_json::{Value, json};
 
@@ -9,21 +12,27 @@ use serde_json::{Value, json};
 pub const MAX_COLUMNS: usize = 24;
 const MAX_CHOICES: usize = 32;
 
-/// One of your columns: its name, and its choices (none: free text).
-#[derive(Clone, Debug, PartialEq)]
+/// One of your columns: its name, and its choices (none: free text), or the formula it is
+/// calculated with (empty: a column you fill in).
+#[derive(Clone, Debug, PartialEq, Default)]
 pub struct MarkupColumn {
     pub name: String,
     pub choices: Vec<String>,
+    pub formula: String,
 }
+
+/// The longest formula kept (characters).
+const MAX_FORMULA: usize = 400;
 
 /// The columns a new install starts with, for network jobs.
 pub fn defaults() -> Vec<MarkupColumn> {
     let list = |items: &[&'static str]| items.iter().map(|s| tl!(s).to_string()).collect::<Vec<_>>();
     vec![
-        MarkupColumn { name: tl!("Drop ID").to_string(), choices: Vec::new() },
-        MarkupColumn { name: tl!("Port").to_string(), choices: Vec::new() },
-        MarkupColumn { name: tl!("Cable type").to_string(), choices: list(&["Cat6", "Cat6A", "Fiber", "Coax"]) },
-        MarkupColumn { name: tl!("Progress").to_string(), choices: list(&["Not started", "Pulled", "Terminated", "Tested"]) },
+        MarkupColumn { name: tl!("Drop ID").to_string(), choices: Vec::new(), formula: String::new() },
+        MarkupColumn { name: tl!("Port").to_string(), choices: Vec::new(), formula: String::new() },
+        MarkupColumn { name: tl!("System").to_string(), choices: Vec::new(), formula: String::new() },
+        MarkupColumn { name: tl!("Cable type").to_string(), choices: list(&["Cat6", "Cat6A", "Fiber", "Coax"]), formula: String::new() },
+        MarkupColumn { name: tl!("Progress").to_string(), choices: list(&["Not started", "Pulled", "Terminated", "Tested"]), formula: String::new() },
     ]
 }
 
@@ -43,7 +52,7 @@ pub fn parse_choices(s: &str) -> Vec<String> {
 }
 
 pub fn to_json(cols: &[MarkupColumn]) -> Value {
-    Value::Array(cols.iter().map(|c| json!({ "name": c.name, "choices": c.choices })).collect())
+    Value::Array(cols.iter().map(|c| json!({ "name": c.name, "choices": c.choices, "formula": c.formula })).collect())
 }
 
 /// Read back [`to_json`]; anything unreadable is skipped, names repeat at most once.
@@ -56,7 +65,8 @@ pub fn from_json(v: &Value) -> Option<Vec<MarkupColumn>> {
             continue;
         }
         let choices = c["choices"].as_array().map(|a| a.iter().filter_map(|x| x.as_str()).collect::<Vec<_>>().join(",")).unwrap_or_default();
-        out.push(MarkupColumn { name, choices: parse_choices(&choices) });
+        let formula: String = c["formula"].as_str().unwrap_or_default().trim().chars().take(MAX_FORMULA).collect();
+        out.push(MarkupColumn { name, choices: parse_choices(&choices), formula });
     }
     Some(out)
 }
@@ -65,10 +75,18 @@ pub fn from_json(v: &Value) -> Option<Vec<MarkupColumn>> {
 pub fn editor(ui: &mut egui::Ui, cols: &mut Vec<MarkupColumn>) {
     ui.label(egui::RichText::new(tl!("Your columns")).strong());
     ui.label(egui::RichText::new(tl!("Leave the choices empty for a column you type into.")).small().weak());
+    ui.label(
+        egui::RichText::new(tl!(
+            "A formula makes a calculated column: Value * 1.1, Count * 85, [Drop count] * 2 (Value, Count, Page and your columns)."
+        ))
+        .small()
+        .weak(),
+    );
     let mut remove: Option<usize> = None;
-    egui::Grid::new("markup-columns").num_columns(3).spacing([6.0, 4.0]).show(ui, |ui| {
+    egui::Grid::new("markup-columns").num_columns(4).spacing([6.0, 4.0]).show(ui, |ui| {
         ui.label(tl!("Name"));
         ui.label(tl!("Choices (comma-separated)"));
+        ui.label(tl!("Formula"));
         ui.end_row();
         for (i, c) in cols.iter_mut().enumerate() {
             let mut name = c.name.clone();
@@ -88,6 +106,11 @@ pub fn editor(ui: &mut egui::Ui, cols: &mut Vec<MarkupColumn>) {
                 c.choices = parse_choices(&text);
                 ui.data_mut(|m| m.remove::<String>(id));
             }
+            let fr = ui.add(egui::TextEdit::singleline(&mut c.formula).desired_width(150.0).char_limit(MAX_FORMULA).hint_text("Value * 1.1"));
+            // A formula that can't be read says so (checked with every name as 1).
+            if !c.formula.trim().is_empty() && crate::formula::evaluate(&c.formula, |_| Some(1.0)).is_err() && !fr.has_focus() {
+                fr.on_hover_text(tl!("This formula can't be calculated"));
+            }
             if crate::icons::button(ui, "trash-2", 22.0, false, tl!("Remove this column")).clicked() {
                 remove = Some(i);
             }
@@ -106,7 +129,7 @@ pub fn editor(ui: &mut egui::Ui, cols: &mut Vec<MarkupColumn>) {
             n += 1;
             name = crate::i18n::fmt(tl!("Column {n}"), &[("n", &n.to_string())]);
         }
-        cols.push(MarkupColumn { name, choices: Vec::new() });
+        cols.push(MarkupColumn { name, choices: Vec::new(), formula: String::new() });
     }
     // Two columns can't share a name (their values would mix).
     let mut seen: Vec<String> = Vec::new();
@@ -125,8 +148,9 @@ mod tests {
     #[test]
     fn columns_round_trip_and_bad_ones_are_skipped() {
         let cols = vec![
-            MarkupColumn { name: "Drop ID".into(), choices: vec![] },
-            MarkupColumn { name: "Progress".into(), choices: vec!["Pulled".into(), "Tested".into()] },
+            MarkupColumn { name: "Drop ID".into(), choices: vec![], formula: String::new() },
+            MarkupColumn { name: "Progress".into(), choices: vec!["Pulled".into(), "Tested".into()], formula: String::new() },
+            MarkupColumn { name: "With slack".into(), choices: vec![], formula: "Value * 1.1".into() },
         ];
         assert_eq!(from_json(&to_json(&cols)), Some(cols));
         let junk = json!([{ "name": "" }, { "name": "A" }, { "name": "A" }, 7, { "name": "B", "choices": [" x ", "x", 3, "y"] }]);

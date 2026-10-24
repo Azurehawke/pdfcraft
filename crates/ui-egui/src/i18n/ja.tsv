@@ -3178,3 +3178,28 @@ animation effects	Off	オフ
 	field names can't contain a period: {name}	フィールド名にピリオドは使えません: {name}
 	two cells would both be named {name}	2 つのセルが同じ名前 {name} になります
 	a field named {name} already exists	{name} という名前のフィールドは既にあります
+	No snap	スナップなし
+	Next point: {snap}	次の点: {snap}
+	Angle steps while drafting	作図中の角度の刻み
+	Type SE, SM, SI, SP or SN while drafting for one snap alone on the next point (SO none, SS all).	作図中に SE、SM、SI、SP、SN と入力すると、次の点だけそのスナップのみを使います（SO なし、SS すべて）。
+	System	系統
+	A formula makes a calculated column: Value * 1.1, Count * 85, [Drop count] * 2 (Value, Count, Page and your columns).	数式を入れると計算列になります: Value * 1.1、Count * 85、[Drop count] * 2（Value、Count、Page と自分の列）。
+	Formula	数式
+	This formula can't be calculated	この数式は計算できません
+	contains	を含む
+	equals	と等しい
+	is greater than	より大きい
+	is less than	より小さい
+	has a value	値がある
+	has no value	値がない
+	Filter rules	フィルター規則
+	Show the markups where	次の条件のマークアップを表示
+	Remove this rule	この規則を削除
+	Add a rule	規則を追加
+	No grouping	グループ化しない
+	By {column}	{column}別
+	Total: {n}	合計: {n}
+	The system new runs belong to: a network, a link or a circuit (Data, Voice, Cameras)	新しい配線の系統: ネットワーク、リンク、回路（データ、音声、カメラ）
+	Cable totals by layer, system or cable type	レイヤー、系統、ケーブル種別ごとのケーブル合計
+	By system	系統別
+	By cable type	ケーブル種別
