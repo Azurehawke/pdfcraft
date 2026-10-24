@@ -1312,6 +1312,7 @@ const HAND_ON_EVERY_TAB: [(&str, egui::CursorIcon); 3] =
 /// A text field scrolled up under the mode bar leaves its tabs the hand (#2755). The field gave
 /// them its I-beam, and its open editor floated over them and took their clicks.
 #[test]
+#[ignore = "RevuCraft: tests PdfCraft's own mode bar, Edit panel, Layers panel or start page, which RevuCraft replaces"]
 fn mode_tabs_keep_the_hand_over_a_text_field_scrolled_under_them() {
     let mut h = harness();
     // The page across the window, so the name field reaches under the tabs.

@@ -3320,6 +3320,7 @@ fn editing_existing_text_in_place() {
 /// does when another tab is chosen (#2241): Edit text & images is put down, and a paragraph still
 /// open in the editor is applied instead of staying open, editable, over the page in Read mode.
 #[test]
+#[ignore = "RevuCraft: tests PdfCraft's own mode bar, Edit panel, Layers panel or start page, which RevuCraft replaces"]
 fn the_read_mode_command_applies_an_open_paragraph_and_puts_edit_text_down() {
     use pdfcraft_ui_egui::{Mode, QuickTool};
     let mut h = harness(1, |_| {});
@@ -5963,6 +5964,7 @@ fn page_text(h: &Harness<'static, PdfCraftApp>) -> egui::Rect {
 /// Text scrolled up under the mode bar leaves its tabs the hand (#2755). The Select tool's
 /// text layer showed its I-beam there, over chrome that hides the page.
 #[test]
+#[ignore = "RevuCraft: tests PdfCraft's own mode bar, Edit panel, Layers panel or start page, which RevuCraft replaces"]
 fn mode_tabs_keep_the_hand_over_page_text_scrolled_under_them() {
     let mut h = harness(2, |app| app.set_option("left", "closed").unwrap());
     let text = page_text(&h);
@@ -5987,6 +5989,7 @@ fn mode_tabs_keep_the_hand_over_page_text_scrolled_under_them() {
 /// under the mode bar gave its tabs the four-way arrow, or the I-beam once a paragraph was open.
 /// The open paragraph's editor also covered the tabs and took their clicks.
 #[test]
+#[ignore = "RevuCraft: tests PdfCraft's own mode bar, Edit panel, Layers panel or start page, which RevuCraft replaces"]
 fn mode_tabs_keep_the_hand_over_a_paragraph_scrolled_under_them() {
     let mut h = harness(2, |_| {});
     assert!(h.state_mut().execute("edit.edit_text"));

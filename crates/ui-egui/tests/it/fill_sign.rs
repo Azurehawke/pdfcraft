@@ -1699,6 +1699,7 @@ const HAND_ON_EVERY_TAB: [(&str, egui::CursorIcon); 4] = [
 /// The Fill & Sign text box scrolled up under the mode bar leaves its tabs the hand (#2755): it
 /// floated over them, gave them its I-beam and took their clicks.
 #[test]
+#[ignore = "RevuCraft: tests PdfCraft's own mode bar, Edit panel, Layers panel or start page, which RevuCraft replaces"]
 fn mode_tabs_keep_the_hand_over_a_type_box_scrolled_under_them() {
     let mut h = harness();
     assert!(h.state_mut().execute("sign.fill.text"));

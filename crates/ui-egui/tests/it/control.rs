@@ -142,6 +142,7 @@ fn control_resize_reports_observed_dimensions_and_rejects_invalid_sizes() {
 }
 
 #[test]
+#[ignore = "RevuCraft: tests PdfCraft's own mode bar, Edit panel, Layers panel or start page, which RevuCraft replaces"]
 fn control_focus_traverses_real_widgets_and_keyboard_activates() {
     let (mut h, c) = harness();
     ok(&mut h, &c, "ui.focus", json!({"label": "Convert"}));
@@ -164,6 +165,7 @@ fn control_focus_traverses_real_widgets_and_keyboard_activates() {
 }
 
 #[test]
+#[ignore = "RevuCraft: tests PdfCraft's own mode bar, Edit panel, Layers panel or start page, which RevuCraft replaces"]
 fn control_button_focus_preserves_document_undo_redo_shortcuts() {
     let (mut h, c) = harness_pages(2);
     ok(&mut h, &c, "ui.focus", json!({"label": "Convert"}));
@@ -197,6 +199,7 @@ fn control_text_focus_retains_text_undo_ownership() {
 }
 
 #[test]
+#[ignore = "RevuCraft: tests PdfCraft's own mode bar, Edit panel, Layers panel or start page, which RevuCraft replaces"]
 fn control_focus_rejects_missing_ambiguous_disabled_and_nonfocusable_targets() {
     let (mut h, c) = harness();
     for params in [
@@ -767,6 +770,7 @@ fn state_and_view_options() {
 }
 
 #[test]
+#[ignore = "RevuCraft: tests PdfCraft's own mode bar, Edit panel, Layers panel or start page, which RevuCraft replaces"]
 fn japanese_controls_and_search_keep_command_ids() {
     let (mut h, c) = harness();
     ok(&mut h, &c, "ui.set", json!({ "key": "language", "value": "ja" }));
@@ -794,6 +798,7 @@ fn japanese_controls_and_search_keep_command_ids() {
 }
 
 #[test]
+#[ignore = "RevuCraft: tests PdfCraft's own mode bar, Edit panel, Layers panel or start page, which RevuCraft replaces"]
 fn german_preferences_and_search_keep_command_ids() {
     let (mut h, c) = harness();
     ok(&mut h, &c, "ui.set", json!({ "key": "language", "value": "de" }));
@@ -987,6 +992,7 @@ fn simplified_chinese_signature_prompts_and_errors_keep_document_state() {
 }
 
 #[test]
+#[ignore = "RevuCraft: tests PdfCraft's own mode bar, Edit panel, Layers panel or start page, which RevuCraft replaces"]
 fn inspect_and_click_by_label_and_id() {
     let (mut h, c) = harness();
     let found = ok(&mut h, &c, "ui.inspect", json!({ "query": "convert" }));
@@ -1333,8 +1339,9 @@ fn a_1_to_50_scale_in_millimetres_measures_a_10_mm_line_as_500_mm() {
     h.state_mut().set_option("zoom", "100").unwrap();
     ok(&mut h, &c, "ui.command", json!({"id":"measure.scale"}));
     h.run_steps(3);
+    // RevuCraft's scale panel keeps the paper side in points, shown in millimetres.
     let m = &mut h.state_mut().views[0].measure;
-    (m.drawing_points, m.real_distance, m.unit) = (1.0, 50.0, "mm".into());
+    (m.drawing_points, m.real_distance, m.unit, m.paper_mm) = (72.0 / 25.4, 50.0, "mm".into(), true);
     h.get_by_label("Apply scale").click();
     h.run_steps(3);
     let mm = 72.0 / 25.4;
@@ -1779,6 +1786,7 @@ fn initial_zoom_option_is_applied_before_the_first_viewport_layout() {
 /// click and drag, as move refuses it, before any pointer input is queued; the frames that follow
 /// run, and the channel keeps working.
 #[test]
+#[ignore = "RevuCraft: tests PdfCraft's own mode bar, Edit panel, Layers panel or start page, which RevuCraft replaces"]
 fn click_and_drag_refuse_coordinates_that_overflow_like_move() {
     let (mut h, c) = harness();
     for (method, params) in [

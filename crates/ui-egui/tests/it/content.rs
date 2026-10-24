@@ -754,6 +754,7 @@ const HAND_ON_EVERY_TAB: [(&str, egui::CursorIcon); 4] = [
 /// tool gave them its I-beam, added text its four-way arrow, and the open editor floated over
 /// them and took their clicks.
 #[test]
+#[ignore = "RevuCraft: tests PdfCraft's own mode bar, Edit panel, Layers panel or start page, which RevuCraft replaces"]
 fn mode_tabs_keep_the_hand_over_added_text_scrolled_under_them() {
     let mut h = harness();
     assert!(h.state_mut().execute("edit.text"));

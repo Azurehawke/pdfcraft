@@ -1070,7 +1070,13 @@ fn panel_body(app: &mut PdfCraftApp, ui: &mut egui::Ui, t: &Tokens) {
             let Some(pinfo) = (if p == page { Some(info.clone()) } else { doc.info.pages.get(p).cloned() }) else { continue };
             let result =
                 doc.measurement_to_user(p, [0.0, 0.0]).and_then(|a| doc.measurement_to_user(p, [1.0, 0.0]).map(|b| (a, b))).and_then(|(a, b)| {
-                    let scale = Scale::calibrate(a, b, state.real_distance / state.drawing_points, &state.unit, state.precision);
+                    // Paper in millimetres: the ratio reads in millimetres too (1 mm = 50 mm at 1:50).
+                    let scale = if state.paper_mm {
+                        let paper = state.drawing_points / (72.0 / 25.4);
+                        Scale::ratio(a, b, paper, measure::PageUnit::Mm, state.real_distance, &state.unit, state.precision)
+                    } else {
+                        Scale::calibrate(a, b, state.real_distance / state.drawing_points, &state.unit, state.precision)
+                    };
                     match state.fractions {
                         0 => scale,
                         d => scale.and_then(|s| s.with_feet_inches(d)),

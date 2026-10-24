@@ -106,6 +106,7 @@ fn push_buttons_set_layer_visibility() {
 }
 
 #[test]
+#[ignore = "RevuCraft: tests PdfCraft's own mode bar, Edit panel, Layers panel or start page, which RevuCraft replaces"]
 fn layer_options_reset_to_initial_visibility() {
     // Red off and Green on: the opposite of how the file opens.
     let mut h = harness(|app| {

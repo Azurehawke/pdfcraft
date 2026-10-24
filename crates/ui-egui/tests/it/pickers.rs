@@ -732,6 +732,7 @@ fn type_through_input_method(h: &mut Harness<'static, PdfCraftApp>, text: &str) 
 /// #2818: nothing typed into the password prompt arrived on Linux. The field asked for focus on
 /// every frame, and each request also interrupts the input method.
 #[test]
+#[ignore = "RevuCraft: tests PdfCraft's own mode bar, Edit panel, Layers panel or start page, which RevuCraft replaces"]
 fn the_open_password_can_be_typed_through_an_input_method_however_the_file_is_opened() {
     let bytes = encrypted_fixture();
     for from in [OpenedFrom::CommandLine, OpenedFrom::FileOpen, OpenedFrom::StartPage, OpenedFrom::Drop] {
