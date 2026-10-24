@@ -1,0 +1,661 @@
+[1m[92m    Updating[0m crates.io index
+[1m[92m    Updating[0m git repository `https://github.com/Azurehawke/cadcraft`
+[1m[92m    Updating[0m git repository `https://github.com/Azurehawke/gridcraft`
+[1m[92m     Locking[0m 56 packages to highest Rust 1.95 compatible versions
+[1m[92m      Adding[0m acadrust v0.6.6
+[1m[92m      Adding[0m aho-corasick v1.1.5
+[1m[92m      Adding[0m android_log-sys v0.3.2
+[1m[92m      Adding[0m android_logger v0.15.1
+[1m[92m      Adding[0m arbitrary v1.5.0
+[1m[92m      Adding[0m byteorder v1.5.0
+[1m[92m      Adding[0m cadcraft-color v0.12.0 (https://github.com/Azurehawke/cadcraft?rev=7bf5905ac97316a7896de8cbc12d243f57b09bd8#7bf5905a)
+[1m[92m      Adding[0m cadcraft-doc v0.12.0 (https://github.com/Azurehawke/cadcraft?rev=7bf5905ac97316a7896de8cbc12d243f57b09bd8#7bf5905a)
+[1m[92m      Adding[0m cadcraft-dwg v0.12.0 (https://github.com/Azurehawke/cadcraft?rev=7bf5905ac97316a7896de8cbc12d243f57b09bd8#7bf5905a)
+[1m[92m      Adding[0m cadcraft-dxf v0.12.0 (https://github.com/Azurehawke/cadcraft?rev=7bf5905ac97316a7896de8cbc12d243f57b09bd8#7bf5905a)
+[1m[92m      Adding[0m cadcraft-fonts v0.12.0 (https://github.com/Azurehawke/cadcraft?rev=7bf5905ac97316a7896de8cbc12d243f57b09bd8#7bf5905a)
+[1m[92m      Adding[0m cadcraft-geom v0.12.0 (https://github.com/Azurehawke/cadcraft?rev=7bf5905ac97316a7896de8cbc12d243f57b09bd8#7bf5905a)
+[1m[92m      Adding[0m cadcraft-io v0.12.0 (https://github.com/Azurehawke/cadcraft?rev=7bf5905ac97316a7896de8cbc12d243f57b09bd8#7bf5905a)
+[1m[92m      Adding[0m cadcraft-render v0.12.0 (https://github.com/Azurehawke/cadcraft?rev=7bf5905ac97316a7896de8cbc12d243f57b09bd8#7bf5905a)
+[1m[92m      Adding[0m cesu8 v1.1.0
+[1m[92m      Adding[0m derive_arbitrary v1.5.0
+[1m[92m      Adding[0m env_filter v0.1.4
+[1m[92m      Adding[0m float_next_after v1.0.0
+[1m[92m    Updating[0m font-types v0.12.5 -> v0.12.7
+[1m[92m      Adding[0m gridcraft-calc v0.9.0 (https://github.com/Azurehawke/gridcraft?rev=37e41424ed425b33520ae98c6b8f660e518cecad#37e41424)
+[1m[92m      Adding[0m gridcraft-chart v0.9.0 (https://github.com/Azurehawke/gridcraft?rev=37e41424ed425b33520ae98c6b8f660e518cecad#37e41424)
+[1m[92m      Adding[0m gridcraft-core v0.9.0 (https://github.com/Azurehawke/gridcraft?rev=37e41424ed425b33520ae98c6b8f660e518cecad#37e41424)
+[1m[92m      Adding[0m gridcraft-engine v0.9.0 (https://github.com/Azurehawke/gridcraft?rev=37e41424ed425b33520ae98c6b8f660e518cecad#37e41424)
+[1m[92m      Adding[0m gridcraft-formula v0.9.0 (https://github.com/Azurehawke/gridcraft?rev=37e41424ed425b33520ae98c6b8f660e518cecad#37e41424)
+[1m[92m      Adding[0m gridcraft-functions v0.9.0 (https://github.com/Azurehawke/gridcraft?rev=37e41424ed425b33520ae98c6b8f660e518cecad#37e41424)
+[1m[92m      Adding[0m gridcraft-model v0.9.0 (https://github.com/Azurehawke/gridcraft?rev=37e41424ed425b33520ae98c6b8f660e518cecad#37e41424)
+[1m[92m      Adding[0m gridcraft-numfmt v0.9.0 (https://github.com/Azurehawke/gridcraft?rev=37e41424ed425b33520ae98c6b8f660e518cecad#37e41424)
+[1m[92m      Adding[0m gridcraft-pdf v0.9.0 (https://github.com/Azurehawke/gridcraft?rev=37e41424ed425b33520ae98c6b8f660e518cecad#37e41424)
+[1m[92m      Adding[0m gridcraft-xlsx v0.9.0 (https://github.com/Azurehawke/gridcraft?rev=37e41424ed425b33520ae98c6b8f660e518cecad#37e41424)
+[1m[92m      Adding[0m harfrust v0.14.0
+[1m[92m      Adding[0m jni v0.21.1 [1m[33m(available: v0.22.4)[0m
+[1m[92m      Adding[0m lyon_geom v1.0.20
+[1m[92m      Adding[0m lyon_path v1.0.19
+[1m[92m      Adding[0m lyon_tessellation v1.0.23
+[1m[92m      Adding[0m minimal-lexical v0.2.1
+[1m[92m      Adding[0m nom v7.1.3
+[1m[92m      Adding[0m oem_cp v2.1.2
+[1m[92m      Adding[0m phf v0.11.3
+[1m[92m      Adding[0m phf_shared v0.11.3
+[1m[92m      Adding[0m read-fonts v0.45.1
+[1m[92m      Adding[0m regex v1.13.1
+[1m[92m      Adding[0m regex-automata v0.4.18
+[1m[92m      Adding[0m skrifa v0.48.0
+[1m[92m      Adding[0m tiny-skia v0.12.0
+[1m[92m      Adding[0m tiny-skia-path v0.12.0
+[1m[92m      Adding[0m windows-sys v0.45.0
+[1m[92m      Adding[0m windows-targets v0.42.2
+[1m[92m      Adding[0m windows_aarch64_gnullvm v0.42.2
+[1m[92m      Adding[0m windows_aarch64_msvc v0.42.2
+[1m[92m      Adding[0m windows_i686_gnu v0.42.2
+[1m[92m      Adding[0m windows_i686_msvc v0.42.2
+[1m[92m      Adding[0m windows_x86_64_gnu v0.42.2
+[1m[92m      Adding[0m windows_x86_64_gnullvm v0.42.2
+[1m[92m      Adding[0m windows_x86_64_msvc v0.42.2
+[1m[92m      Adding[0m zip v3.0.0 [1m[33m(available: v9.0.5)[0m
+[1m[92m      Adding[0m zopfli v0.8.4
+[1m[92m Downloading[0m crates ...
+[1m[92m  Downloaded[0m acadrust v0.6.6
+[1m[92m  Downloaded[0m ctutils v0.4.5
+[1m[92m  Downloaded[0m font-types v0.12.7
+[1m[92m  Downloaded[0m harfrust v0.14.0
+[1m[92m  Downloaded[0m quick-xml v0.42.0
+[1m[92m  Downloaded[0m read-fonts v0.45.1
+[1m[92m  Downloaded[0m rustls-webpki v0.103.16
+[1m[92m  Downloaded[0m skrifa v0.48.0
+[1m[92m  Downloaded[0m tiny-skia v0.12.0
+[1m[92m  Downloaded[0m tiny-skia-path v0.12.0
+[1m[92m   Compiling[0m proc-macro2 v1.0.107
+[1m[92m   Compiling[0m quote v1.0.47
+[1m[92m   Compiling[0m unicode-ident v1.0.26
+[1m[92m    Checking[0m cfg-if v1.0.5
+[1m[92m   Compiling[0m serde_core v1.0.229
+[1m[92m   Compiling[0m libc v0.2.189
+[1m[92m   Compiling[0m serde v1.0.229
+[1m[92m   Compiling[0m autocfg v1.5.1
+[1m[92m   Compiling[0m syn v3.0.6
+[1m[92m    Checking[0m bitflags v2.13.2
+[1m[92m    Checking[0m once_cell v1.21.4
+[1m[92m   Compiling[0m syn v2.0.119
+[1m[92m   Compiling[0m libm v0.2.16
+[1m[92m   Compiling[0m num-traits v0.2.19
+[1m[92m    Checking[0m zeroize v1.9.0
+[1m[92m    Checking[0m rand_core v0.10.1
+[1m[92m   Compiling[0m thiserror v2.0.21
+[1m[92m   Compiling[0m getrandom v0.4.3
+[1m[92m    Checking[0m subtle v2.6.1
+[1m[92m    Checking[0m log v0.4.34
+[1m[92m    Checking[0m typenum v1.20.1
+[1m[92m    Checking[0m cmov v0.5.4
+[1m[92m    Checking[0m ctutils v0.4.5
+[1m[92m    Checking[0m simd-adler32 v0.3.10
+[1m[92m   Compiling[0m crc32fast v1.5.2
+[1m[92m    Checking[0m hybrid-array v0.4.15
+[1m[92m    Checking[0m const-oid v0.10.2
+[1m[92m    Checking[0m adler2 v2.0.1
+[1m[92m    Checking[0m miniz_oxide v0.9.1
+[1m[92m    Checking[0m crypto-common v0.2.2
+[1m[92m    Checking[0m zlib-rs v0.6.8
+[1m[92m    Checking[0m block-buffer v0.12.1
+[1m[92m    Checking[0m digest v0.11.3
+[1m[92m    Checking[0m cpufeatures v0.3.1
+[1m[92m    Checking[0m cpubits v0.1.1
+[1m[92m    Checking[0m arrayvec v0.7.8
+[1m[92m    Checking[0m memchr v2.8.3
+[1m[92m    Checking[0m sha2 v0.11.0
+[1m[92m    Checking[0m flate2 v1.1.10
+[1m[92m    Checking[0m block-padding v0.4.2
+[1m[92m    Checking[0m inout v0.2.2
+[1m[92m    Checking[0m cipher v0.5.2
+[1m[92m    Checking[0m unicode-bidi v0.3.18
+[1m[92m    Checking[0m tinyvec v1.13.3
+[1m[92m    Checking[0m foldhash v0.2.0
+[1m[92m    Checking[0m unicode-properties v0.1.4
+[1m[92m    Checking[0m unicode-normalization v0.1.25
+[1m[92m    Checking[0m aes v0.9.3
+[1m[92m    Checking[0m stringprep v0.1.5
+[1m[92m    Checking[0m md-5 v0.11.0
+[1m[92m    Checking[0m iana-time-zone v0.1.65
+[1m[92m    Checking[0m allocator-api2 v0.2.21
+[1m[92m    Checking[0m chrono v0.4.45
+[1m[92m    Checking[0m rustc-hash v2.1.3
+[1m[92m    Checking[0m fearless_simd v0.4.1
+[1m[92m    Checking[0m equivalent v1.0.2
+[1m[92m   Compiling[0m zerocopy v0.8.59
+[1m[92m    Checking[0m siphasher v1.0.4
+[1m[92m   Compiling[0m crossbeam-utils v0.8.23
+[1m[92m    Checking[0m zune-core v0.5.3
+[1m[92m    Checking[0m zune-jpeg v0.5.15
+[1m[92m   Compiling[0m rustix v1.1.5
+[1m[92m    Checking[0m hashbrown v0.17.1
+[1m[92m    Checking[0m linux-raw-sys v0.12.1
+[1m[92m   Compiling[0m synstructure v0.14.0
+[1m[92m    Checking[0m hayro-ccitt v0.3.0
+[1m[92m    Checking[0m hayro-jbig2 v0.3.0 (/home/runner/work/pdfcraft/pdfcraft/vendor/hayro-jbig2)
+[1m[92m    Checking[0m hayro-jpeg2000 v0.3.5
+[1m[92m   Compiling[0m pkg-config v0.3.34
+[1m[92m   Compiling[0m jobserver v0.1.35
+[1m[92m   Compiling[0m shlex v2.0.1
+[1m[92m    Checking[0m either v1.18.0
+[1m[92m   Compiling[0m pdfcraft-fonts v0.13.0 (/home/runner/work/pdfcraft/pdfcraft/crates/fonts)
+[1m[92m   Compiling[0m find-msvc-tools v0.1.14
+[1m[92m   Compiling[0m cc v1.5.1
+[1m[92m   Compiling[0m winnow v1.0.4
+[1m[92m    Checking[0m scopeguard v1.2.0
+[1m[92m    Checking[0m stable_deref_trait v1.2.1
+[1m[92m   Compiling[0m toml_parser v1.1.3+spec-1.1.0
+[1m[92m   Compiling[0m toml_datetime v1.1.1+spec-1.1.0
+[1m[92m    Checking[0m indexmap v2.14.2
+[1m[92m    Checking[0m pin-project-lite v0.2.17
+[1m[92m    Checking[0m itoa v1.0.18
+[1m[92m    Checking[0m fastrand v2.5.0
+[1m[92m    Checking[0m miniz_oxide v0.8.9
+[1m[92m    Checking[0m fdeflate v0.3.7
+[1m[92m    Checking[0m polycool v0.4.0
+[1m[92m    Checking[0m euclid v0.22.14
+[1m[92m   Compiling[0m crossbeam-epoch v0.9.21
+[1m[92m   Compiling[0m crossbeam-deque v0.8.8
+[1m[92m    Checking[0m float-cmp v0.9.0
+[1m[92m    Checking[0m strict-num v0.1.1
+[1m[92m    Checking[0m png v0.18.1
+[1m[92m   Compiling[0m rayon-core v1.13.0
+[1m[92m    Checking[0m arrayref v0.3.9
+[1m[92m   Compiling[0m toml_edit v0.25.15+spec-1.1.0
+[1m[92m   Compiling[0m proc-macro-crate v3.5.0
+[1m[92m   Compiling[0m zerocopy-derive v0.8.59
+[1m[92m   Compiling[0m serde_derive v1.0.229
+[1m[92m   Compiling[0m thiserror-impl v2.0.21
+[1m[92m   Compiling[0m bytemuck_derive v1.12.1
+[1m[92m    Checking[0m bytemuck v1.25.2
+[1m[92m   Compiling[0m zerofrom-derive v0.1.8
+[1m[92m    Checking[0m pdfcraft-filters v0.13.0 (/home/runner/work/pdfcraft/pdfcraft/crates/filters)
+[1m[92m    Checking[0m pdfcraft-crypt v0.13.0 (/home/runner/work/pdfcraft/pdfcraft/crates/crypt)
+[1m[92m    Checking[0m pdfcraft-cos v0.13.0 (/home/runner/work/pdfcraft/pdfcraft/crates/cos)
+[1m[92m   Compiling[0m yoke-derive v0.8.4
+[1m[92m    Checking[0m half v2.7.1
+[1m[92m    Checking[0m pdfcraft-model v0.13.0 (/home/runner/work/pdfcraft/pdfcraft/crates/model)
+[1m[92m    Checking[0m rayon v1.12.0
+[1m[92m    Checking[0m smallvec v1.16.2
+[1m[92m    Checking[0m font-types v0.12.7
+[1m[92m    Checking[0m read-fonts v0.41.0
+[1m[92m    Checking[0m hayro-syntax v0.7.2 (/home/runner/work/pdfcraft/pdfcraft/vendor/hayro-syntax)
+[1m[92m    Checking[0m kurbo v0.13.1
+[1m[92m    Checking[0m parking v2.2.1
+[1m[92m   Compiling[0m rustversion v1.0.23
+[1m[92m    Checking[0m roxmltree v0.20.0
+[1m[92m    Checking[0m pdfcraft-content v0.13.0 (/home/runner/work/pdfcraft/pdfcraft/crates/content)
+[1m[92m    Checking[0m libloading v0.8.9
+[1m[92m    Checking[0m pxfm v0.1.30
+[1m[92m    Checking[0m harfrust v0.12.0
+[1m[92m    Checking[0m skrifa v0.44.0
+[1m[92m    Checking[0m futures-core v0.3.34
+[1m[92m    Checking[0m color v0.3.3
+[1m[92m    Checking[0m linebender_resource_handle v0.1.1
+[1m[92m    Checking[0m weezl v0.1.12
+[1m[92m    Checking[0m peniko v0.6.1
+[1m[92m    Checking[0m moxcms v0.8.1
+[1m[92m    Checking[0m guillotiere v0.7.0
+[1m[92m    Checking[0m slab v0.4.12
+[1m[92m    Checking[0m static_assertions v1.1.0
+[1m[92m    Checking[0m color_quant v1.1.0
+[1m[92m    Checking[0m fax v0.2.7
+[1m[92m    Checking[0m base64 v0.22.1
+[1m[92m    Checking[0m quick-error v2.0.1
+[1m[92m    Checking[0m tiff v0.11.3
+[1m[92m    Checking[0m gif v0.14.2
+[1m[92m    Checking[0m kurbo v0.11.3
+[1m[92m    Checking[0m tiny-skia-path v0.11.4
+[1m[92m    Checking[0m futures-io v0.3.34
+[1m[92m    Checking[0m byteorder-lite v0.1.0
+[1m[92m    Checking[0m zerofrom v0.1.8
+[1m[92m    Checking[0m yoke v0.8.3
+[1m[92m    Checking[0m svgtypes v0.15.3
+[1m[92m    Checking[0m polling v3.11.0
+[1m[92m    Checking[0m simplecss v0.2.2
+[1m[92m   Compiling[0m parking_lot_core v0.9.12
+[1m[92m   Compiling[0m zmij v1.0.23
+[1m[92m    Checking[0m image v0.25.10
+[1m[92m    Checking[0m data-url v0.3.2
+[1m[92m    Checking[0m pico-args v0.5.0
+[1m[92m    Checking[0m imagesize v0.13.0
+[1m[92m   Compiling[0m getrandom v0.3.4
+[1m[92m    Checking[0m xmlwriter v0.1.0
+[1m[92m    Checking[0m futures-lite v2.6.1
+[1m[92m    Checking[0m usvg v0.45.1
+[1m[92m    Checking[0m event-listener v5.4.2
+[1m[92m   Compiling[0m enumflags2_derive v0.7.12
+[1m[92m    Checking[0m concurrent-queue v2.5.0
+[1m[92m    Checking[0m event-listener-strategy v0.5.4
+[1m[92m   Compiling[0m zvariant_utils v4.2.0
+[1m[92m   Compiling[0m encoding_rs v0.8.42
+[1m[92m    Checking[0m dlib v0.5.3
+[1m[92m   Compiling[0m phf_shared v0.13.1
+[1m[92m    Checking[0m lock_api v0.4.14
+[1m[92m   Compiling[0m wayland-sys v0.31.11
+[1m[92m   Compiling[0m typeid v1.0.3
+[1m[92m   Compiling[0m phf_generator v0.13.1
+[1m[92m   Compiling[0m zerovec-derive v0.11.6
+[1m[92m    Checking[0m uuid v1.26.1
+[1m[92m   Compiling[0m multiversion_no_op v1.0.0
+[1m[92m   Compiling[0m cfg_aliases v0.2.2
+[1m[92m    Checking[0m core_detect v1.0.0
+[1m[92m    Checking[0m regex-syntax v0.8.11
+[1m[92m    Checking[0m simdutf8 v0.1.5
+[1m[92m   Compiling[0m phf_macros v0.13.1
+[1m[92m   Compiling[0m displaydoc v0.2.7
+[1m[92m    Checking[0m zerovec v0.11.8
+[1m[92m    Checking[0m alloc-no-stdlib v2.0.4
+[1m[92m    Checking[0m phf v0.13.1
+[1m[92m    Checking[0m alloc-stdlib v0.2.4
+[1m[92m    Checking[0m pdfcraft-annot v0.13.0 (/home/runner/work/pdfcraft/pdfcraft/crates/annot)
+[1m[92m    Checking[0m async-channel v2.5.0
+[1m[92m   Compiling[0m tracing-attributes v0.1.31
+[1m[92m    Checking[0m tracing-core v0.1.36
+[1m[92m   Compiling[0m serde_json v1.0.151
+[1m[92m    Checking[0m brotli-decompressor v5.0.3
+[1m[92m    Checking[0m crypto-bigint v0.7.5
+[1m[92m    Checking[0m chacha20 v0.10.2
+[1m[92m   Compiling[0m zvariant_derive v5.15.0
+[1m[92m   Compiling[0m semver v1.0.28
+[1m[92m   Compiling[0m rustc_version v0.4.1
+[1m[92m    Checking[0m rand v0.10.3
+[1m[92m    Checking[0m tinystr v0.8.4
+[1m[92m   Compiling[0m enumflags2 v0.7.12
+[1m[92m   Compiling[0m zcheapstr v1.1.0
+[1m[92m    Checking[0m cbc v0.2.1
+[1m[92m    Checking[0m memmap2 v0.9.11
+[1m[92m   Compiling[0m version_check v0.9.5
+[1m[92m    Checking[0m writeable v0.6.4
+[1m[92m    Checking[0m litemap v0.8.3
+[1m[92m   Compiling[0m endi v1.1.1
+[1m[92m    Checking[0m icu_locale_core v2.3.0
+[1m[92m   Compiling[0m zvariant v5.15.0
+[1m[92m    Checking[0m zerotrie v0.2.5
+[1m[92m    Checking[0m potential_utf v0.1.6
+[1m[92m   Compiling[0m wayland-backend v0.3.17
+[1m[92m    Checking[0m ff v0.14.0
+[1m[92m   Compiling[0m icu_properties_data v2.3.0
+[1m[92m    Checking[0m utf8_iter v1.0.4
+[1m[92m    Checking[0m weezl v0.2.1
+[1m[92m    Checking[0m icu_collections v2.3.0
+[1m[92m    Checking[0m icu_provider v2.3.1
+[1m[92m    Checking[0m der v0.8.2
+[1m[92m   Compiling[0m zbus_names v4.3.4
+[1m[92m   Compiling[0m async-io v2.6.0
+[1m[92m   Compiling[0m icu_normalizer_data v2.3.0
+[1m[92m    Checking[0m downcast-rs v1.2.1
+[1m[92m    Checking[0m scoped-tls v1.0.1
+[1m[92m    Checking[0m percent-encoding v2.3.2
+[1m[92m    Checking[0m group v0.14.0
+[1m[92m   Compiling[0m quick-xml v0.41.0
+[1m[92m    Checking[0m brotli v8.0.4
+[1m[92m    Checking[0m read-fonts v0.44.0
+[1m[92m    Checking[0m tracing v0.1.44
+[1m[92m    Checking[0m itertools v0.15.0
+[1m[92m    Checking[0m ecb v0.2.1
+[1m[92m    Checking[0m nom v8.0.0
+[1m[92m    Checking[0m signature v3.0.0
+[1m[92m    Checking[0m errno v0.3.14
+[1m[92m    Checking[0m async-task v4.7.1
+[1m[92m    Checking[0m base16ct v1.0.0
+[1m[92m    Checking[0m rangemap v1.8.0
+[1m[92m   Compiling[0m wayland-client v0.31.15
+[1m[92m    Checking[0m hayro-postscript v0.1.0
+[1m[92m   Compiling[0m anyhow v1.0.104
+[1m[92m    Checking[0m hayro-cmap v0.1.0 (/home/runner/work/pdfcraft/pdfcraft/vendor/hayro-cmap)
+[1m[92m    Checking[0m sec1 v0.8.1
+[1m[92m    Checking[0m signal-hook-registry v1.4.8
+[1m[92m   Compiling[0m wayland-scanner v0.31.11
+[1m[92m    Checking[0m icu_properties v2.3.0
+[1m[92m    Checking[0m lopdf v0.45.0 (/home/runner/work/pdfcraft/pdfcraft/vendor/lopdf)
+[1m[92m    Checking[0m vello_common v0.0.8 (/home/runner/work/pdfcraft/pdfcraft/vendor/vello_common)
+[1m[92m    Checking[0m hmac v0.13.0
+[1m[92m    Checking[0m write16 v1.0.0
+[1m[92m    Checking[0m atomic-waker v1.1.2
+[1m[92m    Checking[0m utf16_iter v1.0.5
+[1m[92m    Checking[0m rten-base v0.26.0
+[1m[92m    Checking[0m icu_normalizer v2.3.0
+[1m[92m    Checking[0m piper v0.2.5
+[1m[92m    Checking[0m vello_cpu v0.0.8
+[1m[92m    Checking[0m skrifa v0.47.0
+[1m[92m    Checking[0m async-signal v0.2.14
+[1m[92m    Checking[0m elliptic-curve v0.14.1
+[1m[92m    Checking[0m primefield v0.14.0
+[1m[92m    Checking[0m async-lock v3.4.2
+[1m[92m    Checking[0m pic-scale v0.7.12
+[1m[92m    Checking[0m gridcraft-core v0.9.0 (https://github.com/Azurehawke/gridcraft?rev=37e41424ed425b33520ae98c6b8f660e518cecad#37e41424)
+[1m[92m    Checking[0m hayro-interpret v0.7.0 (/home/runner/work/pdfcraft/pdfcraft/vendor/hayro-interpret)
+[1m[92m    Checking[0m unicode-segmentation v1.13.3
+[1m[92m    Checking[0m bitflags v1.3.2
+[1m[92m    Checking[0m async-process v2.5.0
+[1m[92m    Checking[0m wnaf v0.14.1
+[1m[92m    Checking[0m blocking v1.7.0
+[1m[92m    Checking[0m rfc6979 v0.6.0
+[1m[92m    Checking[0m async-executor v1.14.0
+[1m[92m   Compiling[0m zbus_macros v5.19.0
+[1m[92m    Checking[0m spki v0.8.0
+[1m[92m    Checking[0m async-broadcast v0.7.2
+[1m[92m    Checking[0m ordered-stream v0.2.0
+[1m[92m   Compiling[0m serde_repr v0.1.21
+[1m[92m   Compiling[0m async-trait v0.1.92
+[1m[92m    Checking[0m hayro v0.7.1 (/home/runner/work/pdfcraft/pdfcraft/vendor/hayro)
+[1m[92m   Compiling[0m async-recursion v1.1.1
+[1m[92m   Compiling[0m phf_shared v0.14.0
+[1m[92m    Checking[0m hex v0.4.3
+[1m[92m    Checking[0m web-time v1.1.0
+[1m[92m   Compiling[0m phf_generator v0.14.0
+[1m[92m    Checking[0m ecdsa v0.17.0
+[1m[92m    Checking[0m primeorder v0.14.0
+[1m[92m    Checking[0m rten-parallel v0.26.0
+[1m[92m   Compiling[0m cmake v0.1.58
+[1m[92m    Checking[0m aho-corasick v1.1.5
+[1m[92m    Checking[0m ryu-js v1.0.3
+[1m[92m   Compiling[0m cow-utils v0.1.3
+[1m[92m   Compiling[0m fs_extra v1.3.0
+[1m[92m    Checking[0m fast-float2 v0.2.4
+[1m[92m   Compiling[0m pastey v0.2.3
+[1m[92m   Compiling[0m dunce v1.0.5
+[1m[92m   Compiling[0m aws-lc-sys v0.45.0
+[1m[92m    Checking[0m boa_string v0.22.0
+[1m[92m   Compiling[0m boa_macros v0.22.0
+[1m[92m    Checking[0m regex-automata v0.4.18
+[1m[92m    Checking[0m rten-tensor v0.26.0
+[1m[92m   Compiling[0m phf_macros v0.14.0
+[1m[92m    Checking[0m pdfcraft-render v0.13.0 (/home/runner/work/pdfcraft/pdfcraft/crates/render)
+[1m[92m    Checking[0m gridcraft-formula v0.9.0 (https://github.com/Azurehawke/gridcraft?rev=37e41424ed425b33520ae98c6b8f660e518cecad#37e41424)
+[1m[92m   Compiling[0m flatbuffers v24.12.23
+[1m[92m    Checking[0m read-fonts v0.45.1
+[1m[92m   Compiling[0m enumn v0.1.14
+[1m[92m    Checking[0m zbus v5.19.0
+[1m[92m    Checking[0m phf_shared v0.11.3
+[1m[92m    Checking[0m sha1 v0.11.0
+[1m[92m    Checking[0m thin-vec v0.2.20
+[1m[92m   Compiling[0m heck v0.5.0
+[1m[92m    Checking[0m phf v0.11.3
+[1m[92m    Checking[0m phf v0.14.0
+[1m[92m    Checking[0m accesskit v0.24.1
+[1m[92m    Checking[0m boa_gc v0.22.0
+[1m[92m   Compiling[0m strum_macros v0.28.0
+[1m[92m    Checking[0m gridcraft-model v0.9.0 (https://github.com/Azurehawke/gridcraft?rev=37e41424ed425b33520ae98c6b8f660e518cecad#37e41424)
+[1m[92m    Checking[0m regex v1.13.1
+[1m[92m    Checking[0m wayland-protocols v0.32.13
+[1m[92m    Checking[0m idna_adapter v1.2.2
+[1m[92m   Compiling[0m ahash v0.8.12
+[1m[92m   Compiling[0m curve25519-dalek v5.0.0
+[1m[92m    Checking[0m parking_lot v0.12.5
+[1m[92m    Checking[0m cadcraft-geom v0.12.0 (https://github.com/Azurehawke/cadcraft?rev=7bf5905ac97316a7896de8cbc12d243f57b09bd8#7bf5905a)
+[1m[92m    Checking[0m lyon_geom v1.0.20
+[1m[92m    Checking[0m hashbrown v0.16.1
+[1m[92m    Checking[0m num-integer v0.1.47
+[1m[92m    Checking[0m raw-window-handle v0.6.2
+[1m[92m    Checking[0m bumpalo v3.20.3
+[1m[92m   Compiling[0m cadcraft-fonts v0.12.0 (https://github.com/Azurehawke/cadcraft?rev=7bf5905ac97316a7896de8cbc12d243f57b09bd8#7bf5905a)
+[1m[92m    Checking[0m minimal-lexical v0.2.1
+[1m[92m    Checking[0m rten-simd v0.26.0
+[1m[92m    Checking[0m nom v7.1.3
+[1m[92m    Checking[0m zopfli v0.8.4
+[1m[92m    Checking[0m num-bigint v0.5.1
+[1m[92m    Checking[0m lyon_path v1.0.19
+[1m[92m    Checking[0m idna v1.1.0
+[1m[92m    Checking[0m gridcraft-functions v0.9.0 (https://github.com/Azurehawke/gridcraft?rev=37e41424ed425b33520ae98c6b8f660e518cecad#37e41424)
+[1m[92m    Checking[0m boa_interner v0.22.0
+[1m[92m    Checking[0m oem_cp v2.1.2
+[1m[92m    Checking[0m skrifa v0.48.0
+[1m[92m    Checking[0m harfrust v0.14.0
+[1m[92m    Checking[0m gridcraft-numfmt v0.9.0 (https://github.com/Azurehawke/gridcraft?rev=37e41424ed425b33520ae98c6b8f660e518cecad#37e41424)
+[1m[92m    Checking[0m form_urlencoded v1.2.2
+[1m[92m    Checking[0m pdfcraft-forms v0.13.0 (/home/runner/work/pdfcraft/pdfcraft/crates/forms)
+[1m[92m    Checking[0m cadcraft-color v0.12.0 (https://github.com/Azurehawke/cadcraft?rev=7bf5905ac97316a7896de8cbc12d243f57b09bd8#7bf5905a)
+[1m[92m    Checking[0m tiny-skia-path v0.12.0
+[1m[92m   Compiling[0m equator-macro v0.4.2
+[1m[92m   Compiling[0m pin-project-internal v1.1.13
+[1m[92m    Checking[0m strum v0.28.0
+[1m[92m   Compiling[0m curve25519-dalek-derive v0.1.1
+[1m[92m   Compiling[0m num-conv v0.2.2
+[1m[92m    Checking[0m profiling v1.0.18
+[1m[92m   Compiling[0m portable-atomic v1.15.0
+[1m[92m   Compiling[0m aws-lc-rs v1.18.1
+[1m[92m    Checking[0m ryu v1.0.23
+[1m[92m   Compiling[0m time-core v0.1.9
+[1m[92m    Checking[0m float_next_after v1.0.0
+[1m[92m    Checking[0m byteorder v1.5.0
+[1m[92m    Checking[0m acadrust v0.6.6
+[1m[92m    Checking[0m lyon_tessellation v1.0.23
+[1m[92m    Checking[0m pin-project v1.1.13
+[1m[92m   Compiling[0m time-macros v0.2.32
+[1m[92m    Checking[0m equator v0.4.2
+[1m[92m    Checking[0m boa_ast v0.22.0
+[1m[92m    Checking[0m tiny-skia v0.12.0
+[1m[92m    Checking[0m cadcraft-doc v0.12.0 (https://github.com/Azurehawke/cadcraft?rev=7bf5905ac97316a7896de8cbc12d243f57b09bd8#7bf5905a)
+[1m[92m    Checking[0m url v2.5.8
+[1m[92m    Checking[0m gridcraft-calc v0.9.0 (https://github.com/Azurehawke/gridcraft?rev=37e41424ed425b33520ae98c6b8f660e518cecad#37e41424)
+[1m[92m    Checking[0m rten-model-file v0.26.0
+[1m[92m    Checking[0m zip v3.0.0
+[1m[92m    Checking[0m rten-vecmath v0.26.0
+[1m[92m    Checking[0m rten-gemm v0.26.0
+[1m[92m    Checking[0m rten-shape-inference v0.26.0
+[1m[92m    Checking[0m ed25519 v3.0.0
+[1m[92m    Checking[0m crypto-primes v0.7.2
+[1m[92m    Checking[0m pdfcraft-edit v0.13.0 (/home/runner/work/pdfcraft/pdfcraft/crates/edit)
+[1m[92m   Compiling[0m num_enum_derive v0.7.6
+[1m[92m   Compiling[0m dynify-macros v0.1.2
+[1m[92m    Checking[0m regress v0.12.0
+[1m[92m    Checking[0m num_cpus v1.17.0
+[1m[92m    Checking[0m keccak v0.2.2
+[1m[92m    Checking[0m num_threads v0.1.7
+[1m[92m    Checking[0m hashbrown v0.14.5
+[1m[92m    Checking[0m sponge-cursor v0.1.0
+[1m[92m    Checking[0m fixedbitset v0.5.7
+[1m[92m    Checking[0m deranged v0.5.8
+[1m[92m   Compiling[0m khronos_api v3.1.0
+[1m[92m    Checking[0m powerfmt v0.2.0
+[1m[92m    Checking[0m time v0.3.55
+[1m[92m    Checking[0m dynify v0.1.2
+[1m[92m    Checking[0m futures-concurrency v7.7.1
+[1m[92m    Checking[0m sha3 v0.12.0
+[1m[92m    Checking[0m dashmap v6.2.1
+[1m[92m    Checking[0m rten v0.26.0
+[1m[92m    Checking[0m num_enum v0.7.6
+[1m[92m    Checking[0m boa_parser v0.22.0
+[1m[92m    Checking[0m gridcraft-xlsx v0.9.0 (https://github.com/Azurehawke/gridcraft?rev=37e41424ed425b33520ae98c6b8f660e518cecad#37e41424)
+[1m[92m    Checking[0m cadcraft-dwg v0.12.0 (https://github.com/Azurehawke/cadcraft?rev=7bf5905ac97316a7896de8cbc12d243f57b09bd8#7bf5905a)
+[1m[92m    Checking[0m rsa v0.10.0-rc.18
+[1m[92m    Checking[0m ed25519-dalek v3.0.0
+[1m[92m    Checking[0m cadcraft-render v0.12.0 (https://github.com/Azurehawke/cadcraft?rev=7bf5905ac97316a7896de8cbc12d243f57b09bd8#7bf5905a)
+[1m[92m    Checking[0m gridcraft-chart v0.9.0 (https://github.com/Azurehawke/gridcraft?rev=37e41424ed425b33520ae98c6b8f660e518cecad#37e41424)
+[1m[92m    Checking[0m aligned-vec v0.6.4
+[1m[92m    Checking[0m rten-imageproc v0.26.0
+[1m[92m    Checking[0m p256 v0.14.0
+[1m[92m    Checking[0m bp256 v0.14.0
+[1m[92m    Checking[0m p384 v0.14.0
+[1m[92m    Checking[0m bp384 v0.14.0
+[1m[92m    Checking[0m p521 v0.14.0
+[1m[92m    Checking[0m pbkdf2 v0.13.0
+[1m[92m    Checking[0m cadcraft-dxf v0.12.0 (https://github.com/Azurehawke/cadcraft?rev=7bf5905ac97316a7896de8cbc12d243f57b09bd8#7bf5905a)
+[1m[92m    Checking[0m rc2 v0.9.0
+[1m[92m    Checking[0m des v0.9.0
+[1m[92m    Checking[0m quick-xml v0.42.0
+[1m[92m    Checking[0m small_btree v0.1.0
+[1m[92m    Checking[0m ripemd v0.2.0
+[1m[92m    Checking[0m tap v1.0.1
+[1m[92m    Checking[0m tag_ptr v0.1.0
+[1m[92m    Checking[0m gridcraft-pdf v0.9.0 (https://github.com/Azurehawke/gridcraft?rev=37e41424ed425b33520ae98c6b8f660e518cecad#37e41424)
+[1m[92m    Checking[0m oneshot v0.2.1
+[1m[92m    Checking[0m intrusive-collections v0.10.3
+[1m[92m   Compiling[0m thiserror v1.0.69
+[1m[92m   Compiling[0m unicode-general-category v1.1.0
+[1m[92m   Compiling[0m rustix v0.38.44
+[1m[92m    Checking[0m boa_engine v0.22.0
+[1m[92m    Checking[0m gridcraft-engine v0.9.0 (https://github.com/Azurehawke/gridcraft?rev=37e41424ed425b33520ae98c6b8f660e518cecad#37e41424)
+[1m[92m    Checking[0m cadcraft-io v0.12.0 (https://github.com/Azurehawke/cadcraft?rev=7bf5905ac97316a7896de8cbc12d243f57b09bd8#7bf5905a)
+[1m[92m    Checking[0m ocrs v0.13.1
+[1m[92m   Compiling[0m zbus_xml v5.2.1
+[1m[92m    Checking[0m pdfcraft-xfa v0.13.0 (/home/runner/work/pdfcraft/pdfcraft/crates/xfa)
+[1m[92m    Checking[0m vello_common v0.1.0
+[1m[92m    Checking[0m emath v0.36.2
+[1m[92m   Compiling[0m thiserror-impl v1.0.69
+[1m[92m   Compiling[0m x11-dl v2.21.0
+[1m[92m   Compiling[0m serde_spanned v1.1.1
+[1m[92m    Checking[0m rustc-hash v1.1.0
+[1m[92m   Compiling[0m toml_writer v1.1.2+spec-1.1.0
+[1m[92m    Checking[0m craft-print v0.1.0 (https://github.com/storytold/craft-libs?rev=666c358065261a2816b376fa3bb10538dbf53040#666c3580)
+[1m[92m    Checking[0m xkeysym v0.2.1
+[1m[92m    Checking[0m cursor-icon v1.2.0
+[1m[92m    Checking[0m linux-raw-sys v0.4.15
+[1m[92m    Checking[0m xcursor v0.3.11
+[1m[92m   Compiling[0m xml-rs v0.8.29
+[1m[92m   Compiling[0m gl_generator v0.14.0
+[1m[92m    Checking[0m wayland-cursor v0.31.14
+[1m[92m    Checking[0m wayland-csd-frame v0.3.0
+[1m[92m   Compiling[0m toml v1.1.6+spec-1.1.0
+[1m[92m    Checking[0m naga-types v30.0.1
+[1m[92m    Checking[0m ecolor v0.36.2
+[1m[92m    Checking[0m vello_cpu v0.1.0
+[1m[92m   Compiling[0m zbus-lockstep v0.5.2
+[1m[92m    Checking[0m wayland-protocols-wlr v0.3.12
+[1m[92m    Checking[0m pdfcraft-measure v0.13.0 (/home/runner/work/pdfcraft/pdfcraft/crates/measure)
+[1m[92m    Checking[0m pdfcraft-optimize v0.13.0 (/home/runner/work/pdfcraft/pdfcraft/crates/optimize)
+[1m[92m   Compiling[0m naga v30.0.1
+[1m[92m    Checking[0m pdfcraft-a11y v0.13.0 (/home/runner/work/pdfcraft/pdfcraft/crates/a11y)
+[1m[92m    Checking[0m bit-vec v0.9.1
+[1m[92m    Checking[0m nohash-hasher v0.2.0
+[1m[92m    Checking[0m self_cell v1.3.0
+[1m[92m    Checking[0m epaint_default_fonts v0.36.2
+[1m[92m   Compiling[0m ash v0.38.0+1.3.281
+[1m[92m    Checking[0m unicode-width v0.2.2
+[1m[92m    Checking[0m epaint v0.36.2
+[1m[92m    Checking[0m codespan-reporting v0.13.1
+[1m[92m    Checking[0m bit-set v0.10.0
+[1m[92m    Checking[0m calloop v0.13.0
+[1m[92m   Compiling[0m zbus-lockstep-macros v0.5.2
+[1m[92m    Checking[0m pdfcraft-js v0.13.0 (/home/runner/work/pdfcraft/pdfcraft/crates/js)
+[1m[92m    Checking[0m pdfcraft-print v0.13.0 (/home/runner/work/pdfcraft/pdfcraft/crates/print)
+[1m[92m    Checking[0m pdfcraft-redact v0.13.0 (/home/runner/work/pdfcraft/pdfcraft/crates/redact)
+[1m[92m    Checking[0m pdfcraft-create v0.13.0 (/home/runner/work/pdfcraft/pdfcraft/crates/create)
+[1m[92m    Checking[0m pdfcraft-ocr v0.13.0 (/home/runner/work/pdfcraft/pdfcraft/crates/ocr)
+[1m[92m    Checking[0m pdfcraft-audit v0.13.0 (/home/runner/work/pdfcraft/pdfcraft/crates/audit)
+[1m[92m    Checking[0m pdfcraft-xfdf v0.13.0 (/home/runner/work/pdfcraft/pdfcraft/crates/xfdf)
+[1m[92m    Checking[0m ron v0.12.2
+[1m[92m    Checking[0m pdfcraft-organize v0.13.0 (/home/runner/work/pdfcraft/pdfcraft/crates/organize)
+[1m[92m    Checking[0m pdfcraft-preflight v0.13.0 (/home/runner/work/pdfcraft/pdfcraft/crates/preflight)
+[1m[92m    Checking[0m gethostname v1.1.0
+[1m[92m    Checking[0m pdfcraft-export v0.13.0 (/home/runner/work/pdfcraft/pdfcraft/crates/export)
+[1m[92m    Checking[0m spirv v0.4.0+sdk-1.4.341.0
+[1m[92m   Compiling[0m smithay-client-toolkit v0.19.2
+[1m[92m    Checking[0m craft-docpath v0.1.0 (https://github.com/storytold/craft-libs?rev=82a24b006eefa036b43c09a67fb9a3fbd17ffe63#82a24b00)
+[1m[92m    Checking[0m as-raw-xcb-connection v1.0.1
+[1m[92m   Compiling[0m khronos-egl v6.0.0
+[1m[92m    Checking[0m pdfcraft-compare v0.13.0 (/home/runner/work/pdfcraft/pdfcraft/crates/compare)
+[1m[92m    Checking[0m x11rb-protocol v0.13.2
+[1m[92m    Checking[0m pdfcraft-geom v0.13.0 (/home/runner/work/pdfcraft/pdfcraft/crates/geom)
+[1m[92m    Checking[0m egui v0.36.2
+[1m[92m    Checking[0m atspi-common v0.13.0
+[1m[92m    Checking[0m calloop-wayland-source v0.3.0
+[1m[92m    Checking[0m wgpu-types v30.0.1
+[1m[92m    Checking[0m x11rb v0.13.2
+[1m[92m   Compiling[0m winit v0.30.13 (/home/runner/work/pdfcraft/pdfcraft/vendor/winit)
+[1m[92m   Compiling[0m wgpu-hal v30.0.1
+[1m[92m    Checking[0m glow v0.17.0
+[1m[92m    Checking[0m presser v0.3.1
+[1m[92m    Checking[0m wgpu-naga-bridge v30.0.1
+[1m[92m    Checking[0m xkbcommon-dl v0.4.2
+[1m[92m    Checking[0m wayland-protocols-plasma v0.3.12
+[1m[92m    Checking[0m tempfile v3.27.0
+[1m[92m    Checking[0m ordered-float v5.5.0
+[1m[92m    Checking[0m smol_str v0.2.2
+[1m[92m    Checking[0m dpi v0.1.2
+[1m[92m    Checking[0m renderdoc-sys v1.1.0
+[1m[92m    Checking[0m atspi-proxies v0.13.0
+[1m[92m   Compiling[0m glutin_glx_sys v0.6.1
+[1m[92m    Checking[0m gpu-allocator v0.28.0
+[1m[92m   Compiling[0m glutin_egl_sys v0.7.1
+[1m[92m    Checking[0m accesskit_consumer v0.36.0
+[1m[92m    Checking[0m pdfcraft-platform v0.13.0 (/home/runner/work/pdfcraft/pdfcraft/crates/platform)
+[1m[92m    Checking[0m calloop v0.14.4
+[1m[92m   Compiling[0m wgpu-core v30.0.1
+[1m[92m   Compiling[0m futures-macro v0.3.34
+[1m[92m   Compiling[0m litrs v1.0.0
+[1m[92m    Checking[0m futures-task v0.3.34
+[1m[92m   Compiling[0m smithay-client-toolkit v0.20.0
+[1m[92m   Compiling[0m document-features v0.2.12
+[1m[92m    Checking[0m wgpu-core-deps-windows-linux-android v30.0.1
+[1m[92m    Checking[0m calloop-wayland-source v0.4.1
+[1m[92m    Checking[0m accesskit_atspi_common v0.18.1
+[1m[92m    Checking[0m atspi v0.29.0
+[1m[92m    Checking[0m wayland-protocols-experimental v20250721.0.1
+[1m[92m    Checking[0m wayland-protocols-misc v0.3.12
+[1m[92m   Compiling[0m glutin v0.32.3
+[1m[92m   Compiling[0m wgpu v30.0.1
+[1m[92m   Compiling[0m glutin-winit v0.5.0
+[1m[92m    Checking[0m smithay-clipboard v0.7.3
+[1m[92m    Checking[0m arboard v3.6.1
+[1m[92m    Checking[0m webbrowser v1.2.4
+[1m[92m    Checking[0m png v0.17.16
+[1m[92m    Checking[0m rand_core v0.9.5
+[1m[92m    Checking[0m futures-util v0.3.34
+[1m[92m    Checking[0m type-map v0.5.1
+[1m[92m    Checking[0m accesskit_unix v0.21.1
+[1m[92m    Checking[0m egui-wgpu v0.36.2 (/home/runner/work/pdfcraft/pdfcraft/vendor/egui-wgpu)
+[1m[92m    Checking[0m tiny-skia v0.11.4
+[1m[92m    Checking[0m egui_glow v0.36.2
+[1m[92m    Checking[0m rgb v0.8.53
+[1m[92m   Compiling[0m enum-map-derive v0.17.0
+[1m[92m    Checking[0m pollster v1.0.1
+[1m[92m   Compiling[0m rfd v0.17.2
+[1m[92m    Checking[0m accesskit_winit v0.32.2
+[1m[92m    Checking[0m resvg v0.45.1
+[1m[92m    Checking[0m egui-winit v0.36.2
+[1m[92m   Compiling[0m pdfcraft-ui-egui v0.13.0 (/home/runner/work/pdfcraft/pdfcraft/crates/ui-egui)
+[1m[92m    Checking[0m eframe v0.36.2
+[1m[92m    Checking[0m ppv-lite86 v0.2.21
+[1m[92m    Checking[0m wait-timeout v0.2.1
+[1m[92m    Checking[0m fnv v1.0.7
+[1m[92m    Checking[0m pollster v0.4.0
+[1m[92m    Checking[0m bit-vec v0.8.0
+[1m[92m    Checking[0m quick-error v1.2.3
+[1m[92m    Checking[0m rusty-fork v0.3.1
+[1m[92m    Checking[0m bit-set v0.8.0
+[1m[92m    Checking[0m rand_chacha v0.9.0
+[1m[92m    Checking[0m rand_xorshift v0.4.0
+[1m[92m    Checking[0m rand v0.9.5
+[1m[92m    Checking[0m craft-quit v0.1.0 (https://github.com/storytold/craft-libs?rev=f58bc1a3df490992d633393d0898af0588ce882c#f58bc1a3)
+[1m[92m    Checking[0m craft-ui v0.1.0 (https://github.com/storytold/craft-libs?rev=5c874d51eeb3de70e735c8ce87a59a7dedd47675#5c874d51)
+[1m[92m   Compiling[0m winresource v0.1.31
+[1m[92m    Checking[0m fontconfig-parser v0.5.8
+[1m[92m    Checking[0m unarray v0.1.4
+[1m[92m    Checking[0m proptest v1.11.0
+[1m[92m   Compiling[0m ring v0.17.14
+[1m[92m    Checking[0m enum-map v2.7.3
+[1m[92m    Checking[0m egui_extras v0.36.2
+[1m[92m    Checking[0m pdfcraft-testkit v0.13.0 (/home/runner/work/pdfcraft/pdfcraft/crates/testkit)
+[1m[92m    Checking[0m rustls-pki-types v1.15.1
+[1m[92m    Checking[0m getrandom v0.2.17
+[1m[92m   Compiling[0m httparse v1.10.1
+[1m[92m    Checking[0m untrusted v0.9.0
+[1m[92m    Checking[0m bytes v1.12.1
+[1m[92m   Compiling[0m rustls v0.23.46
+[1m[92m    Checking[0m pdfcraft-oracle v0.13.0 (/home/runner/work/pdfcraft/pdfcraft/crates/oracle)
+[1m[92m    Checking[0m http v1.5.0
+[1m[92m    Checking[0m accesskit_consumer v0.35.0
+[1m[92m    Checking[0m pdfcraft-sign v0.13.0 (/home/runner/work/pdfcraft/pdfcraft/crates/sign)
+[1m[92m    Checking[0m base64 v0.23.1
+[1m[92m    Checking[0m kittest v0.4.0
+[1m[92m   Compiling[0m pdfcraft v0.13.0 (/home/runner/work/pdfcraft/pdfcraft/apps/pdfcraft)
+[1m[92m    Checking[0m ureq-proto v0.6.4
+[1m[92m    Checking[0m openssl-probe v0.2.1
+[1m[92m    Checking[0m utf8-zero v0.8.1
+[1m[92m    Checking[0m rustls-native-certs v0.8.4
+[1m[92m    Checking[0m egui_kittest v0.36.2
+[1m[92m   Compiling[0m pdfcraft-cli v0.13.0 (/home/runner/work/pdfcraft/pdfcraft/apps/pdfcraft-cli)
+[1m[92m    Checking[0m pdfcraft-engine v0.13.0 (/home/runner/work/pdfcraft/pdfcraft/crates/engine)
+[1m[92m    Checking[0m pdfcraft-automation v0.13.0 (/home/runner/work/pdfcraft/pdfcraft/crates/automation)
+[1m[92m    Checking[0m rustls-webpki v0.103.16
+[1m[92m    Checking[0m ureq v3.4.2
+[1m[92m    Checking[0m pdfcraft-web v0.13.0 (/home/runner/work/pdfcraft/pdfcraft/apps/pdfcraft-web)
+[1m[92m    Checking[0m xtask v0.1.0 (/home/runner/work/pdfcraft/pdfcraft/xtask)
+[1m[92m    Checking[0m pdfcraft-android v0.13.0 (/home/runner/work/pdfcraft/pdfcraft/apps/pdfcraft-android)
+[1m[92m    Finished[0m `dev` profile [optimized + debuginfo] target(s) in 3m 30s
