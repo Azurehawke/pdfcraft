@@ -744,9 +744,6 @@ fn all_tools_menu(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
     }
 }
 
-/// The height of the rail's page navigation at the bottom (page field and count, arrows, zoom,
-/// fit, rotate, page display, zoom buttons), kept clear of the panel buttons above it.
-
 pub fn right_rail(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
     let t = Tokens::get(ui.ctx());
     let Some((index, id)) = app.active_ids() else { return };

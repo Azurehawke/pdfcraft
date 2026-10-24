@@ -51,7 +51,10 @@ mod object_selection;
 mod ocr;
 mod organize_drag;
 mod pageboxes;
-mod panel_snapshots;
+// RevuCraft: its side panels differ from PdfCraft's (its own Layers panel, dock rail and header
+// controls), so upstream's accessibility snapshots of them don't apply. Kept out until RevuCraft has
+// its own snapshots.
+// mod panel_snapshots;
 mod pdf_links;
 mod pickers;
 mod preferences_layout;
