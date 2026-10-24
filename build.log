@@ -1,0 +1,136 @@
+RevuCraft build 180 for Windows x64 (MSI 1.0.180)
+==> cargo build (x86_64-pc-windows-msvc)
+    Updating crates.io index
+    Updating git repository `https://github.com/Azurehawke/cadcraft`
+    Updating git repository `https://github.com/Azurehawke/gridcraft`
+     Locking 56 packages to highest Rust 1.95 compatible versions
+      Adding acadrust v0.6.6
+      Adding aho-corasick v1.1.5
+      Adding android_log-sys v0.3.2
+      Adding android_logger v0.15.1
+      Adding arbitrary v1.5.0
+      Adding byteorder v1.5.0
+      Adding cadcraft-color v0.12.0 (https://github.com/Azurehawke/cadcraft?rev=7bf5905ac97316a7896de8cbc12d243f57b09bd8#7bf5905a)
+      Adding cadcraft-doc v0.12.0 (https://github.com/Azurehawke/cadcraft?rev=7bf5905ac97316a7896de8cbc12d243f57b09bd8#7bf5905a)
+      Adding cadcraft-dwg v0.12.0 (https://github.com/Azurehawke/cadcraft?rev=7bf5905ac97316a7896de8cbc12d243f57b09bd8#7bf5905a)
+      Adding cadcraft-dxf v0.12.0 (https://github.com/Azurehawke/cadcraft?rev=7bf5905ac97316a7896de8cbc12d243f57b09bd8#7bf5905a)
+      Adding cadcraft-fonts v0.12.0 (https://github.com/Azurehawke/cadcraft?rev=7bf5905ac97316a7896de8cbc12d243f57b09bd8#7bf5905a)
+      Adding cadcraft-geom v0.12.0 (https://github.com/Azurehawke/cadcraft?rev=7bf5905ac97316a7896de8cbc12d243f57b09bd8#7bf5905a)
+      Adding cadcraft-io v0.12.0 (https://github.com/Azurehawke/cadcraft?rev=7bf5905ac97316a7896de8cbc12d243f57b09bd8#7bf5905a)
+      Adding cadcraft-render v0.12.0 (https://github.com/Azurehawke/cadcraft?rev=7bf5905ac97316a7896de8cbc12d243f57b09bd8#7bf5905a)
+      Adding cesu8 v1.1.0
+      Adding derive_arbitrary v1.5.0
+      Adding env_filter v0.1.4
+      Adding float_next_after v1.0.0
+    Updating font-types v0.12.5 -> v0.12.7
+      Adding gridcraft-calc v0.9.0 (https://github.com/Azurehawke/gridcraft?rev=37e41424ed425b33520ae98c6b8f660e518cecad#37e41424)
+      Adding gridcraft-chart v0.9.0 (https://github.com/Azurehawke/gridcraft?rev=37e41424ed425b33520ae98c6b8f660e518cecad#37e41424)
+      Adding gridcraft-core v0.9.0 (https://github.com/Azurehawke/gridcraft?rev=37e41424ed425b33520ae98c6b8f660e518cecad#37e41424)
+      Adding gridcraft-engine v0.9.0 (https://github.com/Azurehawke/gridcraft?rev=37e41424ed425b33520ae98c6b8f660e518cecad#37e41424)
+      Adding gridcraft-formula v0.9.0 (https://github.com/Azurehawke/gridcraft?rev=37e41424ed425b33520ae98c6b8f660e518cecad#37e41424)
+      Adding gridcraft-functions v0.9.0 (https://github.com/Azurehawke/gridcraft?rev=37e41424ed425b33520ae98c6b8f660e518cecad#37e41424)
+      Adding gridcraft-model v0.9.0 (https://github.com/Azurehawke/gridcraft?rev=37e41424ed425b33520ae98c6b8f660e518cecad#37e41424)
+      Adding gridcraft-numfmt v0.9.0 (https://github.com/Azurehawke/gridcraft?rev=37e41424ed425b33520ae98c6b8f660e518cecad#37e41424)
+      Adding gridcraft-pdf v0.9.0 (https://github.com/Azurehawke/gridcraft?rev=37e41424ed425b33520ae98c6b8f660e518cecad#37e41424)
+      Adding gridcraft-xlsx v0.9.0 (https://github.com/Azurehawke/gridcraft?rev=37e41424ed425b33520ae98c6b8f660e518cecad#37e41424)
+      Adding harfrust v0.14.0
+      Adding jni v0.21.1 (available: v0.22.4)
+      Adding lyon_geom v1.0.20
+      Adding lyon_path v1.0.19
+      Adding lyon_tessellation v1.0.23
+      Adding minimal-lexical v0.2.1
+      Adding nom v7.1.3
+      Adding oem_cp v2.1.2
+      Adding phf v0.11.3
+      Adding phf_shared v0.11.3
+      Adding read-fonts v0.45.1
+      Adding regex v1.13.1
+      Adding regex-automata v0.4.18
+      Adding skrifa v0.48.0
+      Adding tiny-skia v0.12.0
+      Adding tiny-skia-path v0.12.0
+      Adding windows-sys v0.45.0
+      Adding windows-targets v0.42.2
+      Adding windows_aarch64_gnullvm v0.42.2
+      Adding windows_aarch64_msvc v0.42.2
+      Adding windows_i686_gnu v0.42.2
+      Adding windows_i686_msvc v0.42.2
+      Adding windows_x86_64_gnu v0.42.2
+      Adding windows_x86_64_gnullvm v0.42.2
+      Adding windows_x86_64_msvc v0.42.2
+      Adding zip v3.0.0 (available: v9.0.5)
+      Adding zopfli v0.8.4
+   Compiling pdfcraft-crypt v0.13.0 (D:\a\pdfcraft\pdfcraft\crates\crypt)
+   Compiling pdfcraft-filters v0.13.0 (D:\a\pdfcraft\pdfcraft\crates\filters)
+   Compiling hayro-jbig2 v0.3.0 (D:\a\pdfcraft\pdfcraft\vendor\hayro-jbig2)
+   Compiling pdfcraft-fonts v0.13.0 (D:\a\pdfcraft\pdfcraft\crates\fonts)
+   Compiling pdfcraft-cos v0.13.0 (D:\a\pdfcraft\pdfcraft\crates\cos)
+   Compiling hayro-syntax v0.7.2 (D:\a\pdfcraft\pdfcraft\vendor\hayro-syntax)
+   Compiling winit v0.30.13 (D:\a\pdfcraft\pdfcraft\vendor\winit)
+   Compiling hayro-cmap v0.1.0 (D:\a\pdfcraft\pdfcraft\vendor\hayro-cmap)
+   Compiling pdfcraft-model v0.13.0 (D:\a\pdfcraft\pdfcraft\crates\model)
+   Compiling pdfcraft-content v0.13.0 (D:\a\pdfcraft\pdfcraft\crates\content)
+   Compiling pdfcraft-annot v0.13.0 (D:\a\pdfcraft\pdfcraft\crates\annot)
+   Compiling vello_common v0.0.8 (D:\a\pdfcraft\pdfcraft\vendor\vello_common)
+   Compiling pdfcraft-edit v0.13.0 (D:\a\pdfcraft\pdfcraft\crates\edit)
+   Compiling vello_cpu v0.0.8
+   Compiling hayro-interpret v0.7.0 (D:\a\pdfcraft\pdfcraft\vendor\hayro-interpret)
+   Compiling pdfcraft-forms v0.13.0 (D:\a\pdfcraft\pdfcraft\crates\forms)
+   Compiling lopdf v0.45.0 (D:\a\pdfcraft\pdfcraft\vendor\lopdf)
+   Compiling hayro v0.7.1 (D:\a\pdfcraft\pdfcraft\vendor\hayro)
+   Compiling pdfcraft-xfa v0.13.0 (D:\a\pdfcraft\pdfcraft\crates\xfa)
+   Compiling pdfcraft-sign v0.13.0 (D:\a\pdfcraft\pdfcraft\crates\sign)
+   Compiling pdfcraft-redact v0.13.0 (D:\a\pdfcraft\pdfcraft\crates\redact)
+   Compiling pdfcraft-ocr v0.13.0 (D:\a\pdfcraft\pdfcraft\crates\ocr)
+   Compiling pdfcraft-render v0.13.0 (D:\a\pdfcraft\pdfcraft\crates\render)
+   Compiling pdfcraft-create v0.13.0 (D:\a\pdfcraft\pdfcraft\crates\create)
+   Compiling pdfcraft-print v0.13.0 (D:\a\pdfcraft\pdfcraft\crates\print)
+   Compiling pdfcraft-js v0.13.0 (D:\a\pdfcraft\pdfcraft\crates\js)
+   Compiling pdfcraft-xfdf v0.13.0 (D:\a\pdfcraft\pdfcraft\crates\xfdf)
+   Compiling pdfcraft-audit v0.13.0 (D:\a\pdfcraft\pdfcraft\crates\audit)
+   Compiling pdfcraft-measure v0.13.0 (D:\a\pdfcraft\pdfcraft\crates\measure)
+   Compiling pdfcraft-optimize v0.13.0 (D:\a\pdfcraft\pdfcraft\crates\optimize)
+   Compiling pdfcraft-organize v0.13.0 (D:\a\pdfcraft\pdfcraft\crates\organize)
+   Compiling pdfcraft-preflight v0.13.0 (D:\a\pdfcraft\pdfcraft\crates\preflight)
+   Compiling pdfcraft-a11y v0.13.0 (D:\a\pdfcraft\pdfcraft\crates\a11y)
+   Compiling pdfcraft-export v0.13.0 (D:\a\pdfcraft\pdfcraft\crates\export)
+   Compiling pdfcraft-compare v0.13.0 (D:\a\pdfcraft\pdfcraft\crates\compare)
+   Compiling pdfcraft-geom v0.13.0 (D:\a\pdfcraft\pdfcraft\crates\geom)
+   Compiling pdfcraft-engine v0.13.0 (D:\a\pdfcraft\pdfcraft\crates\engine)
+   Compiling accesskit_winit v0.32.2
+   Compiling pdfcraft-platform v0.13.0 (D:\a\pdfcraft\pdfcraft\crates\platform)
+   Compiling egui-wgpu v0.36.2 (D:\a\pdfcraft\pdfcraft\vendor\egui-wgpu)
+   Compiling egui-winit v0.36.2
+   Compiling glutin-winit v0.5.0
+   Compiling pdfcraft-ui-egui v0.13.0 (D:\a\pdfcraft\pdfcraft\crates\ui-egui)
+   Compiling eframe v0.36.2
+   Compiling pdfcraft-cli v0.13.0 (D:\a\pdfcraft\pdfcraft\apps\pdfcraft-cli)
+   Compiling pdfcraft v0.13.0 (D:\a\pdfcraft\pdfcraft\apps\pdfcraft)
+   Compiling pdfcraft-automation v0.13.0 (D:\a\pdfcraft\pdfcraft\crates\automation)
+    Finished `release` profile [optimized] target(s) in 7m 12s
+==> cargo xtask models
+   Compiling pdfcraft-crypt v0.13.0 (D:\a\pdfcraft\pdfcraft\crates\crypt)
+   Compiling pdfcraft-filters v0.13.0 (D:\a\pdfcraft\pdfcraft\crates\filters)
+   Compiling lopdf v0.45.0 (D:\a\pdfcraft\pdfcraft\vendor\lopdf)
+   Compiling pdfcraft-oracle v0.13.0 (D:\a\pdfcraft\pdfcraft\crates\oracle)
+   Compiling pdfcraft-cos v0.13.0 (D:\a\pdfcraft\pdfcraft\crates\cos)
+   Compiling xtask v0.1.0 (D:\a\pdfcraft\pdfcraft\xtask)
+    Finished `dev` profile [optimized + debuginfo] target(s) in 43.98s
+     Running `target\debug\xtask.exe models D:\a\pdfcraft\pdfcraft\target\revucraft-package\stage\models`
+assets: fetching https://ocrs-models.s3-accelerate.amazonaws.com/text-detection.rten
+assets: fetching https://creativecommons.org/licenses/by-sa/4.0/legalcode.txt
+assets: fetching https://ocrs-models.s3-accelerate.amazonaws.com/text-recognition.rten
+assets: fetching https://creativecommons.org/licenses/by-sa/4.0/legalcode.txt
+models: D:\a\pdfcraft\pdfcraft\target\revucraft-package\stage\models\text-detection.rten
+models: D:\a\pdfcraft\pdfcraft\target\revucraft-package\stage\models\text-recognition.rten
+==> wix build
+==> revucraft-cli --version
+pdfcraft-cli 0.13.0
+Web:     https://github.com/Azurehawke/pdfcraft/blob/revucraft/REVUCRAFT.md
+Source:  https://github.com/Azurehawke/pdfcraft/tree/revucraft
+
+Name                     Length
+----                     ------
+RevuCraft-setup.msi    59568128
+RevuCraft-portable.zip 77322560
+
