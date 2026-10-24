@@ -1,0 +1,73 @@
+[1m[92m      Adding[0m derive_arbitrary v1.5.0
+[1m[92m      Adding[0m env_filter v0.1.4
+[1m[92m      Adding[0m float_next_after v1.0.0
+[1m[92m    Updating[0m font-types v0.12.5 -> v0.12.7
+[1m[92m      Adding[0m gridcraft-calc v0.9.0 (https://github.com/Azurehawke/gridcraft?rev=37e41424ed425b33520ae98c6b8f660e518cecad#37e41424)
+[1m[92m      Adding[0m gridcraft-chart v0.9.0 (https://github.com/Azurehawke/gridcraft?rev=37e41424ed425b33520ae98c6b8f660e518cecad#37e41424)
+[1m[92m      Adding[0m gridcraft-core v0.9.0 (https://github.com/Azurehawke/gridcraft?rev=37e41424ed425b33520ae98c6b8f660e518cecad#37e41424)
+[1m[92m      Adding[0m gridcraft-engine v0.9.0 (https://github.com/Azurehawke/gridcraft?rev=37e41424ed425b33520ae98c6b8f660e518cecad#37e41424)
+[1m[92m      Adding[0m gridcraft-formula v0.9.0 (https://github.com/Azurehawke/gridcraft?rev=37e41424ed425b33520ae98c6b8f660e518cecad#37e41424)
+[1m[92m      Adding[0m gridcraft-functions v0.9.0 (https://github.com/Azurehawke/gridcraft?rev=37e41424ed425b33520ae98c6b8f660e518cecad#37e41424)
+[1m[92m      Adding[0m gridcraft-model v0.9.0 (https://github.com/Azurehawke/gridcraft?rev=37e41424ed425b33520ae98c6b8f660e518cecad#37e41424)
+[1m[92m      Adding[0m gridcraft-numfmt v0.9.0 (https://github.com/Azurehawke/gridcraft?rev=37e41424ed425b33520ae98c6b8f660e518cecad#37e41424)
+[1m[92m      Adding[0m gridcraft-pdf v0.9.0 (https://github.com/Azurehawke/gridcraft?rev=37e41424ed425b33520ae98c6b8f660e518cecad#37e41424)
+[1m[92m      Adding[0m gridcraft-xlsx v0.9.0 (https://github.com/Azurehawke/gridcraft?rev=37e41424ed425b33520ae98c6b8f660e518cecad#37e41424)
+[1m[92m      Adding[0m harfrust v0.14.0
+[1m[92m      Adding[0m jni v0.21.1 [1m[33m(available: v0.22.4)[0m
+[1m[92m      Adding[0m lyon_geom v1.0.20
+[1m[92m      Adding[0m lyon_path v1.0.19
+[1m[92m      Adding[0m lyon_tessellation v1.0.23
+[1m[92m      Adding[0m minimal-lexical v0.2.1
+[1m[92m      Adding[0m nom v7.1.3
+[1m[92m      Adding[0m oem_cp v2.1.2
+[1m[92m      Adding[0m phf v0.11.3
+[1m[92m      Adding[0m phf_shared v0.11.3
+[1m[92m      Adding[0m read-fonts v0.45.1
+[1m[92m      Adding[0m regex v1.13.1
+[1m[92m      Adding[0m regex-automata v0.4.18
+[1m[92m      Adding[0m skrifa v0.48.0
+[1m[92m      Adding[0m tiny-skia v0.12.0
+[1m[92m      Adding[0m tiny-skia-path v0.12.0
+[1m[92m      Adding[0m windows-sys v0.45.0
+[1m[92m      Adding[0m windows-targets v0.42.2
+[1m[92m      Adding[0m windows_aarch64_gnullvm v0.42.2
+[1m[92m      Adding[0m windows_aarch64_msvc v0.42.2
+[1m[92m      Adding[0m windows_i686_gnu v0.42.2
+[1m[92m      Adding[0m windows_i686_msvc v0.42.2
+[1m[92m      Adding[0m windows_x86_64_gnu v0.42.2
+[1m[92m      Adding[0m windows_x86_64_gnullvm v0.42.2
+[1m[92m      Adding[0m windows_x86_64_msvc v0.42.2
+[1m[92m      Adding[0m zip v3.0.0 [1m[33m(available: v9.0.5)[0m
+[1m[92m      Adding[0m zopfli v0.8.4
+[1m[92m   Compiling[0m pdfcraft-filters v0.13.0 (/home/runner/work/pdfcraft/pdfcraft/crates/filters)
+[1m[92m   Compiling[0m pdfcraft-crypt v0.13.0 (/home/runner/work/pdfcraft/pdfcraft/crates/crypt)
+[1m[92m   Compiling[0m pdfcraft-fonts v0.13.0 (/home/runner/work/pdfcraft/pdfcraft/crates/fonts)
+[1m[92m   Compiling[0m hayro-jbig2 v0.3.0 (/home/runner/work/pdfcraft/pdfcraft/vendor/hayro-jbig2)
+[1m[92m   Compiling[0m pdfcraft-cos v0.13.0 (/home/runner/work/pdfcraft/pdfcraft/crates/cos)
+[1m[92m   Compiling[0m hayro-syntax v0.7.2 (/home/runner/work/pdfcraft/pdfcraft/vendor/hayro-syntax)
+[1m[92m   Compiling[0m pdfcraft-model v0.13.0 (/home/runner/work/pdfcraft/pdfcraft/crates/model)
+[1m[92m   Compiling[0m pdfcraft-annot v0.13.0 (/home/runner/work/pdfcraft/pdfcraft/crates/annot)
+[1m[92m    Finished[0m `test` profile [optimized + debuginfo] target(s) in 14.52s
+[1m[92m     Running[0m unittests src/lib.rs (target/debug/deps/pdfcraft_annot-c8ef1602cbf85099)
+
+running 4 tests
+test pen::tests::names_round_trip ... ok
+test pen::tests::pressure_widens_a_fountain_pen ... ok
+test pen::tests::outlines_are_closed_fills_for_any_input ... ok
+test tests::pen_drawings_keep_their_pen_and_pressure ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 81 filtered out; finished in 0.01s
+
+[1m[92m   Compiling[0m hayro-syntax v0.7.2 (/home/runner/work/pdfcraft/pdfcraft/vendor/hayro-syntax)
+[1m[92m   Compiling[0m pdfcraft-fonts v0.13.0 (/home/runner/work/pdfcraft/pdfcraft/crates/fonts)
+[1m[92m   Compiling[0m pdfcraft-annot v0.13.0 (/home/runner/work/pdfcraft/pdfcraft/crates/annot)
+[1m[92m   Compiling[0m pdfcraft-content v0.13.0 (/home/runner/work/pdfcraft/pdfcraft/crates/content)
+[1m[92m   Compiling[0m pdfcraft-edit v0.13.0 (/home/runner/work/pdfcraft/pdfcraft/crates/edit)
+[1m[92m    Finished[0m `test` profile [optimized + debuginfo] target(s) in 18.08s
+[1m[92m     Running[0m unittests src/lib.rs (target/debug/deps/pdfcraft_edit-f836bf8ec64d79a4)
+
+running 1 test
+test tests::text_in_forms_becomes_editable_page_text_in_the_same_place ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 249 filtered out; finished in 0.00s
+
