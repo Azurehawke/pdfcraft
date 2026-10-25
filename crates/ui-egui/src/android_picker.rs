@@ -161,7 +161,14 @@ impl Browser {
             }
             .to_string()
         });
-        let start = LAST_DIR.lock().unwrap_or_else(PoisonError::into_inner).clone().filter(|d| d.is_dir()).unwrap_or_else(default_dir);
+        // The folder the app asked for (the document's own for Save As), else where the last
+        // picker ended, else Documents.
+        let last = LAST_DIR.lock().unwrap_or_else(PoisonError::into_inner).clone();
+        // A document from Google Drive is a copy in the app's private folder: Save As doesn't
+        // start there, where nothing else can see the file.
+        let private = std::env::var_os("HOME").map(PathBuf::from);
+        let asked = dialog.directory.clone().filter(|d| private.as_ref().is_none_or(|h| !d.starts_with(h)));
+        let start = asked.into_iter().chain(last).find(|d| d.is_dir()).unwrap_or_else(default_dir);
         let mut browser = Self {
             mode,
             title,

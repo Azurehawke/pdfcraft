@@ -16,6 +16,8 @@ pub struct AsyncFileDialog {
     pub(crate) filters: Vec<(String, Vec<String>)>,
     /// The suggested name of a file to save.
     pub(crate) file_name: Option<String>,
+    /// The folder to start in (the document's own, for Save As).
+    pub(crate) directory: Option<std::path::PathBuf>,
 }
 
 #[cfg(target_os = "android")]
@@ -34,6 +36,12 @@ impl AsyncFileDialog {
     pub fn add_filter(mut self, name: impl Into<String>, extensions: &[impl ToString]) -> Self {
         let extensions = extensions.iter().map(|e| e.to_string().trim_start_matches('.').to_ascii_lowercase()).collect();
         self.filters.push((name.into(), extensions));
+        self
+    }
+
+    #[must_use]
+    pub fn set_directory(mut self, dir: impl AsRef<std::path::Path>) -> Self {
+        self.directory = Some(dir.as_ref().to_path_buf());
         self
     }
 
