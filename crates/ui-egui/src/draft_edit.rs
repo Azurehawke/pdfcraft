@@ -1071,8 +1071,26 @@ pub(crate) fn modify_input(
                 chip(painter, hint_at, tl!("That wall is locked"));
                 return;
             }
-            for piece in openings::cut(&wall, &at) {
-                draw_path(painter, cx, &piece, wall.is_outline(), ghost);
+            // A smart wall keeps its doors and windows, and has room for one only where nothing
+            // else is (another door or window, a wall meeting it, a joined corner); any other wall
+            // is cut.
+            let smart = doc.smart_walls(page).into_iter().find(|w| w.index == wall.index && !w.nm.is_empty());
+            let (at, spec) = match &smart {
+                Some(w) => {
+                    let at = openings::smart(w).and_then(|sw| openings::place(&sw, raw, width)).unwrap_or(at);
+                    (at, openings::smart_spec(w, &at, kind, settings.door_flip, String::new()))
+                }
+                None => (at, None),
+            };
+            let room = match (&smart, &spec) {
+                (Some(w), Some(s)) => doc.opening_fits(page, w.index, s.t0, s.t1),
+                _ => true,
+            };
+            let stroke = if room { stroke } else { Stroke::new(stroke.width, Color32::from_rgb(220, 60, 60)) };
+            if room {
+                for piece in openings::cut(&wall, &at) {
+                    draw_path(painter, cx, &piece, wall.is_outline(), ghost);
+                }
             }
             for shape in openings::drawing(kind, &at, settings.door_flip) {
                 match shape {
@@ -1084,24 +1102,24 @@ pub(crate) fn modify_input(
                     _ => {}
                 }
             }
+            if !room {
+                chip(painter, hint_at, tl!("No room here"));
+                return;
+            }
             if clicked {
                 let color = crate::draft::layer_color(doc);
-                // A smart wall keeps its doors and windows; any other wall is cut.
-                let smart = doc.smart_walls(page).into_iter().find(|w| w.index == wall.index && !w.nm.is_empty());
-                view.pending_edit = Some(match smart {
-                    Some(w) => {
-                        let mark = doc.next_opening_mark(if kind == Opening::Door {
-                            pdfcraft_engine::walls::OpeningKind::Door
-                        } else {
-                            pdfcraft_engine::walls::OpeningKind::Window
-                        });
-                        let at = openings::smart(&w).and_then(|sw| openings::place(&sw, raw, width)).unwrap_or(at);
-                        match openings::smart_spec(&w, &at, kind, settings.door_flip, mark) {
-                            Some(spec) => Edit::AddOpening { page, wall: w.index, spec, color, author: settings.author.clone() },
-                            None => openings::edit(page, &wall, &at, kind, settings.door_flip, color, &settings.author),
+                view.pending_edit = Some(match (smart, spec) {
+                    (Some(w), Some(spec)) => {
+                        let mark = doc.next_opening_mark(spec.kind);
+                        Edit::AddOpening {
+                            page,
+                            wall: w.index,
+                            spec: pdfcraft_engine::walls::OpeningSpec { mark, ..spec },
+                            color,
+                            author: settings.author.clone(),
                         }
                     }
-                    None => openings::edit(page, &wall, &at, kind, settings.door_flip, color, &settings.author),
+                    _ => openings::edit(page, &wall, &at, kind, settings.door_flip, color, &settings.author),
                 });
             }
         }

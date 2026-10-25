@@ -123,7 +123,6 @@ mod markups_list;
 pub mod motion;
 mod new_dialog;
 mod openings;
-mod wall_joins;
 mod page_selection_ui;
 mod pageboxes;
 mod palette;
@@ -139,6 +138,7 @@ mod status_bar;
 mod takeoff_ui;
 mod tool_chest;
 mod value_prompt;
+mod wall_joins;
 #[cfg(target_os = "android")]
 pub use android_picker::{AndroidDocuments, AndroidFileAccess, SystemPick, set_android_documents, set_android_file_access};
 pub mod prepare;
@@ -3025,6 +3025,9 @@ impl PdfCraftApp {
                     _ => return Err("wall-side must be centre, inside or outside".into()),
                 };
             }
+            // Screenshots: a small room of smart walls (an L at each corner, a T where a partition
+            // meets them) with a door and a window, drawn on the open page.
+            ("demo-walls", _) => wall_joins::demo(self)?,
             // Screenshots and automation: send the quantities to a workbook (made when there is
             // none at that path), or show the Send quantities dialog.
             ("send-quantities", _) => takeoff_ui::option(self, value, true)?,

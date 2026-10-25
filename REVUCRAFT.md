@@ -317,6 +317,12 @@ Markup and measuring
   - [x] Doors and windows hosted by their wall: one markup each, they move, stretch, copy and are
         deleted with it; moved on their own they slide along it, and the wall re-opens.
   - [ ] Joined walls follow: dragging one wall's end stretches the walls joined to it (next).
+  - [x] Room checked (build 186): a door or window only goes where its wall has room (no other
+        opening, wall junction or joined corner there; the preview turns red, "No room here"),
+        and one slid along its wall stops at its neighbour.
+- [x] **(Steve, build 186)** Undo and Redo buttons in the top bar (beside Save), naming the step.
+- [x] **(Steve, build 186)** The distance box opens on the far side of the line's start from the
+      pointer, so the ruler, angle and live length stay in view whichever way a line is drawn.
   - [x] Flip a placed door's hinge side or swing (Properties box and context menu).
   - [x] Door and window marks (D1, W1…) numbered through the document, drawn by the opening and
         listed (as Door/Window, drafted or not) in the Markups list.

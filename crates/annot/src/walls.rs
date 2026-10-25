@@ -585,6 +585,9 @@ pub fn add_opening(
         return Err(AnnotError::Invalid("the wall has no name to be found by".into()));
     }
     let (t0, t1) = range(spec.t0, spec.t1).ok_or_else(|| AnnotError::Invalid("a door or window needs a width".into()))?;
+    if !fits(doc, page, &w, t0, t1, None) {
+        return Err(AnnotError::Invalid("there's no room for a door or window there".into()));
+    }
     let spec = OpeningSpec { t0, t1, side: if spec.side < 0.0 { -1.0 } else { 1.0 }, mark: spec.mark.chars().take(12).collect(), ..spec.clone() };
     let ax = axis(&w.quad).ok_or_else(|| AnnotError::Invalid("the wall has no length".into()))?;
     let at = place(&ax, &spec);
@@ -634,6 +637,39 @@ pub fn sync(doc: &mut Document, page: usize, wall: usize, meta: &Meta) -> Result
     set_appearance(doc, r)
 }
 
+/// The parts of the wall a door or window can't take: the other doors and windows in it (all but
+/// the one at `except`), where walls meet its faces, and its joined corners (as far in as the wall
+/// is thick, where the mitre is).
+fn taken(doc: &Document, page: usize, w: &Wall, except: Option<usize>) -> Vec<(f64, f64)> {
+    let mut out: Vec<(f64, f64)> = if w.nm.is_empty() {
+        Vec::new()
+    } else {
+        openings(doc, page).into_iter().filter(|o| o.host == w.nm && Some(o.index) != except).map(|o| (o.spec.t0, o.spec.t1)).collect()
+    };
+    out.extend(w.data.gaps.iter().map(|g| (g.1, g.2)));
+    if let Some(ax) = axis(&w.quad) {
+        let corner = (ax.thickness() / ax.len).min(0.5);
+        if w.data.ja {
+            out.push((0.0, corner));
+        }
+        if w.data.jb {
+            out.push((1.0 - corner, 1.0));
+        }
+    }
+    out
+}
+
+/// Whether a door or window from `t0` to `t1` along the wall `w` has room there (`except`: the one
+/// being moved, which doesn't stand in its own way).
+pub fn fits(doc: &Document, page: usize, w: &Wall, t0: f64, t1: f64, except: Option<usize>) -> bool {
+    let (a, b) = (t0.min(t1), t0.max(t1));
+    a.is_finite()
+        && b.is_finite()
+        && a >= -1e-9
+        && b <= 1.0 + 1e-9
+        && taken(doc, page, w, except).iter().all(|(c0, c1)| b <= c0 + 1e-9 || a >= c1 - 1e-9)
+}
+
 /// After the markup at `index` moved by `delta`: a wall's doors and windows follow it; a door or
 /// window slides along its wall by as much of the move as runs along it.
 pub fn after_move(doc: &mut Document, page: usize, index: usize, delta: Option<Pt>, meta: &Meta) -> Result<(), AnnotError> {
@@ -644,7 +680,13 @@ pub fn after_move(doc: &mut Document, page: usize, index: usize, delta: Option<P
     let Some(w) = walls(doc, page).into_iter().find(|w| w.nm == o.host) else { return Ok(()) };
     if let (Some(d), Some(ax)) = (delta.filter(|d| finite(*d)), axis(&w.quad)) {
         let width = o.spec.t1 - o.spec.t0;
-        let t0 = (o.spec.t0 + dot(d, ax.along) / ax.len).clamp(0.0, (1.0 - width).max(0.0));
+        // It slides as far as the room it is in: up to the next door or window, a wall meeting
+        // this one, or a joined corner.
+        let room = minus((0.0, 1.0), &taken(doc, page, &w, Some(index)))
+            .into_iter()
+            .find(|(a, b)| *a <= o.spec.t0 + 1e-9 && *b >= o.spec.t1 - 1e-9)
+            .unwrap_or((0.0, 1.0));
+        let t0 = (o.spec.t0 + dot(d, ax.along) / ax.len).clamp(room.0, (room.1 - width).max(room.0));
         let spec = OpeningSpec { t0, t1: t0 + width, ..o.spec.clone() };
         let (_, r) = annot_ref(doc, page, index)?;
         let at = place(&ax, &spec);

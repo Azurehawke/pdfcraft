@@ -109,6 +109,7 @@ jobs:
           shot plan-draft-modify "$plan" --workflow draft --quick draft-fillet --dock markups
           shot plan-draft-collapsed "$plan" --workflow draft --quick draft-polygon --draft-panel collapsed
           shot plan-draft-door "$plan" --workflow draft --quick draft-door --dock tool-chest
+          shot plan-smart-walls "$plan" --workflow draft --quick draft-door --demo-walls on --zoom 150
           shot plan-draft-wall-side "$plan" --workflow draft --quick draft-wall --wall-side inside --dock layers
           shot plan-draft-rect "$plan" --workflow draft --quick draft-rectangle --dock layers
           # The pasteboard: a wall line and a box running off the sheet's right edge.

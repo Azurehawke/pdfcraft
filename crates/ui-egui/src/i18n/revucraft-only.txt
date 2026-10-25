@@ -356,6 +356,7 @@ No grouping
 No layer
 No layers yet. Add one, then choose it as the current layer: new markups, symbols and photos go on it.
 No markups yet. Everything you draw, measure or place is listed here.
+No room here
 No snap
 None (paper size)
 Not calibrated (paper size)

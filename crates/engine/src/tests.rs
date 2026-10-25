@@ -6651,6 +6651,39 @@ fn smart_walls_keep_their_doors_through_moves_copies_and_deletes() {
     assert!(session.apply(id, Edit::AddOpening { page: 0, wall: 99, spec, color: [0.0; 3], author: String::new() }).is_err());
 }
 
+#[test]
+fn doors_and_windows_only_go_where_the_wall_has_room() {
+    use pdfcraft_annot::walls::{OpeningKind, OpeningSpec};
+    let mut session = Session::default();
+    let id = session.open("plan.pdf", None, Arc::new(fixture(1)), None).unwrap();
+    let style = Style { color: [0.0; 3], opacity: 1.0, width: 0.75, fill: Some([0.78; 3]) };
+    // 200 long, 6 thick, joined at end B (a corner there).
+    let quad = [[100.0, 203.0], [300.0, 203.0], [300.0, 197.0], [100.0, 197.0]];
+    session.apply(id, Edit::AddWall { page: 0, quad, ja: false, jb: true, style, author: "Steve".into() }).unwrap();
+    let wall = session.get(id).unwrap().smart_walls(0)[0].index;
+    let spec = |kind, t0, t1| OpeningSpec { kind, t0, t1, side: 1.0, flip: false, mark: String::new() };
+    let add = |s: &mut Session, o: OpeningSpec| s.apply(id, Edit::AddOpening { page: 0, wall, spec: o, color: [0.0; 3], author: "Steve".into() });
+    add(&mut session, spec(OpeningKind::Door, 0.2, 0.35)).unwrap();
+    // Over the door, partly or wholly: refused, and nothing is added.
+    let doc = session.get(id).unwrap();
+    assert!(!doc.opening_fits(0, wall, 0.3, 0.45));
+    assert!(!doc.opening_fits(0, wall, 0.25, 0.3));
+    assert!(doc.opening_fits(0, wall, 0.35, 0.5), "beside it, touching, is fine");
+    assert!(!doc.opening_fits(0, wall, 0.95, 0.99), "in the joined corner");
+    assert!(add(&mut session, spec(OpeningKind::Window, 0.3, 0.45)).is_err());
+    assert_eq!(session.get(id).unwrap().wall_openings(0).len(), 1);
+    // A window beside it; the door slid into it stops at the window.
+    add(&mut session, spec(OpeningKind::Window, 0.5, 0.6)).unwrap();
+    let door = session.get(id).unwrap().wall_openings(0).iter().find(|o| o.spec.kind == OpeningKind::Door).unwrap().index;
+    session.apply(id, Edit::MoveAnnotation { page: 0, index: door, dx: 100.0, dy: 0.0 }).unwrap();
+    let doc = session.get(id).unwrap();
+    let moved = doc.wall_openings(0).into_iter().find(|o| o.index == door).unwrap();
+    assert!((moved.spec.t1 - 0.5).abs() < 1e-9, "stopped at the window: {:?}", moved.spec);
+    // And a wall meeting this one in a T takes its place too.
+    session.apply(id, Edit::SetWall { page: 0, index: wall, quad: None, ja: None, jb: None, gap: Some((0, 0.7, 0.73)) }).unwrap();
+    assert!(!session.get(id).unwrap().opening_fits(0, wall, 0.65, 0.75));
+}
+
 /// AES-256 passwords as typed, each with its SASLprep form, which ISO 32000-2 keys the file on:
 /// a decomposed é (NFKC composes it), a no-break space (mapped to a space) and fullwidth letters
 /// (what a Japanese IME types in full-width mode; NFKC narrows them). Precomposed "café" is the

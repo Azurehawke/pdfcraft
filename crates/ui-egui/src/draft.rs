@@ -1210,7 +1210,10 @@ fn value_box(ui: &egui::Ui, doc: &Document, view: &mut DocView, cx: &PageCx<'_>,
         },
     };
     let error = view.draft.error.clone();
-    let prompt = crate::value_prompt::Prompt { error: error.as_deref(), focus: false, ..crate::value_prompt::Prompt::new(tl!(title), hint) };
+    // Opened beside a point the line is drawn from: clear of the pointer, so the rubber band, its
+    // ruler and its length stay in view whichever way it goes.
+    let avoid = at.and(pos);
+    let prompt = crate::value_prompt::Prompt { error: error.as_deref(), focus: false, avoid, ..crate::value_prompt::Prompt::new(tl!(title), hint) };
     match crate::value_prompt::show(ui.ctx(), ("draft", page), anchor, ui.clip_rect(), prompt, &mut view.draft.input, |_| {}) {
         Some(crate::value_prompt::PromptAction::Apply) => {
             let edit = submit(view, doc, tool, settings);

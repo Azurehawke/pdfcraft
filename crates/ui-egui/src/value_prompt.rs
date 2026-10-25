@@ -32,12 +32,42 @@ pub struct Prompt<'a> {
     pub focus: bool,
     /// Several lines (a description): Enter applies, Shift+Enter starts a new line.
     pub multiline: bool,
+    /// A point the box keeps clear of (the pointer while drawing from the anchor): the box opens
+    /// on the anchor's other side, so the line being drawn, its ruler and its length stay in view.
+    pub avoid: Option<Pos2>,
 }
 
 impl<'a> Prompt<'a> {
     pub fn new(title: &'a str, hint: &'a str) -> Self {
-        Prompt { title, hint, error: None, focus: true, multiline: false }
+        Prompt { title, hint, error: None, focus: true, multiline: false, avoid: None }
     }
+}
+
+/// Where the box goes: below and to the right of `anchor`, or on the side away from `avoid`,
+/// kept on screen (as the Finish/Undo bar is).
+fn place(anchor: Pos2, size: egui::Vec2, bounds: Rect, avoid: Option<Pos2>) -> Pos2 {
+    let (left, above) = match avoid {
+        Some(p) if p.x.is_finite() && p.y.is_finite() => (p.x >= anchor.x, p.y >= anchor.y),
+        _ => (false, false),
+    };
+    let x_left = anchor.x - 16.0 - size.x;
+    let x_right = anchor.x + 16.0;
+    let y_above = anchor.y - 18.0 - size.y;
+    let y_below = anchor.y + 18.0;
+    let mut x = if left { x_left } else { x_right };
+    let mut y = if above { y_above } else { y_below };
+    // Off screen on the chosen side: the other side.
+    if x + size.x > bounds.right() {
+        x = x_left;
+    } else if x < bounds.left() {
+        x = x_right;
+    }
+    if y + size.y > bounds.bottom() {
+        y = y_above;
+    } else if y < bounds.top() {
+        y = y_below;
+    }
+    egui::pos2(x.min(bounds.right() - size.x).max(bounds.left()), y.min(bounds.bottom() - size.y).max(bounds.top()))
 }
 
 /// Draw the box near `anchor` (a point on screen), kept inside `bounds`. `text` is what has
@@ -53,16 +83,7 @@ pub fn show(
 ) -> Option<PromptAction> {
     let t = Tokens::get(ctx);
     let size = vec2(260.0, if prompt.multiline { 140.0 } else { 96.0 });
-    // Below and to the right of the point, kept on screen (as the Finish/Undo bar is).
-    let mut at = anchor + vec2(16.0, 18.0);
-    if at.x + size.x > bounds.right() {
-        at.x = anchor.x - 16.0 - size.x;
-    }
-    if at.y + size.y > bounds.bottom() {
-        at.y = anchor.y - 18.0 - size.y;
-    }
-    at.x = at.x.max(bounds.left());
-    at.y = at.y.max(bounds.top());
+    let at = place(anchor, size, bounds, prompt.avoid);
     let mut action = None;
     let area_id = egui::Id::new(("value-prompt", id));
     let field_id = area_id.with("field");
@@ -107,4 +128,27 @@ pub fn show(
     });
     // A click on the box's own buttons also takes the keyboard from the field: the button wins.
     action
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn the_box_keeps_clear_of_the_line_being_drawn() {
+        let bounds = Rect::from_min_max(egui::pos2(0.0, 0.0), egui::pos2(1000.0, 800.0));
+        let size = vec2(260.0, 96.0);
+        let start = egui::pos2(500.0, 400.0);
+        // No pointer to avoid: below right, as before.
+        assert_eq!(place(start, size, bounds, None), egui::pos2(516.0, 418.0));
+        // Drawing east (a little below): the box goes up and to the left of the start.
+        let at = place(start, size, bounds, Some(egui::pos2(700.0, 401.0)));
+        assert_eq!(at, egui::pos2(500.0 - 16.0 - 260.0, 400.0 - 18.0 - 96.0));
+        assert!(!Rect::from_min_size(at, size).contains(egui::pos2(600.0, 410.0)), "the line and its readout stay in view");
+        // Drawing south west: below is taken, so above and to the right.
+        assert_eq!(place(start, size, bounds, Some(egui::pos2(300.0, 600.0))), egui::pos2(516.0, 400.0 - 18.0 - 96.0));
+        // At the left edge, the box can't go left: it goes right, still on screen.
+        let edge = place(egui::pos2(20.0, 400.0), size, bounds, Some(egui::pos2(300.0, 300.0)));
+        assert!(edge.x >= 0.0 && edge.x + size.x <= 1000.0 && edge.y + size.y <= 800.0, "{edge:?}");
+    }
 }

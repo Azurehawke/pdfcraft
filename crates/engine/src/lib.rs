@@ -709,6 +709,16 @@ impl Document {
         self.editor.as_ref().map(|e| pdfcraft_annot::walls::openings(&e.cos, page)).unwrap_or_default()
     }
 
+    /// RevuCraft: whether a door or window from `t0` to `t1` along the smart wall at `wall` has room
+    /// there (no other opening, wall junction or joined corner in the way).
+    pub fn opening_fits(&self, page: usize, wall: usize, t0: f64, t1: f64) -> bool {
+        let Some(e) = self.editor.as_ref() else { return false };
+        pdfcraft_annot::walls::walls(&e.cos, page)
+            .into_iter()
+            .find(|w| w.index == wall)
+            .is_some_and(|w| pdfcraft_annot::walls::fits(&e.cos, page, &w, t0, t1, None))
+    }
+
     /// RevuCraft: the next free door or window mark in the document (D1, D2, … or W1, W2, …).
     pub fn next_opening_mark(&self, kind: pdfcraft_annot::walls::OpeningKind) -> String {
         let prefix = match kind {

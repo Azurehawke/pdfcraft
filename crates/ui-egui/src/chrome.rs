@@ -588,6 +588,30 @@ pub fn mode_bar(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
                         if icons::button(ui, "save", 32.0, false, &tip).clicked() {
                             app.run_command("file.save");
                         }
+                        // RevuCraft: Undo and Redo always to hand (a tablet has no Ctrl+Z), naming
+                        // the step they take back or bring back.
+                        for (id, icon, undo) in [("edit.redo", "redo-2", false), ("edit.undo", "undo-2", true)] {
+                            let enabled = pdfcraft_engine::commands::command(id).is_some_and(|c| app.command_enabled(c));
+                            let step = app
+                                .active_ids()
+                                .and_then(|(_, doc)| app.session.get(doc))
+                                .and_then(|d| (if undo { d.undo_label() } else { d.redo_label() }).map(crate::i18n::edit_label));
+                            let tip = match (&step, undo) {
+                                (Some(s), true) => crate::i18n::fmt(tl!("Undo {action}"), &[("action", s.as_str())]),
+                                (Some(s), false) => crate::i18n::fmt(tl!("Redo {action}"), &[("action", s.as_str())]),
+                                (None, true) => tl!("Undo").to_string(),
+                                (None, false) => tl!("Redo").to_string(),
+                            };
+                            let r = ui.add_enabled_ui(enabled, |ui| icons::button(ui, icon, 32.0, false, &tip)).inner;
+                            let r = if enabled {
+                                r
+                            } else {
+                                r.on_disabled_hover_text(if undo { tl!("Nothing to undo") } else { tl!("Nothing to redo") })
+                            };
+                            if r.clicked() {
+                                app.run_command(id);
+                            }
+                        }
                         let tip = crate::commands::command_tip(ui.ctx(), tl!("Document properties ({key})"), "file.properties");
                         if icons::button(ui, "info", 32.0, false, &tip).clicked() {
                             app.dialog = Some(Dialog::Properties(PropsTab::Description));
