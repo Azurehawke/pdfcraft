@@ -467,7 +467,7 @@ pub struct DraftView {
     /// set each frame the pointer is over a sheet while drafting.
     pub under: Option<String>,
     /// A snap typed for the next point alone (SE, SM, SI, SP, SN; SO none).
-    pub one_shot: Option<crate::draft_snap::OneShot>,
+    pub(crate) one_shot: Option<crate::draft_snap::OneShot>,
 }
 
 impl DraftView {

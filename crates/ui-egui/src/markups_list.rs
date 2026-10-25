@@ -374,7 +374,7 @@ pub fn visible(rows: &[Row], state: &MarkupsState, custom: &[String]) -> Vec<Row
     });
     // Grouped: the groups in order of their name, the chosen order within each (a stable sort).
     if let Some(g) = state.group {
-        out.sort_by(|a, b| a.text(g, custom).to_lowercase().cmp(&b.text(g, custom).to_lowercase()));
+        out.sort_by_key(|a| a.text(g, custom).to_lowercase());
     }
     out
 }
