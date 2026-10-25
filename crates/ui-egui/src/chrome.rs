@@ -590,7 +590,10 @@ pub fn mode_bar(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
                         }
                         // RevuCraft: Undo and Redo always to hand (a tablet has no Ctrl+Z), naming
                         // the step they take back or bring back.
-                        for (id, icon, undo) in [("edit.redo", "redo-2", false), ("edit.undo", "undo-2", true)] {
+                        // (RevuCraft's shell, with its ribbon; PdfCraft's keeps Undo in the Edit menu.)
+                        let buttons: &[(&str, &str, bool)] =
+                            if app.show_ribbon { &[("edit.redo", "redo-2", false), ("edit.undo", "undo-2", true)] } else { &[] };
+                        for &(id, icon, undo) in buttons {
                             let enabled = pdfcraft_engine::commands::command(id).is_some_and(|c| app.command_enabled(c));
                             let step = app
                                 .active_ids()
