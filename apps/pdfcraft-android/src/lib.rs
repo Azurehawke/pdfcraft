@@ -9,6 +9,7 @@
 //!   PdfCraft works on a copy and writes saves back (`cloud`).
 //! - PDFs from other apps ("Open with", PdfCraft as the default PDF viewer) open in a tab
 //!   (`incoming`).
+//! - Scan & OCR's models ship in the APK and are copied to the app's folder (`ocr_models`).
 //! - No system clipboard for images, no printing to a printer, no update check.
 //!
 //! Elsewhere the crate is empty, so `cargo build --workspace` on a desktop still works.
@@ -17,6 +18,7 @@
 mod cloud;
 mod file_access;
 mod incoming;
+mod ocr_models;
 mod tablet;
 
 use pdfcraft_ui_egui::PdfCraftApp;
@@ -42,6 +44,14 @@ fn android_main(android: AndroidApp) {
             std::env::set_var("HOME", dir);
         }
         log::info!("PdfCraft {} data folder {}", env!("CARGO_PKG_VERSION"), dir.display());
+        // Scan & OCR's models, from the APK into the app's folder (`ocr_models`).
+        if let Some(models) = ocr_models::install(&android, dir) {
+            #[allow(unsafe_code)]
+            // SAFETY: as for HOME above: no other thread exists yet.
+            unsafe {
+                std::env::set_var("PDFCRAFT_MODELS", models);
+            }
+        }
     }
 
     file_access::set_app(android.clone());

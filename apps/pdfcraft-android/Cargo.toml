@@ -22,6 +22,8 @@ todo = "warn"
 
 [target.'cfg(target_os = "android")'.dependencies]
 pdfcraft-ui-egui = { workspace = true }
+# Where Scan & OCR finds its models (ocr_models.rs).
+pdfcraft-ocr = { workspace = true }
 eframe = { workspace = true, features = ["default_fonts", "wgpu", "persistence", "android-native-activity"] }
 egui = { workspace = true }
 # The AndroidApp handle (resolves to vendor/winit, like eframe's own).

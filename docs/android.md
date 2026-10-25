@@ -64,6 +64,9 @@ from Google Drive again to get the latest version.
   on it marks unsaved changes.
 - **Clipboard:** text copy and paste work inside PdfCraft; Create ▸ Clipboard and copying
   snapshots to other apps don't (no system clipboard for images).
+- **Scan & OCR:** its two text-recognition models ship inside the APK (about 12 MB, CC BY-SA
+  4.0, credited in the app folder's `models/ATTRIBUTION.txt`) and are copied to the app's own
+  folder the first time a new version starts.
 - **Not on Android:** printing to a printer, the update check, signing with an OS key store, and
   the `--control` automation channel.
 - Settings, logs and crash recovery live in the app's private folder; uninstalling removes them.

@@ -29,11 +29,18 @@ VERSION=$(sed -n 's/^version = "\(.*\)"/\1/p' "$ROOT/Cargo.toml" | head -1)
 VERSION_CODE=${VERSION_CODE:-1}
 
 rm -rf "$OUT"
-mkdir -p "$OUT/jniLibs" "$OUT/res/mipmap-xxxhdpi" "$OUT/apk"
+mkdir -p "$OUT/jniLibs" "$OUT/res/mipmap-xxxhdpi" "$OUT/apk" "$OUT/assets/models"
 
 echo "== libpdfcraft_android.so"
 (cd "$ROOT" && cargo ndk -t arm64-v8a --platform "$MIN_API" -o "$OUT/jniLibs" build -p pdfcraft-android --release)
 test -f "$OUT/jniLibs/arm64-v8a/libpdfcraft_android.so"
+
+echo "== OCR models"
+# Scan & OCR's two models (and their CC BY-SA licences and credits), fetched and checked by
+# SHA-256 as for the desktop packages. They go into the APK's assets; the app copies them to its
+# own folder on first start (apps/pdfcraft-android: ocr_models.rs).
+(cd "$ROOT" && cargo run -q -p xtask -- models "$OUT/assets/models")
+test -f "$OUT/assets/models/text-detection.rten" && test -f "$OUT/assets/models/text-recognition.rten"
 
 echo "== resources and manifest"
 # The launcher icon: an adaptive icon (teal background, document-and-nib foreground) drawn
@@ -44,6 +51,7 @@ cp -r "$HERE/res/." "$OUT/res/"
     --manifest "$HERE/AndroidManifest.xml" \
     --min-sdk-version "$MIN_API" --target-sdk-version "$API" \
     --version-code "$VERSION_CODE" --version-name "$VERSION" \
+    -A "$OUT/assets" \
     "$OUT/res.zip"
 
 echo "== activity class"
