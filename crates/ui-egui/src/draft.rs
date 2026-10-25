@@ -1212,7 +1212,10 @@ fn value_box(ui: &egui::Ui, doc: &Document, view: &mut DocView, cx: &PageCx<'_>,
     let error = view.draft.error.clone();
     // Opened beside a point the line is drawn from: clear of the pointer, so the rubber band, its
     // ruler and its length stay in view whichever way it goes.
-    let avoid = at.and(pos);
+    // On a touch screen there is no pointer between taps: the last place a finger or pen was
+    // (where a typed length goes) stands in for it.
+    let aim = view.draft.aim.filter(|(p, _)| *p == page).map(|(_, a)| cx.to_screen(a));
+    let avoid = at.and(pos.or(aim));
     let prompt = crate::value_prompt::Prompt { error: error.as_deref(), focus: false, avoid, ..crate::value_prompt::Prompt::new(tl!(title), hint) };
     match crate::value_prompt::show(ui.ctx(), ("draft", page), anchor, ui.clip_rect(), prompt, &mut view.draft.input, |_| {}) {
         Some(crate::value_prompt::PromptAction::Apply) => {

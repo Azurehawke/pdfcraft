@@ -320,12 +320,13 @@ Markup and measuring
   - [x] Room checked (build 186): a door or window only goes where its wall has room (no other
         opening, wall junction or joined corner there; the preview turns red, "No room here"),
         and one slid along its wall stops at its neighbour.
-- [x] **(Steve, build 186)** Undo and Redo buttons in the top bar (beside Save), naming the step.
-- [x] **(Steve, build 186)** The distance box opens on the far side of the line's start from the
-      pointer, so the ruler, angle and live length stay in view whichever way a line is drawn.
   - [x] Flip a placed door's hinge side or swing (Properties box and context menu).
   - [x] Door and window marks (D1, W1…) numbered through the document, drawn by the opening and
         listed (as Door/Window, drafted or not) in the Markups list.
+- [x] **(Steve, build 186)** Undo and Redo buttons in the top bar (beside Save), naming the step.
+- [x] **(Steve, build 186)** The distance box opens on the far side of the line's start from the
+      pointer, so the ruler, angle and live length stay in view whichever way a line is drawn. On a touch screen (build 188) the last place
+      the finger or pen was stands in for the pointer.
 - [ ] **(Steve, back burner)** Object styles, as Illustrator's graphic styles: save a markup's look (stroke,
       width, dash, line ends, alignment, fill, opacity, font) under a name ("Existing walls", "Demo")
       in a Styles box; apply one to the selection or make it the current tool style. A text style
