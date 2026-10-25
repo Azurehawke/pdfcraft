@@ -974,10 +974,9 @@ fn finish_edit(tool: DraftTool, page: usize, points: &[[f64; 2]], closed: bool, 
             let at = points.first().copied().unwrap_or([0.0, 0.0]);
             let thickness = settings.wall_inches * units_per_inch(doc, page, at);
             let quads = wall_quads(points, thickness, closed, wall_shift(points, settings.wall_side, settings.wall_flip));
-            let edits: Vec<Edit> = quads
-                .into_iter()
-                .map(|q| annotation(page, Shape::Polygon { vertices: q.to_vec(), cloud: false }, color, 0.75, Some([0.78, 0.78, 0.78]), author))
-                .collect();
+            // Smart walls: joined at the run's corners and to the smart walls they end on.
+            let style = Style { color, opacity: 1.0, width: 0.75, fill: Some([0.78, 0.78, 0.78]) };
+            let edits = crate::wall_joins::wall_edits(page, &quads, closed, &doc.smart_walls(page), &style, author);
             (!edits.is_empty()).then(|| Edit::Batch { label: "Draw wall".into(), edits })
         }
         DraftTool::Circle => match points {

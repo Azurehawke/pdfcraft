@@ -9,6 +9,7 @@ About RevuCraft
 Accent color
 Add a column
 Add a rule
+Add door
 Add layer
 Add legend
 Add mapping
@@ -16,6 +17,7 @@ Add photo callout
 Add symbol from SVG…
 Add to
 Add to the open document
+Add window
 Add {symbol}
 Added to every run for the drop down the wall and the service loop (10' or 3m)
 Added {name} to your symbols.
@@ -150,6 +152,7 @@ Distance, or @x,y
 Dock this panel
 Documents
 Done editing
+Door
 Door (click a wall where it goes)
 Door contact
 Door width (the opening cut in the wall)
@@ -169,6 +172,7 @@ Drag to size the photo
 Draw a floor plan
 Draw again
 Draw only horizontal and vertical lines (hold Shift for the other way)
+Draw wall
 Drawings (DWG, DXF)
 Drawings and tables opened with Edit original update on the sheet by themselves when you save them in CADCraft or GridCraft.
 Drawings opened with Edit original update their sheets by themselves when you save them in CADCraft.
@@ -211,6 +215,7 @@ Flatten into the page
 Flatten layer
 Flip hinge
 Flip side
+Flip swing
 Float this panel
 Floor box
 Floor outlet
@@ -256,6 +261,7 @@ Internal storage
 Its quantity's name in the workbook's Takeoff sheet, for formulas such as ={name}*6.50
 J-hook
 Join (two lines that meet become one)
+Join walls
 Junction box
 Keep previous drawings as hidden Rev layers
 Keep the original
@@ -564,6 +570,7 @@ Stop watching for saves from CADCraft. This also happens by itself when CADCraft
 Stroke
 Sublayer
 Summary report (PDF): the markups shown, with photos, by layer
+Swing the door to the other side of the wall
 Symbol
 Symbol name
 Symbols
@@ -672,6 +679,7 @@ Where the line's thickness lies when the shape is closed: centred on the path, i
 Where the line's thickness lies: centred on the path, inside it or outside it
 Width and height
 Width in real-world inches, drawn to the page's scale (walls)
+Window
 Window (click a wall where it goes)
 Window width (the opening cut in the wall)
 Wireless access point

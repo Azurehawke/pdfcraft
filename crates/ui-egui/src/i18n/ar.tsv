@@ -3473,3 +3473,11 @@ certificate	Version	الإصدار
 	Cable totals by layer, system or cable type	إجماليات الكابلات حسب الطبقة أو النظام أو نوع الكابل
 	By system	حسب النظام
 	By cable type	حسب نوع الكابل
+	Door	باب
+	Window	نافذة
+	Flip swing	عكس اتجاه الفتح
+	Swing the door to the other side of the wall	اجعل الباب يُفتح إلى الجانب الآخر من الجدار
+	Draw wall	رسم جدار
+	Join walls	وصل الجدران
+	Add window	إضافة نافذة
+	Add door	إضافة باب

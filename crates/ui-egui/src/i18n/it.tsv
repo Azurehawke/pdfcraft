@@ -3433,3 +3433,11 @@ certificate	SHA-256 digest	Impronta SHA-256
 	Cable totals by layer, system or cable type	Totali cavo per livello, sistema o tipo di cavo
 	By system	Per sistema
 	By cable type	Per tipo di cavo
+	Door	Porta
+	Window	Finestra
+	Flip swing	Inverti il verso di apertura
+	Swing the door to the other side of the wall	Apri la porta verso l'altro lato del muro
+	Draw wall	Disegna muro
+	Join walls	Unisci muri
+	Add window	Aggiungi finestra
+	Add door	Aggiungi porta

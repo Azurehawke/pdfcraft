@@ -3203,3 +3203,11 @@ animation effects	Off	オフ
 	Cable totals by layer, system or cable type	レイヤー、系統、ケーブル種別ごとのケーブル合計
 	By system	系統別
 	By cable type	ケーブル種別
+	Door	ドア
+	Window	窓
+	Flip swing	開き方向を反転
+	Swing the door to the other side of the wall	ドアを壁の反対側へ開くようにする
+	Draw wall	壁を描画
+	Join walls	壁を結合
+	Add window	窓を追加
+	Add door	ドアを追加

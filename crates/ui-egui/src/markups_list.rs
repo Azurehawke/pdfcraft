@@ -275,6 +275,15 @@ fn first_line(s: &str) -> String {
 
 /// The document's markups as rows: top-level comments only (not replies, status changes or
 /// pop-ups), with the measurement value and the latest review status.
+/// What a door or window is called in the list (its mark is its label).
+pub(crate) fn opening_label(spec: &pdfcraft_engine::walls::OpeningSpec) -> String {
+    match spec.kind {
+        pdfcraft_engine::walls::OpeningKind::Door => tl!("Door"),
+        pdfcraft_engine::walls::OpeningKind::Window => tl!("Window"),
+    }
+    .to_string()
+}
+
 pub fn rows(doc: &Document) -> Vec<Row> {
     let info = &doc.info;
     let layers = doc.layer_list();
@@ -283,14 +292,26 @@ pub fn rows(doc: &Document) -> Vec<Row> {
     };
     let measured = doc.measurements().map(|l| l.measurements).unwrap_or_default();
     let all_fields = doc.all_annotation_fields();
+    // Smart walls and their doors and windows, by page.
+    let mut pages: Vec<usize> = info.annotations.iter().map(|a| a.page).collect();
+    pages.sort_unstable();
+    pages.dedup();
+    let openings: Vec<(usize, pdfcraft_engine::walls::Opening)> =
+        pages.iter().flat_map(|p| doc.wall_openings(*p).into_iter().map(move |o| (*p, o))).collect();
+    let smart_walls: Vec<(usize, usize)> = pages.iter().flat_map(|p| doc.smart_walls(*p).into_iter().map(move |w| (*p, w.index))).collect();
     let mut out = Vec::new();
     for a in info.annotations.iter().filter(|a| a.in_reply_to.is_none() && a.state.is_none() && a.subtype != "Popup") {
         if out.len() >= MAX_ROWS {
             break;
         }
         let measurement = measured.iter().find(|m| m.page == a.page && m.index == a.index);
+        let opening = openings.iter().find(|(p, o)| *p == a.page && o.index == a.index).map(|(_, o)| o);
         let kind = if let Some(s) = a.symbol.as_deref() {
             pdfcraft_engine::symbols::display_name(s)
+        } else if let Some(o) = opening {
+            opening_label(&o.spec)
+        } else if smart_walls.contains(&(a.page, a.index)) {
+            tl!("Wall").to_string()
         } else if a.photo {
             tl!("Photo").to_string()
         } else if measurement.is_some_and(|m| m.cable) {
@@ -339,7 +360,8 @@ pub fn rows(doc: &Document) -> Vec<Row> {
             unit: measurement.map(|m| m.reading.unit.clone()).unwrap_or_default(),
             date: a.modified.as_deref().map(pdf_date).unwrap_or_default(),
             fields: all_fields.iter().find(|(p, i, _)| *p == a.page && *i == a.index).map(|(_, _, f)| f.clone()).unwrap_or_default(),
-            drafting: a.drafting,
+            // Doors and windows are listed as a schedule is, drafted or not.
+            drafting: a.drafting && opening.is_none(),
         });
     }
     out

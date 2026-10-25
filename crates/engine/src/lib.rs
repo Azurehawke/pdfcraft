@@ -157,7 +157,7 @@ pub use pdfcraft_annot::{
     AppearanceCache, AttachIcon, FillMark, LineEnding, Markup, NOTE_SIZE, NewAnnotation, NoteIcon, OverlayFont, OverlayLook, PenKind,
     Props as CommentProps, ReviewState, Rgb, Shape, StampGroup, StampKind, Style, rect_quad,
 };
-pub use pdfcraft_annot::{fields, geometry, layers, photo_callout, stroke_align, svg_art, symbols};
+pub use pdfcraft_annot::{fields, geometry, layers, photo_callout, stroke_align, svg_art, symbols, walls};
 pub use pdfcraft_create::report;
 pub use pdfcraft_forms::detect;
 pub use pdfcraft_optimize as optimize;
@@ -299,6 +299,10 @@ fn scope_of(edit: &Edit) -> Scope {
         Edit::AddMeasurement(_)
         | Edit::AddCableRun { .. }
         | Edit::AddLegend { .. }
+        | Edit::AddWall { .. }
+        | Edit::SetWall { .. }
+        | Edit::AddOpening { .. }
+        | Edit::FlipOpening { .. }
         | Edit::AddAnnotation(_)
         | Edit::AddDraftShape { .. }
         | Edit::AddCustomStamp { .. }
@@ -693,6 +697,31 @@ impl Document {
     pub fn symbol_art_from(&self, page: usize, indices: &[usize]) -> Result<String, String> {
         let e = self.editor.as_ref().ok_or("the document can't be read")?;
         pdfcraft_annot::symbols::art_from_drawing(&e.cos, page, indices).map_err(|e| e.to_string())
+    }
+
+    /// RevuCraft: the smart walls on `page` ([`pdfcraft_annot::walls`]).
+    pub fn smart_walls(&self, page: usize) -> Vec<pdfcraft_annot::walls::Wall> {
+        self.editor.as_ref().map(|e| pdfcraft_annot::walls::walls(&e.cos, page)).unwrap_or_default()
+    }
+
+    /// RevuCraft: the doors and windows in smart walls on `page`.
+    pub fn wall_openings(&self, page: usize) -> Vec<pdfcraft_annot::walls::Opening> {
+        self.editor.as_ref().map(|e| pdfcraft_annot::walls::openings(&e.cos, page)).unwrap_or_default()
+    }
+
+    /// RevuCraft: the next free door or window mark in the document (D1, D2, … or W1, W2, …).
+    pub fn next_opening_mark(&self, kind: pdfcraft_annot::walls::OpeningKind) -> String {
+        let prefix = match kind {
+            pdfcraft_annot::walls::OpeningKind::Door => 'D',
+            pdfcraft_annot::walls::OpeningKind::Window => 'W',
+        };
+        let pages = self.editor.as_ref().map_or(0, |e| pdfcraft_annot::page_refs(&e.cos).map_or(0, |p| p.len()));
+        let highest = (0..pages)
+            .flat_map(|p| self.wall_openings(p))
+            .filter_map(|o| o.spec.mark.strip_prefix(prefix).and_then(|n| n.parse::<u32>().ok()))
+            .max()
+            .unwrap_or(0);
+        format!("{prefix}{}", highest.saturating_add(1))
     }
 
     pub fn layer_list(&self) -> Vec<pdfcraft_annot::layers::LayerInfo> {
@@ -1847,6 +1876,42 @@ pub enum Edit {
         /// Your columns filled in on the new run (its system and cable type, say): (name, value).
         fields: Vec<(String, String)>,
     },
+    /// RevuCraft: a smart wall (`pdfcraft_annot::walls`): the Wall tool's outline `quad`, with its
+    /// ends A (side 3–0) and B (side 1–2) joined to other walls when `ja`, `jb` (no line across).
+    AddWall {
+        page: usize,
+        quad: [[f64; 2]; 4],
+        ja: bool,
+        jb: bool,
+        style: pdfcraft_annot::Style,
+        author: String,
+    },
+    /// RevuCraft: change a smart wall: its outline, which ends are joined, or a gap in a face
+    /// (0 or 1, from and to along it, 0 to 1) where another wall meets it. Its doors and windows
+    /// follow.
+    SetWall {
+        page: usize,
+        index: usize,
+        quad: Option<[[f64; 2]; 4]>,
+        ja: Option<bool>,
+        jb: Option<bool>,
+        gap: Option<(u8, f64, f64)>,
+    },
+    /// RevuCraft: a door or window in the smart wall at `wall`, which opens there.
+    AddOpening {
+        page: usize,
+        wall: usize,
+        spec: pdfcraft_annot::walls::OpeningSpec,
+        color: [f64; 3],
+        author: String,
+    },
+    /// RevuCraft: turn a door or window round: its hinge to the other end (`hinge`), or its swing
+    /// to the other side of the wall.
+    FlipOpening {
+        page: usize,
+        index: usize,
+        hinge: bool,
+    },
     /// RevuCraft: a legend of the symbols used (on `page`, or in the whole document), its top-left
     /// corner at `top_left`; it keeps itself up to date.
     AddLegend {
@@ -2438,6 +2503,12 @@ pub const EDIT_LABELS: &[&str] = &[
     "Move linked drawing",
     "Measure cable run",
     "Add legend",
+    "Draw wall",
+    "Join walls",
+    "Add window",
+    "Add door",
+    "Flip hinge",
+    "Flip swing",
     "Measure {kind}",
     "New layer",
     "Rename layer",
@@ -2617,6 +2688,12 @@ impl Edit {
             Edit::MoveCadLink { .. } => Label::of("Move linked drawing"),
             Edit::AddCableRun { .. } => Label::of("Measure cable run"),
             Edit::AddLegend { .. } => Label::of("Add legend"),
+            Edit::AddWall { .. } => Label::of("Draw wall"),
+            Edit::SetWall { .. } => Label::of("Join walls"),
+            Edit::AddOpening { spec, .. } if spec.kind == pdfcraft_annot::walls::OpeningKind::Window => Label::of("Add window"),
+            Edit::AddOpening { .. } => Label::of("Add door"),
+            Edit::FlipOpening { hinge: true, .. } => Label::of("Flip hinge"),
+            Edit::FlipOpening { .. } => Label::of("Flip swing"),
             Edit::AddDraftShape { caption: Some((_, subject)), .. } => Label::with("Measure {kind}", subject.to_lowercase()),
             Edit::AddDraftShape { new, .. } => Label::of(add_annotation(&new.shape)),
             Edit::AddLayer { .. } => Label::of("New layer"),
@@ -2724,6 +2801,10 @@ fn check_permission(edit: &Edit, p: &pdfcraft_cos::Permissions) -> Result<(), Ed
         Edit::AddMeasurement(_)
         | Edit::AddCableRun { .. }
         | Edit::AddLegend { .. }
+        | Edit::AddWall { .. }
+        | Edit::SetWall { .. }
+        | Edit::AddOpening { .. }
+        | Edit::FlipOpening { .. }
         | Edit::AddAnnotation(_)
         | Edit::AddDraftShape { .. }
         | Edit::AddCustomStamp { .. }
@@ -2892,6 +2973,21 @@ struct EditCtx {
     /// The overlay streams the edit's applied redactions added, which alone the renderer's check
     /// leaves out.
     redaction_overlays: Vec<pdfcraft_cos::ObjRef>,
+    /// RevuCraft's smart walls: what the edit leaves to be squared up once it is done.
+    walls: WallsAfter,
+}
+
+/// What an edit leaves its smart walls to square up when it is done ([`finish_walls`]).
+#[derive(Default)]
+struct WallsAfter {
+    /// Pages where a wall was deleted: its doors and windows go too.
+    tidy: Vec<usize>,
+    /// Doors and windows (page, index) whose wall moves in the same batch, so they move with it.
+    carried: Vec<(usize, usize)>,
+    /// Walls copied: (page, the original's `/NM`, the copy's index).
+    copied_walls: Vec<(usize, String, usize)>,
+    /// Doors and windows copied: (page, the copy's index, how far it moved).
+    copied_openings: Vec<(usize, usize, [f64; 2])>,
 }
 
 impl EditCtx {
@@ -2920,6 +3016,7 @@ impl EditCtx {
             layer: None,
             renamed_fields: Vec::new(),
             redaction_overlays: Vec::new(),
+            walls: WallsAfter::default(),
         }
     }
 
@@ -2991,6 +3088,59 @@ pub enum LayerPlace {
     Into((u32, u16)),
     Before((u32, u16)),
     After((u32, u16)),
+}
+
+/// The doors and windows a batch moves or turns along with their wall: moving them too would move
+/// them twice.
+fn carried_openings(doc: &pdfcraft_cos::Document, edits: &[Edit]) -> Vec<(usize, usize)> {
+    let moved: Vec<(usize, usize)> = edits
+        .iter()
+        .filter_map(|e| match e {
+            Edit::MoveAnnotation { page, index, .. } | Edit::TransformAnnotation { page, index, copy: false, .. } => Some((*page, *index)),
+            _ => None,
+        })
+        .collect();
+    let mut pages: Vec<usize> = moved.iter().map(|m| m.0).collect();
+    pages.sort_unstable();
+    pages.dedup();
+    let mut out = Vec::new();
+    for page in pages {
+        let walls = pdfcraft_annot::walls::walls(doc, page);
+        let moved_walls: Vec<&str> = walls.iter().filter(|w| !w.nm.is_empty() && moved.contains(&(page, w.index))).map(|w| w.nm.as_str()).collect();
+        out.extend(
+            pdfcraft_annot::walls::openings(doc, page)
+                .into_iter()
+                .filter(|o| moved_walls.contains(&o.host.as_str()) && moved.contains(&(page, o.index)))
+                .map(|o| (page, o.index)),
+        );
+    }
+    out
+}
+
+/// Squares up smart walls after an edit: copied doors and windows go into their wall's copy (or
+/// slide along their own), and a deleted wall's doors and windows go with it.
+fn finish_walls(doc: &mut pdfcraft_cos::Document, cx: &mut EditCtx) -> Result<(), EditError> {
+    let after = std::mem::take(&mut cx.walls);
+    let meta = cx.meta();
+    for (page, index, delta) in &after.copied_openings {
+        let host = pdfcraft_annot::walls::host_of(doc, *page, *index);
+        let copy = host.as_ref().and_then(|h| after.copied_walls.iter().find(|(p, old, _)| p == page && old == h));
+        match copy.and_then(|(_, _, wall)| pdfcraft_annot::walls::wall_name(doc, *page, *wall).map(|nm| (*wall, nm))) {
+            Some((wall, nm)) => pdfcraft_annot::walls::rehost(doc, *page, *index, &nm, wall, &meta)?,
+            None => pdfcraft_annot::walls::after_move(doc, *page, *index, Some(*delta), &meta)?,
+        }
+    }
+    // A copied wall has none of its original's doors but those just put in it.
+    for (page, _, wall) in &after.copied_walls {
+        pdfcraft_annot::walls::sync(doc, *page, *wall, &meta)?;
+    }
+    let mut pages = after.tidy;
+    pages.sort_unstable();
+    pages.dedup();
+    for page in pages {
+        pdfcraft_annot::walls::delete_orphans(doc, page)?;
+    }
+    Ok(())
 }
 
 fn run_edit(doc: &mut pdfcraft_cos::Document, edit: &Edit, cx: &mut EditCtx) -> Result<(), EditError> {
@@ -3069,6 +3219,21 @@ fn run_edit(doc: &mut pdfcraft_cos::Document, edit: &Edit, cx: &mut EditCtx) -> 
             let index = pdfcraft_annot::legend::add_legend(doc, *page, *top_left, *whole_document, title, author, &cx.meta())?;
             cx.place_on_layer(doc, *page, index)?;
         }
+        Edit::AddWall { page, quad, ja, jb, style, author } => {
+            let data = pdfcraft_annot::walls::WallData { ja: *ja, jb: *jb, ..Default::default() };
+            let index = pdfcraft_annot::walls::add_wall(doc, *page, *quad, &data, style, author, &cx.meta())?;
+            pdfcraft_annot::geometry::mark_drafting(doc, *page, index)?;
+            cx.place_on_layer(doc, *page, index)?;
+        }
+        Edit::SetWall { page, index, quad, ja, jb, gap } => {
+            pdfcraft_annot::walls::set_wall(doc, *page, *index, *quad, *ja, *jb, *gap, &cx.meta())?;
+        }
+        Edit::AddOpening { page, wall, spec, color, author } => {
+            let index = pdfcraft_annot::walls::add_opening(doc, *page, *wall, spec, *color, author, &cx.meta())?;
+            pdfcraft_annot::geometry::mark_drafting(doc, *page, index)?;
+            cx.place_on_layer(doc, *page, index)?;
+        }
+        Edit::FlipOpening { page, index, hinge } => pdfcraft_annot::walls::flip(doc, *page, *index, *hinge, &cx.meta())?,
         Edit::AddCableRun { new, extra_inches, fields } => {
             let index = measure::add(doc, new, &cx.meta())?;
             measure::set_cable(doc, new.page, index, *extra_inches)?;
@@ -3174,7 +3339,16 @@ fn run_edit(doc: &mut pdfcraft_cos::Document, edit: &Edit, cx: &mut EditCtx) -> 
             pdfcraft_annot::orient_image_stamp(doc, *page, index, rotation)?;
             cx.place_on_layer(doc, *page, index)?;
         }
-        Edit::DeleteAnnotation { page, index } => pdfcraft_annot::delete_annotation(doc, *page, *index)?,
+        Edit::DeleteAnnotation { page, index } => {
+            // A door or window closes its wall up; a wall's own go with it once the edit is done
+            // (deleting them now would move the markups later deletes in a batch name).
+            if pdfcraft_annot::walls::wall_name(doc, *page, *index).is_some() {
+                cx.walls.tidy.push(*page);
+            }
+            if !pdfcraft_annot::walls::delete_opening(doc, *page, *index, &cx.meta())? {
+                pdfcraft_annot::delete_annotation(doc, *page, *index)?;
+            }
+        }
         Edit::SetAnnotationContents { page, index, text } => pdfcraft_annot::set_contents(doc, *page, *index, text, &cx.meta())?,
         Edit::ReplyToAnnotation { page, index, text, author } => {
             pdfcraft_annot::add_reply(doc, *page, *index, text, author, &cx.meta())?;
@@ -3195,12 +3369,26 @@ fn run_edit(doc: &mut pdfcraft_cos::Document, edit: &Edit, cx: &mut EditCtx) -> 
             pdfcraft_annot::set_marked(doc, *page, *index, *marked, author, &cx.meta())?;
         }
         Edit::LockAnnotation { page, index, locked } => pdfcraft_annot::set_locked(doc, *page, *index, *locked)?,
-        Edit::MoveAnnotation { page, index, dx, dy } => pdfcraft_annot::move_annotation(doc, *page, *index, *dx, *dy, &cx.meta())?,
+        Edit::MoveAnnotation { page, index, dx, dy } => {
+            // A door or window whose wall moves in the same batch goes with the wall.
+            if !cx.walls.carried.contains(&(*page, *index)) {
+                pdfcraft_annot::move_annotation(doc, *page, *index, *dx, *dy, &cx.meta())?;
+                pdfcraft_annot::walls::after_move(doc, *page, *index, Some([*dx, *dy]), &cx.meta())?;
+            }
+        }
         Edit::ReshapeAnnotation { page, index, points } => pdfcraft_annot::set_points(doc, *page, *index, points, &cx.meta())?,
         Edit::ResizeAnnotation { page, index, rect } => pdfcraft_annot::set_rect(doc, *page, *index, *rect, &cx.meta())?,
         Edit::SetVertices { page, index, vertices, copy } => {
             let changed = pdfcraft_annot::geometry::set_vertices(doc, *page, *index, vertices, *copy, &cx.meta())?;
             measure::refresh(doc, *page, changed)?;
+            if *copy {
+                // An offset copy of a door is only its drawing; of a wall, a wall with no doors yet.
+                pdfcraft_annot::walls::detach(doc, *page, changed)?;
+                pdfcraft_annot::walls::sync(doc, *page, changed, &cx.meta())?;
+            } else {
+                // A wall's doors follow its new outline; a door's points snap back to its wall.
+                pdfcraft_annot::walls::after_move(doc, *page, changed, None, &cx.meta())?;
+            }
         }
         Edit::AddPhotoCallout { page, point, center, data, text, side, photo_height, author } => {
             let jpeg = photos::prepare(data).map_err(EditError::Invalid)?;
@@ -3261,8 +3449,27 @@ fn run_edit(doc: &mut pdfcraft_cos::Document, edit: &Edit, cx: &mut EditCtx) -> 
             pdfcraft_annot::symbols::edit_symbol(doc, *page, *index, label.as_deref(), *rotation, &cx.meta())?;
         }
         Edit::TransformAnnotation { page, index, matrix, copy } => {
+            if !*copy && cx.walls.carried.contains(&(*page, *index)) {
+                return Ok(());
+            }
+            let before = pdfcraft_annot::walls::opening_centre(doc, *page, *index);
+            let old_wall = pdfcraft_annot::walls::wall_name(doc, *page, *index);
             let changed = pdfcraft_annot::geometry::transform(doc, *page, *index, matrix, *copy, &cx.meta())?;
             measure::refresh(doc, *page, changed)?;
+            // How far a door or window's middle moved: what it slides along its wall.
+            let delta = before.map(|[x, y]| [matrix[0] * x + matrix[2] * y + matrix[4] - x, matrix[1] * x + matrix[3] * y + matrix[5] - y]);
+            if *copy {
+                // Copies are matched up once the edit is done: a copied door goes into the copy
+                // of its wall when that was copied too, else slides along its own.
+                if let Some(old) = old_wall {
+                    cx.walls.copied_walls.push((*page, old, changed));
+                }
+                if let Some(d) = delta {
+                    cx.walls.copied_openings.push((*page, changed, d));
+                }
+            } else {
+                pdfcraft_annot::walls::after_move(doc, *page, changed, delta, &cx.meta())?;
+            }
         }
         Edit::StyleAnnotation { page, index, color, opacity, width, endings } => {
             pdfcraft_annot::set_style(doc, *page, *index, *color, *opacity, *width, endings.as_deref(), &cx.meta())?;
@@ -3584,6 +3791,8 @@ fn run_edit(doc: &mut pdfcraft_cos::Document, edit: &Edit, cx: &mut EditCtx) -> 
             doc.remove_encryption();
         }
         Edit::Batch { edits, .. } => {
+            let carried = carried_openings(doc, edits);
+            cx.walls.carried.extend(carried);
             for e in edits {
                 run_edit(doc, e, cx)?;
             }
@@ -4626,8 +4835,12 @@ impl Session {
         cx.renamed_fields.clear();
         cx.redaction_overlays.clear();
         // `next` is a copy: if the edit fails or crashes, the document is unchanged.
-        guard(|| run_edit(&mut next, &edit, &mut cx))
-            .unwrap_or_else(|m| Err(EditError::Invalid(format!("{} failed unexpectedly ({m}); the document was not changed", edit.label()))))?;
+        cx.walls = WallsAfter::default();
+        guard(|| {
+            run_edit(&mut next, &edit, &mut cx)?;
+            finish_walls(&mut next, &mut cx)
+        })
+        .unwrap_or_else(|m| Err(EditError::Invalid(format!("{} failed unexpectedly ({m}); the document was not changed", edit.label()))))?;
         // RevuCraft: legends follow the symbols. A legend that can't be redrawn keeps its old
         // picture rather than failing the change.
         if matches!(scope_of(&edit), Scope::Comments | Scope::Full) {

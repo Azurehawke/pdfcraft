@@ -5,7 +5,7 @@
 //! one undoable edit.
 
 use pdfcraft_engine::geometry::{Geometry, Kind};
-use pdfcraft_engine::{Edit, LineEnding, Shape};
+use pdfcraft_engine::{Edit, LineEnding, Shape, walls};
 
 use crate::draft_edit::{Pt, arc_points, piece, running_lengths};
 
@@ -129,6 +129,27 @@ fn quad_wall(g: &Geometry) -> Option<Wall> {
     // The thickness is the distance between the two faces, across the wall.
     let thickness = cross(along, sub(q[3], q[0])).abs().max(cross(along, sub(q[2], q[1])).abs());
     (thickness.is_finite() && thickness > 0.01).then_some(Wall { index: g.index, locked: g.locked, a, b, thickness, body: Body::Quad(q) })
+}
+
+/// A smart wall (`walls`) as a wall to place in: its own faces 0–1 and 3–2, as it was drawn.
+pub fn smart(w: &walls::Wall) -> Option<Wall> {
+    let q = w.quad;
+    let ax = walls::axis(&q)?;
+    Some(Wall { index: w.index, locked: w.locked, a: ax.a, b: ax.at(1.0, 0.0), thickness: ax.thickness(), body: Body::Quad(q) })
+}
+
+/// The door or window going into the smart wall `w` at `at`: where along it, and the side it opens
+/// to, as the wall keeps them.
+pub fn smart_spec(w: &walls::Wall, at: &Placement, kind: Opening, flip: bool, mark: String) -> Option<walls::OpeningSpec> {
+    let ax = walls::axis(&w.quad)?;
+    let toward0 = if ax.h0 >= ax.h1 { ax.left } else { mul(ax.left, -1.0) };
+    let side = if at.normal[0] * toward0[0] + at.normal[1] * toward0[1] >= 0.0 { 1.0 } else { -1.0 };
+    let (t0, t1) = (ax.t_of(at.from), ax.t_of(at.to));
+    let kind = match kind {
+        Opening::Door => walls::OpeningKind::Door,
+        Opening::Window => walls::OpeningKind::Window,
+    };
+    (t0.is_finite() && t1.is_finite()).then(|| walls::OpeningSpec { kind, t0: t0.min(t1), t1: t0.max(t1), side, flip, mark })
 }
 
 /// The wall under `p` (within `tolerance` of its edge), nearest first.
@@ -321,5 +342,22 @@ mod tests {
         assert_eq!(edits.len(), 4, "the cut wall, its copy, the frame and the glass");
         // Nothing there: no wall.
         assert!(wall_at(&[], [0.0, 0.0], 5.0).is_none());
+    }
+
+    #[test]
+    fn a_door_in_a_smart_wall_is_kept_along_it() {
+        let w = walls::Wall {
+            index: 2,
+            nm: "w1".into(),
+            quad: [[0.0, 3.0], [100.0, 3.0], [100.0, -3.0], [0.0, -3.0]],
+            data: walls::WallData::default(),
+            locked: false,
+        };
+        let wall = smart(&w).unwrap();
+        assert_eq!((wall.a, wall.b, wall.thickness), ([0.0, 0.0], [100.0, 0.0], 6.0));
+        let at = place(&wall, [50.0, -2.0], 20.0).unwrap();
+        let spec = smart_spec(&w, &at, Opening::Door, true, "D3".into()).unwrap();
+        assert_eq!((spec.t0, spec.t1, spec.side, spec.flip), (0.4, 0.6, -1.0, true), "below the wall: toward face 1");
+        assert_eq!(spec.kind, walls::OpeningKind::Door);
     }
 }

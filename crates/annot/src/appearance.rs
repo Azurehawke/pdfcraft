@@ -333,6 +333,29 @@ pub fn build(d: &Dict) -> Option<Stream> {
         res.set(b"ExtGState".to_vec(), Object::Dict(gs));
         c.push_str("/GS0 gs\n");
     }
+    // RevuCraft's smart walls and their doors and windows (`crate::walls`).
+    if subtype == b"Polygon"
+        && let Some(wall) = crate::walls::wall_content(d, stroke, interior_color(d, None), w)
+    {
+        c.push_str(&wall);
+        return Some(form(rect, c.as_bytes(), res));
+    }
+    if subtype == b"PolyLine"
+        && let Some((opening, label)) = crate::walls::opening_content(d, stroke)
+    {
+        c.push_str(&opening);
+        if label {
+            let mut font = Dict::new();
+            font.set(b"Type".to_vec(), Object::name("Font"));
+            font.set(b"Subtype".to_vec(), Object::name("Type1"));
+            font.set(b"BaseFont".to_vec(), Object::name("Helvetica"));
+            font.set(b"Encoding".to_vec(), Object::name("WinAnsiEncoding"));
+            let mut fonts = Dict::new();
+            fonts.set(b"Helv".to_vec(), Object::Dict(font));
+            res.set(b"Font".to_vec(), Object::Dict(fonts));
+        }
+        return Some(form(rect, c.as_bytes(), res));
+    }
     match subtype.as_slice() {
         b"Text" => {
             let col = stroke.unwrap_or([1.0, 0.82, 0.0]);

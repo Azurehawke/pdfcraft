@@ -1056,7 +1056,10 @@ pub(crate) fn modify_input(
             let kind = if tool == DraftTool::Door { Opening::Door } else { Opening::Window };
             let inches = if kind == Opening::Door { settings.door_inches } else { settings.window_inches };
             let width = inches.clamp(1.0, 600.0) * crate::draft::units_per_inch(doc, page, raw);
-            let Some(wall) = openings::wall_at(&all, raw, tolerance) else {
+            // Doors and windows already in smart walls aren't walls to put one in.
+            let hosted: Vec<usize> = doc.wall_openings(page).iter().map(|o| o.index).collect();
+            let candidates: Vec<Geometry> = all.iter().filter(|g| !hosted.contains(&g.index)).cloned().collect();
+            let Some(wall) = openings::wall_at(&candidates, raw, tolerance) else {
                 chip(painter, hint_at, tl!("Click a wall"));
                 return;
             };
@@ -1083,7 +1086,23 @@ pub(crate) fn modify_input(
             }
             if clicked {
                 let color = crate::draft::layer_color(doc);
-                view.pending_edit = Some(openings::edit(page, &wall, &at, kind, settings.door_flip, color, &settings.author));
+                // A smart wall keeps its doors and windows; any other wall is cut.
+                let smart = doc.smart_walls(page).into_iter().find(|w| w.index == wall.index && !w.nm.is_empty());
+                view.pending_edit = Some(match smart {
+                    Some(w) => {
+                        let mark = doc.next_opening_mark(if kind == Opening::Door {
+                            pdfcraft_engine::walls::OpeningKind::Door
+                        } else {
+                            pdfcraft_engine::walls::OpeningKind::Window
+                        });
+                        let at = openings::smart(&w).and_then(|sw| openings::place(&sw, raw, width)).unwrap_or(at);
+                        match openings::smart_spec(&w, &at, kind, settings.door_flip, mark) {
+                            Some(spec) => Edit::AddOpening { page, wall: w.index, spec, color, author: settings.author.clone() },
+                            None => openings::edit(page, &wall, &at, kind, settings.door_flip, color, &settings.author),
+                        }
+                    }
+                    None => openings::edit(page, &wall, &at, kind, settings.door_flip, color, &settings.author),
+                });
             }
         }
         _ => {}

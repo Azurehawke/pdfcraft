@@ -4570,6 +4570,19 @@ fn document_area_pages(app: &mut PdfCraftApp, index: usize, ui: &mut egui::Ui) {
                     ui.separator();
                 }
             }
+            // RevuCraft: a door in a smart wall turns round on its hinge or swings the other way.
+            if let Some((page, index)) = view.comments.selected
+                && allowed
+                && doc.wall_openings(page).iter().any(|o| o.index == index && o.spec.kind == pdfcraft_engine::walls::OpeningKind::Door)
+            {
+                for (label, hinge) in [(tl!("Flip hinge"), true), (tl!("Flip swing"), false)] {
+                    if ui.button(label).clicked() {
+                        copy_image = Some(comments::CanvasAction::Edit(Box::new(Edit::FlipOpening { page, index, hinge })));
+                        ui.close();
+                    }
+                }
+                ui.separator();
+            }
             canvas_action = comments::context_menu(ui, view, info, prefs, allowed).or(copy_image);
         });
         (wanted, visible_now)

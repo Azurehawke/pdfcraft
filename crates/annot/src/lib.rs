@@ -28,6 +28,7 @@ pub mod photo_callout;
 pub mod stroke_align;
 pub mod svg_art;
 pub mod symbols;
+pub mod walls;
 
 #[cfg(test)]
 mod tests;

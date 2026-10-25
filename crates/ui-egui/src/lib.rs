@@ -123,6 +123,7 @@ mod markups_list;
 pub mod motion;
 mod new_dialog;
 mod openings;
+mod wall_joins;
 mod page_selection_ui;
 mod pageboxes;
 mod palette;

@@ -310,14 +310,16 @@ Markup and measuring
     each group's count and totals, and the totals of everything shown.
   - Cable runs: a system (network, link, circuit) and cable type for new runs, kept in your System
     and Cable type columns (added when first used); cable totals by layer, system or cable type.
-- [ ] **(Steve, next build)** Smart walls lite, after BIMCraft's walls: walls stay PDF markup (other viewers
-      see the drawing) but know about each other.
-  - [ ] Joins: separate walls meeting in an L or a T clean up their corner, as one chain's corners do.
-  - [ ] Doors and windows hosted by their wall: they move, stretch and are deleted with it, and re-cut
-        their opening when moved along it.
-  - [ ] Joined walls follow: dragging one wall's end stretches the walls joined to it.
-  - [ ] Flip a placed door's hinge side or swing (Properties box and context menu).
-  - [ ] Door and window marks (D1, W1…) as tags, counted in the Markups list.
+- [x] **(Steve)** Smart walls lite, after BIMCraft's walls: walls stay PDF markup (other viewers
+      see the drawing) but know about each other (`pdfcraft_annot::walls`, `/PCWall`, `/PCOpening`).
+  - [x] Joins: a run's corners, and a free end that stops on a smart wall: at its end an L (both
+        mitred, no line across), along it a T (the new wall stops at the face, which opens for it).
+  - [x] Doors and windows hosted by their wall: one markup each, they move, stretch, copy and are
+        deleted with it; moved on their own they slide along it, and the wall re-opens.
+  - [ ] Joined walls follow: dragging one wall's end stretches the walls joined to it (next).
+  - [x] Flip a placed door's hinge side or swing (Properties box and context menu).
+  - [x] Door and window marks (D1, W1…) numbered through the document, drawn by the opening and
+        listed (as Door/Window, drafted or not) in the Markups list.
 - [ ] **(Steve, back burner)** Object styles, as Illustrator's graphic styles: save a markup's look (stroke,
       width, dash, line ends, alignment, fill, opacity, font) under a name ("Existing walls", "Demo")
       in a Styles box; apply one to the selection or make it the current tool style. A text style

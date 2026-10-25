@@ -42,6 +42,9 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
     let measurement_name = doc.measurement_name(page, ai);
     let stroke_align = doc.stroke_align(page, ai);
     let columns = app.markup_columns.clone();
+    // A door or window in a smart wall, and whether this is a smart wall.
+    let opening = doc.wall_openings(page).into_iter().find(|o| o.index == ai);
+    let smart_wall = doc.smart_walls(page).iter().any(|w| w.index == ai);
     let (new_side, new_height) = (app.symbols.callout_side, crate::revu::callout_height(&app.symbols));
     // The direction of the line or wall nearest the symbol, for lining it up.
     let wall_angle = annotation.as_ref().filter(|a| a.symbol.is_some()).and_then(|a| {
@@ -61,6 +64,8 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
     let kind = annotation
         .as_ref()
         .and_then(|a| a.symbol.as_deref().map(pdfcraft_engine::symbols::display_name))
+        .or_else(|| opening.as_ref().map(|o| crate::markups_list::opening_label(&o.spec)))
+        .or_else(|| smart_wall.then(|| tl!("Wall").to_string()))
         .unwrap_or_else(|| tl!(crate::comments_panel::subtype_label(&d.edited.subtype)).to_string());
     ui.label(egui::RichText::new(kind).font(theme::semibold(14.0)));
     if !others.is_empty() {
@@ -256,6 +261,25 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
                         }
                         ui.end_row();
                     }
+                }
+                // A door turns round on its hinge or swings the other way.
+                if let Some(o) = opening.as_ref().filter(|o| o.spec.kind == pdfcraft_engine::walls::OpeningKind::Door) {
+                    ui.label(tl!("Door"));
+                    ui.horizontal(|ui| {
+                        if widgets::pill_button(ui, tl!("Flip hinge"), false)
+                            .on_hover_text(tl!("Hinge the door at the other end of the opening"))
+                            .clicked()
+                        {
+                            extra.push(Edit::FlipOpening { page, index: o.index, hinge: true });
+                        }
+                        if widgets::pill_button(ui, tl!("Flip swing"), false)
+                            .on_hover_text(tl!("Swing the door to the other side of the wall"))
+                            .clicked()
+                        {
+                            extra.push(Edit::FlipOpening { page, index: o.index, hinge: false });
+                        }
+                    });
+                    ui.end_row();
                 }
                 // Your own columns.
                 // Calculated columns have nothing to fill in.

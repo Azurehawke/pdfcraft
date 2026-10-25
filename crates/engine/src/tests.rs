@@ -6561,6 +6561,96 @@ fn cable_runs_add_their_allowance_and_fields_stay_with_the_markup() {
     assert!(session.apply(id, Edit::AddCableRun { new, extra_inches: f64::NAN, fields: Vec::new() }).is_err());
 }
 
+#[test]
+fn smart_walls_keep_their_doors_through_moves_copies_and_deletes() {
+    use pdfcraft_annot::walls::{OpeningKind, OpeningSpec};
+    let mut session = Session::default();
+    let id = session.open("plan.pdf", None, Arc::new(fixture(1)), None).unwrap();
+    let style = Style { color: [0.0; 3], opacity: 1.0, width: 0.75, fill: Some([0.78; 3]) };
+    // 200 long along x, 6 thick, centred on y = 200.
+    let quad = [[100.0, 203.0], [300.0, 203.0], [300.0, 197.0], [100.0, 197.0]];
+    session.apply(id, Edit::AddWall { page: 0, quad, ja: false, jb: false, style, author: "Steve".into() }).unwrap();
+    let wall = session.get(id).unwrap().smart_walls(0)[0].index;
+    let mark = session.get(id).unwrap().next_opening_mark(OpeningKind::Door);
+    assert_eq!(mark, "D1");
+    let spec = OpeningSpec { kind: OpeningKind::Door, t0: 0.4, t1: 0.55, side: 1.0, flip: false, mark };
+    session.apply(id, Edit::AddOpening { page: 0, wall, spec, color: [0.0; 3], author: "Steve".into() }).unwrap();
+    let door = session.get(id).unwrap().wall_openings(0)[0].index;
+    let hinge = |s: &Session| {
+        let g = s.get(id).unwrap().markup_geometry(0);
+        g.iter().find(|g| g.index == door).map(|g| g.points[0]).unwrap()
+    };
+    let near = |a: [f64; 2], b: [f64; 2]| (a[0] - b[0]).hypot(a[1] - b[1]) < 1e-6;
+    {
+        let doc = session.get(id).unwrap();
+        assert_eq!(doc.smart_walls(0)[0].data.open, vec![(0.4, 0.55)], "the wall opens for its door");
+        assert_eq!(doc.next_opening_mark(OpeningKind::Door), "D2");
+        assert_eq!(doc.next_opening_mark(OpeningKind::Window), "W1");
+    }
+    // On the wall's face 0 (y = 203), hinged at 40% along.
+    assert!(near(hinge(&session), [180.0, 203.0]), "{:?}", hinge(&session));
+    // The wall moves: its door goes with it.
+    session.apply(id, Edit::MoveAnnotation { page: 0, index: wall, dx: 0.0, dy: 50.0 }).unwrap();
+    assert!(near(hinge(&session), [180.0, 253.0]), "{:?}", hinge(&session));
+    // The door moves: it slides along the wall, and stays in it.
+    session.apply(id, Edit::MoveAnnotation { page: 0, index: door, dx: 20.0, dy: 7.0 }).unwrap();
+    assert!(near(hinge(&session), [200.0, 253.0]), "{:?}", hinge(&session));
+    let open = session.get(id).unwrap().smart_walls(0)[0].data.open.clone();
+    assert!((open[0].0 - 0.5).abs() < 1e-9 && (open[0].1 - 0.65).abs() < 1e-9, "{open:?}");
+    // Flipped, it hinges at its other end.
+    session.apply(id, Edit::FlipOpening { page: 0, index: door, hinge: true }).unwrap();
+    assert!(near(hinge(&session), [230.0, 253.0]), "{:?}", hinge(&session));
+    // Both moved together: the door moves once, with its wall.
+    let both = |dx: f64| Edit::Batch {
+        label: "Move".into(),
+        edits: vec![Edit::MoveAnnotation { page: 0, index: wall, dx, dy: 0.0 }, Edit::MoveAnnotation { page: 0, index: door, dx, dy: 0.0 }],
+    };
+    session.apply(id, both(10.0)).unwrap();
+    assert!(near(hinge(&session), [240.0, 253.0]), "moved once: {:?}", hinge(&session));
+    // Copied together: the copy of the door is in the copy of the wall.
+    let down = [1.0, 0.0, 0.0, 1.0, 0.0, -100.0];
+    session
+        .apply(
+            id,
+            Edit::Batch {
+                label: "Copy".into(),
+                edits: vec![
+                    Edit::TransformAnnotation { page: 0, index: wall, matrix: down, copy: true },
+                    Edit::TransformAnnotation { page: 0, index: door, matrix: down, copy: true },
+                ],
+            },
+        )
+        .unwrap();
+    {
+        let doc = session.get(id).unwrap();
+        let (walls, openings) = (doc.smart_walls(0), doc.wall_openings(0));
+        assert_eq!((walls.len(), openings.len()), (2, 2));
+        assert_ne!(walls[0].nm, walls[1].nm);
+        for w in &walls {
+            let mine: Vec<_> = openings.iter().filter(|o| o.host == w.nm).collect();
+            assert_eq!(mine.len(), 1, "one door in each wall");
+            assert_eq!(w.data.open.len(), 1);
+        }
+    }
+    // The first wall deleted: its door goes too; the copy keeps its own.
+    session.apply(id, Edit::DeleteAnnotation { page: 0, index: wall }).unwrap();
+    {
+        let doc = session.get(id).unwrap();
+        assert_eq!((doc.smart_walls(0).len(), doc.wall_openings(0).len()), (1, 1));
+    }
+    // The door deleted: its wall closes up.
+    let last = session.get(id).unwrap().wall_openings(0)[0].index;
+    session.apply(id, Edit::DeleteAnnotation { page: 0, index: last }).unwrap();
+    let doc = session.get(id).unwrap();
+    assert!(doc.smart_walls(0)[0].data.open.is_empty());
+    // A wall with no length, or a door in something that isn't a smart wall, is refused.
+    let flat = [[0.0, 0.0], [0.0, 0.0], [0.0, 0.0], [0.0, 0.0]];
+    let style = Style::default();
+    assert!(session.apply(id, Edit::AddWall { page: 0, quad: flat, ja: false, jb: false, style, author: String::new() }).is_err());
+    let spec = OpeningSpec { kind: OpeningKind::Window, t0: 0.1, t1: 0.2, side: 1.0, flip: false, mark: "W1".into() };
+    assert!(session.apply(id, Edit::AddOpening { page: 0, wall: 99, spec, color: [0.0; 3], author: String::new() }).is_err());
+}
+
 /// AES-256 passwords as typed, each with its SASLprep form, which ISO 32000-2 keys the file on:
 /// a decomposed é (NFKC composes it), a no-break space (mapped to a space) and fullwidth letters
 /// (what a Japanese IME types in full-width mode; NFKC narrows them). Precomposed "café" is the
