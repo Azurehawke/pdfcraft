@@ -159,8 +159,9 @@ pub fn ribbon_group(app: &mut PdfCraftApp, ui: &mut egui::Ui, t: &Tokens) {
                 ui.data_mut(|m| m.remove::<String>(id));
             }
             // The system and cable type new runs get (kept in your System and Cable type columns).
+            // Sized outright: the ribbon group lays out at its content's width.
             let sys = ui
-                .add(egui::TextEdit::singleline(&mut app.draft.cable_system).desired_width(70.0).char_limit(40).hint_text(tl!("System")))
+                .add_sized([78.0, 22.0], egui::TextEdit::singleline(&mut app.draft.cable_system).char_limit(40).hint_text(tl!("System")))
                 .on_hover_text(tl!("The system new runs belong to: a network, a link or a circuit (Data, Voice, Cameras)"));
             if sys.lost_focus() && !app.draft.cable_system.trim().is_empty() {
                 ensure_column(&mut app.markup_columns, "System", &[]);
