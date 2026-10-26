@@ -6701,7 +6701,7 @@ fn markdown_notes_keep_their_file_and_a_copy_of_the_text() {
     assert_eq!(notes[0].1, "plan/notes/Note 1.md");
     let a = doc.info.annotations.iter().find(|a| a.index == notes[0].0).unwrap();
     assert_eq!(a.subtype, "Text");
-    assert_eq!(a.contents.as_deref(), Some(text), "the PDF keeps the note's text");
+    assert_eq!(a.contents.as_deref().map(str::trim_end), Some(text.trim_end()), "the PDF keeps the note's text");
     assert!(!local_stamp().is_empty());
 }
 

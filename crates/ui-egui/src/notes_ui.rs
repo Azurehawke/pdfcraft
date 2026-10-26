@@ -162,7 +162,8 @@ impl PdfCraftApp {
                 return false;
             }
         }
-        if ed.text == ed.saved {
+        // The PDF's copy is kept without the file's trailing newline.
+        if ed.text.trim_end() == ed.saved.trim_end() {
             return true;
         }
         let (doc, page, index, text) = (ed.doc, ed.page, ed.index, ed.text.clone());

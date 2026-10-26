@@ -183,42 +183,41 @@ pub fn spans(text: &str) -> Vec<Span> {
     while i < chars.len() {
         let Some(&c) = chars.get(i) else { break };
         // Code: nothing inside it is read.
-        if c == '`' {
-            if let Some(end) = (i + 1..chars.len()).find(|&k| chars.get(k) == Some(&'`')) {
-                flush(&mut out, &cur, &mut buf);
-                let inner: String = chars.get(i + 1..end).map(|s| s.iter().collect()).unwrap_or_default();
-                out.push(Span { text: inner, code: true, ..cur.clone() });
-                i = end + 1;
-                continue;
-            }
+        if c == '`'
+            && let Some(end) = (i + 1..chars.len()).find(|&k| chars.get(k) == Some(&'`'))
+        {
+            flush(&mut out, &cur, &mut buf);
+            let inner: String = chars.get(i + 1..end).map(|s| s.iter().collect()).unwrap_or_default();
+            out.push(Span { text: inner, code: true, ..cur.clone() });
+            i = end + 1;
+            continue;
         }
         // [[target]] or [[target|shown]].
-        if at(i, "[[") {
-            if let Some(end) = (i + 2..chars.len().saturating_sub(1)).find(|&k| at(k, "]]")) {
-                flush(&mut out, &cur, &mut buf);
-                let inner: String = chars.get(i + 2..end).map(|s| s.iter().collect()).unwrap_or_default();
-                let (target, shown) = match inner.split_once('|') {
-                    Some((t, s)) => (t.trim().to_string(), s.trim().to_string()),
-                    None => (inner.trim().to_string(), inner.trim().to_string()),
-                };
-                out.push(Span { text: shown, link: Some(Link::Markup(target)), ..cur.clone() });
-                i = end + 2;
-                continue;
-            }
+        if at(i, "[[")
+            && let Some(end) = (i + 2..chars.len().saturating_sub(1)).find(|&k| at(k, "]]"))
+        {
+            flush(&mut out, &cur, &mut buf);
+            let inner: String = chars.get(i + 2..end).map(|s| s.iter().collect()).unwrap_or_default();
+            let (target, shown) = match inner.split_once('|') {
+                Some((t, s)) => (t.trim().to_string(), s.trim().to_string()),
+                None => (inner.trim().to_string(), inner.trim().to_string()),
+            };
+            out.push(Span { text: shown, link: Some(Link::Markup(target)), ..cur.clone() });
+            i = end + 2;
+            continue;
         }
         // [shown](url).
-        if c == '[' {
-            if let Some(close) = (i + 1..chars.len()).find(|&k| chars.get(k) == Some(&']'))
-                && chars.get(close + 1) == Some(&'(')
-                && let Some(end) = (close + 2..chars.len()).find(|&k| chars.get(k) == Some(&')'))
-            {
-                flush(&mut out, &cur, &mut buf);
-                let shown: String = chars.get(i + 1..close).map(|s| s.iter().collect()).unwrap_or_default();
-                let url: String = chars.get(close + 2..end).map(|s| s.iter().collect()).unwrap_or_default();
-                out.push(Span { text: shown, link: Some(Link::Web(url.trim().to_string())), ..cur.clone() });
-                i = end + 1;
-                continue;
-            }
+        if c == '['
+            && let Some(close) = (i + 1..chars.len()).find(|&k| chars.get(k) == Some(&']'))
+            && chars.get(close + 1) == Some(&'(')
+            && let Some(end) = (close + 2..chars.len()).find(|&k| chars.get(k) == Some(&')'))
+        {
+            flush(&mut out, &cur, &mut buf);
+            let shown: String = chars.get(i + 1..close).map(|s| s.iter().collect()).unwrap_or_default();
+            let url: String = chars.get(close + 2..end).map(|s| s.iter().collect()).unwrap_or_default();
+            out.push(Span { text: shown, link: Some(Link::Web(url.trim().to_string())), ..cur.clone() });
+            i = end + 1;
+            continue;
         }
         // #tag, at the start of a word.
         if c == '#' && (i == 0 || chars.get(i - 1).is_some_and(|p| p.is_whitespace() || *p == '(')) && chars.get(i + 1).is_some_and(|n| tag_char(*n))
@@ -370,12 +369,11 @@ pub fn marks_around(text: &str, start: usize, end: usize) -> Vec<&'static str> {
     let c = chars_of(text);
     let (mut s, mut e) = ordered(c.len(), start, end);
     let mut out = Vec::new();
-    loop {
-        let Some(m) = MARKERS.iter().find(|m| is_wrapped(&c, s, e, m)) else { break };
+    while let Some(m) = MARKERS.iter().find(|m| is_wrapped(&c, s, e, m)) {
         let n = m.chars().count();
         out.insert(0, *m);
-        s -= n;
-        e += n;
+        s = s.saturating_sub(n);
+        e = e.saturating_add(n);
         if out.len() > 8 {
             break;
         }
@@ -462,11 +460,13 @@ pub fn toggle_list(text: &str, start: usize, end: usize, kind: ListKind) -> Edit
     let (s, e) = ordered(c.len(), start, end);
     let (a, b) = line_span(&c, s, e);
     let block: String = c.get(a..b).map(|x| x.iter().collect()).unwrap_or_default();
-    let is = |line: &str| match (item(line), kind) {
-        (Some((_, ItemKind::Bullet, _)), ListKind::Bullet) => true,
-        (Some((_, ItemKind::Number(_), _)), ListKind::Number) => true,
-        (Some((_, ItemKind::Task(_), _)), ListKind::Task) => true,
-        _ => false,
+    let is = |line: &str| {
+        matches!(
+            (item(line), kind),
+            (Some((_, ItemKind::Bullet, _)), ListKind::Bullet)
+                | (Some((_, ItemKind::Number(_), _)), ListKind::Number)
+                | (Some((_, ItemKind::Task(_), _)), ListKind::Task)
+        )
     };
     let all = block.split('\n').all(is);
     let mut n = 0;
