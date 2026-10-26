@@ -3516,3 +3516,9 @@ theme	Appearance	Aparência
 	This note is empty. Press Edit to write it.	Esta nota está vazia. Toque em Editar para escrevê-la.
 	Web link	Link da web
 	{done} of {all} done	{done} de {all} feitos
+	Reload from disk	Recarregar do disco
+	Reload “{name}” from its file? The changes you haven't saved are dropped.	Recarregar “{name}” do arquivo? As alterações não salvas serão perdidas.
+	This drawing has no file yet: save it first.	Este desenho ainda não tem arquivo: salve-o primeiro.
+	Getting the latest {name}…	Obtendo a versão mais recente de {name}…
+	Reloaded {name}.	{name} recarregado.
+	List the pinned folders again now	Listar novamente as pastas fixadas agora

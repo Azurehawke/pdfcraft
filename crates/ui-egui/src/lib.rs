@@ -414,6 +414,8 @@ pub enum Dialog {
     Print,
     /// File ▸ Revert confirmation.
     Revert,
+    /// File ▸ Reload from disk, over unsaved changes.
+    Reload,
     /// Save over a file that changed on disk since the document came from it (#2166).
     OverwriteChanged,
     /// Link Properties.

@@ -3501,3 +3501,9 @@ certificate	Version	Version
 	This note is empty. Press Edit to write it.	Cette note est vide. Appuyez sur Modifier pour l'écrire.
 	Web link	Lien web
 	{done} of {all} done	{done} sur {all} faits
+	Reload from disk	Recharger depuis le disque
+	Reload “{name}” from its file? The changes you haven't saved are dropped.	Recharger « {name} » depuis son fichier ? Les modifications non enregistrées sont perdues.
+	This drawing has no file yet: save it first.	Ce dessin n'a pas encore de fichier : enregistrez-le d'abord.
+	Getting the latest {name}…	Récupération de la dernière version de {name}…
+	Reloaded {name}.	{name} a été rechargé.
+	List the pinned folders again now	Relister maintenant les dossiers épinglés

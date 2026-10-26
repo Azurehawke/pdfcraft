@@ -3470,3 +3470,10 @@ certificate	SHA-256 digest	Impronta SHA-256
 	This note is empty. Press Edit to write it.	Questa nota è vuota. Premi Modifica per scriverla.
 	Web link	Collegamento web
 	{done} of {all} done	{done} di {all} fatti
+	Reload from disk	Ricarica dal disco
+	Reload “{name}” from its file? The changes you haven't saved are dropped.	Ricaricare “{name}” dal suo file? Le modifiche non salvate andranno perse.
+	This drawing has no file yet: save it first.	Questo disegno non ha ancora un file: salvalo prima.
+	Getting the latest {name}…	Recupero dell'ultima versione di {name}…
+	Reloaded {name}.	{name} ricaricato.
+	Refresh	Aggiorna
+	List the pinned folders again now	Elenca di nuovo ora le cartelle fissate

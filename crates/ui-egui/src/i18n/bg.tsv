@@ -3201,3 +3201,10 @@ animation effects	Off	Изключени
 	This note is empty. Press Edit to write it.	Тази бележка е празна. Натиснете Редактиране, за да я напишете.
 	Web link	Уеб връзка
 	{done} of {all} done	{done} от {all} готови
+	Reload from disk	Презареждане от диска
+	Reload “{name}” from its file? The changes you haven't saved are dropped.	Да се презареди ли „{name}“ от файла му? Незапазените промени се губят.
+	This drawing has no file yet: save it first.	Този чертеж още няма файл: първо го запазете.
+	Getting the latest {name}…	Получаване на най-новата версия на {name}…
+	Reloaded {name}.	{name} е презареден.
+	Refresh	Опресняване
+	List the pinned folders again now	Прочитане на закачените папки отново сега

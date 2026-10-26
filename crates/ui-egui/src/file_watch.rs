@@ -428,27 +428,80 @@ impl PdfCraftApp {
     }
 
     /// The notice bar's Reload: read the file now and replace the document, unsaved changes and
-    /// all.
-    fn reload_from_disk(&mut self, doc: DocId) {
-        let Some(i) = self.views.iter().position(|v| v.id == doc) else { return };
-        let Some(path) = self.session.get(doc).and_then(|d| d.path.clone()) else { return };
+    /// all. `true` when the document was replaced.
+    fn reload_from_disk(&mut self, doc: DocId) -> bool {
+        let Some(i) = self.views.iter().position(|v| v.id == doc) else { return false };
+        let Some(path) = self.session.get(doc).and_then(|d| d.path.clone()) else { return false };
         let stamp = Stamp::at(&path);
         match std::fs::read(&path) {
             Ok(bytes) => {
                 self.watch.known_as(doc, stamp);
-                self.reload_view(i, Arc::new(bytes));
+                self.reload_view(i, Arc::new(bytes))
             }
             Err(e) => {
                 let name = self.session.get(doc).map(|d| d.name.clone()).unwrap_or_default();
                 self.notify_fmt("Couldn't read {name}: {e}", &[("name", &name), ("e", &e.to_string())]);
+                false
             }
         }
     }
 
+    /// RevuCraft's File ▸ Reload from disk: read `doc`'s file again now, even when nothing looked
+    /// changed (a sync from another device the watcher missed, or a drive that keeps dates
+    /// loosely). Unsaved changes are asked about first.
+    pub(crate) fn request_reload(&mut self, doc: DocId) {
+        let Some(i) = self.views.iter().position(|v| v.id == doc) else { return };
+        if self.session.get(doc).and_then(|d| d.path.as_deref()).is_none() {
+            self.notify_tr("This drawing has no file yet: save it first.");
+            return;
+        }
+        if self.has_unsaved_work(i) {
+            self.active = Some(i);
+            self.dialog = Some(crate::Dialog::Reload);
+            return;
+        }
+        self.reload_now(doc);
+    }
+
+    /// Reload `doc` from its file, unsaved changes and all. On Android, a document from another
+    /// app (Google Drive, Files) is a copy: it is fetched again first, and reloaded when it
+    /// arrives ([`PdfCraftApp::reload_document_at`]).
+    pub(crate) fn reload_now(&mut self, doc: DocId) {
+        let Some(path) = self.session.get(doc).and_then(|d| d.path.clone()) else { return };
+        let name = self.session.get(doc).map(|d| d.name.clone()).unwrap_or_default();
+        #[cfg(target_os = "android")]
+        if crate::android_picker::refetch(std::path::Path::new(&path)) {
+            self.notify_fmt("Getting the latest {name}…", &[("name", &name)]);
+            return;
+        }
+        let _ = path;
+        if self.reload_from_disk(doc) {
+            if let Some(view) = self.views.iter_mut().find(|v| v.id == doc) {
+                view.disk_changed = false;
+            }
+            self.notify_fmt("Reloaded {name}.", &[("name", &name)]);
+        }
+    }
+
+    /// The document open from `path` (the Android shell fetched it again): reload it now,
+    /// unsaved changes and all (they were asked about before the fetch).
+    pub fn reload_document_at(&mut self, path: &str) {
+        let doc = self.views.iter().map(|v| v.id).find(|id| self.session.get(*id).and_then(|d| d.path.as_deref()) == Some(path));
+        let Some(doc) = doc else { return };
+        let name = self.session.get(doc).map(|d| d.name.clone()).unwrap_or_default();
+        if self.reload_from_disk(doc) {
+            if let Some(view) = self.views.iter_mut().find(|v| v.id == doc) {
+                view.disk_changed = false;
+            }
+            self.notify_fmt("Reloaded {name}.", &[("name", &name)]);
+        }
+    }
+
     /// Open `bytes` in place of tab `i`'s document, keeping the tab and the reader's place. A
-    /// version that can't be opened leaves the document as it was, and says so.
-    fn reload_view(&mut self, i: usize, bytes: Arc<Vec<u8>>) {
-        let Some(id) = self.views.get(i).map(|v| v.id) else { return };
+    /// version that can't be opened leaves the document as it was, and says so. `true` when it
+    /// was replaced.
+    fn reload_view(&mut self, i: usize, bytes: Arc<Vec<u8>>) -> bool {
+        let Some(id) = self.views.get(i).map(|v| v.id) else { return false };
         match self.session.reload(id, bytes) {
             Ok(()) => {
                 // Whatever was unsaved is gone, so there is nothing left to recover.
@@ -459,10 +512,12 @@ impl PdfCraftApp {
                 // What the form's scripts said while it opened, as on opening.
                 let out = self.session.take_js_output(id);
                 self.handle_js(id, out);
+                true
             }
             Err(e) => {
                 let name = self.session.get(id).map(|d| d.name.clone()).unwrap_or_default();
                 self.notify_fmt("Couldn't reload {name}: {e}", &[("name", &name), ("e", &e.to_string())]);
+                false
             }
         }
     }

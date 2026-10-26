@@ -3154,3 +3154,10 @@ animation effects	Off	Выкл
 	This note is empty. Press Edit to write it.	Заметка пуста. Нажмите «Изменить», чтобы написать её.
 	Web link	Веб-ссылка
 	{done} of {all} done	Выполнено {done} из {all}
+	Reload from disk	Перезагрузить с диска
+	Reload “{name}” from its file? The changes you haven't saved are dropped.	Перезагрузить «{name}» из файла? Несохранённые изменения будут потеряны.
+	This drawing has no file yet: save it first.	У этого чертежа ещё нет файла: сначала сохраните его.
+	Getting the latest {name}…	Получение последней версии {name}…
+	Reloaded {name}.	{name} перезагружен.
+	Refresh	Обновить
+	List the pinned folders again now	Перечитать закреплённые папки сейчас

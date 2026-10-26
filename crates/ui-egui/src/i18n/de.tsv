@@ -3238,3 +3238,10 @@ animation effects	Off	Aus
 	This note is empty. Press Edit to write it.	Diese Notiz ist leer. Zum Schreiben auf Bearbeiten tippen.
 	Web link	Weblink
 	{done} of {all} done	{done} von {all} erledigt
+	Reload from disk	Von Datenträger neu laden
+	Reload “{name}” from its file? The changes you haven't saved are dropped.	„{name}“ aus seiner Datei neu laden? Nicht gespeicherte Änderungen gehen verloren.
+	This drawing has no file yet: save it first.	Diese Zeichnung hat noch keine Datei: Speichern Sie sie zuerst.
+	Getting the latest {name}…	Neueste Version von {name} wird geholt…
+	Reloaded {name}.	{name} wurde neu geladen.
+	Refresh	Aktualisieren
+	List the pinned folders again now	Angeheftete Ordner jetzt neu auflisten

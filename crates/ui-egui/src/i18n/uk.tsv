@@ -3260,3 +3260,10 @@ animation effects	Off	Вимкнено
 	This note is empty. Press Edit to write it.	Нотатка порожня. Натисніть «Редагувати», щоб написати її.
 	Web link	Веб-посилання
 	{done} of {all} done	Виконано {done} з {all}
+	Reload from disk	Перезавантажити з диска
+	Reload “{name}” from its file? The changes you haven't saved are dropped.	Перезавантажити «{name}» з файлу? Незбережені зміни буде втрачено.
+	This drawing has no file yet: save it first.	Це креслення ще не має файлу: спершу збережіть його.
+	Getting the latest {name}…	Отримання останньої версії {name}…
+	Reloaded {name}.	{name} перезавантажено.
+	Refresh	Оновити
+	List the pinned folders again now	Перечитати закріплені теки зараз

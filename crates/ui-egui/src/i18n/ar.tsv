@@ -3510,3 +3510,9 @@ certificate	Version	الإصدار
 	This note is empty. Press Edit to write it.	هذه الملاحظة فارغة. اضغط تحرير لكتابتها.
 	Web link	رابط ويب
 	{done} of {all} done	أُنجز {done} من {all}
+	Reload from disk	إعادة التحميل من القرص
+	Reload “{name}” from its file? The changes you haven't saved are dropped.	هل تريد إعادة تحميل “{name}” من ملفه؟ ستُفقد التغييرات غير المحفوظة.
+	This drawing has no file yet: save it first.	لا يوجد ملف لهذا الرسم بعد: احفظه أولاً.
+	Getting the latest {name}…	جارٍ جلب أحدث نسخة من {name}…
+	Reloaded {name}.	أُعيد تحميل {name}.
+	List the pinned folders again now	اعرض المجلدات المثبتة مجدداً الآن

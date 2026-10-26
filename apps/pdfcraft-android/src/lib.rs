@@ -50,7 +50,7 @@ fn android_main(android: AndroidApp) {
     pdfcraft_ui_egui::set_android_file_access(pdfcraft_ui_egui::AndroidFileAccess { granted: file_access::granted, request: file_access::request });
     // Google Drive and other document apps, through Android's picker (`cloud`).
     cloud::load();
-    pdfcraft_ui_egui::set_android_documents(pdfcraft_ui_egui::AndroidDocuments { start: cloud::start, poll: cloud::poll });
+    pdfcraft_ui_egui::set_android_documents(pdfcraft_ui_egui::AndroidDocuments { start: cloud::start, poll: cloud::poll, refetch: cloud::refetch });
     log::info!("All files access: {}", if file_access::granted() { "granted" } else { "not granted" });
 
     // Only the S Pen (or a mouse) draws on the page; fingers pan it (`tablet`).

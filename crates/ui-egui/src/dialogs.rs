@@ -71,6 +71,7 @@ fn dialogs(app: &mut PdfCraftApp, ctx: &egui::Context) {
     let mut import_words = false;
     let mut print_go = false;
     let mut revert_now = false;
+    let mut reload_now = false;
     let mut overwrite_now = false;
     let mut overwrite_elsewhere = false;
     let mut summarize_now = false;
@@ -817,6 +818,23 @@ fn dialogs(app: &mut PdfCraftApp, ctx: &egui::Context) {
                 });
                 return;
             }
+            Dialog::Reload => {
+                let name = app.active_ids().and_then(|(_, id)| app.session.get(id)).map(|d| d.name.clone()).unwrap_or_default();
+                ui.label(egui::RichText::new(tl!("Reload from disk")).font(theme::semibold(18.0)));
+                ui.add_space(8.0);
+                ui.label(crate::i18n::fmt(tl!("Reload “{name}” from its file? The changes you haven't saved are dropped."), &[("name", &name)]));
+                ui.add_space(12.0);
+                ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
+                    if widgets::pill_button(ui, tl!("Reload"), true).clicked() {
+                        reload_now = true;
+                        close = true;
+                    }
+                    if widgets::pill_button(ui, tl!("Cancel"), false).clicked() {
+                        close = true;
+                    }
+                });
+                return;
+            }
             Dialog::OverwriteChanged => {
                 #[cfg(not(target_arch = "wasm32"))]
                 let name = app.pending_overwrite.as_ref().and_then(|p| app.session.get(p.id)).map(|d| d.name.clone()).unwrap_or_default();
@@ -1267,6 +1285,9 @@ fn dialogs(app: &mut PdfCraftApp, ctx: &egui::Context) {
     // A print or save that fails keeps the dialog open, with the reason in a notice.
     if print_go && !app.print_now() {
         close = false;
+    }
+    if reload_now && let Some((_, id)) = app.active_ids() {
+        app.reload_now(id);
     }
     if revert_now {
         app.revert_active();

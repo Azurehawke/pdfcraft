@@ -5,6 +5,8 @@ pub(crate) enum Action {
     Close(DocId),
     Reopen,
     Reveal(DocId),
+    /// RevuCraft: read the file again now.
+    Reload(DocId),
 }
 
 impl crate::PdfCraftApp {
@@ -33,6 +35,7 @@ impl crate::PdfCraftApp {
                     }
                 }
             }
+            Action::Reload(id) => self.request_reload(id),
             Action::Reveal(id) => {
                 #[cfg(not(target_arch = "wasm32"))]
                 if let Some(path) = self.session.get(id).and_then(|d| d.path.clone())

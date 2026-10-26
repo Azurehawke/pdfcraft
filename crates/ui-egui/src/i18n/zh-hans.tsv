@@ -3203,3 +3203,10 @@ animation effects	Off	关
 	This note is empty. Press Edit to write it.	此笔记为空。按“编辑”开始书写。
 	Web link	网页链接
 	{done} of {all} done	已完成 {done}/{all}
+	Reload from disk	从磁盘重新加载
+	Reload “{name}” from its file? The changes you haven't saved are dropped.	要从文件重新加载“{name}”吗？未保存的更改将丢失。
+	This drawing has no file yet: save it first.	此图纸还没有文件：请先保存。
+	Getting the latest {name}…	正在获取 {name} 的最新版本…
+	Reloaded {name}.	已重新加载 {name}。
+	Refresh	刷新
+	List the pinned folders again now	立即重新列出固定的文件夹

@@ -61,6 +61,11 @@ pub struct AndroidDocuments {
     /// The answer once there is one: the local paths, or none when cancelled. Polled each frame
     /// while waiting.
     pub poll: fn() -> Option<Result<Vec<PathBuf>, String>>,
+    /// Fetch the document whose local copy is at this path again (RevuCraft's Reload from
+    /// disk). `false`: the path is not a copy (or the fetch couldn't start), so the file itself
+    /// is read again. When the copy is fresh the shell calls
+    /// [`crate::PdfCraftApp::reload_document_at`].
+    pub refetch: fn(&Path) -> bool,
 }
 
 static DOCUMENTS: OnceLock<AndroidDocuments> = OnceLock::new();
@@ -68,6 +73,11 @@ static DOCUMENTS: OnceLock<AndroidDocuments> = OnceLock::new();
 /// Called once by the Android shell at startup.
 pub fn set_android_documents(documents: AndroidDocuments) {
     let _ = DOCUMENTS.set(documents);
+}
+
+/// Fetch the document copied to `path` again, when it is a copy of one in another app.
+pub(crate) fn refetch(path: &Path) -> bool {
+    DOCUMENTS.get().is_some_and(|d| (d.refetch)(path))
 }
 
 /// A MIME type for a file name's extension, for the system picker.

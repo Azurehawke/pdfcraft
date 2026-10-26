@@ -355,6 +355,11 @@ Markup and measuring
       opens a photo pin's photo and selects a markup again, as the pen and mouse do.
 - [x] **(Steve, build 196)** The New dialog on a phone: the screen's width, its sections one under
       another, the whole box scrolls. Android's app info shows "build 196" rather than 0.13.0.
+- [x] **(Steve, build 202)** Refresh: a Refresh button on Home's pinned folders lists them again
+      now, and File ▸ Reload from disk (also on a tab's right-click menu) reads the open drawing's
+      file again even when nothing looked changed, asking first over unsaved changes. On Android
+      a document opened from another app (Drive, Files) is fetched from that app again first.
+      Changed files were already reloaded on their own (checked four times a second).
 - [ ] **(Steve, next)** Touch, second pass from use on the devices: double tap to zoom, the drag
       threshold, the glide's feel, long press; quick Add photo button and field flow on the phone;
       Properties, caption box and keypad sized for the phone.

@@ -3236,3 +3236,10 @@ animation effects	Off	Ki
 	This note is empty. Press Edit to write it.	Ez a jegyzet üres. Megírásához nyomja meg a Szerkesztés gombot.
 	Web link	Webhivatkozás
 	{done} of {all} done	{done}/{all} kész
+	Reload from disk	Újratöltés lemezről
+	Reload “{name}” from its file? The changes you haven't saved are dropped.	Újratölti a(z) „{name}” dokumentumot a fájljából? A nem mentett módosítások elvesznek.
+	This drawing has no file yet: save it first.	Ennek a rajznak még nincs fájlja: előbb mentse.
+	Getting the latest {name}…	A(z) {name} legújabb változatának lekérése…
+	Reloaded {name}.	{name} újratöltve.
+	Refresh	Frissítés
+	List the pinned folders again now	A rögzített mappák újralistázása most

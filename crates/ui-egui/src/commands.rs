@@ -181,6 +181,11 @@ impl PdfCraftApp {
             }
             "file.close_all" => self.close_all(),
             "file.revert" => self.dialog = Some(Dialog::Revert),
+            "file.reload" => {
+                if let Some((_, id)) = self.active_ids() {
+                    self.request_reload(id);
+                }
+            }
             "file.properties" => self.dialog = Some(Dialog::Properties(PropsTab::Description)),
             "file.word_count" => self.dialog = Some(Dialog::WordCount),
             "protect.properties" => self.dialog = Some(Dialog::Properties(PropsTab::Security)),
@@ -825,6 +830,7 @@ pub(crate) const MENU_LAYOUT: [(&str, &[MenuItem]); 5] = [
             Cmd("file.save"),
             Cmd("file.save_as"),
             Cmd("file.revert"),
+            Cmd("file.reload"),
             Cmd("file.close"),
             Cmd("file.close_all"),
             Sep,

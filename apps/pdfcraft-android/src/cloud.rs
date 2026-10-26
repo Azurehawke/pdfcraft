@@ -16,6 +16,7 @@
 
 use std::hash::{Hash, Hasher};
 use std::path::{Path, PathBuf};
+use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::mpsc::{self, Receiver, TryRecvError};
 use std::sync::{Mutex, PoisonError};
 use std::time::{Duration, Instant, UNIX_EPOCH};
@@ -74,6 +75,10 @@ static MIRRORS: Mutex<Vec<Mirror>> = Mutex::new(Vec::new());
 /// Finished write-backs: (uri, the version written, the result).
 static UPLOADED: Mutex<Vec<(String, Stamp, Result<(), String>)>> = Mutex::new(Vec::new());
 static LAST_CHECK: Mutex<Option<Instant>> = Mutex::new(None);
+/// Finished fetches for Reload from disk: (the copy reloaded, the fetch's result).
+static REFETCHED: Mutex<Vec<(PathBuf, Result<Vec<PathBuf>, String>)>> = Mutex::new(Vec::new());
+/// Fetches for Reload from disk still running.
+static FETCHING: AtomicUsize = AtomicUsize::new(0);
 
 fn dir() -> Option<PathBuf> {
     std::env::var_os("HOME").map(|h| PathBuf::from(h).join("cloud"))
@@ -304,6 +309,27 @@ fn fetch(kind: &Kind, uris: &[String]) -> Result<Vec<PathBuf>, String> {
     Ok(paths)
 }
 
+/// Reload from disk on a copy: fetch its document again on a worker thread (Google Drive may
+/// download it), and reload once it is here ([`sync`]). `false` when `local` is not a copy.
+pub fn refetch(local: &Path) -> bool {
+    let uri = MIRRORS.lock().unwrap_or_else(PoisonError::into_inner).iter().find(|m| m.local == local && !m.uploading).map(|m| m.uri.clone());
+    let Some(uri) = uri else { return false };
+    let local = local.to_path_buf();
+    FETCHING.fetch_add(1, Ordering::Relaxed);
+    let started = std::thread::Builder::new()
+        .name("cloud-fetch".into())
+        .spawn(move || {
+            let result = fetch(&Kind::Open, &[uri]);
+            REFETCHED.lock().unwrap_or_else(PoisonError::into_inner).push((local, result));
+            FETCHING.fetch_sub(1, Ordering::Relaxed);
+        })
+        .is_ok();
+    if !started {
+        FETCHING.fetch_sub(1, Ordering::Relaxed);
+    }
+    started
+}
+
 /// Write `bytes` to the document (a worker thread).
 fn upload(uri: &str, bytes: &[u8]) -> Result<(), String> {
     with_activity("Saving to the document", |env, activity| {
@@ -352,6 +378,25 @@ fn upload(uri: &str, bytes: &[u8]) -> Result<(), String> {
 
 /// Write back copies PdfCraft has saved, and report finished write-backs. Called every frame.
 pub fn sync(app: &mut PdfCraftApp, ctx: &egui::Context) {
+    let fetched = std::mem::take(&mut *REFETCHED.lock().unwrap_or_else(PoisonError::into_inner));
+    for (local, result) in fetched {
+        let name = local.file_name().map(|n| n.to_string_lossy().into_owned()).unwrap_or_default();
+        match result {
+            // Same name: the copy was replaced in place.
+            Ok(paths) if paths.iter().any(|p| *p == local) => app.reload_document_at(&local.to_string_lossy()),
+            // Renamed in its app: the copy has a new path, opened beside the old one.
+            Ok(paths) => {
+                for p in paths {
+                    let _ = app.open_path(&p.to_string_lossy());
+                }
+            }
+            Err(e) => app.notify(format!("Couldn't get the latest {name}: {e}")),
+        }
+    }
+    // A fetch still on its way: look again soon (the worker has no context to wake).
+    if FETCHING.load(Ordering::Relaxed) > 0 || !REFETCHED.lock().unwrap_or_else(PoisonError::into_inner).is_empty() {
+        ctx.request_repaint_after(CHECK_EVERY);
+    }
     let finished = std::mem::take(&mut *UPLOADED.lock().unwrap_or_else(PoisonError::into_inner));
     let mut mirrors = MIRRORS.lock().unwrap_or_else(PoisonError::into_inner);
     if !finished.is_empty() {

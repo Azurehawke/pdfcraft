@@ -296,6 +296,12 @@ pub(crate) fn section(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
         ui.label(egui::RichText::new(tl!("Folders")).font(theme::semibold(17.0)));
         ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
             pin = widgets::ghost_button(ui, "folder-plus", tl!("Pin a folder…")).clicked();
+            // RevuCraft: list the folders again now (a sync from another device just landed).
+            if !app.pinned.folders.is_empty()
+                && widgets::ghost_button(ui, "rotate-cw", tl!("Refresh")).on_hover_text(tl!("List the pinned folders again now")).clicked()
+            {
+                app.pinned.stale = true;
+            }
         });
     });
     ui.add_space(4.0);

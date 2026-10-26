@@ -239,6 +239,7 @@ Found relative to the PDF
 Found through a folder mapping (Preferences)
 GFCI outlet
 Get started
+Getting the latest {name}…
 Give coordinates for the base point.
 Given when sent
 Glass-break detector
@@ -295,6 +296,7 @@ Lines
 Link to a markup on the plan ([[…]])
 Links
 List drafted linework too
+List the pinned folders again now
 List under
 Lock guides
 Lock layer
@@ -481,10 +483,14 @@ Recent files
 Recent tools
 Rectangle area
 Rectangular array (rows and columns in the ribbon)
+Refresh
 Relink
 Relink drawing
 Relinked {n} more drawings found in the same folder.
 Relink…
+Reload from disk
+Reload “{name}” from its file? The changes you haven't saved are dropped.
+Reloaded {name}.
 Remove drawing
 Remove from my symbols
 Remove from the sheet
@@ -648,6 +654,7 @@ Thin (1 pt)
 This build can't open Settings by itself.
 This computer
 This document
+This drawing has no file yet: save it first.
 This folder is empty
 This form also contains XFA data, which RevuCraft doesn't read yet. You can fill its fields, but Acrobat may show the XFA values instead.
 This formula can't be calculated

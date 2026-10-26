@@ -3240,3 +3240,10 @@ animation effects	Off	オフ
 	This note is empty. Press Edit to write it.	このメモは空です。書くには [編集] を押します。
 	Web link	Web リンク
 	{done} of {all} done	{all} 件中 {done} 件完了
+	Reload from disk	ディスクから再読み込み
+	Reload “{name}” from its file? The changes you haven't saved are dropped.	「{name}」をファイルから再読み込みしますか? 保存していない変更は失われます。
+	This drawing has no file yet: save it first.	この図面にはまだファイルがありません。先に保存してください。
+	Getting the latest {name}…	{name} の最新版を取得しています…
+	Reloaded {name}.	{name} を再読み込みしました。
+	Refresh	更新
+	List the pinned folders again now	ピン留めしたフォルダーを今すぐ再表示
