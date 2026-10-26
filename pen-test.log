@@ -1,0 +1,52 @@
+[1m[92m    Updating[0m crates.io index
+[1m[92m     Locking[0m 17 packages to highest Rust 1.95 compatible versions
+[1m[92m      Adding[0m aho-corasick v1.1.5
+[1m[92m      Adding[0m android_log-sys v0.3.2
+[1m[92m      Adding[0m android_logger v0.15.1
+[1m[92m      Adding[0m cesu8 v1.1.0
+[1m[92m      Adding[0m env_filter v0.1.4
+[1m[92m      Adding[0m jni v0.21.1 [1m[33m(available: v0.22.4)[0m
+[1m[92m      Adding[0m regex v1.13.1
+[1m[92m      Adding[0m regex-automata v0.4.18
+[1m[92m      Adding[0m windows-sys v0.45.0
+[1m[92m      Adding[0m windows-targets v0.42.2
+[1m[92m      Adding[0m windows_aarch64_gnullvm v0.42.2
+[1m[92m      Adding[0m windows_aarch64_msvc v0.42.2
+[1m[92m      Adding[0m windows_i686_gnu v0.42.2
+[1m[92m      Adding[0m windows_i686_msvc v0.42.2
+[1m[92m      Adding[0m windows_x86_64_gnu v0.42.2
+[1m[92m      Adding[0m windows_x86_64_gnullvm v0.42.2
+[1m[92m      Adding[0m windows_x86_64_msvc v0.42.2
+[1m[92m   Compiling[0m pdfcraft-filters v0.13.0 (/home/runner/work/pdfcraft/pdfcraft/crates/filters)
+[1m[92m   Compiling[0m pdfcraft-crypt v0.13.0 (/home/runner/work/pdfcraft/pdfcraft/crates/crypt)
+[1m[92m   Compiling[0m pdfcraft-fonts v0.13.0 (/home/runner/work/pdfcraft/pdfcraft/crates/fonts)
+[1m[92m   Compiling[0m hayro-jbig2 v0.3.0 (/home/runner/work/pdfcraft/pdfcraft/vendor/hayro-jbig2)
+[1m[92m   Compiling[0m pdfcraft-cos v0.13.0 (/home/runner/work/pdfcraft/pdfcraft/crates/cos)
+[1m[92m   Compiling[0m hayro-syntax v0.7.2 (/home/runner/work/pdfcraft/pdfcraft/vendor/hayro-syntax)
+[1m[92m   Compiling[0m pdfcraft-model v0.13.0 (/home/runner/work/pdfcraft/pdfcraft/crates/model)
+[1m[92m   Compiling[0m pdfcraft-annot v0.13.0 (/home/runner/work/pdfcraft/pdfcraft/crates/annot)
+[1m[92m    Finished[0m `test` profile [optimized + debuginfo] target(s) in 12.80s
+[1m[92m     Running[0m unittests src/lib.rs (target/debug/deps/pdfcraft_annot-f67854cfd11485bd)
+
+running 5 tests
+test pen::tests::names_round_trip ... ok
+test pen::tests::pressure_widens_a_fountain_pen ... ok
+test tests::a_diagonal_lines_leaders_are_perpendicular_and_its_caption_turns_with_it ... ok
+test pen::tests::outlines_are_closed_fills_for_any_input ... ok
+test tests::pen_drawings_keep_their_pen_and_pressure ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 73 filtered out; finished in 0.01s
+
+[1m[92m   Compiling[0m pdfcraft-fonts v0.13.0 (/home/runner/work/pdfcraft/pdfcraft/crates/fonts)
+[1m[92m   Compiling[0m hayro-syntax v0.7.2 (/home/runner/work/pdfcraft/pdfcraft/vendor/hayro-syntax)
+[1m[92m   Compiling[0m pdfcraft-annot v0.13.0 (/home/runner/work/pdfcraft/pdfcraft/crates/annot)
+[1m[92m   Compiling[0m pdfcraft-content v0.13.0 (/home/runner/work/pdfcraft/pdfcraft/crates/content)
+[1m[92m   Compiling[0m pdfcraft-edit v0.13.0 (/home/runner/work/pdfcraft/pdfcraft/crates/edit)
+[1m[92m    Finished[0m `test` profile [optimized + debuginfo] target(s) in 17.00s
+[1m[92m     Running[0m unittests src/lib.rs (target/debug/deps/pdfcraft_edit-a4268dae8880dc2b)
+
+running 1 test
+test tests::text_in_forms_becomes_editable_page_text_in_the_same_place ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 279 filtered out; finished in 0.00s
+
