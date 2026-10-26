@@ -258,6 +258,7 @@ pub fn show(app: &mut PdfCraftApp, ctx: &egui::Context) {
     };
     let modal = egui::Modal::new(egui::Id::new("revucraft-new")).show(ctx, |ui| {
         ui.set_width(width);
+        ui.set_max_width(width);
         ui.set_max_height(height);
         let d = &mut app.new_doc;
         ui.horizontal(|ui| {
@@ -269,7 +270,7 @@ pub fn show(app: &mut PdfCraftApp, ctx: &egui::Context) {
             });
         });
         ui.separator();
-        egui::ScrollArea::vertical().id_salt("new-body").max_height((height - 48.0).max(160.0)).auto_shrink([false, true]).show(ui, |ui| {
+        egui::ScrollArea::vertical().id_salt("new-body").max_height((height - 48.0).max(160.0)).auto_shrink([true, true]).show(ui, |ui| {
             // ── Top half: a new drawing ───────────────────────────────────────────────────────
             let row = if phone { Layout::top_down(Align::Min) } else { Layout::left_to_right(Align::Min) };
             ui.with_layout(row, |ui| {
