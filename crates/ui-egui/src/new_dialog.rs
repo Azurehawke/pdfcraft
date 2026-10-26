@@ -256,7 +256,21 @@ pub fn show(app: &mut PdfCraftApp, ctx: &egui::Context) {
     } else {
         ((screen.width() - 48.0).clamp(360.0, 1100.0), (screen.height() - 60.0).clamp(420.0, 800.0))
     };
-    let modal = egui::Modal::new(egui::Id::new("revucraft-new")).show(ctx, |ui| {
+    let id = egui::Id::new("revucraft-new");
+    // A phone: at the screen's top-left corner rather than centred, so the box's left edge is
+    // never off screen (centring went by a size measured wider than the box is drawn).
+    let mut dialog = egui::Modal::new(id);
+    if phone {
+        dialog = dialog.area(
+            egui::Area::new(id)
+                .kind(egui::UiKind::Modal)
+                .sense(Sense::hover())
+                .order(egui::Order::Foreground)
+                .interactable(true)
+                .fixed_pos(screen.min + vec2(8.0, 16.0)),
+        );
+    }
+    let modal = dialog.show(ctx, |ui| {
         ui.set_width(width);
         ui.set_max_width(width);
         ui.set_max_height(height);
