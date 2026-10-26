@@ -181,6 +181,19 @@ fn straighten(
     look: crate::camera_clean::Look,
     level: u8,
 ) -> Result<CameraPage, String> {
+    straighten_with(bytes, password, src, corners, look, level, |_, _, _| {})
+}
+
+/// [`straighten`], with `edit` applied to the upright picture (RGB, width, height) first.
+fn straighten_with(
+    bytes: &Arc<Vec<u8>>,
+    password: Option<Arc<str>>,
+    src: &PageSource,
+    corners: [Point; 4],
+    look: crate::camera_clean::Look,
+    level: u8,
+    edit: impl FnOnce(&mut [u8], u32, u32),
+) -> Result<CameraPage, String> {
     let (page, info) = (src.page, &src.info);
     let area = (info.width.max(1.0) as f64) * (info.height.max(1.0) as f64);
     let cap = (MAX_PIXELS / area).sqrt() as f32;
@@ -196,7 +209,13 @@ fn straighten(
         let [vx, vy] = info.user_to_view(x as f32, y as f32);
         [vx as f64 * k, vy as f64 * k]
     });
-    let out = warp(&shot.rgba, shot.width, shot.height, quad)?;
+    let mut out = warp(&shot.rgba, shot.width, shot.height, quad)?;
+    edit(&mut out.rgb, out.width, out.height);
+    // A black-and-white page re-read as it is (Eraser) stays black and white, and lossless.
+    let bw = look == crate::camera_clean::Look::Original
+        && out.rgb.chunks_exact(3).all(|p| p[0] == p[1] && p[1] == p[2] && (p[0] == 0 || p[0] == 255));
+    let look = if bw { crate::camera_clean::Look::BlackWhite } else { look };
+    let level = if bw { 50 } else { level };
     let pixels = crate::camera_clean::apply(&out.rgb, out.width, out.height, look, level).ok_or("the straightened page could not be cleaned up")?;
     // Black and white is lossless (PNG): JPEG would smear grey around every letter.
     let mut encoded = Vec::new();
@@ -221,6 +240,88 @@ fn straighten(
     // One device pixel per `k` points keeps the page's physical size.
     let dpi = (k * 72.0).clamp(1.0, 1200.0);
     Ok(CameraPage { page, name, encoded, dpi, detected: true })
+}
+
+/// Paint `strokes` (polylines in page coordinates as displayed, 0–1 across and down) out of an
+/// RGB picture with the colour of the paper around each one: the brighter half of the pixels in
+/// a band around the stroke, averaged. `radius` is the brush's radius as a share of the
+/// picture's width.
+pub fn erase_strokes(rgb: &mut [u8], width: u32, height: u32, strokes: &[Vec<[f32; 2]>], radius: f32) {
+    let (w, h) = (width as usize, height as usize);
+    if w == 0 || h == 0 || rgb.len() != w.saturating_mul(h).saturating_mul(3) || !radius.is_finite() {
+        return;
+    }
+    let r = (radius.clamp(0.001, 0.2) * width as f32).max(1.0);
+    for stroke in strokes.iter().take(256) {
+        let pts: Vec<(f32, f32)> =
+            stroke.iter().take(4096).filter(|p| p[0].is_finite() && p[1].is_finite()).map(|p| (p[0] * width as f32, p[1] * height as f32)).collect();
+        let Some(&first) = pts.first() else { continue };
+        let (mut x0, mut y0, mut x1, mut y1) = (first.0, first.1, first.0, first.1);
+        for &(x, y) in &pts {
+            (x0, y0, x1, y1) = (x0.min(x), y0.min(y), x1.max(x), y1.max(y));
+        }
+        // The paper: a band two brush widths around the stroke's box.
+        let band = 2.0 * r + 4.0;
+        let clampx = |v: f32| v.clamp(0.0, (w - 1) as f32) as usize;
+        let clampy = |v: f32| v.clamp(0.0, (h - 1) as f32) as usize;
+        let (bx0, by0, bx1, by1) = (clampx(x0 - r - band), clampy(y0 - r - band), clampx(x1 + r + band), clampy(y1 + r + band));
+        let (ix0, iy0, ix1, iy1) = (x0 - r, y0 - r, x1 + r, y1 + r);
+        let mut samples: Vec<[u8; 3]> = Vec::new();
+        let step = (((bx1 - bx0 + 1) * (by1 - by0 + 1)) / 20_000).max(1);
+        let mut k = 0usize;
+        for y in by0..=by1 {
+            for x in bx0..=bx1 {
+                k += 1;
+                if k % step != 0 {
+                    continue;
+                }
+                let (fx, fy) = (x as f32, y as f32);
+                if fx >= ix0 && fx <= ix1 && fy >= iy0 && fy <= iy1 {
+                    continue;
+                }
+                let i = (y * w + x) * 3;
+                if let Some(px) = rgb.get(i..i + 3) {
+                    samples.push([px[0], px[1], px[2]]);
+                }
+            }
+        }
+        let luma = |p: &[u8; 3]| 299 * u32::from(p[0]) + 587 * u32::from(p[1]) + 114 * u32::from(p[2]);
+        samples.sort_by_key(luma);
+        let bright = samples.get(samples.len() / 2..).unwrap_or_default();
+        let paper = if bright.is_empty() {
+            [255, 255, 255]
+        } else {
+            let n = bright.len() as u32;
+            let sum = bright.iter().fold([0u32; 3], |a, p| [a[0] + u32::from(p[0]), a[1] + u32::from(p[1]), a[2] + u32::from(p[2])]);
+            [(sum[0] / n) as u8, (sum[1] / n) as u8, (sum[2] / n) as u8]
+        };
+        // Discs along each segment, half a radius apart.
+        let mut dab = |cx: f32, cy: f32| {
+            let (ya, yb) = (clampy(cy - r), clampy(cy + r));
+            let (xa, xb) = (clampx(cx - r), clampx(cx + r));
+            for y in ya..=yb {
+                for x in xa..=xb {
+                    let (dx, dy) = (x as f32 - cx, y as f32 - cy);
+                    if dx * dx + dy * dy <= r * r {
+                        let i = (y * w + x) * 3;
+                        if let Some(px) = rgb.get_mut(i..i + 3) {
+                            px.copy_from_slice(&paper);
+                        }
+                    }
+                }
+            }
+        };
+        dab(first.0, first.1);
+        for pair in pts.windows(2) {
+            let [(ax, ay), (bx, by)] = [pair[0], pair[1]];
+            let len = (bx - ax).hypot(by - ay);
+            let n = ((len / (r * 0.5)).ceil() as usize).clamp(1, 10_000);
+            for t in 1..=n {
+                let f = t as f32 / n as f32;
+                dab(ax + (bx - ax) * f, ay + (by - ay) * f);
+            }
+        }
+    }
 }
 
 impl Session {
@@ -288,6 +389,48 @@ impl Session {
         Ok(found.is_some())
     }
 
+    /// Enhance ▸ Camera image ▸ Split pages: a photographed book spread on page `page` becomes two
+    /// pages, split by a vertical line `fraction` of the way across the page as displayed (0.05
+    /// to 0.95). The page is duplicated and each copy cropped to its side, so nothing is
+    /// re-encoded. One undoable step.
+    pub fn split_spread(&mut self, id: DocId, page: usize, fraction: f32) -> Result<(), EditError> {
+        let doc = self.get(id).ok_or(EditError::NoDocument)?;
+        if let Some(why) = &doc.read_only_reason {
+            return Err(EditError::ReadOnly(why.clone()));
+        }
+        let info = doc.info.pages.get(page).ok_or_else(|| EditError::Invalid(format!("there is no page {}", page.saturating_add(1))))?;
+        if !fraction.is_finite() {
+            return Err(EditError::Invalid("the split line is not on the page".into()));
+        }
+        let x = info.width * fraction.clamp(0.05, 0.95);
+        let rect = |(x0, y0): (f32, f32), (x1, y1): (f32, f32)| {
+            let [a, b] = info.view_to_user(x0, y0);
+            let [c, d] = info.view_to_user(x1, y1);
+            [a.min(c) as f64, b.min(d) as f64, a.max(c) as f64, b.max(d) as f64]
+        };
+        let left = rect((0.0, 0.0), (x, info.height));
+        let right = rect((x, 0.0), (info.width, info.height));
+        let crop = |p: usize, r: [f64; 4]| Edit::SetPageBox { pages: vec![p], which: crate::PageBox::Crop, spec: crate::BoxSpec::Rect(r) };
+        let edits = vec![Edit::DuplicatePages { pages: vec![page], at: Some(page + 1) }, crop(page, left), crop(page + 1, right)];
+        self.apply(id, Edit::Batch { label: "Split pages".into(), edits })
+    }
+
+    /// Enhance ▸ Camera image ▸ Eraser: paint `strokes` (page coordinates as displayed, 0–1) out
+    /// of page `page` with the paper's colour around them ([`erase_strokes`]). The page becomes
+    /// its picture with the marks gone; one undoable step ("Erase marks").
+    pub fn erase_camera_marks(&mut self, id: DocId, page: usize, strokes: &[Vec<[f32; 2]>], radius: f32) -> Result<(), EditError> {
+        if strokes.iter().all(Vec::is_empty) {
+            return Ok(());
+        }
+        let (bytes, password, src) = self.page_source(id, page)?;
+        let corners = whole_page(&src.info);
+        let look = crate::camera_clean::Look::Original;
+        let mut out = straighten_with(&bytes, password, &src, corners, look, 0, |rgb, w, h| erase_strokes(rgb, w, h, strokes, radius))
+            .map_err(EditError::Invalid)?;
+        out.detected = true;
+        self.finish_camera_pages(id, vec![out], "Erase marks")
+    }
+
     /// Enhance ▸ Camera image ▸ Enhance all pages: the work for every page of `id`, to run with
     /// [`CameraBatch::page`] and finish with [`Session::finish_camera_batch`].
     /// `skip` is a page left as it is (one already enhanced).
@@ -329,6 +472,25 @@ impl Session {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn erasing_paints_a_mark_with_the_paper_around_it() {
+        // Cream paper with a dark smudge in the middle.
+        let (w, h) = (100u32, 80u32);
+        let mut rgb: Vec<u8> = (0..w * h)
+            .flat_map(|i| {
+                let (x, y) = (i % w, i / w);
+                if (40..60).contains(&x) && (30..50).contains(&y) { [30, 30, 30] } else { [250, 240, 220] }
+            })
+            .collect();
+        erase_strokes(&mut rgb, w, h, &[vec![[0.42, 0.45], [0.58, 0.55]]], 0.12);
+        let at = |x: u32, y: u32| &rgb[((y * w + x) * 3) as usize..][..3];
+        assert_eq!(at(50, 40), [250, 240, 220]);
+        // Paper elsewhere is untouched, and hostile strokes do nothing.
+        assert_eq!(at(2, 2), [250, 240, 220]);
+        erase_strokes(&mut rgb, w, h, &[vec![[f32::NAN, 0.5]], vec![]], f32::INFINITY);
+        erase_strokes(&mut rgb, 0, 0, &[vec![[0.5, 0.5]]], 0.1);
+    }
 
     /// An opaque premultiplied raster filled by `f(x, y) -> [r, g, b]`.
     fn raster(w: u32, h: u32, f: impl Fn(u32, u32) -> [u8; 3]) -> Vec<u8> {

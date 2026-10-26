@@ -54,6 +54,26 @@ pub struct CameraDone {
     pub steps: usize,
 }
 
+/// The eraser's brush sizes, as a share of the page's width (radius).
+pub const ERASER_SIZES: [f32; 3] = [0.008, 0.018, 0.035];
+
+/// Eraser: brushing marks out of an enhanced page with the paper's colour. Each stroke is applied
+/// when the pen lifts (one undoable step).
+#[derive(Clone, Debug, Default)]
+pub struct CameraErase {
+    pub page: usize,
+    /// The stroke being drawn, in page coordinates as displayed (0–1).
+    pub stroke: Vec<[f32; 2]>,
+    /// Index into [`ERASER_SIZES`].
+    pub size: usize,
+}
+
+impl CameraErase {
+    pub fn radius(&self) -> f32 {
+        ERASER_SIZES.get(self.size).copied().unwrap_or(ERASER_SIZES[1])
+    }
+}
+
 /// Enhance all pages in progress: a worker straightens the pages one after another
 /// (`pdfcraft_engine::camera::CameraBatch`), and the pages replace the document's in one
 /// undoable step once all are done.
@@ -86,6 +106,52 @@ pub(crate) fn page_input(ui: &egui::Ui, resp: &egui::Response, xf: &PageXform, p
     if !allowed {
         if pointer.is_some_and(|p| xf.rect.contains(p)) {
             ui.ctx().set_cursor_icon(egui::CursorIcon::NotAllowed);
+        }
+        return;
+    }
+    // Eraser: the pen (or mouse) brushes, and the stroke is applied when it lifts.
+    if let Some(erase) = view.camera_erase.as_mut() {
+        if erase.page == page {
+            if let Some(p) = pointer.filter(|p| xf.rect.contains(*p)) {
+                ui.ctx().set_cursor_icon(egui::CursorIcon::Crosshair);
+                if resp.drag_started() || resp.dragged() {
+                    let (u, v) = xf.screen_to_norm(p);
+                    if erase.stroke.len() < 4096 {
+                        erase.stroke.push([u, v]);
+                    }
+                }
+            }
+            if (resp.drag_stopped() || resp.clicked()) && !erase.stroke.is_empty() {
+                if resp.clicked()
+                    && let Some(p) = pointer
+                {
+                    let (u, v) = xf.screen_to_norm(p);
+                    erase.stroke.push([u, v]);
+                }
+                view.pending_action = Some(ViewAction::CameraErase);
+            } else if resp.clicked()
+                && let Some(p) = pointer.filter(|p| xf.rect.contains(*p))
+            {
+                // A tap erases a dot.
+                let (u, v) = xf.screen_to_norm(p);
+                erase.stroke.push([u, v]);
+                view.pending_action = Some(ViewAction::CameraErase);
+            }
+        }
+        return;
+    }
+    // Split pages: drag the line across the spread.
+    if let Some((split_page, fraction)) = view.camera_split.as_mut() {
+        if *split_page == page
+            && (resp.dragged() || resp.drag_started() || resp.clicked())
+            && let Some(p) = pointer
+            && xf.rect.contains(p)
+        {
+            let (u, _) = xf.screen_to_norm(p);
+            *fraction = u.clamp(0.05, 0.95);
+        }
+        if *split_page == page && pointer.is_some_and(|p| xf.rect.contains(p)) {
+            ui.ctx().set_cursor_icon(egui::CursorIcon::ResizeHorizontal);
         }
         return;
     }
@@ -130,8 +196,30 @@ pub(crate) fn page_input(ui: &egui::Ui, resp: &egui::Response, xf: &PageXform, p
     }
 }
 
-/// The quadrilateral and its handles, with what will be cut away dimmed.
+/// The quadrilateral and its handles, with what will be cut away dimmed; or, while splitting a
+/// spread, the line it will be split at.
 pub(crate) fn paint(painter: &egui::Painter, xf: &PageXform, page: usize, view: &DocView) {
+    if let Some(erase) = view.camera_erase.as_ref().filter(|e| e.page == page) {
+        // The stroke so far, at the brush's width, until it's applied.
+        let pts: Vec<Pos2> = erase.stroke.iter().map(|[u, v]| xf.norm_to_screen(*u, *v)).collect();
+        let width = (erase.radius() * 2.0 * xf.rect.width()).max(2.0);
+        if pts.len() == 1 {
+            painter.circle_filled(pts[0], width / 2.0, Color32::from_white_alpha(200));
+        } else if pts.len() > 1 {
+            painter.add(Shape::line(pts, Stroke::new(width, Color32::from_white_alpha(200))));
+        }
+        return;
+    }
+    if let Some((split_page, fraction)) = view.camera_split {
+        if split_page == page {
+            let (top, bottom) = (xf.norm_to_screen(fraction, 0.0), xf.norm_to_screen(fraction, 1.0));
+            painter.line_segment([top, bottom], Stroke::new(3.0, Color32::WHITE));
+            painter.line_segment([top, bottom], Stroke::new(1.5, BLUE));
+            let mid = top.lerp(bottom, 0.5);
+            painter.circle(mid, 9.0, Color32::WHITE, Stroke::new(2.0, BLUE));
+        }
+        return;
+    }
     let Some(q) = view.camera.filter(|q| q.page == page) else { return };
     let pts: Vec<Pos2> = q.corners.iter().map(|&c| screen(xf, c)).collect();
     // Dim the page outside the quadrilateral: a band from each edge out to the page's border.
@@ -176,6 +264,32 @@ pub(crate) fn bar(ctx: &egui::Context, view: &mut DocView, area: Rect, t: &Token
                 .inner_margin(egui::Margin::symmetric(12, 8))
                 .show(ui, |ui| {
                     ui.horizontal(|ui| {
+                        // Eraser: brush size, and back to the bar.
+                        if let Some(erase) = view.camera_erase.as_mut() {
+                            ui.label(tl!("Brush over marks to remove them"));
+                            ui.separator();
+                            for (k, label) in [tl!("Small"), tl!("Medium"), tl!("Large")].into_iter().enumerate() {
+                                if ui.add(egui::Button::selectable(erase.size == k, label)).clicked() {
+                                    erase.size = k;
+                                }
+                            }
+                            ui.separator();
+                            if crate::widgets::pill_button(ui, tl!("Done erasing"), true).clicked() {
+                                view.camera_erase = None;
+                            }
+                            return;
+                        }
+                        // Split pages: the line is on the page; split there, or don't.
+                        if view.camera_split.is_some() {
+                            ui.label(tl!("Drag the line onto the spine"));
+                            if ui.add_enabled_ui(allowed, |ui| crate::widgets::pill_button(ui, tl!("Split here"), true)).inner.clicked() {
+                                view.pending_action = Some(ViewAction::CameraSplit);
+                            }
+                            if crate::widgets::pill_button(ui, tl!("Cancel"), false).clicked() {
+                                view.camera_split = None;
+                            }
+                            return;
+                        }
                         // Enhance all pages under way: its progress, and Cancel.
                         if let Some(all) = &view.camera_all {
                             ui.spinner();
@@ -226,6 +340,20 @@ pub(crate) fn bar(ctx: &egui::Context, view: &mut DocView, area: Rect, t: &Token
                             }
                             if icon(ui, "rotate-cw", tl!("Rotate clockwise")) {
                                 view.pending_action = Some(ViewAction::CameraRotate { clockwise: true });
+                            }
+                            // Fingers, smudges and stains: brushed out with the paper's colour.
+                            if crate::widgets::pill_button(ui, tl!("Eraser"), false)
+                                .on_hover_text(tl!("Brush over fingers, smudges and stains to paint them out"))
+                                .clicked()
+                            {
+                                view.camera_erase = Some(CameraErase { page: done.page, stroke: Vec::new(), size: 1 });
+                            }
+                            // A photographed book spread: two pages from one.
+                            if crate::widgets::pill_button(ui, tl!("Split pages"), false)
+                                .on_hover_text(tl!("Split a two-page spread into two pages"))
+                                .clicked()
+                            {
+                                view.camera_split = Some((done.page, 0.5));
                             }
                             // The same look and clean-up for every other page of the document.
                             if crate::widgets::pill_button(ui, tl!("All pages"), false)

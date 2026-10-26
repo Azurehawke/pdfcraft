@@ -288,7 +288,7 @@ impl PdfCraftApp {
                         && let Some(d) = self.views.get_mut(i).and_then(|v| v.camera_done.as_mut())
                     {
                         d.turns += degrees;
-                        d.steps += 1;
+                        d.steps = d.steps.saturating_add(1);
                     }
                 }
             }
@@ -298,6 +298,42 @@ impl PdfCraftApp {
                 self.execute(command);
             }
             Some(crate::canvas::ViewAction::CameraAll) => self.start_camera_all(i),
+            Some(crate::canvas::ViewAction::CameraErase) => {
+                let Some(view) = self.views.get_mut(i) else { return applied };
+                let id = view.id;
+                let Some(erase) = view.camera_erase.as_mut() else { return applied };
+                let (page, radius, stroke) = (erase.page, erase.radius(), std::mem::take(&mut erase.stroke));
+                match self.session.erase_camera_marks(id, page, &[stroke], radius) {
+                    Ok(()) => {
+                        if let (Some(doc), Some(view)) = (self.session.get(id), self.views.get_mut(i)) {
+                            view.document_changed(&doc.info);
+                            // The clean-up slider would re-enhance from before the erasing.
+                            if let Some(d) = view.camera_done.as_mut() {
+                                d.steps = usize::MAX;
+                            }
+                        }
+                    }
+                    Err(e) => self.notify_error(e),
+                }
+            }
+            Some(crate::canvas::ViewAction::CameraSplit) => {
+                let Some(view) = self.views.get_mut(i) else { return applied };
+                let (id, split) = (view.id, view.camera_split.take());
+                if let Some((page, fraction)) = split {
+                    match self.session.split_spread(id, page, fraction) {
+                        Ok(()) => {
+                            if let Some(doc) = self.session.get(id)
+                                && let Some(view) = self.views.get_mut(i)
+                            {
+                                view.document_changed(&doc.info);
+                            }
+                            self.leave_camera(i);
+                            self.notify_fmt("Split into pages {a} and {b}", &[("a", &(page + 1).to_string()), ("b", &(page + 2).to_string())]);
+                        }
+                        Err(e) => self.notify_error(e),
+                    }
+                }
+            }
             Some(crate::canvas::ViewAction::CameraAllCancel) => {
                 if let Some(all) = self.views.get_mut(i).and_then(|v| v.camera_all.take()) {
                     all.cancel.store(true, std::sync::atomic::Ordering::Relaxed);
@@ -458,6 +494,8 @@ impl PdfCraftApp {
         if let Some(view) = self.views.get_mut(i) {
             view.camera = None;
             view.camera_done = None;
+            view.camera_split = None;
+            view.camera_erase = None;
             if let Some(all) = view.camera_all.take() {
                 all.cancel.store(true, std::sync::atomic::Ordering::Relaxed);
             }

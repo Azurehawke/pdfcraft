@@ -574,6 +574,10 @@ pub struct DocView {
     pub camera_done: Option<crate::camera_ui::CameraDone>,
     /// Enhance all pages, while it runs.
     pub camera_all: Option<crate::camera_ui::CameraAll>,
+    /// Split pages: the page and where across it (0–1) the line is.
+    pub camera_split: Option<(usize, f32)>,
+    /// Eraser, while it's on.
+    pub camera_erase: Option<crate::camera_ui::CameraErase>,
     /// Use a certificate: a signature rectangle being drawn, or an empty signature field clicked.
     pub sign: crate::sign_ui::SignView,
     /// Organize: the pages being dragged to a new place.
@@ -702,6 +706,10 @@ pub enum ViewAction {
     CameraAll,
     /// Stop Enhance all pages; nothing changes.
     CameraAllCancel,
+    /// Split the spread at the line (`DocView::camera_split`).
+    CameraSplit,
+    /// Apply the eraser's stroke (`DocView::camera_erase`).
+    CameraErase,
 }
 
 impl DocView {
@@ -868,6 +876,8 @@ impl DocView {
             camera: None,
             camera_done: None,
             camera_all: None,
+            camera_split: None,
+            camera_erase: None,
             sign: Default::default(),
             org_drag: None,
             panel_drag: None,
