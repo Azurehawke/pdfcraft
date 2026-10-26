@@ -348,6 +348,9 @@ Markup and measuring
   - A finger dragging the Select tool over empty paper pans (mouse and pen still draw a box).
   - A finger's flick glides on and slows to a stop; a touch stops it.
   - Pen-only drawing waits for a pen: on a phone (or a tablet without its pen) fingers draw.
+- [x] **(Steve, build 192)** The file picker on a phone: fits the screen's width, the whole box scrolls
+      so Open, Save and Cancel are always reachable, a shorter file list, and the path as buttons
+      (every folder on the way goes straight there).
 - [ ] **(Steve, next)** Touch, second pass from use on the devices: double tap to zoom, the drag
       threshold, the glide's feel, long press; quick Add photo button and field flow on the phone;
       Properties, caption box and keypad sized for the phone.

@@ -265,6 +265,200 @@ impl Browser {
         }
     }
 
+    /// The picker's contents: where to look, the folder's files, and the buttons.
+    fn contents(&mut self, ui: &mut egui::Ui, screen: egui::Rect, answer: &mut Option<Vec<PathBuf>>, go_to: &mut Option<PathBuf>) {
+        ui.spacing_mut().interact_size.y = ROW_HEIGHT;
+        ui.heading(&self.title);
+        ui.add_space(6.0);
+        self.system_picker(ui, answer);
+        ui.add_space(4.0);
+        if !self.access {
+            egui::Frame::group(ui.style()).show(ui, |ui| {
+                ui.label(egui::RichText::new(tl!("RevuCraft can't see your files yet")).strong());
+                ui.label(tl!(
+                    "To open and save PDFs anywhere on this device, turn on All files access for RevuCraft. Settings opens on the switch; come back here afterwards."
+                ));
+                let button = egui::Button::new(egui::RichText::new(tl!("Allow access…")).strong()).min_size(egui::vec2(220.0, ROW_HEIGHT + 8.0));
+                if ui.add(button).clicked() {
+                    self.access_note = Some(match FILE_ACCESS.get() {
+                        None => tl!("This build can't open Settings by itself.").to_string(),
+                        Some(access) => match (access.request)() {
+                            Ok(()) => tl!("Opening Settings… If nothing appears, use the steps below.").to_string(),
+                            Err(e) => format!("{} {e}", tl!("Settings didn't open:")),
+                        },
+                    });
+                }
+                if let Some(note) = &self.access_note {
+                    ui.label(egui::RichText::new(note).italics());
+                }
+                ui.add_space(4.0);
+                ui.label(tl!("Or yourself: Settings ▸ Apps ▸ ⋮ (top right) ▸ Special access ▸ All files access ▸ RevuCraft ▸ turn it on."));
+            });
+            ui.add_space(6.0);
+        }
+
+        // Places, then where we are.
+        ui.horizontal_wrapped(|ui| {
+            for (label, path) in places() {
+                if ui.button(label).clicked() {
+                    *go_to = Some(path);
+                }
+            }
+        });
+        // Where we are: every folder on the way is a button that goes straight there.
+        ui.horizontal_wrapped(|ui| {
+            ui.spacing_mut().item_spacing.x = 2.0;
+            let up = self.dir.parent().map(Path::to_path_buf);
+            if ui.add_enabled(up.is_some(), egui::Button::new("⬆")).on_hover_text(tl!("Up one folder")).clicked() {
+                *go_to = up;
+            }
+            let mut so_far = PathBuf::new();
+            let parts: Vec<std::path::Component> = self.dir.components().collect();
+            let last = parts.len().saturating_sub(1);
+            for (i, part) in parts.into_iter().enumerate() {
+                so_far.push(part);
+                let name = part.as_os_str().to_string_lossy().into_owned();
+                if i == last {
+                    ui.label(egui::RichText::new(name).strong());
+                } else {
+                    if ui.button(name).clicked() {
+                        *go_to = Some(so_far.clone());
+                    }
+                    ui.label("›");
+                }
+            }
+        });
+        ui.separator();
+
+        // The folder's contents.
+        // A phone's list leaves room for the buttons below it.
+        let list_height =
+            if screen.width() < crate::chrome::PHONE_WIDTH { (screen.height() * 0.38).max(140.0) } else { (screen.height() * 0.5).max(200.0) };
+        egui::ScrollArea::vertical().max_height(list_height).auto_shrink([false, false]).show(ui, |ui| {
+            if let Some(e) = &self.error {
+                ui.colored_label(ui.visuals().error_fg_color, e);
+            }
+            let shown: Vec<Entry> = self.entries.iter().filter(|e| self.shows(e)).cloned().collect();
+            if shown.is_empty() && self.error.is_none() {
+                ui.weak(tl!("This folder is empty"));
+            }
+            for e in shown {
+                let icon = if e.dir { "📁" } else { "📄" };
+                let picked = self.selected.contains(&e.path);
+                let row = ui.add_sized([ui.available_width(), ROW_HEIGHT], egui::Button::selectable(picked, format!("{icon}  {}", e.name)));
+                if row.double_clicked() && !e.dir && matches!(self.mode, Mode::File | Mode::Files) {
+                    *answer = Some(vec![e.path.clone()]);
+                } else if row.clicked() {
+                    if e.dir {
+                        *go_to = Some(e.path.clone());
+                    } else {
+                        match self.mode {
+                            Mode::File => self.selected = vec![e.path.clone()],
+                            Mode::Files => {
+                                if picked {
+                                    self.selected.retain(|p| p != &e.path);
+                                } else {
+                                    self.selected.push(e.path.clone());
+                                }
+                            }
+                            Mode::Save => self.name.clone_from(&e.name),
+                            Mode::Folder => {}
+                        }
+                    }
+                }
+            }
+        });
+        ui.separator();
+
+        // File types.
+        if !self.filters.is_empty() && self.mode != Mode::Folder {
+            ui.horizontal(|ui| {
+                ui.label(tl!("Show:"));
+                let all = self.filters.len();
+                let label = |i: usize| self.filters.get(i).map_or_else(|| tl!("All files").to_string(), |(n, _)| n.clone());
+                let current = label(self.filter);
+                let mut filter = self.filter;
+                egui::ComboBox::from_id_salt("android-picker-filter").selected_text(current).show_ui(ui, |ui| {
+                    for i in 0..=all {
+                        ui.selectable_value(&mut filter, i, label(i));
+                    }
+                });
+                if filter != self.filter {
+                    self.filter = filter;
+                    self.selected.clear();
+                }
+            });
+        }
+
+        // New folder (where something is being saved or a folder chosen).
+        if matches!(self.mode, Mode::Save | Mode::Folder) {
+            ui.horizontal(|ui| match &mut self.new_folder {
+                None => {
+                    if ui.button(tl!("New folder")).clicked() {
+                        self.new_folder = Some(String::new());
+                    }
+                }
+                Some(name) => {
+                    let field = ui.text_edit_singleline(name);
+                    let create = ui.button(tl!("Create")).clicked() || (field.lost_focus() && ui.input(|i| i.key_pressed(egui::Key::Enter)));
+                    if create {
+                        let name = name.trim().to_string();
+                        if !name.is_empty() && !name.contains('/') {
+                            let path = self.dir.join(&name);
+                            match std::fs::create_dir(&path) {
+                                Ok(()) => *go_to = Some(path),
+                                Err(e) => self.error = Some(e.to_string()),
+                            }
+                        }
+                        self.new_folder = None;
+                    }
+                }
+            });
+        }
+
+        if self.mode == Mode::Save {
+            ui.horizontal(|ui| {
+                ui.label(tl!("Name:"));
+                let field = ui.add(egui::TextEdit::singleline(&mut self.name).desired_width(ui.available_width()));
+                if field.lost_focus() && ui.input(|i| i.key_pressed(egui::Key::Enter)) {
+                    self.confirm_save(answer);
+                }
+            });
+        }
+        if let Some(path) = self.confirm_replace.clone() {
+            let name = path.file_name().map(|n| n.to_string_lossy().to_string()).unwrap_or_default();
+            ui.colored_label(ui.visuals().warn_fg_color, format!("{name}: {}", tl!("already exists. Replace it?")));
+        }
+
+        // Buttons.
+        ui.add_space(4.0);
+        ui.horizontal(|ui| {
+            if ui.button(tl!("Cancel")).clicked() {
+                *answer = Some(Vec::new());
+            }
+            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| match self.mode {
+                Mode::File | Mode::Files => {
+                    let n = self.selected.len();
+                    let label = if self.mode == Mode::Files && n > 1 { format!("{} ({n})", tl!("Open")) } else { tl!("Open").to_string() };
+                    if ui.add_enabled(n > 0, egui::Button::new(label)).clicked() {
+                        *answer = Some(self.selected.clone());
+                    }
+                }
+                Mode::Folder => {
+                    if ui.add_enabled(self.error.is_none(), egui::Button::new(tl!("Use this folder"))).clicked() {
+                        *answer = Some(vec![self.dir.clone()]);
+                    }
+                }
+                Mode::Save => {
+                    let label = if self.confirm_replace.is_some() { tl!("Replace") } else { tl!("Save") };
+                    if ui.add_enabled(self.save_path().is_some(), egui::Button::new(label)).clicked() {
+                        self.confirm_save(answer);
+                    }
+                }
+            });
+        });
+    }
+
     /// RevuCraft: the photo from the camera app, straight away. Cancelled in the camera app, the
     /// pick is cancelled; when no camera app can take it, the browser shows instead, saying why.
     fn show_camera(&mut self, ctx: &egui::Context) -> Option<Vec<PathBuf>> {
@@ -404,179 +598,15 @@ impl Browser {
             }
         }
         let modal = egui::Modal::new(egui::Id::new("android-file-picker")).show(ctx, |ui| {
-            ui.set_width((screen.width() * 0.8).clamp(320.0, 980.0));
-            ui.spacing_mut().interact_size.y = ROW_HEIGHT;
-            ui.heading(&self.title);
-            ui.add_space(6.0);
-            self.system_picker(ui, &mut answer);
-            ui.add_space(4.0);
-            if !self.access {
-                egui::Frame::group(ui.style()).show(ui, |ui| {
-                    ui.label(egui::RichText::new(tl!("RevuCraft can't see your files yet")).strong());
-                    ui.label(tl!(
-                        "To open and save PDFs anywhere on this device, turn on All files access for RevuCraft. Settings opens on the switch; come back here afterwards."
-                    ));
-                    let button = egui::Button::new(egui::RichText::new(tl!("Allow access…")).strong()).min_size(egui::vec2(220.0, ROW_HEIGHT + 8.0));
-                    if ui.add(button).clicked() {
-                        self.access_note = Some(match FILE_ACCESS.get() {
-                            None => tl!("This build can't open Settings by itself.").to_string(),
-                            Some(access) => match (access.request)() {
-                                Ok(()) => tl!("Opening Settings… If nothing appears, use the steps below.").to_string(),
-                                Err(e) => format!("{} {e}", tl!("Settings didn't open:")),
-                            },
-                        });
-                    }
-                    if let Some(note) = &self.access_note {
-                        ui.label(egui::RichText::new(note).italics());
-                    }
-                    ui.add_space(4.0);
-                    ui.label(tl!("Or yourself: Settings ▸ Apps ▸ ⋮ (top right) ▸ Special access ▸ All files access ▸ RevuCraft ▸ turn it on."));
-                });
-                ui.add_space(6.0);
-            }
-
-            // Places, then where we are.
-            ui.horizontal_wrapped(|ui| {
-                for (label, path) in places() {
-                    if ui.button(label).clicked() {
-                        go_to = Some(path);
-                    }
-                }
-            });
-            ui.horizontal(|ui| {
-                let up = self.dir.parent().map(Path::to_path_buf);
-                if ui.add_enabled(up.is_some(), egui::Button::new("⬆")).on_hover_text(tl!("Up one folder")).clicked() {
-                    go_to = up;
-                }
-                ui.label(egui::RichText::new(self.dir.display().to_string()).monospace());
-            });
-            ui.separator();
-
-            // The folder's contents.
-            let list_height = (screen.height() * 0.5).max(200.0);
-            egui::ScrollArea::vertical().max_height(list_height).auto_shrink([false, false]).show(ui, |ui| {
-                if let Some(e) = &self.error {
-                    ui.colored_label(ui.visuals().error_fg_color, e);
-                }
-                let shown: Vec<Entry> = self.entries.iter().filter(|e| self.shows(e)).cloned().collect();
-                if shown.is_empty() && self.error.is_none() {
-                    ui.weak(tl!("This folder is empty"));
-                }
-                for e in shown {
-                    let icon = if e.dir { "📁" } else { "📄" };
-                    let picked = self.selected.contains(&e.path);
-                    let row = ui.add_sized([ui.available_width(), ROW_HEIGHT], egui::Button::selectable(picked, format!("{icon}  {}", e.name)));
-                    if row.double_clicked() && !e.dir && matches!(self.mode, Mode::File | Mode::Files) {
-                        answer = Some(vec![e.path.clone()]);
-                    } else if row.clicked() {
-                        if e.dir {
-                            go_to = Some(e.path.clone());
-                        } else {
-                            match self.mode {
-                                Mode::File => self.selected = vec![e.path.clone()],
-                                Mode::Files => {
-                                    if picked {
-                                        self.selected.retain(|p| p != &e.path);
-                                    } else {
-                                        self.selected.push(e.path.clone());
-                                    }
-                                }
-                                Mode::Save => self.name.clone_from(&e.name),
-                                Mode::Folder => {}
-                            }
-                        }
-                    }
-                }
-            });
-            ui.separator();
-
-            // File types.
-            if !self.filters.is_empty() && self.mode != Mode::Folder {
-                ui.horizontal(|ui| {
-                    ui.label(tl!("Show:"));
-                    let all = self.filters.len();
-                    let label = |i: usize| self.filters.get(i).map_or_else(|| tl!("All files").to_string(), |(n, _)| n.clone());
-                    let current = label(self.filter);
-                    let mut filter = self.filter;
-                    egui::ComboBox::from_id_salt("android-picker-filter").selected_text(current).show_ui(ui, |ui| {
-                        for i in 0..=all {
-                            ui.selectable_value(&mut filter, i, label(i));
-                        }
-                    });
-                    if filter != self.filter {
-                        self.filter = filter;
-                        self.selected.clear();
-                    }
-                });
-            }
-
-            // New folder (where something is being saved or a folder chosen).
-            if matches!(self.mode, Mode::Save | Mode::Folder) {
-                ui.horizontal(|ui| match &mut self.new_folder {
-                    None => {
-                        if ui.button(tl!("New folder")).clicked() {
-                            self.new_folder = Some(String::new());
-                        }
-                    }
-                    Some(name) => {
-                        let field = ui.text_edit_singleline(name);
-                        let create = ui.button(tl!("Create")).clicked() || (field.lost_focus() && ui.input(|i| i.key_pressed(egui::Key::Enter)));
-                        if create {
-                            let name = name.trim().to_string();
-                            if !name.is_empty() && !name.contains('/') {
-                                let path = self.dir.join(&name);
-                                match std::fs::create_dir(&path) {
-                                    Ok(()) => go_to = Some(path),
-                                    Err(e) => self.error = Some(e.to_string()),
-                                }
-                            }
-                            self.new_folder = None;
-                        }
-                    }
-                });
-            }
-
-            if self.mode == Mode::Save {
-                ui.horizontal(|ui| {
-                    ui.label(tl!("Name:"));
-                    let field = ui.add(egui::TextEdit::singleline(&mut self.name).desired_width(ui.available_width()));
-                    if field.lost_focus() && ui.input(|i| i.key_pressed(egui::Key::Enter)) {
-                        self.confirm_save(&mut answer);
-                    }
-                });
-            }
-            if let Some(path) = self.confirm_replace.clone() {
-                let name = path.file_name().map(|n| n.to_string_lossy().to_string()).unwrap_or_default();
-                ui.colored_label(ui.visuals().warn_fg_color, format!("{name}: {}", tl!("already exists. Replace it?")));
-            }
-
-            // Buttons.
-            ui.add_space(4.0);
-            ui.horizontal(|ui| {
-                if ui.button(tl!("Cancel")).clicked() {
-                    answer = Some(Vec::new());
-                }
-                ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| match self.mode {
-                    Mode::File | Mode::Files => {
-                        let n = self.selected.len();
-                        let label = if self.mode == Mode::Files && n > 1 { format!("{} ({n})", tl!("Open")) } else { tl!("Open").to_string() };
-                        if ui.add_enabled(n > 0, egui::Button::new(label)).clicked() {
-                            answer = Some(self.selected.clone());
-                        }
-                    }
-                    Mode::Folder => {
-                        if ui.add_enabled(self.error.is_none(), egui::Button::new(tl!("Use this folder"))).clicked() {
-                            answer = Some(vec![self.dir.clone()]);
-                        }
-                    }
-                    Mode::Save => {
-                        let label = if self.confirm_replace.is_some() { tl!("Replace") } else { tl!("Save") };
-                        if ui.add_enabled(self.save_path().is_some(), egui::Button::new(label)).clicked() {
-                            self.confirm_save(&mut answer);
-                        }
-                    }
-                });
-            });
+            // Within the screen (a phone's is narrower than 320 points less the margins).
+            ui.set_width((screen.width() * 0.8).clamp(320.0, 980.0).min((screen.width() - 32.0).max(200.0)));
+            // Taller than the screen (a phone, the keyboard up): the whole box scrolls, so its
+            // buttons are always reachable.
+            egui::ScrollArea::vertical()
+                .id_salt("android-picker-box")
+                .max_height((screen.height() - 48.0).max(200.0))
+                .auto_shrink([false, true])
+                .show(ui, |ui| self.contents(ui, screen, &mut answer, &mut go_to));
         });
         if answer.is_none() && (modal.should_close() || ctx.input(|i| i.key_pressed(egui::Key::Escape))) {
             answer = Some(Vec::new());
