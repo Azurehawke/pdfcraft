@@ -150,7 +150,7 @@ fn add_page(app: &mut PdfCraftApp, scan: Scan, bytes: Vec<u8>) -> Result<Scan, S
             (i, id, at)
         }
         None => {
-            app.open_created("Scan.pdf", pdf)?;
+            app.open_new_document("Scan.pdf", pdf)?;
             let i = app.views.len().checked_sub(1).ok_or("the scan didn't open")?;
             (i, app.views.get(i).map(|v| v.id).ok_or("the scan didn't open")?, 0)
         }

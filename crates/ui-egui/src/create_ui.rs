@@ -98,7 +98,7 @@ impl PdfCraftApp {
     }
 
     /// Open a document PdfCraft just made (`name` is its tab's name) in a new, active tab.
-    pub(crate) fn open_created(&mut self, name: &str, bytes: Arc<Vec<u8>>) -> Result<(), String> {
+    pub(crate) fn open_new_document(&mut self, name: &str, bytes: Arc<Vec<u8>>) -> Result<(), String> {
         self.open_created_bytes(name, Ok(bytes))
     }
 
