@@ -839,6 +839,17 @@ pub(crate) fn page_input(ui: &egui::Ui, resp: &egui::Response, cx: &PageCx<'_>, 
         cv.context_at = Some((cx.page, cx.to_user(p)));
         cv.selected = cx.hit(p).map(|a| (cx.page, a.index));
     }
+    // A finger's tap where it pans (it has the Hand tool): a comment is selected, as the Select
+    // tool's tap would; a drag still pans (RevuCraft build 194).
+    if cx.tool == QuickTool::Hand
+        && crate::pen::finger()
+        && resp.clicked()
+        && let Some(a) = pointer.filter(|p| page_rect.contains(*p)).and_then(|p| cx.hit(p))
+    {
+        cv.selected = Some((cx.page, a.index));
+        cv.reveal = true;
+        return true;
+    }
     match cx.tool {
         // The shape just drawn is selected with its handles showing: they resize it without a
         // trip to the Select tool (#2338). Anywhere else the tool keeps drawing.

@@ -75,6 +75,11 @@ pub fn pen_only_enabled() -> bool {
     PEN_ONLY.load(Ordering::Relaxed)
 }
 
+/// A finger drives the pointer (Android), whether or not pen-only drawing is on.
+pub(crate) fn finger() -> bool {
+    pointer_source() == PointerSource::Finger
+}
+
 /// A finger drives the pointer while pen-only drawing is on: the page treats it as the Hand tool.
 pub(crate) fn finger_pans() -> bool {
     pen_only_drawing() && pointer_source() == PointerSource::Finger

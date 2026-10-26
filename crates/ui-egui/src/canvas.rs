@@ -518,6 +518,8 @@ pub struct DocView {
     wheel_boost_y: crate::wheel_boost::WheelBoost,
     /// Touchpad momentum after the fingers lift (#531).
     fling: crate::fling::Fling,
+    /// A finger was panning the page last pass: its lift may glide (from RevuCraft).
+    touch_panning: bool,
     pub(crate) auto_scroll: crate::autoscroll::AutoScroll,
     /// Pages selected in the organize grid or the Pages panel (0-based). Empty means "the current page".
     pub selected: BTreeSet<usize>,
@@ -827,6 +829,7 @@ impl DocView {
             wheel_boost_x: Default::default(),
             wheel_boost_y: Default::default(),
             fling: Default::default(),
+            touch_panning: false,
             auto_scroll: Default::default(),
             selected: BTreeSet::new(),
             select_anchor: None,
@@ -2903,11 +2906,20 @@ pub fn document_area(app: &mut PdfCraftApp, index: usize, ui: &mut egui::Ui) {
                     matches!(e, egui::Event::PointerButton { button: egui::PointerButton::Primary, pressed: false, modifiers, .. } if modifiers.shift)
                 })
         });
+    // Two fingers on a touch screen: they move and zoom the page whatever the tool (RevuCraft).
+    let touch = ui.input(|i| i.multi_touch());
     if zoom_delta.is_finite() && zoom_delta > 0.0 && zoom_delta != 1.0 && navigation_enabled && ui.rect_contains_pointer(navigation_rect) {
         let z = view.zoom * zoom_delta;
-        match zoom_anchor(ui) {
-            Some(p) => view.zoom_at(z, p),
-            None => view.set_zoom(z),
+        match (touch.as_ref(), zoom_anchor(ui)) {
+            // Pinching: the point between the fingers stays under them as they move.
+            (Some(t), _) if t.center_pos.is_finite() && t.translation_delta.is_finite() => {
+                view.zoom_at(z, t.center_pos - t.translation_delta);
+                if let Some(anchor) = view.zoom_anchor.as_mut() {
+                    anchor.3 += t.translation_delta;
+                }
+            }
+            (_, Some(p)) => view.zoom_at(z, p),
+            _ => view.set_zoom(z),
         }
     }
     view.viewport_screen = avail;
@@ -3086,7 +3098,7 @@ pub fn document_area(app: &mut PdfCraftApp, index: usize, ui: &mut egui::Ui) {
     let mut scroll = egui::ScrollArea::both().auto_shrink([false, false]).scroll_source(egui::scroll_area::ScrollSource {
         drag: if middle_gesture {
             egui::scroll_area::DragScroll::Never
-        } else if app.quick_tool == QuickTool::Hand || finger_pans_with(app.quick_tool) {
+        } else if app.quick_tool == QuickTool::Hand || finger_pans_with(app.quick_tool) || touch.is_some() {
             egui::scroll_area::DragScroll::Always
         } else if crate::pen::pen_draws() {
             // Pen-only drawing: the pen uses the tool; it never drags the page along.
@@ -3112,7 +3124,11 @@ pub fn document_area(app: &mut PdfCraftApp, index: usize, ui: &mut egui::Ui) {
     // page only after that frame was drawn, a frame behind. The frame egui tells the drag from a
     // click, the page catches up with all the pointer has moved since the press. A jump asked for
     // below still wins.
-    if app.quick_tool == QuickTool::Hand
+    // Fingers pan the same way (RevuCraft): a finger where it pans (`finger_pans_with`), two
+    // fingers with any tool. They glide on after a flick.
+    let pans = app.quick_tool == QuickTool::Hand || finger_pans_with(app.quick_tool) || touch.is_some();
+    let mut panned = false;
+    if pans
         && !middle_gesture
         && let Some(id) = view.page_widget.filter(|id| ui.ctx().is_being_dragged(*id))
     {
@@ -3121,10 +3137,19 @@ pub fn document_area(app: &mut PdfCraftApp, index: usize, ui: &mut egui::Ui) {
         } else {
             ui.input(|i| i.pointer.delta())
         };
+        let moved = if moved.is_finite() { moved } else { Vec2::ZERO };
         // Within the content, as egui keeps it: past an end the page would show there for a
         // frame and spring back. `max` is never NaN or below zero, so the clamp can't panic.
         let max = vec2((content_w - avail.width()).max(0.0), (content_h - avail.height()).max(0.0));
         scroll = scroll.scroll_offset((view.last_scroll - moved).clamp(Vec2::ZERO, max));
+        if crate::pen::finger() || touch.is_some() {
+            view.fling.drag(now, moved);
+            panned = true;
+        }
+    }
+    if std::mem::replace(&mut view.touch_panning, panned) && !panned {
+        view.fling.release(now, may_glide);
+        ui.ctx().request_repaint();
     }
     if let Some(v) = view.sync_scroll.take() {
         scroll = scroll.scroll_offset(v);
@@ -5864,8 +5889,12 @@ pub(crate) fn texture_image(size: [usize; 2], pixels: pdfcraft_render::Pixels) -
 /// Pen-only drawing (tablets): whether a finger on the page pans it, as the Hand tool would,
 /// rather than using `tool`. It does for every tool (selecting text included: the pen and the
 /// mouse select), except the ones a tap uses to type: Add Text, Edit Text and Fill & Sign.
+///
+/// Before a pen is used (a phone), a finger still pans with the Select tool, which it would
+/// otherwise drag a text selection with (RevuCraft: the pen and the mouse select).
 fn finger_pans_with(tool: QuickTool) -> bool {
-    crate::pen::finger_pans() && !matches!(tool, QuickTool::AddText | QuickTool::EditText | QuickTool::Fill(_))
+    (crate::pen::finger_pans() && !matches!(tool, QuickTool::AddText | QuickTool::EditText | QuickTool::Fill(_)))
+        || (crate::pen::pen_only_enabled() && crate::pen::finger() && matches!(tool, QuickTool::Select | QuickTool::Hand))
 }
 
 /// A luminance preview for a monochrome print. `Color32` stores premultiplied pixels, so a
