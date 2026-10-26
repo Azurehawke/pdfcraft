@@ -625,10 +625,13 @@ fn browser(ui: &mut egui::Ui, t: &Tokens, d: &mut NewDialog, recent: &[(String, 
         });
     });
     let list_h = (ui.available_height() - 46.0).clamp(140.0, 320.0);
-    ui.horizontal_top(|ui| {
+    // Narrow (a phone-sized window): the places above the folder's files, not beside them.
+    let narrow = ui.available_width() < 520.0;
+    let row = if narrow { Layout::top_down(Align::Min) } else { Layout::left_to_right(Align::Min) };
+    ui.with_layout(row, |ui| {
         // Places.
         ui.vertical(|ui| {
-            ui.set_width(170.0);
+            ui.set_width(if narrow { ui.available_width() } else { 170.0 });
             let mut places: Vec<(String, Place)> = vec![(tl!("Recent files").to_string(), Place::RecentFiles)];
             if let Some(h) = &home {
                 places.push((tl!("Home").to_string(), Place::Folder(h.clone())));
@@ -731,10 +734,12 @@ fn browser(ui: &mut egui::Ui, t: &Tokens, d: &mut NewDialog, recent: &[(String, 
             });
         });
     });
-    // The file name, type and Open.
-    ui.horizontal(|ui| {
+    // The file name, type and Open (narrow: they wrap onto a second row).
+    let footer = if narrow { Layout::left_to_right(Align::Center).with_main_wrap(true) } else { Layout::left_to_right(Align::Center) };
+    ui.with_layout(footer, |ui| {
         ui.label(tl!("File"));
-        let r = ui.add(egui::TextEdit::singleline(&mut d.file_name).desired_width(320.0));
+        let field_w = if narrow { (ui.available_width() - 50.0).max(120.0) } else { 320.0 };
+        let r = ui.add(egui::TextEdit::singleline(&mut d.file_name).desired_width(field_w));
         let enter = r.lost_focus() && ui.input(|i| i.key_pressed(egui::Key::Enter));
         egui::ComboBox::from_id_salt("new-filter")
             .selected_text(if d.all_files { tl!("All files") } else { tl!("PDF, drawings and images") })
