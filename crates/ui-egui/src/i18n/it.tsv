@@ -3445,3 +3445,8 @@ certificate	SHA-256 digest	Impronta SHA-256
 	Camera	Fotocamera
 	Waiting for the camera…	In attesa della fotocamera…
 	Take the photo with the camera, or choose a photo file	Scatta la foto con la fotocamera o scegli un file di foto
+	Take the photo	Scatta la foto
+	The Camera app is open. Take the photo there, then come back: RevuCraft places it as soon as the Camera app saves it.	L'app Fotocamera è aperta. Scatta lì la foto, poi torna qui: RevuCraft la inserisce appena l'app Fotocamera la salva.
+	Open the Camera app again	Riapri l'app Fotocamera
+	Choose a file instead	Scegli invece un file
+	The Camera app didn't open: {e}	L'app Fotocamera non si è aperta: {e}

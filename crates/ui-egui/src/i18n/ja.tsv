@@ -3215,3 +3215,8 @@ animation effects	Off	オフ
 	Camera	カメラ
 	Waiting for the camera…	カメラを待っています…
 	Take the photo with the camera, or choose a photo file	カメラで撮影するか、写真ファイルを選びます
+	Take the photo	写真を撮影
+	The Camera app is open. Take the photo there, then come back: RevuCraft places it as soon as the Camera app saves it.	カメラ アプリが開いています。そこで撮影してから戻ってください。カメラ アプリが保存するとすぐに RevuCraft が配置します。
+	Open the Camera app again	カメラ アプリをもう一度開く
+	Choose a file instead	代わりにファイルを選ぶ
+	The Camera app didn't open: {e}	カメラ アプリを開けませんでした: {e}

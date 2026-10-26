@@ -3485,3 +3485,8 @@ certificate	Version	الإصدار
 	Camera	الكاميرا
 	Waiting for the camera…	في انتظار الكاميرا…
 	Take the photo with the camera, or choose a photo file	التقط الصورة بالكاميرا أو اختر ملف صورة
+	Take the photo	التقط الصورة
+	The Camera app is open. Take the photo there, then come back: RevuCraft places it as soon as the Camera app saves it.	تطبيق الكاميرا مفتوح. التقط الصورة هناك ثم عُد: يضعها RevuCraft فور حفظها في تطبيق الكاميرا.
+	Open the Camera app again	افتح تطبيق الكاميرا مرة أخرى
+	Choose a file instead	اختر ملفًا بدلاً من ذلك
+	The Camera app didn't open: {e}	لم يُفتح تطبيق الكاميرا: {e}

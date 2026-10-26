@@ -3211,3 +3211,8 @@ animation effects	Off	Ki
 	Camera	Kamera
 	Waiting for the camera…	Várakozás a kamerára…
 	Take the photo with the camera, or choose a photo file	Fénykép készítése a kamerával vagy fényképfájl választása
+	Take the photo	Készítse el a fényképet
+	The Camera app is open. Take the photo there, then come back: RevuCraft places it as soon as the Camera app saves it.	A Kamera alkalmazás meg van nyitva. Készítse el ott a fényképet, majd térjen vissza: a RevuCraft elhelyezi, amint a Kamera alkalmazás menti.
+	Open the Camera app again	Kamera alkalmazás újbóli megnyitása
+	Choose a file instead	Inkább fájl választása
+	The Camera app didn't open: {e}	A Kamera alkalmazás nem nyílt meg: {e}

@@ -3176,3 +3176,8 @@ animation effects	Off	Изключени
 	Camera	Камера
 	Waiting for the camera…	Изчакване на камерата…
 	Take the photo with the camera, or choose a photo file	Направете снимката с камерата или изберете файл със снимка
+	Take the photo	Направете снимката
+	The Camera app is open. Take the photo there, then come back: RevuCraft places it as soon as the Camera app saves it.	Приложението Камера е отворено. Направете снимката там и се върнете: RevuCraft я поставя веднага щом Камера я запише.
+	Open the Camera app again	Отворете отново Камера
+	Choose a file instead	Изберете файл вместо това
+	The Camera app didn't open: {e}	Камера не се отвори: {e}

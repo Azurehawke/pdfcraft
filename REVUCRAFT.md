@@ -335,9 +335,12 @@ Markup and measuring
       Straighten as a document for photos of paper (the scan's edge finding and Colour clean-up).
       One camera bridge with the android branch's Scan with camera (`pcTakePhoto`), with Keep a copy
       in the gallery (on for site photos, off for scans).
-- [ ] **(Steve, future)** Camera on Windows and Linux (the Surface Pro 7's rear camera): a camera
-      view inside RevuCraft (live preview, shutter, front/rear switch, retake), Keep a copy to a
-      folder, the same tap-shoot-caption flow. Check the Surface's cameras under Linux.
+- [x] **(Steve, build 190)** Camera on Windows (the Surface Pro 7's rear camera): Camera or Files on the
+      photo tools there too. Camera opens Windows' Camera app; RevuCraft watches its Camera Roll
+      (wherever Windows says it is, OneDrive included) for the new photo, places it once saved and
+      comes back to the front. Open the Camera app again, Choose a file instead, or Cancel meanwhile.
+- [ ] **(Steve, later)** Camera on Linux (check the Surface's cameras there); maybe a camera view inside
+      RevuCraft on Windows too, if going through the Camera app gets in the way.
 - [ ] **(Steve, back burner)** Object styles, as Illustrator's graphic styles: save a markup's look (stroke,
       width, dash, line ends, alignment, fill, opacity, font) under a name ("Existing walls", "Demo")
       in a Styles box; apply one to the selection or make it the current tool style. A text style

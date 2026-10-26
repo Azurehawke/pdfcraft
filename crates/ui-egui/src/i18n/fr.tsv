@@ -3476,3 +3476,8 @@ certificate	Version	Version
 	Camera	Appareil photo
 	Waiting for the camera…	En attente de l'appareil photo…
 	Take the photo with the camera, or choose a photo file	Prendre la photo avec l'appareil photo ou choisir un fichier photo
+	Take the photo	Prenez la photo
+	The Camera app is open. Take the photo there, then come back: RevuCraft places it as soon as the Camera app saves it.	L'application Caméra est ouverte. Prenez la photo, puis revenez : RevuCraft la place dès que l'application Caméra l'enregistre.
+	Open the Camera app again	Rouvrir l'application Caméra
+	Choose a file instead	Choisir plutôt un fichier
+	The Camera app didn't open: {e}	L'application Caméra ne s'est pas ouverte : {e}

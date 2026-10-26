@@ -3491,3 +3491,8 @@ theme	Appearance	Aparência
 	Camera	Câmera
 	Waiting for the camera…	Aguardando a câmera…
 	Take the photo with the camera, or choose a photo file	Tirar a foto com a câmera ou escolher um arquivo de foto
+	Take the photo	Tire a foto
+	The Camera app is open. Take the photo there, then come back: RevuCraft places it as soon as the Camera app saves it.	O app Câmera está aberto. Tire a foto nele e volte: o RevuCraft a coloca assim que o app Câmera a salvar.
+	Open the Camera app again	Abrir o app Câmera de novo
+	Choose a file instead	Escolher um arquivo
+	The Camera app didn't open: {e}	O app Câmera não abriu: {e}

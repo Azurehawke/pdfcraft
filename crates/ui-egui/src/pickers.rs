@@ -99,6 +99,110 @@ pub struct Pickers {
     /// Android: the in-app file browser that stands in for a native panel.
     #[cfg(target_os = "android")]
     browser: Arc<Mutex<Option<crate::android_picker::Browser>>>,
+    /// Windows: the Camera app is open and its photo is awaited.
+    #[cfg(target_os = "windows")]
+    camera: Arc<Mutex<Option<CameraWait>>>,
+}
+
+/// Windows: a photo pin's or callout's photo, awaited from the Camera app
+/// ([`crate::camera_desktop`]).
+#[cfg(target_os = "windows")]
+struct CameraWait {
+    since: std::time::SystemTime,
+    dirs: Vec<PathBuf>,
+    /// The newest photo at the last look, to tell when it has stopped growing.
+    seen: Option<(PathBuf, u64)>,
+    /// The file picker instead, if asked for.
+    dialog: crate::dialog::AsyncFileDialog,
+    target: Option<PickTarget>,
+    then: Then,
+}
+
+#[cfg(target_os = "windows")]
+impl std::fmt::Debug for CameraWait {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("CameraWait").field("dirs", &self.dirs).field("seen", &self.seen).finish_non_exhaustive()
+    }
+}
+
+/// Windows: while the Camera app is open, look for its photo; once it is saved, place it and
+/// bring RevuCraft back to the front. A small box says what is happening, and offers the file
+/// picker or Cancel.
+#[cfg(target_os = "windows")]
+pub(crate) fn show_camera(app: &mut PdfCraftApp, ctx: &egui::Context) {
+    #[derive(Clone, Copy, PartialEq, Eq)]
+    enum Choice {
+        Again,
+        File,
+        Cancel,
+    }
+    let slot = app.pickers.camera.clone();
+    let mut guard = slot.lock().unwrap_or_else(PoisonError::into_inner);
+    let Some(wait) = guard.as_mut() else { return };
+    ctx.request_repaint_after(std::time::Duration::from_millis(500));
+    let now = crate::camera_desktop::newest_photo(&wait.dirs, wait.since);
+    if crate::camera_desktop::settled(wait.seen.as_ref(), now.as_ref()) {
+        if let (Some(done), Some((path, _))) = (guard.take(), now) {
+            app.pickers.deliver(done.target, vec![path], done.then);
+            ctx.send_viewport_cmd(egui::ViewportCommand::Focus);
+            ctx.request_repaint();
+        }
+        return;
+    }
+    wait.seen = now;
+    let mut choice = None;
+    let modal = egui::Modal::new(egui::Id::new("desktop-camera-wait")).show(ctx, |ui| {
+        ui.set_max_width(440.0);
+        ui.heading(tl!("Take the photo"));
+        ui.label(tl!("The Camera app is open. Take the photo there, then come back: RevuCraft places it as soon as the Camera app saves it."));
+        ui.add_space(6.0);
+        ui.horizontal(|ui| {
+            ui.spinner();
+            ui.label(tl!("Waiting for the camera…"));
+        });
+        ui.add_space(6.0);
+        ui.horizontal(|ui| {
+            if ui.button(tl!("Open the Camera app again")).clicked() {
+                choice = Some(Choice::Again);
+            }
+            if ui.button(tl!("Choose a file instead")).clicked() {
+                choice = Some(Choice::File);
+            }
+            if ui.button(tl!("Cancel")).clicked() {
+                choice = Some(Choice::Cancel);
+            }
+        });
+    });
+    if modal.should_close() && choice.is_none() {
+        choice = Some(Choice::Cancel);
+    }
+    match choice {
+        Some(Choice::Again) => {
+            drop(guard);
+            if let Err(e) = crate::camera_desktop::open_camera_app() {
+                app.notify_fmt("The Camera app didn't open: {e}", &[("e", e.as_str())]);
+            }
+        }
+        Some(Choice::File) => {
+            let done = guard.take();
+            drop(guard);
+            if let Some(done) = done {
+                let pick = done.dialog.pick_file();
+                let one = |h: Option<crate::dialog::FileHandle>| h.map(|h| h.path().to_path_buf()).into_iter().collect::<Vec<_>>();
+                if !app.pickers.spawn(done.target, Some(ctx.clone()), async move { one(pick.await) }, done.then) {
+                    app.pickers.showing.store(false, Ordering::SeqCst);
+                }
+            }
+        }
+        Some(Choice::Cancel) => {
+            let done = guard.take();
+            drop(guard);
+            if let Some(done) = done {
+                app.pickers.deliver(done.target, Vec::new(), done.then);
+            }
+        }
+        None => {}
+    }
 }
 
 /// Clears `showing` if the worker ends without queueing a pick (it panicked).
@@ -259,7 +363,36 @@ impl PdfCraftApp {
             let ctx = self.ctx.clone();
             let one = |h: Option<crate::dialog::FileHandle>| h.map(|h| h.path().to_path_buf()).into_iter().collect::<Vec<_>>();
             match ask {
-                Ask::File(d) | Ask::Camera(d) => {
+                Ask::File(d) => {
+                    let pick = d.pick_file();
+                    self.pickers.spawn(target, ctx, async move { one(pick.await) }, then)
+                }
+                // Windows: the Camera app takes it (`show_camera` waits for it); the file picker
+                // when the Camera app doesn't open.
+                #[cfg(target_os = "windows")]
+                Ask::Camera(d) => match crate::camera_desktop::open_camera_app() {
+                    Ok(()) => {
+                        let wait = CameraWait {
+                            since: std::time::SystemTime::now(),
+                            dirs: crate::camera_desktop::camera_folders(),
+                            seen: None,
+                            dialog: d,
+                            target,
+                            then,
+                        };
+                        *self.pickers.camera.lock().unwrap_or_else(PoisonError::into_inner) = Some(wait);
+                        if let Some(ctx) = ctx {
+                            ctx.request_repaint();
+                        }
+                        true
+                    }
+                    Err(_) => {
+                        let pick = d.pick_file();
+                        self.pickers.spawn(target, ctx, async move { one(pick.await) }, then)
+                    }
+                },
+                #[cfg(not(target_os = "windows"))]
+                Ask::Camera(d) => {
                     let pick = d.pick_file();
                     self.pickers.spawn(target, ctx, async move { one(pick.await) }, then)
                 }

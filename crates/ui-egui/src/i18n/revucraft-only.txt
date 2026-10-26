@@ -78,6 +78,7 @@ Change layer line width
 Change line width
 Change…
 Choices (comma-separated)
+Choose a file instead
 Choose a folder
 Choose a scale below, or calibrate from the drawing.
 Choose a tool first.
@@ -379,6 +380,7 @@ On this device
 Open a file
 Open from Google Drive, Dropbox, OneDrive and other apps with Android's picker. Saving updates the file there.
 Open from device…
+Open the Camera app again
 Open the drawing in CADCraft yourself; this sheet updates when it is saved.
 Open the workbook in GridCraft yourself; this sheet updates when it is saved.
 Opening Settings… If nothing appears, use the steps below.
@@ -582,6 +584,7 @@ System
 THIS PAGE
 Take a photo with the camera…
 Take it off the sheet. The file stays as it is, and Undo brings it back.
+Take the photo
 Take the photo with the camera, or choose a photo file
 Tap the drawing to place this symbol
 Tap the pin on the drawing to see this photo again.
@@ -597,6 +600,8 @@ Text width
 That page size can't be made; pages are 1 to 200 inches a side.
 That tool isn't available in this version.
 That wall is locked
+The Camera app didn't open: {e}
+The Camera app is open. Take the photo there, then come back: RevuCraft places it as soon as the Camera app saves it.
 The angle they fill (360 goes all the way round)
 The document is closed.
 The first one becomes {label}

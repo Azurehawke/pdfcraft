@@ -3178,3 +3178,8 @@ animation effects	Off	关
 	Camera	相机
 	Waiting for the camera…	正在等待相机…
 	Take the photo with the camera, or choose a photo file	用相机拍照，或选择照片文件
+	Take the photo	拍摄照片
+	The Camera app is open. Take the photo there, then come back: RevuCraft places it as soon as the Camera app saves it.	相机应用已打开。请在那里拍照，然后返回：相机应用保存照片后，RevuCraft 会立即放置它。
+	Open the Camera app again	重新打开相机应用
+	Choose a file instead	改为选择文件
+	The Camera app didn't open: {e}	相机应用未打开：{e}

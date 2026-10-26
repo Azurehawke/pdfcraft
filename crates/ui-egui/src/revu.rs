@@ -57,8 +57,8 @@ pub struct SymbolSettings {
     pub callout_side: pdfcraft_engine::photo_callout::TextSide,
     pub callout_inches: f64,
     pub callout_spot: Option<(usize, [f64; 2])>,
-    /// Photo pins and callouts take their photo with the camera (Android's camera app) rather
-    /// than from a file; the tool then stays on for the next spot.
+    /// Photo pins and callouts take their photo with the camera (Android's camera app, Windows'
+    /// Camera app) rather than from a file; the tool then stays on for the next spot.
     pub photo_camera: bool,
     /// One of your own symbols, chosen instead of `symbol` (shared: the settings are copied
     /// every frame and artwork can be large).
@@ -83,7 +83,7 @@ impl Default for SymbolSettings {
             callout_side: pdfcraft_engine::photo_callout::TextSide::Right,
             callout_inches: 1.5,
             callout_spot: None,
-            photo_camera: cfg!(target_os = "android"),
+            photo_camera: cfg!(any(target_os = "android", target_os = "windows")),
             custom: None,
         }
     }

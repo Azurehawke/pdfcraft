@@ -3213,3 +3213,8 @@ animation effects	Off	Aus
 	Camera	Kamera
 	Waiting for the camera…	Warten auf die Kamera…
 	Take the photo with the camera, or choose a photo file	Das Foto mit der Kamera aufnehmen oder eine Fotodatei wählen
+	Take the photo	Foto aufnehmen
+	The Camera app is open. Take the photo there, then come back: RevuCraft places it as soon as the Camera app saves it.	Die Kamera-App ist geöffnet. Nehmen Sie dort das Foto auf und kehren Sie zurück: RevuCraft setzt es ein, sobald die Kamera-App es gespeichert hat.
+	Open the Camera app again	Kamera-App erneut öffnen
+	Choose a file instead	Stattdessen eine Datei wählen
+	The Camera app didn't open: {e}	Die Kamera-App wurde nicht geöffnet: {e}

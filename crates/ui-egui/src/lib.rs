@@ -99,6 +99,8 @@ mod edit_text_ui;
 pub mod field_table_ui;
 pub use edit_text_ui::CropMode;
 mod callout_handles;
+#[cfg(not(target_arch = "wasm32"))]
+mod camera_desktop;
 mod drafting_layers;
 mod editing;
 #[cfg(not(target_arch = "wasm32"))]
@@ -2658,6 +2660,7 @@ impl PdfCraftApp {
         v["hover_tips"] = serde_json::Value::Bool(self.comment_prefs.hover_tips);
         v["draft_panel_collapsed"] = serde_json::Value::Bool(self.draft.panel_collapsed);
         v["draft_angle_step"] = serde_json::json!(self.draft.angle_step);
+        v["photo_camera"] = serde_json::Value::Bool(self.symbols.photo_camera);
         v["cable_system"] = serde_json::json!(self.draft.cable_system);
         v["cable_type"] = serde_json::json!(self.draft.cable_type);
         v["dock"] = self.dock_layout();
@@ -2907,6 +2910,9 @@ impl PdfCraftApp {
         }
         if let Some(s) = v["cable_type"].as_str() {
             self.draft.cable_type = pdfcraft_engine::fields::clean_name(s).chars().take(40).collect();
+        }
+        if let Some(c) = v["photo_camera"].as_bool() {
+            self.symbols.photo_camera = c;
         }
         // One of the offered steps only (settings are untrusted).
         if let Some(a) = v["draft_angle_step"].as_f64().filter(|a| crate::draft_snap::ANGLE_STEPS.contains(a)) {
@@ -3783,6 +3789,8 @@ impl eframe::App for PdfCraftApp {
             revu::photo_window(self, &ctx);
             #[cfg(target_os = "android")]
             pickers::show_browser(self, &ctx);
+            #[cfg(target_os = "windows")]
+            pickers::show_camera(self, &ctx);
             // Notices too: a refused field value or a failed save must be seen in full screen.
             self.show_progress(&ctx);
             widgets::toast(self, &ctx);
@@ -3866,6 +3874,8 @@ impl eframe::App for PdfCraftApp {
         draft::keypad(self, &ctx);
         #[cfg(target_os = "android")]
         pickers::show_browser(self, &ctx);
+        #[cfg(target_os = "windows")]
+        pickers::show_camera(self, &ctx);
         self.show_progress(&ctx);
         widgets::toast(self, &ctx);
         self.finish_render_frame(&ctx);
