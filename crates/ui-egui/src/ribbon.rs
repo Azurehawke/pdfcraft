@@ -227,6 +227,13 @@ fn markup_options(app: &mut PdfCraftApp, ui: &mut egui::Ui, t: &Tokens) {
         if matches!(app.quick_tool, QuickTool::PhotoPin | QuickTool::PhotoCallout) {
             use pdfcraft_engine::photo_callout::TextSide;
             let s = &mut app.symbols;
+            // The tablet's camera, or a photo file (the desktop apps choose a file).
+            if cfg!(target_os = "android") {
+                let tip = tl!("Take the photo with the camera, or choose a photo file");
+                ui.selectable_value(&mut s.photo_camera, true, tl!("Camera")).on_hover_text(tip);
+                ui.selectable_value(&mut s.photo_camera, false, tl!("Files")).on_hover_text(tip);
+                ui.separator();
+            }
             ui.label(egui::RichText::new(tl!("Photo callout")).font(theme::regular(11.0)).color(t.text_faint));
             ui.selectable_value(&mut s.callout_side, TextSide::Left, tl!("Text left"));
             ui.selectable_value(&mut s.callout_side, TextSide::Right, tl!("Text right"));

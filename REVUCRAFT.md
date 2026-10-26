@@ -327,6 +327,17 @@ Markup and measuring
 - [x] **(Steve, build 186)** The distance box opens on the far side of the line's start from the
       pointer, so the ruler, angle and live length stay in view whichever way a line is drawn. On a touch screen (build 188) the last place
       the finger or pen was stands in for the pointer.
+- [x] **(Steve, build 189)** Photos from the camera: Photo pin and Photo callout get Camera or Files on
+      the ribbon (Camera on the tablet). With Camera a tap on the plan opens the camera app at once,
+      no file picker, and the tool stays on for the next spot (tap, shoot, caption, tap…).
+- [ ] **(Steve, next)** Photos on comments: Add photo on a sticky note (camera or file), pinned beside
+      it and joined to its thread, so it shows in the Comments panel and the summary report.
+      Straighten as a document for photos of paper (the scan's edge finding and Colour clean-up).
+      One camera bridge with the android branch's Scan with camera (`pcTakePhoto`), with Keep a copy
+      in the gallery (on for site photos, off for scans).
+- [ ] **(Steve, future)** Camera on Windows and Linux (the Surface Pro 7's rear camera): a camera
+      view inside RevuCraft (live preview, shutter, front/rear switch, retake), Keep a copy to a
+      folder, the same tap-shoot-caption flow. Check the Surface's cameras under Linux.
 - [ ] **(Steve, back burner)** Object styles, as Illustrator's graphic styles: save a markup's look (stroke,
       width, dash, line ends, alignment, fill, opacity, font) under a name ("Existing walls", "Demo")
       in a Styles box; apply one to the selection or make it the current tool style. A text style

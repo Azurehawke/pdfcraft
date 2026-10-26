@@ -57,6 +57,9 @@ pub struct SymbolSettings {
     pub callout_side: pdfcraft_engine::photo_callout::TextSide,
     pub callout_inches: f64,
     pub callout_spot: Option<(usize, [f64; 2])>,
+    /// Photo pins and callouts take their photo with the camera (Android's camera app) rather
+    /// than from a file; the tool then stays on for the next spot.
+    pub photo_camera: bool,
     /// One of your own symbols, chosen instead of `symbol` (shared: the settings are copied
     /// every frame and artwork can be large).
     pub custom: Option<std::sync::Arc<CustomArt>>,
@@ -80,6 +83,7 @@ impl Default for SymbolSettings {
             callout_side: pdfcraft_engine::photo_callout::TextSide::Right,
             callout_inches: 1.5,
             callout_spot: None,
+            photo_camera: cfg!(target_os = "android"),
             custom: None,
         }
     }
@@ -936,6 +940,12 @@ fn export_counts(app: &mut PdfCraftApp) {
     }
 }
 
+/// Where a photo pin's or callout's photo comes from: the camera, or a file.
+#[cfg(not(target_arch = "wasm32"))]
+fn photo_ask(s: &SymbolSettings, dialog: crate::dialog::AsyncFileDialog) -> crate::pickers::Ask {
+    if s.photo_camera { crate::pickers::Ask::Camera(dialog) } else { crate::pickers::Ask::File(dialog) }
+}
+
 impl PdfCraftApp {
     /// Pin a photo at `at` on `page`: choose one (or, on Android, take one with the camera).
     pub(crate) fn pick_photo(&mut self, page: usize, at: [f64; 2]) {
@@ -948,7 +958,7 @@ impl PdfCraftApp {
             let target = self.active_ids().map(|(_, id)| id);
             let dialog =
                 crate::dialog::AsyncFileDialog::new().set_title(tl!("Pin a photo")).add_filter(tl!("Photos"), &["jpg", "jpeg", "png", "tif", "tiff"]);
-            self.ask_one(crate::pickers::Ask::File(dialog), target, move |app, path| match std::fs::read(&path) {
+            self.ask_one(photo_ask(&self.symbols, dialog), target, move |app, path| match std::fs::read(&path) {
                 Ok(data) => app.pin_photo(page, at, data),
                 Err(e) => app.notify_fmt("Couldn't read {name}: {e}", &[("name", &path.display().to_string()), ("e", &e.to_string())]),
             });
@@ -976,7 +986,8 @@ impl PdfCraftApp {
             caption: String::new(),
             author: self.comment_prefs.author.clone(),
         };
-        self.views[index].comments.tool_done = true;
+        // From the camera, the tool stays on: tap the next spot, take the next photo.
+        self.views[index].comments.tool_done = !self.symbols.photo_camera;
         if self.apply_edit(edit) {
             // The new pin is the last photo on its page; its caption is typed beside it.
             let new = self.session.get(id).and_then(|d| d.info.annotations.iter().filter(|a| a.photo && a.page == page).map(|a| a.index).max());
@@ -999,7 +1010,7 @@ impl PdfCraftApp {
             let dialog = crate::dialog::AsyncFileDialog::new()
                 .set_title(tl!("Photo for the callout"))
                 .add_filter(tl!("Photos"), &["jpg", "jpeg", "png", "tif", "tiff"]);
-            self.ask_one(crate::pickers::Ask::File(dialog), target, move |app, path| match std::fs::read(&path) {
+            self.ask_one(photo_ask(&self.symbols, dialog), target, move |app, path| match std::fs::read(&path) {
                 Ok(data) => app.place_callout(page, point, center, data),
                 Err(e) => app.notify_fmt("Couldn't read {name}: {e}", &[("name", &path.display().to_string()), ("e", &e.to_string())]),
             });
@@ -1021,7 +1032,7 @@ impl PdfCraftApp {
             photo_height: callout_height(&self.symbols),
             author: self.comment_prefs.author.clone(),
         };
-        self.views[index].comments.tool_done = true;
+        self.views[index].comments.tool_done = !self.symbols.photo_camera;
         if self.apply_edit(edit) {
             // The new callout is the last annotation on its page.
             let new = self.session.get(id).and_then(|d| {

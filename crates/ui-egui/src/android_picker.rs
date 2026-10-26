@@ -136,6 +136,10 @@ pub(crate) struct Browser {
     system_waiting: bool,
     /// Why the system picker didn't work, shown under its button.
     system_note: Option<String>,
+    /// RevuCraft: the camera app takes the photo; the browser shows only if it can't.
+    camera: bool,
+    /// The camera app has been asked.
+    camera_started: bool,
     target: Option<PickTarget>,
     then: Then,
 }
@@ -148,8 +152,9 @@ impl std::fmt::Debug for Browser {
 
 impl Browser {
     pub(crate) fn new(ask: Ask, target: Option<PickTarget>, then: Then) -> Self {
+        let camera = matches!(ask, Ask::Camera(_));
         let (mode, dialog) = match ask {
-            Ask::File(d) => (Mode::File, d),
+            Ask::File(d) | Ask::Camera(d) => (Mode::File, d),
             Ask::Files(d) => (Mode::Files, d),
             Ask::Folder(d) => (Mode::Folder, d),
             Ask::Save(d) => (Mode::Save, d),
@@ -180,6 +185,8 @@ impl Browser {
             access_note: None,
             system_waiting: false,
             system_note: None,
+            camera,
+            camera_started: false,
             target,
             then,
         };
@@ -258,6 +265,55 @@ impl Browser {
         }
     }
 
+    /// RevuCraft: the photo from the camera app, straight away. Cancelled in the camera app, the
+    /// pick is cancelled; when no camera app can take it, the browser shows instead, saying why.
+    fn show_camera(&mut self, ctx: &egui::Context) -> Option<Vec<PathBuf>> {
+        let Some(documents) = DOCUMENTS.get() else {
+            self.camera = false;
+            return None;
+        };
+        if !self.camera_started {
+            self.camera_started = true;
+            match (documents.start)(SystemPick::TakePhoto) {
+                Ok(()) => self.system_waiting = true,
+                Err(e) => {
+                    self.camera = false;
+                    self.system_note = Some(e);
+                    return None;
+                }
+            }
+        }
+        if self.system_waiting {
+            match (documents.poll)() {
+                None => ctx.request_repaint_after(std::time::Duration::from_millis(250)),
+                // Empty: cancelled in the camera app.
+                Some(Ok(paths)) => {
+                    self.system_waiting = false;
+                    return Some(paths);
+                }
+                Some(Err(e)) => {
+                    self.system_waiting = false;
+                    self.camera = false;
+                    self.system_note = Some(e);
+                    return None;
+                }
+            }
+        }
+        // Seen only while the photo is copied in, or if the camera app never answers.
+        let mut cancel = false;
+        egui::Modal::new(egui::Id::new("android-camera-wait")).show(ctx, |ui| {
+            ui.horizontal(|ui| {
+                ui.spinner();
+                ui.label(tl!("Waiting for the camera…"));
+            });
+            ui.add_space(6.0);
+            if ui.add(egui::Button::new(tl!("Cancel")).min_size(egui::vec2(120.0, ROW_HEIGHT))).clicked() {
+                cancel = true;
+            }
+        });
+        cancel.then(Vec::new)
+    }
+
     /// The button that hands the choice to Android's document picker, and its answer.
     fn system_picker(&mut self, ui: &mut egui::Ui, answer: &mut Option<Vec<PathBuf>>) {
         let Some(documents) = DOCUMENTS.get() else { return };
@@ -331,6 +387,9 @@ impl Browser {
 
     /// Draw the picker. `Some` once the user is done: the chosen paths, or none when cancelled.
     pub(crate) fn show(&mut self, ctx: &egui::Context) -> Option<Vec<PathBuf>> {
+        if self.camera {
+            return self.show_camera(ctx);
+        }
         let mut answer: Option<Vec<PathBuf>> = None;
         let mut go_to: Option<PathBuf> = None;
         let screen = ctx.content_rect();

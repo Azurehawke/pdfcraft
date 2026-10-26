@@ -62,6 +62,7 @@ Calibrate
 Calibrate scale
 Calibrate · Distance · Area · Angle
 Callout (text with a leader line)
+Camera
 Camera (bullet)
 Camera (dome)
 Caption
@@ -581,6 +582,7 @@ System
 THIS PAGE
 Take a photo with the camera…
 Take it off the sheet. The file stays as it is, and Undo brings it back.
+Take the photo with the camera, or choose a photo file
 Tap the drawing to place this symbol
 Tap the pin on the drawing to see this photo again.
 Teal
@@ -667,6 +669,7 @@ Value
 View photo
 Violet
 Voice jack
+Waiting for the camera…
 Waiting for the document… (Google Drive downloads it first when it isn't on the tablet yet)
 Wall
 Wall light

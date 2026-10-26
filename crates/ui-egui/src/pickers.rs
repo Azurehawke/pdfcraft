@@ -52,6 +52,9 @@ pub(crate) enum Ask {
     Folder(crate::dialog::AsyncFileDialog),
     /// Choose where to save a file.
     Save(crate::dialog::AsyncFileDialog),
+    /// RevuCraft: take a photo with the device's camera (Android's camera app); elsewhere, and
+    /// when no camera app can take one, choose a photo file as `File` does.
+    Camera(crate::dialog::AsyncFileDialog),
 }
 
 /// What to do with the chosen paths, on a later frame.
@@ -256,7 +259,7 @@ impl PdfCraftApp {
             let ctx = self.ctx.clone();
             let one = |h: Option<crate::dialog::FileHandle>| h.map(|h| h.path().to_path_buf()).into_iter().collect::<Vec<_>>();
             match ask {
-                Ask::File(d) => {
+                Ask::File(d) | Ask::Camera(d) => {
                     let pick = d.pick_file();
                     self.pickers.spawn(target, ctx, async move { one(pick.await) }, then)
                 }
