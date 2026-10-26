@@ -6684,6 +6684,27 @@ fn doors_and_windows_only_go_where_the_wall_has_room() {
     assert!(!session.get(id).unwrap().opening_fits(0, wall, 0.65, 0.75));
 }
 
+#[test]
+fn markdown_notes_keep_their_file_and_a_copy_of_the_text() {
+    let mut session = Session::default();
+    let id = session.open("plan.pdf", None, Arc::new(fixture(1)), None).unwrap();
+    let text = "# Kitchen\n\n- [ ] check the trap #leak\n";
+    session
+        .apply(
+            id,
+            Edit::AddMarkdownNote { page: 0, at: [100.0, 300.0], text: text.into(), file: "plan/notes/Note 1.md".into(), author: "Steve".into() },
+        )
+        .unwrap();
+    let doc = session.get(id).unwrap();
+    let notes = doc.markdown_notes(0);
+    assert_eq!(notes.len(), 1);
+    assert_eq!(notes[0].1, "plan/notes/Note 1.md");
+    let a = doc.info.annotations.iter().find(|a| a.index == notes[0].0).unwrap();
+    assert_eq!(a.subtype, "Text");
+    assert_eq!(a.contents.as_deref(), Some(text), "the PDF keeps the note's text");
+    assert!(!local_stamp().is_empty());
+}
+
 /// AES-256 passwords as typed, each with its SASLprep form, which ISO 32000-2 keys the file on:
 /// a decomposed é (NFKC composes it), a no-break space (mapped to a space) and fullwidth letters
 /// (what a Japanese IME types in full-width mode; NFKC narrows them). Precomposed "café" is the

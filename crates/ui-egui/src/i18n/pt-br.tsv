@@ -3496,3 +3496,23 @@ theme	Appearance	Aparência
 	Open the Camera app again	Abrir o app Câmera de novo
 	Choose a file instead	Escolher um arquivo
 	The Camera app didn't open: {e}	O app Câmera não abriu: {e}
+	Add note	Adicionar nota
+	Checklist	Lista de verificação
+	Clear formatting	Limpar formatação
+	Code block	Bloco de código
+	Couldn't make the notes folder {name}: {e}	Não foi possível criar a pasta de notas {name}: {e}
+	Edit the note's text	Editar o texto da nota
+	Format painter: copy the selection's formatting, then select where it goes	Pincel de formatação: copie a formatação da seleção e selecione onde aplicá-la
+	Heading 2	Título 2
+	Heading 3	Título 3
+	Inline code	Código embutido
+	Link to a markup on the plan ([[…]])	Link para uma marcação na planta ([[…]])
+	Note: tap where it goes, then write it in Markdown	Nota: toque onde ela vai e escreva-a em Markdown
+	Nothing on the plan is called {name}.	Nada na planta se chama {name}.
+	Plain text	Texto simples
+	Save the drawing first: its notes are kept in a folder beside it.	Salve o desenho primeiro: as notas ficam numa pasta ao lado dele.
+	Show the note formatted	Mostrar a nota formatada
+	The note's file couldn't be written:	Não foi possível gravar o arquivo da nota:
+	This note is empty. Press Edit to write it.	Esta nota está vazia. Toque em Editar para escrevê-la.
+	Web link	Link da web
+	{done} of {all} done	{done} de {all} feitos

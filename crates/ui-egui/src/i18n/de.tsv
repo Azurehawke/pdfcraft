@@ -3218,3 +3218,23 @@ animation effects	Off	Aus
 	Open the Camera app again	Kamera-App erneut öffnen
 	Choose a file instead	Stattdessen eine Datei wählen
 	The Camera app didn't open: {e}	Die Kamera-App wurde nicht geöffnet: {e}
+	Add note	Notiz hinzufügen
+	Checklist	Checkliste
+	Clear formatting	Formatierung entfernen
+	Code block	Codeblock
+	Couldn't make the notes folder {name}: {e}	Der Notizordner {name} konnte nicht angelegt werden: {e}
+	Edit the note's text	Den Text der Notiz bearbeiten
+	Format painter: copy the selection's formatting, then select where it goes	Format übertragen: Formatierung der Auswahl kopieren, dann das Ziel auswählen
+	Heading 2	Überschrift 2
+	Heading 3	Überschrift 3
+	Inline code	Inline-Code
+	Link to a markup on the plan ([[…]])	Link zu einer Markierung im Plan ([[…]])
+	Note: tap where it goes, then write it in Markdown	Notiz: dorthin tippen, wo sie hingehört, dann in Markdown schreiben
+	Nothing on the plan is called {name}.	Nichts im Plan heißt {name}.
+	Plain text	Normaler Text
+	Save the drawing first: its notes are kept in a folder beside it.	Speichern Sie die Zeichnung zuerst: Ihre Notizen liegen in einem Ordner daneben.
+	Show the note formatted	Notiz formatiert anzeigen
+	The note's file couldn't be written:	Die Datei der Notiz konnte nicht geschrieben werden:
+	This note is empty. Press Edit to write it.	Diese Notiz ist leer. Zum Schreiben auf Bearbeiten tippen.
+	Web link	Weblink
+	{done} of {all} done	{done} von {all} erledigt

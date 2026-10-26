@@ -3134,3 +3134,23 @@ animation effects	Off	Выкл
 	Open the Camera app again	Снова открыть «Камеру»
 	Choose a file instead	Выбрать файл вместо этого
 	The Camera app didn't open: {e}	«Камера» не открылась: {e}
+	Add note	Добавить заметку
+	Checklist	Чек-лист
+	Clear formatting	Очистить форматирование
+	Code block	Блок кода
+	Couldn't make the notes folder {name}: {e}	Не удалось создать папку заметок {name}: {e}
+	Edit the note's text	Изменить текст заметки
+	Format painter: copy the selection's formatting, then select where it goes	Копирование формата: скопируйте форматирование выделения, затем выделите, куда его применить
+	Heading 2	Заголовок 2
+	Heading 3	Заголовок 3
+	Inline code	Встроенный код
+	Link to a markup on the plan ([[…]])	Ссылка на пометку на плане ([[…]])
+	Note: tap where it goes, then write it in Markdown	Заметка: коснитесь места для неё, затем напишите её в Markdown
+	Nothing on the plan is called {name}.	На плане нет ничего с именем {name}.
+	Plain text	Обычный текст
+	Save the drawing first: its notes are kept in a folder beside it.	Сначала сохраните чертёж: его заметки хранятся в папке рядом с ним.
+	Show the note formatted	Показать заметку с форматированием
+	The note's file couldn't be written:	Не удалось записать файл заметки:
+	This note is empty. Press Edit to write it.	Заметка пуста. Нажмите «Изменить», чтобы написать её.
+	Web link	Веб-ссылка
+	{done} of {all} done	Выполнено {done} из {all}

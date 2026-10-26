@@ -360,7 +360,12 @@ pub fn build(d: &Dict) -> Option<Stream> {
         b"Text" => {
             let col = stroke.unwrap_or([1.0, 0.82, 0.0]);
             let icon = d.name(b"Name").map(|n| String::from_utf8_lossy(n).into_owned()).unwrap_or_else(|| "Note".into());
-            c.push_str(&note_icon(&icon, col));
+            // RevuCraft's Markdown notes show a note page, so they stand apart from comments.
+            if d.contains(crate::notes::NOTE) {
+                c.push_str(&crate::notes::icon(col));
+            } else {
+                c.push_str(&note_icon(&icon, col));
+            }
             return Some(form([0.0, 0.0, NOTE_SIZE, NOTE_SIZE], c.as_bytes(), res));
         }
         b"FileAttachment" => {

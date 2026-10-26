@@ -13,6 +13,7 @@ Add door
 Add layer
 Add legend
 Add mapping
+Add note
 Add photo callout
 Add symbol from SVG…
 Add to
@@ -77,6 +78,7 @@ Change layer colour
 Change layer line width
 Change line width
 Change…
+Checklist
 Choices (comma-separated)
 Choose a file instead
 Choose a folder
@@ -86,6 +88,7 @@ Choose a workbook…
 Choose files
 Choose where to save with Android's picker: Google Drive, Dropbox, OneDrive and other apps. Saving again later updates it there.
 Circle (centre, then radius)
+Clear formatting
 Clear guides on this sheet
 Click a circle
 Click a line where it should split
@@ -111,6 +114,7 @@ Click two points a known distance apart, like the ends of a scale bar or a door.
 Click vertices, then finish with the check button beside the last point, Enter, a double-click or Escape. Tap the first point to close the shape.
 Close shape
 Close the workbook in GridCraft or Excel first, or its next save puts the old quantities back.
+Code block
 Collapse panel
 Collapse to icons
 Column spacing
@@ -123,6 +127,7 @@ Copied its colour: new markups and drafted lines take it
 Copied its look ({w} pt): new markups and drafted lines take it
 Copy (pick, base point, then each copy)
 Copy markup
+Couldn't make the notes folder {name}: {e}
 Couldn't read “{text}” as a distance.
 Couldn't read “{text}” as a scale factor.
 Couldn't read “{text}” as an angle in degrees.
@@ -184,6 +189,7 @@ Duplex outlet
 Edit original
 Edit points
 Edit symbol
+Edit the note's text
 Electric strike
 Electrical
 Electrical panel
@@ -225,6 +231,7 @@ Folder mappings
 Form
 Format copy
 Format copy: click a markup or line to use its look (with markups selected: give them its look; Shift: its layer too)
+Format painter: copy the selection's formatting, then select where it goes
 Formula
 Found by name in a subfolder of the PDF's folder
 Found by name next to the PDF
@@ -240,6 +247,8 @@ Guide
 Guide position
 Hairline
 Hairline (thinnest the printer draws)
+Heading 2
+Heading 3
 Heat detector
 Heavy (2 pt)
 Hide rulers
@@ -254,6 +263,7 @@ ISO (A sizes)
 In CADCraft
 In GridCraft
 Inches
+Inline code
 Insert sheet
 Insert sheet…
 Inside
@@ -282,6 +292,7 @@ Line width
 Line width for drafting on this layer
 Linear dimension (horizontal or vertical)
 Lines
+Link to a markup on the plan ([[…]])
 Links
 List drafted linework too
 List under
@@ -364,8 +375,10 @@ None (paper size)
 Not calibrated (paper size)
 Not found at this path
 Not started
+Note: tap where it goes, then write it in Markdown
 Nothing ahead of this end to extend to
 Nothing crosses this line to trim to
+Nothing on the plan is called {name}.
 Nothing to copy there: click a markup or a line
 Number each symbol, counting up
 Off: an update replaces the drawing. On: the drawing it replaces stays as a hidden layer, to compare.
@@ -438,6 +451,7 @@ Place table
 Place table…
 Plain numbers are feet
 Plain numbers are inches
+Plain text
 Plans, markup and takeoff for network jobs and inspections.
 PoE device
 Point at the drawing to see coordinates
@@ -513,6 +527,7 @@ SVG drawings
 Save As
 Save current tool
 Save the current layout…
+Save the drawing first: its notes are kept in a folder beside it.
 Save to Google Drive or another app…
 Saved symbol counts.
 Saved the markups list.
@@ -550,6 +565,7 @@ Show lengths as
 Show sublayers
 Show the author and comment when pointing at a markup
 Show the markups where
+Show the note formatted
 Show the photo in a box with its description, pointing at this spot
 Show tool names
 Showing files isn't available here.
@@ -609,6 +625,7 @@ The first sheet
 The form asks to be submitted to {u}; RevuCraft doesn't send form data. Save the document to keep your entries.
 The key is in the Windows certificate store, which may ask to allow RevuCraft to use it.
 The key is in the macOS Keychain, which may ask to allow RevuCraft to use it.
+The note's file couldn't be written:
 The page can't be measured.
 The photo couldn't be found.
 The photo's height on the sheet
@@ -635,6 +652,7 @@ This folder is empty
 This form also contains XFA data, which RevuCraft doesn't read yet. You can fill its fields, but Acrobat may show the XFA values instead.
 This formula can't be calculated
 This is a dynamic XFA form, which RevuCraft can't display yet. What you see is the file's placeholder page.
+This note is empty. Press Edit to write it.
 This page
 This sheet is empty.
 Ticks
@@ -681,6 +699,7 @@ Wall light
 Wall thickness
 Walls
 Walls · Doors and windows · Dimensions
+Web link
 Welcome to RevuCraft
 What you draw: the wall's centre line, or its inside face (the thickness goes out of the room, for tracing existing walls) or outside face
 Where the drawing is now
@@ -714,6 +733,7 @@ in
 is greater than
 is less than
 the text recognition models are not installed (reinstall RevuCraft, or set PDFCRAFT_MODELS to the folder that holds them)
+{done} of {all} done
 {name} can't be found.
 {name} is updated on the sheet; the markups stayed put.
 {name} submits the form to {url}; RevuCraft doesn't send form data. Save the document to keep your entries.

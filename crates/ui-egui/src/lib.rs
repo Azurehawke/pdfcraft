@@ -121,9 +121,11 @@ pub mod icons;
 pub mod last_session;
 mod links_ui;
 mod make_symbol;
+mod markdown;
 mod markups_list;
 pub mod motion;
 mod new_dialog;
+mod notes_ui;
 mod openings;
 mod page_selection_ui;
 mod pageboxes;
@@ -308,6 +310,8 @@ pub enum QuickTool {
     Symbol,
     /// RevuCraft: tap to pin a photo.
     PhotoPin,
+    /// RevuCraft: tap to place a Markdown note (kept in the job's folder).
+    MdNote,
     /// RevuCraft: a photo callout: tap the spot, then where the box goes.
     PhotoCallout,
     /// RevuCraft: Format copy: click a markup or line to take its look ([`format_copy`]).
@@ -337,6 +341,7 @@ impl QuickTool {
             QuickTool::ColumnSelect => "column-select".to_string(),
             QuickTool::Symbol => "symbol".to_string(),
             QuickTool::PhotoPin => "photo-pin".to_string(),
+            QuickTool::MdNote => "note".to_string(),
             QuickTool::PhotoCallout => "photo-callout".to_string(),
             QuickTool::FormatCopy => "format-copy".to_string(),
             QuickTool::Draft(t) => format!("draft-{}", t.name()),
@@ -670,6 +675,8 @@ pub struct PdfCraftApp {
     pub(crate) dock_rect: Option<egui::Rect>,
     /// The Properties box's edits for the selected markup.
     pub(crate) props_box: Option<comment_props::PropsDraft>,
+    /// RevuCraft: the Markdown note open in its editor.
+    pub(crate) note_editor: Option<notes_ui::NoteEditor>,
     /// RevuCraft's tool ribbon under the mode bar (on in the apps; see [`Self::revucraft_shell`]).
     pub show_ribbon: bool,
     /// Rulers along the top and left of the drawing (View ▸ Rulers; on in RevuCraft).
@@ -1124,6 +1131,7 @@ impl PdfCraftApp {
             dock_properties: false,
             dock_rect: None,
             props_box: None,
+            note_editor: None,
             show_ribbon: false,
             rulers: false,
             show_guides: true,
@@ -2695,6 +2703,7 @@ impl PdfCraftApp {
             "column-select" => QuickTool::ColumnSelect,
             "symbol" => QuickTool::Symbol,
             "photo-pin" => QuickTool::PhotoPin,
+            "note" => QuickTool::MdNote,
             "photo-callout" => QuickTool::PhotoCallout,
             "format-copy" => QuickTool::FormatCopy,
             d if d.starts_with("draft-") => QuickTool::Draft(draft::DraftTool::from_name(&d[6..]).ok_or_else(|| format!("unknown draft tool {d}"))?),
@@ -3872,6 +3881,7 @@ impl eframe::App for PdfCraftApp {
         links_ui::table_dialog(self, &ctx);
         takeoff_ui::dialog(self, &ctx);
         draft::keypad(self, &ctx);
+        notes_ui::editor(self, &ctx);
         #[cfg(target_os = "android")]
         pickers::show_browser(self, &ctx);
         #[cfg(target_os = "windows")]

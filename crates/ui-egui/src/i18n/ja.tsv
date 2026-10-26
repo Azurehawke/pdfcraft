@@ -3220,3 +3220,23 @@ animation effects	Off	オフ
 	Open the Camera app again	カメラ アプリをもう一度開く
 	Choose a file instead	代わりにファイルを選ぶ
 	The Camera app didn't open: {e}	カメラ アプリを開けませんでした: {e}
+	Add note	メモを追加
+	Checklist	チェックリスト
+	Clear formatting	書式をクリア
+	Code block	コードブロック
+	Couldn't make the notes folder {name}: {e}	メモ フォルダー {name} を作成できませんでした: {e}
+	Edit the note's text	メモの本文を編集
+	Format painter: copy the selection's formatting, then select where it goes	書式のコピー: 選択範囲の書式をコピーし、適用先を選択します
+	Heading 2	見出し 2
+	Heading 3	見出し 3
+	Inline code	インライン コード
+	Link to a markup on the plan ([[…]])	図面上のマークアップへのリンク ([[…]])
+	Note: tap where it goes, then write it in Markdown	メモ: 置く場所をタップし、Markdown で書きます
+	Nothing on the plan is called {name}.	図面上に {name} という名前のものはありません。
+	Plain text	標準テキスト
+	Save the drawing first: its notes are kept in a folder beside it.	先に図面を保存してください。メモは横のフォルダーに保存されます。
+	Show the note formatted	メモを書式付きで表示
+	The note's file couldn't be written:	メモのファイルを書き込めませんでした:
+	This note is empty. Press Edit to write it.	このメモは空です。書くには [編集] を押します。
+	Web link	Web リンク
+	{done} of {all} done	{all} 件中 {done} 件完了

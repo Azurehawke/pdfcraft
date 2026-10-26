@@ -3181,3 +3181,23 @@ animation effects	Off	Изключени
 	Open the Camera app again	Отворете отново Камера
 	Choose a file instead	Изберете файл вместо това
 	The Camera app didn't open: {e}	Камера не се отвори: {e}
+	Add note	Добавяне на бележка
+	Checklist	Списък за отметки
+	Clear formatting	Изчистване на форматирането
+	Code block	Блок код
+	Couldn't make the notes folder {name}: {e}	Папката за бележки {name} не можа да се създаде: {e}
+	Edit the note's text	Редактиране на текста на бележката
+	Format painter: copy the selection's formatting, then select where it goes	Копиране на формат: копирайте форматирането на избраното, после изберете къде да отиде
+	Heading 2	Заглавие 2
+	Heading 3	Заглавие 3
+	Inline code	Вграден код
+	Link to a markup on the plan ([[…]])	Връзка към маркиране на плана ([[…]])
+	Note: tap where it goes, then write it in Markdown	Бележка: докоснете мястото ѝ, после я напишете в Markdown
+	Nothing on the plan is called {name}.	Нищо на плана не се казва {name}.
+	Plain text	Обикновен текст
+	Save the drawing first: its notes are kept in a folder beside it.	Първо запазете чертежа: бележките му се пазят в папка до него.
+	Show the note formatted	Показване на бележката форматирана
+	The note's file couldn't be written:	Файлът на бележката не можа да се запише:
+	This note is empty. Press Edit to write it.	Тази бележка е празна. Натиснете Редактиране, за да я напишете.
+	Web link	Уеб връзка
+	{done} of {all} done	{done} от {all} готови

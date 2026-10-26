@@ -24,6 +24,7 @@ pub mod geometry;
 pub mod layers;
 pub mod legend;
 pub mod links;
+pub mod notes;
 pub mod photo_callout;
 pub mod stroke_align;
 pub mod svg_art;

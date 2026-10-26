@@ -300,6 +300,7 @@ fn scope_of(edit: &Edit) -> Scope {
         | Edit::AddCableRun { .. }
         | Edit::AddLegend { .. }
         | Edit::AddWall { .. }
+        | Edit::AddMarkdownNote { .. }
         | Edit::SetWall { .. }
         | Edit::AddOpening { .. }
         | Edit::FlipOpening { .. }
@@ -697,6 +698,11 @@ impl Document {
     pub fn symbol_art_from(&self, page: usize, indices: &[usize]) -> Result<String, String> {
         let e = self.editor.as_ref().ok_or("the document can't be read")?;
         pdfcraft_annot::symbols::art_from_drawing(&e.cos, page, indices).map_err(|e| e.to_string())
+    }
+
+    /// RevuCraft: the Markdown notes on `page`: (index, file relative to the PDF's folder).
+    pub fn markdown_notes(&self, page: usize) -> Vec<(usize, String)> {
+        self.editor.as_ref().map(|e| pdfcraft_annot::notes::notes(&e.cos, page)).unwrap_or_default()
     }
 
     /// RevuCraft: the smart walls on `page` ([`pdfcraft_annot::walls`]).
@@ -1886,6 +1892,15 @@ pub enum Edit {
         /// Your columns filled in on the new run (its system and cable type, say): (name, value).
         fields: Vec<(String, String)>,
     },
+    /// RevuCraft: a Markdown note at `at` (its icon's top-left corner): a sticky note holding
+    /// `text`, whose master copy is `file` (relative to the PDF's folder; `pdfcraft_annot::notes`).
+    AddMarkdownNote {
+        page: usize,
+        at: [f64; 2],
+        text: String,
+        file: String,
+        author: String,
+    },
     /// RevuCraft: a smart wall (`pdfcraft_annot::walls`): the Wall tool's outline `quad`, with its
     /// ends A (side 3–0) and B (side 1–2) joined to other walls when `ja`, `jb` (no line across).
     AddWall {
@@ -2514,6 +2529,7 @@ pub const EDIT_LABELS: &[&str] = &[
     "Measure cable run",
     "Add legend",
     "Draw wall",
+    "Add note",
     "Join walls",
     "Add window",
     "Add door",
@@ -2699,6 +2715,7 @@ impl Edit {
             Edit::AddCableRun { .. } => Label::of("Measure cable run"),
             Edit::AddLegend { .. } => Label::of("Add legend"),
             Edit::AddWall { .. } => Label::of("Draw wall"),
+            Edit::AddMarkdownNote { .. } => Label::of("Add note"),
             Edit::SetWall { .. } => Label::of("Join walls"),
             Edit::AddOpening { spec, .. } if spec.kind == pdfcraft_annot::walls::OpeningKind::Window => Label::of("Add window"),
             Edit::AddOpening { .. } => Label::of("Add door"),
@@ -2812,6 +2829,7 @@ fn check_permission(edit: &Edit, p: &pdfcraft_cos::Permissions) -> Result<(), Ed
         | Edit::AddCableRun { .. }
         | Edit::AddLegend { .. }
         | Edit::AddWall { .. }
+        | Edit::AddMarkdownNote { .. }
         | Edit::SetWall { .. }
         | Edit::AddOpening { .. }
         | Edit::FlipOpening { .. }
@@ -3227,6 +3245,14 @@ fn run_edit(doc: &mut pdfcraft_cos::Document, edit: &Edit, cx: &mut EditCtx) -> 
         }
         Edit::AddLegend { page, top_left, whole_document, title, author } => {
             let index = pdfcraft_annot::legend::add_legend(doc, *page, *top_left, *whole_document, title, author, &cx.meta())?;
+            cx.place_on_layer(doc, *page, index)?;
+        }
+        Edit::AddMarkdownNote { page, at, text, file, author } => {
+            let shape = Shape::Note { at: *at, icon: pdfcraft_annot::NoteIcon::Note };
+            let style = pdfcraft_annot::Style { color: [0.16, 0.55, 0.62], ..pdfcraft_annot::Style::default_for(&shape) };
+            let new = NewAnnotation { page: *page, shape, style, contents: text.clone(), author: author.clone() };
+            let index = pdfcraft_annot::add_annotation(doc, &new, &cx.meta())?;
+            pdfcraft_annot::notes::mark(doc, *page, index, file)?;
             cx.place_on_layer(doc, *page, index)?;
         }
         Edit::AddWall { page, quad, ja, jb, style, author } => {
@@ -3868,6 +3894,15 @@ fn note_drafting_layers(doc: &pdfcraft_cos::Document, annotations: &mut [pdfcraf
             a.drafting = true;
         }
     }
+}
+
+/// RevuCraft: now, in local time, as a note's stamp writes it ("2026-10-26 13:45"); empty where
+/// the clock can't be read (the web).
+pub fn local_stamp() -> String {
+    #[cfg(not(target_arch = "wasm32"))]
+    return chrono::Local::now().format("%Y-%m-%d %H:%M").to_string();
+    #[cfg(target_arch = "wasm32")]
+    return String::new();
 }
 
 /// Seconds to add to UTC for local time (0 where unknown).

@@ -141,6 +141,7 @@ pub const MARKUP_GROUPS: [(&str, &str, &[Entry]); 10] = [
         "Markup",
         &[
             Entry::Quick { tool: QuickTool::PhotoPin, icon: "camera", label: "Pin a photo: tap the drawing where it goes" },
+            Entry::Quick { tool: QuickTool::MdNote, icon: "file-text", label: "Note: tap where it goes, then write it in Markdown" },
             Entry::Quick {
                 tool: QuickTool::PhotoCallout,
                 icon: "message-square-text",

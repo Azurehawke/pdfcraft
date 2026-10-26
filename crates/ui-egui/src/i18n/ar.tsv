@@ -3490,3 +3490,23 @@ certificate	Version	الإصدار
 	Open the Camera app again	افتح تطبيق الكاميرا مرة أخرى
 	Choose a file instead	اختر ملفًا بدلاً من ذلك
 	The Camera app didn't open: {e}	لم يُفتح تطبيق الكاميرا: {e}
+	Add note	إضافة ملاحظة
+	Checklist	قائمة تحقق
+	Clear formatting	مسح التنسيق
+	Code block	كتلة شيفرة
+	Couldn't make the notes folder {name}: {e}	تعذر إنشاء مجلد الملاحظات {name}: {e}
+	Edit the note's text	تحرير نص الملاحظة
+	Format painter: copy the selection's formatting, then select where it goes	نسخ التنسيق: انسخ تنسيق التحديد ثم حدد مكان تطبيقه
+	Heading 2	عنوان 2
+	Heading 3	عنوان 3
+	Inline code	شيفرة ضمن السطر
+	Link to a markup on the plan ([[…]])	رابط إلى علامة على المخطط ([[…]])
+	Note: tap where it goes, then write it in Markdown	ملاحظة: انقر حيث توضع ثم اكتبها بصيغة Markdown
+	Nothing on the plan is called {name}.	لا شيء على المخطط باسم {name}.
+	Plain text	نص عادي
+	Save the drawing first: its notes are kept in a folder beside it.	احفظ الرسم أولاً: تُحفظ ملاحظاته في مجلد بجانبه.
+	Show the note formatted	عرض الملاحظة منسقة
+	The note's file couldn't be written:	تعذرت كتابة ملف الملاحظة:
+	This note is empty. Press Edit to write it.	هذه الملاحظة فارغة. اضغط تحرير لكتابتها.
+	Web link	رابط ويب
+	{done} of {all} done	أُنجز {done} من {all}

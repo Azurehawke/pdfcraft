@@ -3481,3 +3481,23 @@ certificate	Version	Version
 	Open the Camera app again	Rouvrir l'application Caméra
 	Choose a file instead	Choisir plutôt un fichier
 	The Camera app didn't open: {e}	L'application Caméra ne s'est pas ouverte : {e}
+	Add note	Ajouter une note
+	Checklist	Liste de contrôle
+	Clear formatting	Effacer la mise en forme
+	Code block	Bloc de code
+	Couldn't make the notes folder {name}: {e}	Impossible de créer le dossier de notes {name} : {e}
+	Edit the note's text	Modifier le texte de la note
+	Format painter: copy the selection's formatting, then select where it goes	Reproduire la mise en forme : copiez celle de la sélection, puis sélectionnez où l'appliquer
+	Heading 2	Titre 2
+	Heading 3	Titre 3
+	Inline code	Code en ligne
+	Link to a markup on the plan ([[…]])	Lien vers une annotation du plan ([[…]])
+	Note: tap where it goes, then write it in Markdown	Note : touchez où elle va, puis écrivez-la en Markdown
+	Nothing on the plan is called {name}.	Rien sur le plan ne s'appelle {name}.
+	Plain text	Texte normal
+	Save the drawing first: its notes are kept in a folder beside it.	Enregistrez d'abord le dessin : ses notes sont gardées dans un dossier à côté.
+	Show the note formatted	Afficher la note mise en forme
+	The note's file couldn't be written:	Le fichier de la note n'a pas pu être écrit :
+	This note is empty. Press Edit to write it.	Cette note est vide. Appuyez sur Modifier pour l'écrire.
+	Web link	Lien web
+	{done} of {all} done	{done} sur {all} faits

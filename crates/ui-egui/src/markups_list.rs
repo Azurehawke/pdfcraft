@@ -299,6 +299,7 @@ pub fn rows(doc: &Document) -> Vec<Row> {
     let openings: Vec<(usize, pdfcraft_engine::walls::Opening)> =
         pages.iter().flat_map(|p| doc.wall_openings(*p).into_iter().map(move |o| (*p, o))).collect();
     let smart_walls: Vec<(usize, usize)> = pages.iter().flat_map(|p| doc.smart_walls(*p).into_iter().map(move |w| (*p, w.index))).collect();
+    let notes: Vec<(usize, usize)> = pages.iter().flat_map(|p| doc.markdown_notes(*p).into_iter().map(move |(i, _)| (*p, i))).collect();
     let mut out = Vec::new();
     for a in info.annotations.iter().filter(|a| a.in_reply_to.is_none() && a.state.is_none() && a.subtype != "Popup") {
         if out.len() >= MAX_ROWS {
@@ -312,6 +313,8 @@ pub fn rows(doc: &Document) -> Vec<Row> {
             opening_label(&o.spec)
         } else if smart_walls.contains(&(a.page, a.index)) {
             tl!("Wall").to_string()
+        } else if notes.contains(&(a.page, a.index)) {
+            tl!("Note").to_string()
         } else if a.photo {
             tl!("Photo").to_string()
         } else if measurement.is_some_and(|m| m.cable) {
@@ -345,6 +348,21 @@ pub fn rows(doc: &Document) -> Vec<Row> {
             })
             .map(|s| tl!(s).to_string())
             .unwrap_or_default();
+        // A Markdown note: its title, its checklist done of all, and its #tags in the Tags column.
+        let note = notes.contains(&(a.page, a.index)).then(|| a.contents.clone().unwrap_or_default());
+        let label = note.as_deref().map_or(label, crate::markdown::title);
+        let mut fields = all_fields.iter().find(|(p, i, _)| *p == a.page && *i == a.index).map(|(_, _, f)| f.clone()).unwrap_or_default();
+        let mut note_value = String::new();
+        if let Some(text) = &note {
+            let tags = crate::markdown::tags(text);
+            if !tags.is_empty() {
+                fields.push((tl!("Tags").to_string(), tags.join(" ")));
+            }
+            let (done, all) = crate::markdown::tasks(text);
+            if all > 0 {
+                note_value = crate::i18n::fmt(tl!("{done} of {all} done"), &[("done", &done.to_string()), ("all", &all.to_string())]);
+            }
+        }
         out.push(Row {
             page: a.page,
             index: a.index,
@@ -355,11 +373,11 @@ pub fn rows(doc: &Document) -> Vec<Row> {
             layer: layer_name(a.layer),
             author: a.author.clone().unwrap_or_default(),
             status,
-            value: measurement.map(|m| m.reading.label.clone()).unwrap_or_default(),
+            value: measurement.map(|m| m.reading.label.clone()).unwrap_or(note_value),
             amount: measurement.map(|m| m.reading.value),
             unit: measurement.map(|m| m.reading.unit.clone()).unwrap_or_default(),
             date: a.modified.as_deref().map(pdf_date).unwrap_or_default(),
-            fields: all_fields.iter().find(|(p, i, _)| *p == a.page && *i == a.index).map(|(_, _, f)| f.clone()).unwrap_or_default(),
+            fields,
             // Doors and windows are listed as a schedule is, drafted or not.
             drafting: a.drafting && opening.is_none(),
         });

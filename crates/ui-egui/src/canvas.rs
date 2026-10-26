@@ -3441,6 +3441,7 @@ fn document_area_pages(app: &mut PdfCraftApp, index: usize, ui: &mut egui::Ui) {
         | QuickTool::Snapshot
         | QuickTool::Symbol
         | QuickTool::PhotoPin
+        | QuickTool::MdNote
         | QuickTool::PhotoCallout
         | QuickTool::FormatCopy
         | QuickTool::Draft(_) => false,
@@ -3476,6 +3477,7 @@ fn document_area_pages(app: &mut PdfCraftApp, index: usize, ui: &mut egui::Ui) {
     let symbols = app.symbols.clone();
     let mut symbol_placed = false;
     let mut photo_at: Option<(usize, [f64; 2])> = None;
+    let mut note_at: Option<(usize, [f64; 2])> = None;
     // RevuCraft: a Format copy click: page, the markup there, the point, tolerance, Shift.
     let mut format_pick: Option<crate::format_copy::Click> = None;
     let mut callout_spot = if tool == QuickTool::PhotoCallout { app.symbols.callout_spot } else { None };
@@ -3841,7 +3843,7 @@ fn document_area_pages(app: &mut PdfCraftApp, index: usize, ui: &mut egui::Ui) {
                 }
             }
             // RevuCraft: the Symbols tab's symbol, again at every tap; a photo pin.
-            if matches!(tool, QuickTool::Symbol | QuickTool::PhotoPin)
+            if matches!(tool, QuickTool::Symbol | QuickTool::PhotoPin | QuickTool::MdNote)
                 && allowed
                 && let Some(p) = ui.input(|inp| inp.pointer.hover_pos()).filter(|p| xf.rect.contains(*p))
             {
@@ -3855,6 +3857,8 @@ fn document_area_pages(app: &mut PdfCraftApp, index: usize, ui: &mut egui::Ui) {
                         symbol_placed = true;
                         let before = info.annotations.iter().filter(|a| a.page == i && a.symbol.is_some()).count();
                         view.label_after = Some((i, before));
+                    } else if tool == QuickTool::MdNote {
+                        note_at = Some((i, at));
                     } else {
                         photo_at = Some((i, at));
                     }
@@ -4917,6 +4921,14 @@ fn document_area_pages(app: &mut PdfCraftApp, index: usize, ui: &mut egui::Ui) {
     if let Some((page, at)) = photo_at {
         app.quick_tool = QuickTool::Select;
         app.pick_photo(page, at);
+    }
+    if let Some((page, at)) = note_at {
+        app.quick_tool = QuickTool::Select;
+        crate::cable::ensure_column(&mut app.markup_columns, "Tags", &[]);
+        app.place_note(page, at);
+    }
+    if let Some((page, i)) = app.views[index].comments.open_note.take() {
+        app.open_note(page, i);
     }
     if let Some((page, source, at, tolerance, shift)) = format_pick {
         crate::format_copy::pick(app, index, page, source, at, tolerance, shift);

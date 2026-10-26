@@ -358,7 +358,7 @@ Markup and measuring
 - [ ] **(Steve, next)** Touch, second pass from use on the devices: double tap to zoom, the drag
       threshold, the glide's feel, long press; quick Add photo button and field flow on the phone;
       Properties, caption box and keypad sized for the phone.
-- [ ] **(Steve, queued)** Markdown notes, placed like photo pins. Each note is a real `.md` file in a
+- [ ] **(Steve, build 200: build 1 of 2)** Markdown notes, placed like photo pins. Each note is a real `.md` file in a
       project folder named after the PDF (`Smith Residence.pdf` → `Smith Residence/notes/`, photos
       at full size in `Smith Residence/photos/`), linked relative to the PDF like drawings and
       workbooks, so Obsidian can open the folder as (part of) a vault and edits there show in
@@ -369,9 +369,13 @@ Markup and measuring
       H3, Hn, bold, italic, strikethrough, code, highlight, links (web and `[[markup]]` on the
       plan), file link (paperclip), checklist, format menu, lists. No underline or colours (HTML in
       Markdown shows raw elsewhere), no tables or callouts yet.
-  - Build 1: project folder, Note tool and icon, full-screen editor (toolbar scrolls above the
-    phone's keyboard), reading view first, tickable checklists, `#tags` as a Markups list column,
-    date and author stamp, `[[links]]` to markups.
+  - [x] Build 1 (build 200): project folder, Note tool (Photos group, the page-with-`#` icon),
+    full-screen editor (the toolbar scrolls sideways on a phone), reading view first, tap Edit to
+    write, tickable checklists, `#tags` in a Tags column of the Markups list (and "2 of 5 done"),
+    date and author stamp, `[[links]]` to markups (by first line, note title, symbol or
+    measurement label). The PDF must be saved first (the folder sits beside it). The PDF's copy
+    of the text is refreshed when the note is saved in RevuCraft; an edit made in Obsidian shows
+    when the note is next opened.
   - Build 2: paperclip links to `.xlsx` (a live read-only preview of a sheet or range), templates,
     notes in the summary report, Rename job and Package job. Photos stay separate pins a note
     links to.

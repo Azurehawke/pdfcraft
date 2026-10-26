@@ -3240,3 +3240,23 @@ animation effects	Off	Вимкнено
 	Open the Camera app again	Знову відкрити «Камеру»
 	Choose a file instead	Вибрати файл натомість
 	The Camera app didn't open: {e}	«Камера» не відкрилася: {e}
+	Add note	Додати нотатку
+	Checklist	Чек-лист
+	Clear formatting	Очистити форматування
+	Code block	Блок коду
+	Couldn't make the notes folder {name}: {e}	Не вдалося створити теку нотаток {name}: {e}
+	Edit the note's text	Редагувати текст нотатки
+	Format painter: copy the selection's formatting, then select where it goes	Копіювання формату: скопіюйте форматування виділення, потім виділіть, куди його застосувати
+	Heading 2	Заголовок 2
+	Heading 3	Заголовок 3
+	Inline code	Вбудований код
+	Link to a markup on the plan ([[…]])	Посилання на позначку на плані ([[…]])
+	Note: tap where it goes, then write it in Markdown	Нотатка: торкніться місця для неї, потім напишіть її в Markdown
+	Nothing on the plan is called {name}.	На плані немає нічого з назвою {name}.
+	Plain text	Звичайний текст
+	Save the drawing first: its notes are kept in a folder beside it.	Спершу збережіть креслення: його нотатки зберігаються в теці поруч.
+	Show the note formatted	Показати нотатку з форматуванням
+	The note's file couldn't be written:	Не вдалося записати файл нотатки:
+	This note is empty. Press Edit to write it.	Нотатка порожня. Натисніть «Редагувати», щоб написати її.
+	Web link	Веб-посилання
+	{done} of {all} done	Виконано {done} з {all}

@@ -49,7 +49,7 @@ pub fn run_fields(columns: &[crate::columns::MarkupColumn], settings: &crate::dr
 }
 
 /// Your System or Cable type column, added when it isn't there yet (so the Markups list shows it).
-fn ensure_column(columns: &mut Vec<crate::columns::MarkupColumn>, english: &str, choices: &[&str]) {
+pub(crate) fn ensure_column(columns: &mut Vec<crate::columns::MarkupColumn>, english: &str, choices: &[&str]) {
     let shown = tl!(english);
     if columns.iter().any(|c| c.name.eq_ignore_ascii_case(shown) || c.name.eq_ignore_ascii_case(english))
         || columns.len() >= crate::columns::MAX_COLUMNS

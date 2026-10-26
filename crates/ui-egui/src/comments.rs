@@ -542,6 +542,8 @@ pub struct CommentView {
     pub attach_at: Option<(usize, [f64; 2])>,
     /// A photo pin was tapped: (page, index) of the photo to show.
     pub open_photo: Option<(usize, usize)>,
+    /// A sticky note was tapped: (page, index), opened in the editor when it is a Markdown note.
+    pub open_note: Option<(usize, usize)>,
     pub search_focus: bool,
     /// Where the canvas context menu was opened: (page, user-space point).
     pub context_at: Option<(usize, [f64; 2])>,
@@ -944,6 +946,9 @@ pub(crate) fn page_input(ui: &egui::Ui, resp: &egui::Response, cx: &PageCx<'_>, 
         cv.reveal = true;
         if a.photo {
             cv.open_photo = Some((cx.page, a.index));
+        }
+        if a.subtype == "Text" {
+            cv.open_note = Some((cx.page, a.index));
         }
         return true;
     }
@@ -1476,9 +1481,12 @@ fn select_input(
                 cv.select_one(cx.page, a.index);
                 cv.reveal = true;
                 consumed = true;
-                // RevuCraft: tapping a photo pin shows the photo.
+                // RevuCraft: tapping a photo pin shows the photo; a note opens.
                 if a.photo {
                     cv.open_photo = Some((cx.page, a.index));
+                }
+                if a.subtype == "Text" {
+                    cv.open_note = Some((cx.page, a.index));
                 }
             }
             None if adding => {}
