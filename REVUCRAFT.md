@@ -356,6 +356,19 @@ Markup and measuring
 - [ ] **(Steve, next)** Touch, second pass from use on the devices: double tap to zoom, the drag
       threshold, the glide's feel, long press; quick Add photo button and field flow on the phone;
       Properties, caption box and keypad sized for the phone.
+- [ ] **(Steve, queued)** Markdown notes, placed like photo pins (a standard sticky note whose text is the
+      Markdown, so other viewers show it plain). Toolbar after Obsidian's Editing Toolbar: undo,
+      redo, format painter, clear formatting, H2, H3, Hn, bold, italic, strikethrough, code,
+      highlight, links (web and `[[markup]]` on the plan), file link (paperclip), checklist,
+      format menu, lists. No underline or colours (HTML in Markdown shows raw elsewhere), no
+      tables or callouts yet.
+  - Build 1: Note tool and icon, full-screen editor (toolbar scrolls above the phone's keyboard),
+    reading view first, tickable checklists, `#tags` as a Markups list column, date and author
+    stamp, `[[links]]` to markups.
+  - Build 2: paperclip links to `.xlsx` (a live read-only preview of a sheet or range, stored
+    relative to the PDF), templates, export as `.md` files to a folder (an Obsidian vault), notes in
+    the summary report. Photos stay separate pins a note links to.
+  - Later: voice notes.
 - [ ] **(Steve, back burner)** Object styles, as Illustrator's graphic styles: save a markup's look (stroke,
       width, dash, line ends, alignment, fill, opacity, font) under a name ("Existing walls", "Demo")
       in a Styles box; apply one to the selection or make it the current tool style. A text style
