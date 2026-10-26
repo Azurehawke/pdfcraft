@@ -351,6 +351,8 @@ Markup and measuring
 - [x] **(Steve, build 192)** The file picker on a phone: fits the screen's width, the whole box scrolls
       so Open, Save and Cancel are always reachable, a shorter file list, and the path as buttons
       (every folder on the way goes straight there).
+- [x] **(Steve, build 194)** A finger's tap on the tablet (where fingers pan once the S Pen has been used)
+      opens a photo pin's photo and selects a markup again, as the pen and mouse do.
 - [ ] **(Steve, next)** Touch, second pass from use on the devices: double tap to zoom, the drag
       threshold, the glide's feel, long press; quick Add photo button and field flow on the phone;
       Properties, caption box and keypad sized for the phone.

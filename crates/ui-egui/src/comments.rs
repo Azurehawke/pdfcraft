@@ -933,6 +933,20 @@ pub(crate) fn page_input(ui: &egui::Ui, resp: &egui::Response, cx: &PageCx<'_>, 
         cv.context_at = Some((cx.page, cx.to_user(p)));
         cv.selected = cx.hit(p).map(|a| (cx.page, a.index));
     }
+    // A finger's tap where it pans (pen-only drawing gives it the Hand tool): a photo pin opens
+    // its photo and a markup is selected, as the Select tool's tap would; a drag still pans.
+    if cx.tool == QuickTool::Hand
+        && crate::pen::finger()
+        && resp.clicked()
+        && let Some(a) = pointer.filter(|p| page_rect.contains(*p)).and_then(|p| cx.hit(p))
+    {
+        cv.select_one(cx.page, a.index);
+        cv.reveal = true;
+        if a.photo {
+            cv.open_photo = Some((cx.page, a.index));
+        }
+        return true;
+    }
     match cx.tool {
         // The shape just drawn is selected with its handles showing: they resize it without a
         // trip to the Select tool (#2338). Anywhere else the tool keeps drawing.
