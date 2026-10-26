@@ -205,12 +205,25 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
     if docked.is_empty() {
         app.dock_rect = None;
     } else {
-        let panel = egui::Panel::right("dock")
-            .resizable(true)
-            .default_size(330.0)
-            .size_range(260.0..=560.0)
-            .frame(egui::Frame::NONE.fill(t.chrome).inner_margin(egui::Margin::same(6)).stroke(Stroke::new(1.0, t.divider)))
-            .show(ui, |ui| docked_boxes(app, ui, &t, &docked, &mut acts));
+        let frame = egui::Frame::NONE.fill(t.chrome).inner_margin(egui::Margin::same(6)).stroke(Stroke::new(1.0, t.divider));
+        // A phone: the boxes open from the bottom, under the drawing, its full width.
+        let panel = if crate::chrome::phone(ui.ctx()) {
+            let h = ui.ctx().content_rect().height();
+            let h = if h.is_finite() && h > 0.0 { h } else { 800.0 };
+            egui::Panel::bottom("dock-phone")
+                .resizable(true)
+                .default_size(h * 0.42)
+                .size_range((h * 0.2).max(120.0)..=(h * 0.8).max(160.0))
+                .frame(frame)
+                .show(ui, |ui| docked_boxes(app, ui, &t, &docked, &mut acts))
+        } else {
+            egui::Panel::right("dock")
+                .resizable(true)
+                .default_size(330.0)
+                .size_range(260.0..=560.0)
+                .frame(frame)
+                .show(ui, |ui| docked_boxes(app, ui, &t, &docked, &mut acts))
+        };
         app.dock_rect = Some(panel.response.rect);
     }
     for item in &floating {

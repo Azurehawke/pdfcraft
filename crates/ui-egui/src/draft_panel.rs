@@ -245,7 +245,9 @@ fn flyout_mark(painter: &egui::Painter, rect: Rect, color: Color32) {
 pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui, panel: &Panel) {
     let t = Tokens::get(ui.ctx());
     let allowed = app.active_ids().and_then(|(_, id)| app.session.get(id)).is_some_and(|d| d.allows_annotation() && d.read_only_reason.is_none());
-    let collapsed = app.draft.panel_collapsed;
+    // A phone has room for the icons only.
+    let phone = crate::chrome::phone(ui.ctx());
+    let collapsed = app.draft.panel_collapsed || phone;
     let mut run: Option<&'static str> = None;
     egui::Panel::left(panel.key)
         .resizable(false)
@@ -259,7 +261,7 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui, panel: &Panel) {
                     ui.add_space((ui.available_width() - 28.0).max(0.0));
                 }
                 let (icon, tip) = if collapsed { ("chevrons-right", tl!("Show tool names")) } else { ("chevrons-left", tl!("Collapse to icons")) };
-                if icons::button(ui, icon, 28.0, false, tip).clicked() {
+                if !phone && icons::button(ui, icon, 28.0, false, tip).clicked() {
                     app.draft.panel_collapsed = !collapsed;
                 }
             });

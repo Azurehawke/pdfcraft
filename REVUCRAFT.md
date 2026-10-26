@@ -341,6 +341,16 @@ Markup and measuring
       comes back to the front. Open the Camera app again, Choose a file instead, or Cancel meanwhile.
 - [ ] **(Steve, later)** Camera on Linux (check the Surface's cameras there); maybe a camera view inside
       RevuCraft on Windows too, if going through the Camera app gets in the way.
+- [x] **(Steve, build 191)** Phone layout and touch, first pass (Pixel 10a, Galaxy Tab):
+  - Narrower than 600 points: the tools panel shows icons only, the side boxes open from the
+    bottom, the rulers stay off, the ribbon swipes sideways, Print and Properties leave the top bar.
+  - Two fingers move and zoom the page with any tool, about the point between them.
+  - A finger dragging the Select tool over empty paper pans (mouse and pen still draw a box).
+  - A finger's flick glides on and slows to a stop; a touch stops it.
+  - Pen-only drawing waits for a pen: on a phone (or a tablet without its pen) fingers draw.
+- [ ] **(Steve, next)** Touch, second pass from use on the devices: double tap to zoom, the drag
+      threshold, the glide's feel, long press; quick Add photo button and field flow on the phone;
+      Properties, caption box and keypad sized for the phone.
 - [ ] **(Steve, back burner)** Object styles, as Illustrator's graphic styles: save a markup's look (stroke,
       width, dash, line ends, alignment, fill, opacity, font) under a name ("Existing walls", "Demo")
       in a Styles box; apply one to the selection or make it the current tool style. A text style

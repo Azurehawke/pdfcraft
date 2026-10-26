@@ -159,6 +159,22 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
         .exact_size(62.0)
         .frame(egui::Frame::NONE.fill(t.card).inner_margin(egui::Margin::symmetric(10, 4)).stroke(Stroke::new(1.0, t.divider)))
         .show(ui, |ui| {
+            // A phone: the ribbon's row is wider than the screen, so it swipes sideways.
+            if crate::chrome::phone(ui.ctx()) {
+                egui::ScrollArea::horizontal()
+                    .id_salt("ribbon-phone")
+                    .scroll_bar_visibility(egui::scroll_area::ScrollBarVisibility::AlwaysHidden)
+                    .show(ui, |ui| ribbon_body(app, ui, &t));
+            } else {
+                ribbon_body(app, ui, &t);
+            }
+        });
+}
+
+/// The ribbon's row: the tab's tool options or its groups of buttons.
+fn ribbon_body(app: &mut PdfCraftApp, ui: &mut egui::Ui, t: &Tokens) {
+    {
+        {
             if app.workflow == Workflow::Symbols {
                 crate::revu::ribbon(app, ui);
                 return;
@@ -168,7 +184,7 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
                 app.workflow = Workflow::Markup;
             }
             if app.workflow == Workflow::Markup {
-                markup_options(app, ui, &t);
+                markup_options(app, ui, t);
                 return;
             }
             if app.workflow == Workflow::Draft {
@@ -209,14 +225,15 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
                     }
                     // RevuCraft: a cable run's allowance and the totals, beside its button.
                     if app.workflow == Workflow::Measure {
-                        crate::cable::ribbon_group(app, ui, &t);
+                        crate::cable::ribbon_group(app, ui, t);
                     }
                     if let Some(id) = run {
                         app.execute(id);
                     }
                 });
             });
-        });
+        }
+    }
 }
 
 /// The Markup tab's ribbon: the chosen tool's options (a photo's text side and height), else

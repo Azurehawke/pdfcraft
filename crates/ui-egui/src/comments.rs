@@ -496,6 +496,9 @@ pub struct CommentView {
     /// The selected comment: (page, index in `/Annots`).
     pub selected: Option<(usize, usize)>,
     pub gesture: Option<Gesture>,
+    /// A finger dragging the Select tool over empty paper pans the page (a mouse or pen draws a
+    /// selection box there); the page view moves it while the drag lasts.
+    pub finger_pan: bool,
     /// The pen's pressure at each point of a Draw gesture (`None`: no pressure reported, as
     /// with a mouse).
     pub pressures: Vec<Option<f64>>,
@@ -1365,7 +1368,11 @@ fn select_input(
             }
             consumed = true;
         } else if cx.hit(o).is_none() && !over_text {
-            cv.gesture = Some(Gesture::Box { page: cx.page, from: o, add: adding });
+            if crate::pen::finger() {
+                cv.finger_pan = true;
+            } else {
+                cv.gesture = Some(Gesture::Box { page: cx.page, from: o, add: adding });
+            }
             consumed = true;
         }
     }

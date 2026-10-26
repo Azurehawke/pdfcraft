@@ -520,8 +520,10 @@ pub struct DocView {
     /// Per-axis line-wheel state; horizontal input cannot extend a vertical burst.
     wheel_boost_x: crate::wheel_boost::WheelBoost,
     wheel_boost_y: crate::wheel_boost::WheelBoost,
-    /// Touchpad momentum after the fingers lift (#531).
+    /// Touchpad momentum after the fingers lift (#531), and a finger's flick on a touch screen.
     fling: crate::fling::Fling,
+    /// A finger was panning the page last pass: its lift may glide.
+    touch_panning: bool,
     pub(crate) auto_scroll: crate::autoscroll::AutoScroll,
     /// Pages selected in the organize grid or the Pages panel (0-based). Empty means "the current page".
     pub selected: BTreeSet<usize>,
@@ -857,6 +859,7 @@ impl DocView {
             wheel_boost_x: Default::default(),
             wheel_boost_y: Default::default(),
             fling: Default::default(),
+            touch_panning: false,
             auto_scroll: Default::default(),
             selected: BTreeSet::new(),
             select_anchor: None,
@@ -2676,7 +2679,8 @@ fn page_scroll<R>(
 /// Draws the document tab at `index`: its notice bars, then its pages (or the Organize grid) in a
 /// scroll area with this frame's zoom, scrolling, tool input, overlays and render requests.
 pub fn document_area(app: &mut PdfCraftApp, index: usize, ui: &mut egui::Ui) {
-    if !app.rulers || app.full_screen {
+    // A phone keeps its width for the drawing: no rulers.
+    if !app.rulers || app.full_screen || crate::chrome::phone(ui.ctx()) {
         document_area_pages(app, index, ui);
         return;
     }
@@ -3119,11 +3123,20 @@ fn document_area_pages(app: &mut PdfCraftApp, index: usize, ui: &mut egui::Ui) {
                     matches!(e, egui::Event::PointerButton { button: egui::PointerButton::Primary, pressed: false, modifiers, .. } if modifiers.shift)
                 })
         });
+    // Two fingers on a touch screen: they move and zoom the page whatever the tool.
+    let touch = ui.input(|i| i.multi_touch());
     if zoom_delta.is_finite() && zoom_delta > 0.0 && zoom_delta != 1.0 && navigation_enabled && ui.rect_contains_pointer(navigation_rect) {
         let z = view.zoom * zoom_delta;
-        match ui.input(|i| i.pointer.hover_pos()) {
-            Some(p) => view.zoom_at(z, p),
-            None => view.set_zoom(z),
+        match (touch.as_ref(), ui.input(|i| i.pointer.hover_pos())) {
+            // Pinching: the point between the fingers stays under them as they move.
+            (Some(t), _) if t.center_pos.is_finite() && t.translation_delta.is_finite() => {
+                view.zoom_at(z, t.center_pos - t.translation_delta);
+                if let Some(anchor) = view.zoom_anchor.as_mut() {
+                    anchor.3 += t.translation_delta;
+                }
+            }
+            (_, Some(p)) => view.zoom_at(z, p),
+            _ => view.set_zoom(z),
         }
     }
     view.viewport_screen = avail;
@@ -3302,7 +3315,7 @@ fn document_area_pages(app: &mut PdfCraftApp, index: usize, ui: &mut egui::Ui) {
     let mut scroll = egui::ScrollArea::both().auto_shrink([false, false]).scroll_source(egui::scroll_area::ScrollSource {
         drag: if middle_gesture {
             egui::scroll_area::DragScroll::Never
-        } else if app.quick_tool == QuickTool::Hand || finger_pans_with(app.quick_tool) {
+        } else if app.quick_tool == QuickTool::Hand || finger_pans_with(app.quick_tool) || touch.is_some() {
             egui::scroll_area::DragScroll::Always
         } else if crate::pen::pen_draws() {
             // Pen-only drawing: the pen uses the tool; it never drags the page along.
@@ -3328,7 +3341,14 @@ fn document_area_pages(app: &mut PdfCraftApp, index: usize, ui: &mut egui::Ui) {
     // page only after that frame was drawn, a frame behind. The frame egui tells the drag from a
     // click, the page catches up with all the pointer has moved since the press. A jump asked for
     // below still wins.
-    if app.quick_tool == QuickTool::Hand
+    // Fingers pan the same way: a finger with pen-only drawing, two fingers with any tool, and
+    // a finger dragging the Select tool over empty paper. They glide on after a flick.
+    if !ui.input(|i| i.pointer.any_down()) {
+        view.comments.finger_pan = false;
+    }
+    let pans = app.quick_tool == QuickTool::Hand || finger_pans_with(app.quick_tool) || touch.is_some() || view.comments.finger_pan;
+    let mut panned = false;
+    if pans
         && !middle_gesture
         && let Some(id) = view.page_widget.filter(|id| ui.ctx().is_being_dragged(*id))
     {
@@ -3337,10 +3357,19 @@ fn document_area_pages(app: &mut PdfCraftApp, index: usize, ui: &mut egui::Ui) {
         } else {
             ui.input(|i| i.pointer.delta())
         };
+        let moved = if moved.is_finite() { moved } else { Vec2::ZERO };
         // Within the content, as egui keeps it: past an end the page would show there for a
         // frame and spring back. `max` is never NaN or below zero, so the clamp can't panic.
         let max = vec2((content_w - avail.width()).max(0.0), (content_h - avail.height()).max(0.0));
         scroll = scroll.scroll_offset((view.last_scroll - moved).clamp(Vec2::ZERO, max));
+        if crate::pen::finger() || touch.is_some() {
+            view.fling.drag(now, moved);
+            panned = true;
+        }
+    }
+    if std::mem::replace(&mut view.touch_panning, panned) && !panned {
+        view.fling.release(now, may_glide);
+        ui.ctx().request_repaint();
     }
     if let Some(v) = view.sync_scroll.take() {
         scroll = scroll.scroll_offset(v);
@@ -3388,7 +3417,7 @@ fn document_area_pages(app: &mut PdfCraftApp, index: usize, ui: &mut egui::Ui) {
     view.current_scale_tag = tag;
     // Pen-only drawing (tablets): a finger on the page pans it (`finger_pans_with`); the chosen
     // tool (`app.quick_tool`) stays for the pen and the mouse.
-    let finger_pans = finger_pans_with(app.quick_tool);
+    let finger_pans = finger_pans_with(app.quick_tool) || touch.is_some();
     let hand = app.quick_tool == QuickTool::Hand || finger_pans;
     let tool = if finger_pans { QuickTool::Hand } else { app.quick_tool };
     // Text selection runs for the Select tool and for the markup tools (highlight…).

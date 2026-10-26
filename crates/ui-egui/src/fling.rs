@@ -89,6 +89,24 @@ impl Fling {
         }
     }
 
+    /// A finger (or the Hand tool) dragged the page by `delta` in the pass at `now` (positive
+    /// moves the content down, as a wheel's delta does).
+    pub(crate) fn drag(&mut self, now: f64, delta: Vec2) {
+        self.velocity = Vec2::ZERO;
+        self.stalled = 0;
+        self.push(now, delta);
+    }
+
+    /// The drag ended at `now`: a flick glides on at the speed it lifted at, a finger that
+    /// stopped first doesn't. `glide` as for [`Self::read`].
+    pub(crate) fn release(&mut self, now: f64, glide: bool) {
+        if glide && self.enabled {
+            self.velocity = self.lift_velocity(now);
+            self.at = now;
+        }
+        self.samples.clear();
+    }
+
     fn push(&mut self, now: f64, delta: Vec2) {
         if !(delta.x.is_finite() && delta.y.is_finite()) {
             return;
@@ -175,6 +193,33 @@ mod tests {
         now += dt;
         fling.read(&[wheel(0.0, TouchPhase::End)], now, true);
         now
+    }
+
+    #[test]
+    fn a_finger_flick_on_the_screen_glides_and_a_stopped_finger_does_not() {
+        let dt = 1.0 / 60.0;
+        let mut fling = Fling::new(true);
+        let mut now = 0.0;
+        for _ in 0..6 {
+            now += dt;
+            fling.drag(now, vec2(0.0, 30.0));
+        }
+        fling.release(now + dt, true);
+        assert!((fling.velocity.y - 1800.0).abs() < 1.0, "{:?}", fling.velocity);
+        assert!(fling.step(now + 2.0 * dt).y > 0.0, "on the way the finger went");
+        // Held still before lifting: no glide.
+        let mut held = Fling::new(true);
+        for i in 1..=6 {
+            held.drag(f64::from(i) * dt, vec2(0.0, 30.0));
+        }
+        held.release(6.0 * dt + 0.2, true);
+        assert!(!held.gliding());
+        // Not where gliding is off.
+        let mut off = Fling::new(true);
+        off.drag(dt, vec2(0.0, 30.0));
+        off.drag(2.0 * dt, vec2(0.0, 30.0));
+        off.release(3.0 * dt, false);
+        assert!(!off.gliding());
     }
 
     #[test]
