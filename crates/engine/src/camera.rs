@@ -90,25 +90,168 @@ pub fn warp(rgba: &[u8], width: u32, height: u32, quad: [Point; 4]) -> Result<Wa
 /// The long side, in pixels, a page is rendered at to look for the document's edges.
 const DETECT_SIDE: f32 = 1200.0;
 
+/// What straightening one page needs, without the session: a page of [`CameraBatch`], or the
+/// one [`Session::enhance_camera_page_at`] enhances.
+#[derive(Clone, Debug)]
+struct PageSource {
+    page: usize,
+    info: pdfcraft_render::PageInfo,
+    /// The page's densest picture, in pixels per point, when it has one.
+    native: Option<f32>,
+}
+
+/// A page straightened and cleaned up, ready to replace the page it came from
+/// ([`Session::finish_camera_batch`]).
+#[derive(Clone, Debug)]
+pub struct CameraPage {
+    pub page: usize,
+    name: &'static str,
+    encoded: Vec<u8>,
+    dpi: f64,
+    /// Whether the document's edges were found; when not, the whole page was cleaned up as it is.
+    pub detected: bool,
+}
+
+/// Enhance ▸ Camera image ▸ Enhance all pages: every page of a document straightened at the
+/// edges found on it (the whole page where none are) and cleaned up alike. The pixel work
+/// ([`CameraBatch::page`]) needs no session, so it can run on a worker thread a page at a time;
+/// [`Session::finish_camera_batch`] then replaces the pages in one undoable step.
+#[derive(Clone, Debug)]
+pub struct CameraBatch {
+    pub id: DocId,
+    bytes: Arc<Vec<u8>>,
+    password: Option<Arc<str>>,
+    pages: Vec<PageSource>,
+    look: crate::camera_clean::Look,
+    level: u8,
+}
+
+impl CameraBatch {
+    /// How many pages it enhances.
+    pub fn len(&self) -> usize {
+        self.pages.len()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.pages.is_empty()
+    }
+
+    /// Straighten and clean up the `index`th page (0-based among [`Self::len`]).
+    pub fn page(&self, index: usize) -> Result<CameraPage, String> {
+        let src = self.pages.get(index).ok_or("no such page")?;
+        let corners = detect(&self.bytes, self.password.clone(), src).map(|q| (q, true)).unwrap_or_else(|| (whole_page(&src.info), false));
+        let mut out = straighten(&self.bytes, self.password.clone(), src, corners.0, self.look, self.level)?;
+        out.detected = corners.1;
+        Ok(out)
+    }
+}
+
+/// The page's own corners, in user space: what a page without a detected document keeps.
+fn whole_page(info: &pdfcraft_render::PageInfo) -> [Point; 4] {
+    [[0.0, 0.0], [info.width, 0.0], [info.width, info.height], [0.0, info.height]].map(|[x, y]| {
+        let [u, v] = info.view_to_user(x, y);
+        [u as f64, v as f64]
+    })
+}
+
+/// The photographed document's corners on a page, in user space (see
+/// [`Session::detect_camera_corners`]).
+fn detect(bytes: &Arc<Vec<u8>>, password: Option<Arc<str>>, src: &PageSource) -> Option<[Point; 4]> {
+    let info = &src.info;
+    let scale = (DETECT_SIDE / info.width.max(info.height).max(1.0)).clamp(0.05, MAX_SCALE);
+    let config = RenderConfig { password, ..Default::default() };
+    let shot = pdfcraft_render::PageRenderer::new(bytes.clone(), config).render(RenderRequest { page: src.page, scale, ..Default::default() });
+    if shot.error.is_some() {
+        return None;
+    }
+    let quad = crate::camera_edges::detect_document(&shot.rgba, shot.width, shot.height)?;
+    let k = shot.width as f64 / (info.width as f64).max(1e-3);
+    Some(quad.map(|[x, y]| {
+        let [u, v] = info.view_to_user((x / k) as f32, (y / k) as f32);
+        [u as f64, v as f64]
+    }))
+}
+
+/// Render a page, warp what `corners` enclose upright, clean it up and encode it.
+fn straighten(
+    bytes: &Arc<Vec<u8>>,
+    password: Option<Arc<str>>,
+    src: &PageSource,
+    corners: [Point; 4],
+    look: crate::camera_clean::Look,
+    level: u8,
+) -> Result<CameraPage, String> {
+    let (page, info) = (src.page, &src.info);
+    let area = (info.width.max(1.0) as f64) * (info.height.max(1.0) as f64);
+    let cap = (MAX_PIXELS / area).sqrt() as f32;
+    let scale = src.native.unwrap_or(DEFAULT_SCALE).clamp(1.0, MAX_SCALE).min(cap).max(0.01);
+    let config = RenderConfig { password, ..Default::default() };
+    let mut r = pdfcraft_render::PageRenderer::new(bytes.clone(), config);
+    let shot = r.render(RenderRequest { page, scale, ..Default::default() });
+    if let Some(e) = shot.error {
+        return Err(format!("page {} could not be rendered: {e}", page + 1));
+    }
+    let k = shot.width as f64 / (info.width as f64).max(1e-3);
+    let quad = corners.map(|[x, y]| {
+        let [vx, vy] = info.user_to_view(x as f32, y as f32);
+        [vx as f64 * k, vy as f64 * k]
+    });
+    let out = warp(&shot.rgba, shot.width, shot.height, quad)?;
+    let pixels = crate::camera_clean::apply(&out.rgb, out.width, out.height, look, level).ok_or("the straightened page could not be cleaned up")?;
+    // Black and white is lossless (PNG): JPEG would smear grey around every letter.
+    let mut encoded = Vec::new();
+    let jpeg = |encoded: &mut Vec<u8>, px: &[u8], color| {
+        image::ImageEncoder::write_image(image::codecs::jpeg::JpegEncoder::new_with_quality(encoded, QUALITY), px, out.width, out.height, color)
+    };
+    let (name, written) = match &pixels {
+        crate::camera_clean::Pixels::Rgb(rgb) => ("camera.jpg", jpeg(&mut encoded, rgb, image::ExtendedColorType::Rgb8)),
+        crate::camera_clean::Pixels::Grey(grey) if look == crate::camera_clean::Look::BlackWhite => (
+            "camera.png",
+            image::ImageEncoder::write_image(
+                image::codecs::png::PngEncoder::new(&mut encoded),
+                grey,
+                out.width,
+                out.height,
+                image::ExtendedColorType::L8,
+            ),
+        ),
+        crate::camera_clean::Pixels::Grey(grey) => ("camera.jpg", jpeg(&mut encoded, grey, image::ExtendedColorType::L8)),
+    };
+    written.map_err(|e| format!("the straightened page could not be encoded: {e}"))?;
+    // One device pixel per `k` points keeps the page's physical size.
+    let dpi = (k * 72.0).clamp(1.0, 1200.0);
+    Ok(CameraPage { page, name, encoded, dpi, detected: true })
+}
+
 impl Session {
+    /// What straightening page `page` of `id` needs, refused for a read-only document.
+    fn page_source(&self, id: DocId, page: usize) -> Result<(Arc<Vec<u8>>, Option<Arc<str>>, PageSource), EditError> {
+        let doc = self.get(id).ok_or(EditError::NoDocument)?;
+        if let Some(why) = &doc.read_only_reason {
+            return Err(EditError::ReadOnly(why.clone()));
+        }
+        let info = doc.info.pages.get(page).ok_or_else(|| EditError::Invalid(format!("there is no page {}", page.saturating_add(1))))?.clone();
+        let native = doc
+            .page_images(page)
+            .iter()
+            .filter(|i| i.width > 1 && i.height > 1)
+            .map(|i| {
+                let m = i.matrix;
+                let (w, h) = (m[0].hypot(m[1]), m[2].hypot(m[3]));
+                (i.width as f64 / w.max(1e-6)).max(i.height as f64 / h.max(1e-6)) as f32
+            })
+            .filter(|s| s.is_finite())
+            .reduce(f32::max);
+        Ok((doc.bytes.clone(), doc.password.as_deref().map(Arc::from), PageSource { page, info, native }))
+    }
+
     /// Enhance ▸ Camera image: the corners of the photographed document on page `page`
     /// (0-based) of document `id`, in PDF user space (top-left, top-right, bottom-right,
     /// bottom-left as displayed), or `None` when its edges can't be found with confidence.
     pub fn detect_camera_corners(&self, id: DocId, page: usize) -> Option<[Point; 4]> {
         let doc = self.get(id)?;
-        let info = doc.info.pages.get(page)?;
-        let scale = (DETECT_SIDE / info.width.max(info.height).max(1.0)).clamp(0.05, MAX_SCALE);
-        let config = RenderConfig { password: doc.password.as_deref().map(Arc::from), ..Default::default() };
-        let shot = pdfcraft_render::PageRenderer::new(doc.bytes.clone(), config).render(RenderRequest { page, scale, ..Default::default() });
-        if shot.error.is_some() {
-            return None;
-        }
-        let quad = crate::camera_edges::detect_document(&shot.rgba, shot.width, shot.height)?;
-        let k = shot.width as f64 / (info.width as f64).max(1e-3);
-        Some(quad.map(|[x, y]| {
-            let [u, v] = info.view_to_user((x / k) as f32, (y / k) as f32);
-            [u as f64, v as f64]
-        }))
+        let info = doc.info.pages.get(page)?.clone();
+        detect(&doc.bytes, doc.password.as_deref().map(Arc::from), &PageSource { page, info, native: None })
     }
 
     /// Enhance ▸ Camera image: replace page `page` (0-based) of document `id` with the part of it
@@ -129,80 +272,46 @@ impl Session {
         look: crate::camera_clean::Look,
         level: u8,
     ) -> Result<(), EditError> {
-        let doc = self.get(id).ok_or(EditError::NoDocument)?;
-        if let Some(why) = &doc.read_only_reason {
-            return Err(EditError::ReadOnly(why.clone()));
-        }
-        let info = doc.info.pages.get(page).ok_or_else(|| EditError::Invalid(format!("there is no page {}", page.saturating_add(1))))?;
-        let native = doc
-            .page_images(page)
-            .iter()
-            .filter(|i| i.width > 1 && i.height > 1)
-            .map(|i| {
-                let m = i.matrix;
-                let (w, h) = (m[0].hypot(m[1]), m[2].hypot(m[3]));
-                (i.width as f64 / w.max(1e-6)).max(i.height as f64 / h.max(1e-6)) as f32
-            })
-            .filter(|s| s.is_finite())
-            .reduce(f32::max);
-        let area = (info.width.max(1.0) as f64) * (info.height.max(1.0) as f64);
-        let cap = (MAX_PIXELS / area).sqrt() as f32;
-        let scale = native.unwrap_or(DEFAULT_SCALE).clamp(1.0, MAX_SCALE).min(cap).max(0.01);
+        let (bytes, password, src) = self.page_source(id, page)?;
+        let out = straighten(&bytes, password, &src, corners, look, level).map_err(EditError::Invalid)?;
+        self.finish_camera_pages(id, vec![out], "Enhance camera image")
+    }
 
-        let config = RenderConfig { password: doc.password.as_deref().map(Arc::from), ..Default::default() };
-        let mut r = pdfcraft_render::PageRenderer::new(doc.bytes.clone(), config);
-        let shot = r.render(RenderRequest { page, scale, ..Default::default() });
-        if let Some(e) = shot.error {
-            return Err(EditError::Invalid(format!("page {} could not be rendered: {e}", page + 1)));
+    /// Enhance ▸ Camera image ▸ Enhance all pages: the work for every page of `id`, to run with
+    /// [`CameraBatch::page`] and finish with [`Session::finish_camera_batch`].
+    /// `skip` is a page left as it is (one already enhanced).
+    pub fn camera_batch(&self, id: DocId, look: crate::camera_clean::Look, level: u8, skip: Option<usize>) -> Result<CameraBatch, EditError> {
+        let n = self.get(id).ok_or(EditError::NoDocument)?.info.pages.len();
+        let mut pages = Vec::with_capacity(n);
+        let mut first = None;
+        for page in (0..n).filter(|p| Some(*p) != skip) {
+            let (bytes, password, src) = self.page_source(id, page)?;
+            first.get_or_insert((bytes, password));
+            pages.push(src);
         }
-        let k = shot.width as f64 / (info.width as f64).max(1e-3);
-        let quad = corners.map(|[x, y]| {
-            let [vx, vy] = info.user_to_view(x as f32, y as f32);
-            [vx as f64 * k, vy as f64 * k]
-        });
-        let out = warp(&shot.rgba, shot.width, shot.height, quad).map_err(EditError::Invalid)?;
-        let pixels = crate::camera_clean::apply(&out.rgb, out.width, out.height, look, level)
-            .ok_or_else(|| EditError::Invalid("the straightened page could not be cleaned up".into()))?;
-        // Black and white is lossless (PNG): JPEG would smear grey around every letter.
-        let mut encoded = Vec::new();
-        let (name, written) = match &pixels {
-            crate::camera_clean::Pixels::Rgb(rgb) => (
-                "camera.jpg",
-                image::ImageEncoder::write_image(
-                    image::codecs::jpeg::JpegEncoder::new_with_quality(&mut encoded, QUALITY),
-                    rgb,
-                    out.width,
-                    out.height,
-                    image::ExtendedColorType::Rgb8,
-                ),
-            ),
-            crate::camera_clean::Pixels::Grey(grey) if look == crate::camera_clean::Look::BlackWhite => (
-                "camera.png",
-                image::ImageEncoder::write_image(
-                    image::codecs::png::PngEncoder::new(&mut encoded),
-                    grey,
-                    out.width,
-                    out.height,
-                    image::ExtendedColorType::L8,
-                ),
-            ),
-            crate::camera_clean::Pixels::Grey(grey) => (
-                "camera.jpg",
-                image::ImageEncoder::write_image(
-                    image::codecs::jpeg::JpegEncoder::new_with_quality(&mut encoded, QUALITY),
-                    grey,
-                    out.width,
-                    out.height,
-                    image::ExtendedColorType::L8,
-                ),
-            ),
+        let Some((bytes, password)) = first else {
+            let doc = self.get(id).ok_or(EditError::NoDocument)?;
+            return Ok(CameraBatch { id, bytes: doc.bytes.clone(), password: None, pages, look, level });
         };
-        written.map_err(|e| EditError::Invalid(format!("the straightened page could not be encoded: {e}")))?;
-        // One device pixel per `k` points keeps the page's physical size.
-        let dpi = (k * 72.0).clamp(1.0, 1200.0);
-        let bytes = self.create_from_images_with_resolution(&[(name.into(), encoded)], ImageResolution::Dpi(dpi))?;
-        let replace = Edit::ReplacePages { pages: vec![page], name: "camera.pdf".into(), bytes, src_pages: vec![0] };
-        self.apply(id, Edit::Batch { label: "Enhance camera image".into(), edits: vec![replace] })
+        Ok(CameraBatch { id, bytes, password, pages, look, level })
+    }
+
+    /// Replace each enhanced page with its picture, in one undoable step ("Enhance all pages").
+    /// The document must not have changed since [`Session::camera_batch`] (the caller checks).
+    pub fn finish_camera_batch(&mut self, id: DocId, pages: Vec<CameraPage>) -> Result<(), EditError> {
+        self.finish_camera_pages(id, pages, "Enhance all pages")
+    }
+
+    fn finish_camera_pages(&mut self, id: DocId, pages: Vec<CameraPage>, label: &str) -> Result<(), EditError> {
+        if pages.is_empty() {
+            return Ok(());
+        }
+        let mut edits = Vec::with_capacity(pages.len());
+        for p in pages {
+            let bytes = self.create_from_images_with_resolution(&[(p.name.into(), p.encoded)], ImageResolution::Dpi(p.dpi))?;
+            edits.push(Edit::ReplacePages { pages: vec![p.page], name: "camera.pdf".into(), bytes, src_pages: vec![0] });
+        }
+        self.apply(id, Edit::Batch { label: label.into(), edits })
     }
 }
 

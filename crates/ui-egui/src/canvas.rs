@@ -572,6 +572,8 @@ pub struct DocView {
     /// Enhance ▸ Camera image: the page just enhanced, while the bar offers rotate, crop and
     /// organize.
     pub camera_done: Option<crate::camera_ui::CameraDone>,
+    /// Enhance all pages, while it runs.
+    pub camera_all: Option<crate::camera_ui::CameraAll>,
     /// Use a certificate: a signature rectangle being drawn, or an empty signature field clicked.
     pub sign: crate::sign_ui::SignView,
     /// Organize: the pages being dragged to a new place.
@@ -696,6 +698,10 @@ pub enum ViewAction {
     CameraLevel,
     /// After Enhance page: leave the tool for this command (Crop pages, Organize pages).
     CameraNext(&'static str),
+    /// Enhance all pages (the other pages, after one was enhanced, with its look and level).
+    CameraAll,
+    /// Stop Enhance all pages; nothing changes.
+    CameraAllCancel,
 }
 
 impl DocView {
@@ -861,6 +867,7 @@ impl DocView {
             crop_drag: None,
             camera: None,
             camera_done: None,
+            camera_all: None,
             sign: Default::default(),
             org_drag: None,
             panel_drag: None,

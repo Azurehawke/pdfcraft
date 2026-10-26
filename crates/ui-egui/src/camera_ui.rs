@@ -54,6 +54,28 @@ pub struct CameraDone {
     pub steps: usize,
 }
 
+/// Enhance all pages in progress: a worker straightens the pages one after another
+/// (`pdfcraft_engine::camera::CameraBatch`), and the pages replace the document's in one
+/// undoable step once all are done.
+pub struct CameraAll {
+    pub total: usize,
+    /// Pages back from the worker so far.
+    pub finished: usize,
+    pub rx: std::sync::mpsc::Receiver<Result<pdfcraft_engine::camera::CameraPage, String>>,
+    pub pages: Vec<pdfcraft_engine::camera::CameraPage>,
+    pub failed: Vec<String>,
+    /// Asks the worker to stop (Cancel).
+    pub cancel: std::sync::Arc<std::sync::atomic::AtomicBool>,
+    /// The document as the worker read it: the pages are only used if it hasn't changed since.
+    pub bytes: std::sync::Arc<Vec<u8>>,
+}
+
+impl std::fmt::Debug for CameraAll {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("CameraAll").field("total", &self.total).field("finished", &self.finished).finish_non_exhaustive()
+    }
+}
+
 fn screen(xf: &PageXform, c: [f32; 2]) -> Pos2 {
     xf.norm_to_screen(c[0] / xf.pw.max(1e-3), c[1] / xf.ph.max(1e-3))
 }
@@ -154,6 +176,19 @@ pub(crate) fn bar(ctx: &egui::Context, view: &mut DocView, area: Rect, t: &Token
                 .inner_margin(egui::Margin::symmetric(12, 8))
                 .show(ui, |ui| {
                     ui.horizontal(|ui| {
+                        // Enhance all pages under way: its progress, and Cancel.
+                        if let Some(all) = &view.camera_all {
+                            ui.spinner();
+                            ui.label(crate::i18n::fmt(
+                                tl!("Enhancing page {d} of {t}…"),
+                                &[("d", &(all.finished + 1).min(all.total).to_string()), ("t", &all.total.to_string())],
+                            ));
+                            if crate::widgets::pill_button(ui, tl!("Cancel"), false).clicked() {
+                                view.pending_action = Some(ViewAction::CameraAllCancel);
+                            }
+                            ui.ctx().request_repaint_after(std::time::Duration::from_millis(150));
+                            return;
+                        }
                         // After Enhance page: put the page the right way up, trim it, or move on.
                         if let Some(done) = view.camera_done.as_mut() {
                             let mut again = false;
@@ -192,6 +227,13 @@ pub(crate) fn bar(ctx: &egui::Context, view: &mut DocView, area: Rect, t: &Token
                             if icon(ui, "rotate-cw", tl!("Rotate clockwise")) {
                                 view.pending_action = Some(ViewAction::CameraRotate { clockwise: true });
                             }
+                            // The same look and clean-up for every other page of the document.
+                            if crate::widgets::pill_button(ui, tl!("All pages"), false)
+                                .on_hover_text(tl!("Straighten and clean up every other page the same way"))
+                                .clicked()
+                            {
+                                view.pending_action = Some(ViewAction::CameraAll);
+                            }
                             if crate::widgets::pill_button(ui, tl!("Crop pages"), false).clicked() {
                                 view.pending_action = Some(ViewAction::CameraNext("page.crop"));
                             }
@@ -206,6 +248,14 @@ pub(crate) fn bar(ctx: &egui::Context, view: &mut DocView, area: Rect, t: &Token
                         let ready = allowed && view.camera.is_some();
                         if ui.add_enabled_ui(ready, |ui| crate::widgets::pill_button(ui, tl!("Enhance page"), true)).inner.clicked() {
                             view.pending_action = Some(ViewAction::EnhanceCamera);
+                        }
+                        if ui
+                            .add_enabled_ui(allowed, |ui| crate::widgets::pill_button(ui, tl!("Enhance all pages"), false))
+                            .inner
+                            .on_hover_text(tl!("Find the edges on every page, then straighten and clean them all up"))
+                            .clicked()
+                        {
+                            view.pending_action = Some(ViewAction::CameraAll);
                         }
                         if crate::widgets::pill_button(ui, tl!("Cancel"), false).clicked() {
                             view.pending_action = Some(ViewAction::CancelCamera);

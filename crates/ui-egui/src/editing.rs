@@ -255,6 +255,9 @@ impl PdfCraftApp {
     /// Apply any edit a view queued this frame (organize toolbar, keys).
     /// Returns false when a field refused the typing queued for it (its editor is open again).
     pub(crate) fn process_pending_edits(&mut self) -> bool {
+        for k in 0..self.views.len() {
+            self.poll_camera_all(k);
+        }
         let Some(i) = self.active else { return true };
         let applied = self.apply_queued_edit(i);
         if !applied {
@@ -293,6 +296,12 @@ impl PdfCraftApp {
             Some(crate::canvas::ViewAction::CameraNext(command)) => {
                 self.leave_camera(i);
                 self.execute(command);
+            }
+            Some(crate::canvas::ViewAction::CameraAll) => self.start_camera_all(i),
+            Some(crate::canvas::ViewAction::CameraAllCancel) => {
+                if let Some(all) = self.views.get_mut(i).and_then(|v| v.camera_all.take()) {
+                    all.cancel.store(true, std::sync::atomic::Ordering::Relaxed);
+                }
             }
             None => {}
         }
@@ -353,11 +362,105 @@ impl PdfCraftApp {
         }
     }
 
+    /// Enhance ▸ Camera image ▸ Enhance all pages on tab `i`: every page (after one was
+    /// enhanced, every other page, with its look and level), on a worker thread.
+    fn start_camera_all(&mut self, i: usize) {
+        let Some(view) = self.views.get(i) else { return };
+        if view.camera_all.is_some() {
+            return;
+        }
+        let id = view.id;
+        let done = view.camera_done;
+        let (look, level) = done.map_or((crate::camera_ui::Look::Colour, crate::camera_ui::DEFAULT_LEVEL), |d| d.applied);
+        let batch = match self.session.camera_batch(id, look, level, done.map(|d| d.page)) {
+            Ok(b) if !b.is_empty() => b,
+            Ok(_) => return self.notify_tr("There are no other pages to enhance."),
+            Err(e) => return self.notify_error(e),
+        };
+        let Some(bytes) = self.session.get(id).map(|d| d.bytes.clone()) else { return };
+        let (tx, rx) = std::sync::mpsc::channel();
+        let cancel = std::sync::Arc::new(std::sync::atomic::AtomicBool::new(false));
+        let stop = cancel.clone();
+        let total = batch.len();
+        let ctx = self.ctx.clone();
+        let spawned = std::thread::Builder::new().name("enhance-all-pages".into()).spawn(move || {
+            for k in 0..batch.len() {
+                if stop.load(std::sync::atomic::Ordering::Relaxed) {
+                    return;
+                }
+                // Untrusted pages go through decoders: a panic in one is that page's failure.
+                let r = pdfcraft_engine::guard(|| batch.page(k)).unwrap_or_else(|m| Err(format!("internal error: {m}")));
+                if tx.send(r).is_err() {
+                    return;
+                }
+                if let Some(ctx) = &ctx {
+                    ctx.request_repaint();
+                }
+            }
+        });
+        if let Err(e) = spawned {
+            return self.notify_error(e);
+        }
+        if let Some(view) = self.views.get_mut(i) {
+            view.camera = None;
+            view.camera_all = Some(crate::camera_ui::CameraAll { total, finished: 0, rx, pages: Vec::new(), failed: Vec::new(), cancel, bytes });
+        }
+    }
+
+    /// Collect the pages Enhance all pages has finished on tab `k`; when all are back, replace
+    /// them in one undoable step (unless the document changed meanwhile).
+    fn poll_camera_all(&mut self, k: usize) {
+        let Some(all) = self.views.get_mut(k).and_then(|v| v.camera_all.as_mut()) else { return };
+        while let Ok(r) = all.rx.try_recv() {
+            all.finished += 1;
+            match r {
+                Ok(page) => all.pages.push(page),
+                Err(e) => all.failed.push(e),
+            }
+        }
+        if all.finished < all.total {
+            return;
+        }
+        let Some(view) = self.views.get_mut(k) else { return };
+        let Some(all) = view.camera_all.take() else { return };
+        let id = view.id;
+        let unchanged = self.session.get(id).is_some_and(|d| std::sync::Arc::ptr_eq(&d.bytes, &all.bytes));
+        if !unchanged {
+            return self.notify_tr("The document changed while its pages were being enhanced: nothing was replaced. Try again.");
+        }
+        let undetected = all.pages.iter().filter(|p| !p.detected).count();
+        let enhanced = all.pages.len();
+        if let Err(e) = self.session.finish_camera_batch(id, all.pages) {
+            return self.notify_error(e);
+        }
+        if let (Some(doc), Some(view)) = (self.session.get(id), self.views.get_mut(k)) {
+            view.document_changed(&doc.info);
+            view.camera_done = None;
+        }
+        let mut msg = crate::i18n::fmt(tl!("Enhanced {n} pages"), &[("n", &enhanced.to_string())]);
+        if undetected > 0 {
+            msg.push_str(&crate::i18n::fmt(
+                tl!("; on {n} the page edges weren't found, so they were cleaned up without straightening (use Enhance page on those)"),
+                &[("n", &undetected.to_string())],
+            ));
+        }
+        if !all.failed.is_empty() {
+            msg.push_str(&crate::i18n::fmt(
+                tl!("; {n} couldn't be enhanced: {e}"),
+                &[("n", &all.failed.len().to_string()), ("e", &all.failed.join("; "))],
+            ));
+        }
+        self.notify(msg);
+    }
+
     /// Leave Enhance ▸ Camera image on tab `i`.
     fn leave_camera(&mut self, i: usize) {
         if let Some(view) = self.views.get_mut(i) {
             view.camera = None;
             view.camera_done = None;
+            if let Some(all) = view.camera_all.take() {
+                all.cancel.store(true, std::sync::atomic::Ordering::Relaxed);
+            }
         }
         if self.quick_tool == crate::QuickTool::EnhanceCamera {
             self.quick_tool = crate::QuickTool::Select;
