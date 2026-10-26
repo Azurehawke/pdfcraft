@@ -146,6 +146,7 @@ jobs:
           shot plan-teal "$plan" --accent teal
           shot phone "$plan" --size 430x900 --scale 2
           shot phone-home --size 430x900 --scale 2
+          shot phone-new --size 430x900 --scale 2 --new-dialog open
           shot phone-draft "$plan" --size 430x900 --scale 2 --workflow draft --quick draft-wall
           shot phone-dock "$plan" --size 430x900 --scale 2 --workflow markup --dock layers,comments
           shot plan-icons-neutral "$plan" --workflow markup --icon-color neutral

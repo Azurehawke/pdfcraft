@@ -249,8 +249,13 @@ pub fn show(app: &mut PdfCraftApp, ctx: &egui::Context) {
     let pinned: Vec<String> = app.pinned.folders.clone();
     let mut act: Option<Act> = None;
     let screen = ctx.content_rect();
-    let width = (screen.width() - 48.0).clamp(360.0, 1100.0);
-    let height = (screen.height() - 60.0).clamp(420.0, 800.0);
+    // A phone: the screen's width, the sections one under another, and the whole box scrolls.
+    let phone = crate::chrome::phone(ctx);
+    let (width, height) = if phone {
+        ((screen.width() - 24.0).max(200.0), (screen.height() - 40.0).max(240.0))
+    } else {
+        ((screen.width() - 48.0).clamp(360.0, 1100.0), (screen.height() - 60.0).clamp(420.0, 800.0))
+    };
     let modal = egui::Modal::new(egui::Id::new("revucraft-new")).show(ctx, |ui| {
         ui.set_width(width);
         ui.set_max_height(height);
@@ -264,153 +269,157 @@ pub fn show(app: &mut PdfCraftApp, ctx: &egui::Context) {
             });
         });
         ui.separator();
-        // ── Top half: a new drawing ───────────────────────────────────────────────────────
-        ui.horizontal_top(|ui| {
-            let details_w = 270.0_f32.min(width * 0.4);
-            ui.vertical(|ui| {
-                ui.set_width((width - details_w - 20.0).max(160.0));
-                ui.horizontal(|ui| {
-                    ui.label(egui::RichText::new(tl!("Start a new drawing")).font(theme::semibold(12.0)).color(t.text_muted));
-                    ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
-                        ui.label(egui::RichText::new(tl!("Double-click a size to create it")).small().color(t.text_faint));
+        egui::ScrollArea::vertical().id_salt("new-body").max_height((height - 48.0).max(160.0)).auto_shrink([false, true]).show(ui, |ui| {
+            // ── Top half: a new drawing ───────────────────────────────────────────────────────
+            let row = if phone { Layout::top_down(Align::Min) } else { Layout::left_to_right(Align::Min) };
+            ui.with_layout(row, |ui| {
+                let details_w = if phone { (width - 16.0).max(200.0) } else { 270.0_f32.min(width * 0.4) };
+                ui.vertical(|ui| {
+                    ui.set_width(if phone { (width - 16.0).max(160.0) } else { (width - details_w - 20.0).max(160.0) });
+                    ui.horizontal(|ui| {
+                        ui.label(egui::RichText::new(tl!("Start a new drawing")).font(theme::semibold(12.0)).color(t.text_muted));
+                        ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
+                            ui.label(egui::RichText::new(tl!("Double-click a size to create it")).small().color(t.text_faint));
+                        });
+                    });
+                    ui.horizontal(|ui| {
+                        for (tab, label) in [(Tab::Recent, tl!("Recent")), (Tab::Ansi, "ANSI"), (Tab::Arch, "ARCH"), (Tab::Iso, tl!("ISO (A sizes)"))]
+                        {
+                            if ui.selectable_label(d.tab == tab, label).clicked() {
+                                d.tab = tab;
+                            }
+                        }
+                    });
+                    ui.add_space(4.0);
+                    egui::ScrollArea::horizontal().id_salt("new-sizes").show(ui, |ui| {
+                        ui.horizontal(|ui| {
+                            ui.spacing_mut().item_spacing.x = 10.0;
+                            let list: Vec<(String, (f64, f64))> = match d.tab {
+                                Tab::Recent => {
+                                    d.recent.iter().map(|(w, h)| (format!("{} × {}", shown(*w, d.metric), shown(*h, d.metric)), (*w, *h))).collect()
+                                }
+                                Tab::Ansi => ANSI.iter().map(|s| (tl!(s.name).to_string(), (s.width, s.height))).collect(),
+                                Tab::Arch => ARCH.iter().map(|s| (s.name.to_string(), (s.width, s.height))).collect(),
+                                Tab::Iso => ISO.iter().map(|s| (s.name.to_string(), (s.width, s.height))).collect(),
+                            };
+                            if list.is_empty() {
+                                ui.label(egui::RichText::new(tl!("Sizes you make appear here.")).color(t.text_muted));
+                            }
+                            for (label, (w, h)) in list {
+                                let selected = !d.custom && (d.width - w).abs() < 1e-6 && (d.height - h).abs() < 1e-6;
+                                let shape = if d.landscape { (h, w) } else { (w, h) };
+                                let resp = card(ui, &t, &label, Some(shape), d.metric, selected);
+                                if resp.clicked() || resp.double_clicked() {
+                                    d.width = w;
+                                    d.height = h;
+                                    d.custom = false;
+                                }
+                                if resp.double_clicked() {
+                                    act = Some(Act::Create);
+                                }
+                            }
+                            if card(ui, &t, tl!("Custom"), None, d.metric, d.custom).clicked() {
+                                d.custom = true;
+                            }
+                        });
                     });
                 });
+                // Details.
+                egui::Frame::NONE
+                    .fill(t.card)
+                    .stroke(Stroke::new(1.0, t.border))
+                    .corner_radius(CornerRadius::same(8))
+                    .inner_margin(egui::Margin::same(12))
+                    .show(ui, |ui| {
+                        ui.vertical(|ui| {
+                            ui.set_width(details_w - 24.0);
+                            ui.label(egui::RichText::new(tl!("Details")).font(theme::semibold(12.0)).color(t.text_muted));
+                            let k = if d.metric { 25.4 } else { 1.0 };
+                            egui::Grid::new("new-details").num_columns(2).spacing([8.0, 6.0]).show(ui, |ui| {
+                                ui.label(tl!("Width"));
+                                let mut w = d.width * k;
+                                if ui
+                                    .add(egui::DragValue::new(&mut w).range(1.0 * k..=200.0 * k).speed(0.1).suffix(format!(" {}", units(d.metric))))
+                                    .changed()
+                                {
+                                    d.width = w / k;
+                                    d.custom = true;
+                                }
+                                ui.end_row();
+                                ui.label(tl!("Height"));
+                                let mut h = d.height * k;
+                                if ui
+                                    .add(egui::DragValue::new(&mut h).range(1.0 * k..=200.0 * k).speed(0.1).suffix(format!(" {}", units(d.metric))))
+                                    .changed()
+                                {
+                                    d.height = h / k;
+                                    d.custom = true;
+                                }
+                                ui.end_row();
+                                ui.label(tl!("Units"));
+                                ui.horizontal(|ui| {
+                                    ui.selectable_value(&mut d.metric, false, tl!("Inches"));
+                                    ui.selectable_value(&mut d.metric, true, tl!("Millimetres"));
+                                });
+                                ui.end_row();
+                                ui.label(tl!("Orientation"));
+                                ui.horizontal(|ui| {
+                                    ui.selectable_value(&mut d.landscape, false, tl!("Portrait"));
+                                    ui.selectable_value(&mut d.landscape, true, tl!("Landscape"));
+                                });
+                                ui.end_row();
+                                ui.label(tl!("Drawing scale"));
+                                let presets = &crate::measure_ui::PRESETS;
+                                let current =
+                                    d.scale.and_then(|i| presets.get(i)).map_or_else(|| tl!("None (paper size)").to_string(), |p| p.name.to_string());
+                                egui::ComboBox::from_id_salt("new-scale").selected_text(current).width(140.0).show_ui(ui, |ui| {
+                                    ui.selectable_value(&mut d.scale, None, tl!("None (paper size)"));
+                                    for (i, p) in presets.iter().enumerate() {
+                                        ui.selectable_value(&mut d.scale, Some(i), p.name);
+                                    }
+                                });
+                                ui.end_row();
+                                ui.label(tl!("Pages"));
+                                ui.add(egui::DragValue::new(&mut d.pages).range(1..=500));
+                                ui.end_row();
+                            });
+                            if has_doc {
+                                ui.add(crate::widgets::checkbox(&mut d.add_to_document, tl!("Add to the open document")));
+                            }
+                            ui.add_space(6.0);
+                            if widgets::pill_button(ui, tl!("Create"), true).clicked() {
+                                act = Some(Act::Create);
+                            }
+                        });
+                    });
+            });
+            ui.add_space(8.0);
+            ui.separator();
+            // ── Bottom half: open a file ──────────────────────────────────────────────────────
+            ui.label(egui::RichText::new(tl!("Open a file")).font(theme::semibold(12.0)).color(t.text_muted));
+            #[cfg(any(target_os = "android", target_arch = "wasm32"))]
+            {
+                let _ = &pinned;
                 ui.horizontal(|ui| {
-                    for (tab, label) in [(Tab::Recent, tl!("Recent")), (Tab::Ansi, "ANSI"), (Tab::Arch, "ARCH"), (Tab::Iso, tl!("ISO (A sizes)"))] {
-                        if ui.selectable_label(d.tab == tab, label).clicked() {
-                            d.tab = tab;
-                        }
+                    if widgets::pill_button(ui, tl!("Open from device…"), true).clicked() {
+                        act = Some(Act::Picker);
                     }
                 });
                 ui.add_space(4.0);
-                egui::ScrollArea::horizontal().id_salt("new-sizes").show(ui, |ui| {
-                    ui.horizontal(|ui| {
-                        ui.spacing_mut().item_spacing.x = 10.0;
-                        let list: Vec<(String, (f64, f64))> = match d.tab {
-                            Tab::Recent => {
-                                d.recent.iter().map(|(w, h)| (format!("{} × {}", shown(*w, d.metric), shown(*h, d.metric)), (*w, *h))).collect()
-                            }
-                            Tab::Ansi => ANSI.iter().map(|s| (tl!(s.name).to_string(), (s.width, s.height))).collect(),
-                            Tab::Arch => ARCH.iter().map(|s| (s.name.to_string(), (s.width, s.height))).collect(),
-                            Tab::Iso => ISO.iter().map(|s| (s.name.to_string(), (s.width, s.height))).collect(),
-                        };
-                        if list.is_empty() {
-                            ui.label(egui::RichText::new(tl!("Sizes you make appear here.")).color(t.text_muted));
-                        }
-                        for (label, (w, h)) in list {
-                            let selected = !d.custom && (d.width - w).abs() < 1e-6 && (d.height - h).abs() < 1e-6;
-                            let shape = if d.landscape { (h, w) } else { (w, h) };
-                            let resp = card(ui, &t, &label, Some(shape), d.metric, selected);
-                            if resp.clicked() || resp.double_clicked() {
-                                d.width = w;
-                                d.height = h;
-                                d.custom = false;
-                            }
-                            if resp.double_clicked() {
-                                act = Some(Act::Create);
-                            }
-                        }
-                        if card(ui, &t, tl!("Custom"), None, d.metric, d.custom).clicked() {
-                            d.custom = true;
-                        }
-                    });
-                });
-            });
-            // Details.
-            egui::Frame::NONE
-                .fill(t.card)
-                .stroke(Stroke::new(1.0, t.border))
-                .corner_radius(CornerRadius::same(8))
-                .inner_margin(egui::Margin::same(12))
-                .show(ui, |ui| {
-                    ui.vertical(|ui| {
-                        ui.set_width(details_w - 24.0);
-                        ui.label(egui::RichText::new(tl!("Details")).font(theme::semibold(12.0)).color(t.text_muted));
-                        let k = if d.metric { 25.4 } else { 1.0 };
-                        egui::Grid::new("new-details").num_columns(2).spacing([8.0, 6.0]).show(ui, |ui| {
-                            ui.label(tl!("Width"));
-                            let mut w = d.width * k;
-                            if ui
-                                .add(egui::DragValue::new(&mut w).range(1.0 * k..=200.0 * k).speed(0.1).suffix(format!(" {}", units(d.metric))))
-                                .changed()
-                            {
-                                d.width = w / k;
-                                d.custom = true;
-                            }
-                            ui.end_row();
-                            ui.label(tl!("Height"));
-                            let mut h = d.height * k;
-                            if ui
-                                .add(egui::DragValue::new(&mut h).range(1.0 * k..=200.0 * k).speed(0.1).suffix(format!(" {}", units(d.metric))))
-                                .changed()
-                            {
-                                d.height = h / k;
-                                d.custom = true;
-                            }
-                            ui.end_row();
-                            ui.label(tl!("Units"));
-                            ui.horizontal(|ui| {
-                                ui.selectable_value(&mut d.metric, false, tl!("Inches"));
-                                ui.selectable_value(&mut d.metric, true, tl!("Millimetres"));
-                            });
-                            ui.end_row();
-                            ui.label(tl!("Orientation"));
-                            ui.horizontal(|ui| {
-                                ui.selectable_value(&mut d.landscape, false, tl!("Portrait"));
-                                ui.selectable_value(&mut d.landscape, true, tl!("Landscape"));
-                            });
-                            ui.end_row();
-                            ui.label(tl!("Drawing scale"));
-                            let presets = &crate::measure_ui::PRESETS;
-                            let current =
-                                d.scale.and_then(|i| presets.get(i)).map_or_else(|| tl!("None (paper size)").to_string(), |p| p.name.to_string());
-                            egui::ComboBox::from_id_salt("new-scale").selected_text(current).width(140.0).show_ui(ui, |ui| {
-                                ui.selectable_value(&mut d.scale, None, tl!("None (paper size)"));
-                                for (i, p) in presets.iter().enumerate() {
-                                    ui.selectable_value(&mut d.scale, Some(i), p.name);
-                                }
-                            });
-                            ui.end_row();
-                            ui.label(tl!("Pages"));
-                            ui.add(egui::DragValue::new(&mut d.pages).range(1..=500));
-                            ui.end_row();
-                        });
-                        if has_doc {
-                            ui.add(crate::widgets::checkbox(&mut d.add_to_document, tl!("Add to the open document")));
-                        }
-                        ui.add_space(6.0);
-                        if widgets::pill_button(ui, tl!("Create"), true).clicked() {
-                            act = Some(Act::Create);
-                        }
-                    });
-                });
-        });
-        ui.add_space(8.0);
-        ui.separator();
-        // ── Bottom half: open a file ──────────────────────────────────────────────────────
-        ui.label(egui::RichText::new(tl!("Open a file")).font(theme::semibold(12.0)).color(t.text_muted));
-        #[cfg(any(target_os = "android", target_arch = "wasm32"))]
-        {
-            let _ = &pinned;
-            ui.horizontal(|ui| {
-                if widgets::pill_button(ui, tl!("Open from device…"), true).clicked() {
-                    act = Some(Act::Picker);
-                }
-            });
-            ui.add_space(4.0);
-            egui::ScrollArea::vertical().id_salt("new-recent").max_height(220.0).show(ui, |ui| {
-                if recent_files.is_empty() {
-                    ui.label(egui::RichText::new(tl!("Files you open appear here.")).color(t.text_muted));
-                }
-                for (name, path) in &recent_files {
-                    if ui.selectable_label(false, name.as_str()).on_hover_text(path.as_str()).clicked() {
-                        act = Some(Act::OpenRecent(path.clone()));
+                egui::ScrollArea::vertical().id_salt("new-recent").max_height(220.0).show(ui, |ui| {
+                    if recent_files.is_empty() {
+                        ui.label(egui::RichText::new(tl!("Files you open appear here.")).color(t.text_muted));
                     }
-                }
-            });
-        }
-        #[cfg(not(any(target_os = "android", target_arch = "wasm32")))]
-        browser(ui, &t, d, &recent_files, &pinned, &mut act);
+                    for (name, path) in &recent_files {
+                        if ui.selectable_label(false, name.as_str()).on_hover_text(path.as_str()).clicked() {
+                            act = Some(Act::OpenRecent(path.clone()));
+                        }
+                    }
+                });
+            }
+            #[cfg(not(any(target_os = "android", target_arch = "wasm32")))]
+            browser(ui, &t, d, &recent_files, &pinned, &mut act);
+        });
     });
     if modal.should_close() && act.is_none() {
         act = Some(Act::Close);

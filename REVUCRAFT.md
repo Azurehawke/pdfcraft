@@ -353,21 +353,28 @@ Markup and measuring
       (every folder on the way goes straight there).
 - [x] **(Steve, build 194)** A finger's tap on the tablet (where fingers pan once the S Pen has been used)
       opens a photo pin's photo and selects a markup again, as the pen and mouse do.
+- [x] **(Steve, build 196)** The New dialog on a phone: the screen's width, its sections one under
+      another, the whole box scrolls. Android's app info shows "build 196" rather than 0.13.0.
 - [ ] **(Steve, next)** Touch, second pass from use on the devices: double tap to zoom, the drag
       threshold, the glide's feel, long press; quick Add photo button and field flow on the phone;
       Properties, caption box and keypad sized for the phone.
-- [ ] **(Steve, queued)** Markdown notes, placed like photo pins (a standard sticky note whose text is the
-      Markdown, so other viewers show it plain). Toolbar after Obsidian's Editing Toolbar: undo,
-      redo, format painter, clear formatting, H2, H3, Hn, bold, italic, strikethrough, code,
-      highlight, links (web and `[[markup]]` on the plan), file link (paperclip), checklist,
-      format menu, lists. No underline or colours (HTML in Markdown shows raw elsewhere), no
-      tables or callouts yet.
-  - Build 1: Note tool and icon, full-screen editor (toolbar scrolls above the phone's keyboard),
-    reading view first, tickable checklists, `#tags` as a Markups list column, date and author
-    stamp, `[[links]]` to markups.
-  - Build 2: paperclip links to `.xlsx` (a live read-only preview of a sheet or range, stored
-    relative to the PDF), templates, export as `.md` files to a folder (an Obsidian vault), notes in
-    the summary report. Photos stay separate pins a note links to.
+- [ ] **(Steve, queued)** Markdown notes, placed like photo pins. Each note is a real `.md` file in a
+      project folder named after the PDF (`Smith Residence.pdf` → `Smith Residence/notes/`, photos
+      at full size in `Smith Residence/photos/`), linked relative to the PDF like drawings and
+      workbooks, so Obsidian can open the folder as (part of) a vault and edits there show in
+      RevuCraft (Links box: Modified). The PDF keeps a copy (the note's text in its sticky note,
+      the photo scaled down) so it still stands alone when sent; the files are the master copy.
+      Rename job (PDF and folder together) and Package job (zip of both).
+      Toolbar after Obsidian's Editing Toolbar: undo, redo, format painter, clear formatting, H2,
+      H3, Hn, bold, italic, strikethrough, code, highlight, links (web and `[[markup]]` on the
+      plan), file link (paperclip), checklist, format menu, lists. No underline or colours (HTML in
+      Markdown shows raw elsewhere), no tables or callouts yet.
+  - Build 1: project folder, Note tool and icon, full-screen editor (toolbar scrolls above the
+    phone's keyboard), reading view first, tickable checklists, `#tags` as a Markups list column,
+    date and author stamp, `[[links]]` to markups.
+  - Build 2: paperclip links to `.xlsx` (a live read-only preview of a sheet or range), templates,
+    notes in the summary report, Rename job and Package job. Photos stay separate pins a note
+    links to.
   - Later: voice notes.
 - [ ] **(Steve, back burner)** Object styles, as Illustrator's graphic styles: save a markup's look (stroke,
       width, dash, line ends, alignment, fill, opacity, font) under a name ("Existing walls", "Demo")

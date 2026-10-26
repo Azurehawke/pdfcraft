@@ -92,6 +92,7 @@ jobs:
       - name: Build the APK
         env:
           VERSION_CODE: ${{ env.REVUCRAFT_BUILD }}
+          VERSION_NAME: build ${{ env.REVUCRAFT_BUILD }}
         run: |
           set -o pipefail
           bash packaging/android/build-apk.sh 2>&1 | tee "$RUNNER_TEMP/build.log"

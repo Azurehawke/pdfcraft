@@ -32,6 +32,8 @@ if [ ! -f "$PLATFORM" ]; then
 fi
 VERSION=$(sed -n 's/^version = "\(.*\)"/\1/p' "$ROOT/Cargo.toml" | head -1)
 VERSION_CODE=${VERSION_CODE:-1}
+# What Android shows as the version (a fork can show its own build number).
+VERSION_NAME=${VERSION_NAME:-$VERSION}
 APP_ID=${APP_ID:-ai.storyteller.pdfcraft}
 APP_LABEL=${APP_LABEL:-PdfCraft}
 APK_NAME=${APK_NAME:-pdfcraft}
@@ -55,7 +57,7 @@ sed "s|android:label=\"PdfCraft\"|android:label=\"$APP_LABEL\"|" "$HERE/AndroidM
     --manifest "$OUT/AndroidManifest.xml" \
     --rename-manifest-package "$APP_ID" \
     --min-sdk-version "$MIN_API" --target-sdk-version "$API" \
-    --version-code "$VERSION_CODE" --version-name "$VERSION" \
+    --version-code "$VERSION_CODE" --version-name "$VERSION_NAME" \
     "$OUT/res.zip"
 
 echo "== activity class"
