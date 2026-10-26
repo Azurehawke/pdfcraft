@@ -16,6 +16,7 @@
 //! Elsewhere the crate is empty, so `cargo build --workspace` on a desktop still works.
 #![cfg(target_os = "android")]
 
+mod camera;
 mod cloud;
 mod file_access;
 mod incoming;
@@ -61,6 +62,8 @@ fn android_main(android: AndroidApp) {
     // Google Drive and other document apps, through Android's picker (`cloud`).
     cloud::load();
     pdfcraft_ui_egui::set_android_documents(pdfcraft_ui_egui::AndroidDocuments { start: cloud::start, poll: cloud::poll });
+    // Scan with camera: photos from the device's camera app (`camera`).
+    pdfcraft_ui_egui::set_android_camera(pdfcraft_ui_egui::AndroidCamera { start: camera::start, poll: camera::poll });
     log::info!("All files access: {}", if file_access::granted() { "granted" } else { "not granted" });
 
     // Only the S Pen (or a mouse) draws on the page; fingers pan it (`tablet`).

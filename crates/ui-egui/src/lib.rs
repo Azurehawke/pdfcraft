@@ -90,6 +90,7 @@ mod dialog;
 mod dialogs;
 mod edit_text_ui;
 pub mod field_table_ui;
+mod scan_camera;
 pub use edit_text_ui::CropMode;
 mod editing;
 #[cfg(not(target_arch = "wasm32"))]
@@ -115,7 +116,9 @@ pub mod pen;
 #[cfg(not(target_arch = "wasm32"))]
 mod pickers;
 #[cfg(target_os = "android")]
-pub use android_picker::{AndroidDocuments, AndroidFileAccess, SystemPick, set_android_documents, set_android_file_access};
+pub use android_picker::{
+    AndroidCamera, AndroidDocuments, AndroidFileAccess, SystemPick, set_android_camera, set_android_documents, set_android_file_access,
+};
 pub mod prepare;
 mod print_ui;
 mod signature_drag;
@@ -3702,6 +3705,7 @@ impl eframe::App for PdfCraftApp {
             dialogs::show(self, &ctx);
             #[cfg(target_os = "android")]
             pickers::show_browser(self, &ctx);
+            scan_camera::frame(self, &ctx);
             // Notices too: a refused field value or a failed save must be seen in full screen.
             self.show_progress(&ctx);
             widgets::toast(self, &ctx);
@@ -3754,6 +3758,7 @@ impl eframe::App for PdfCraftApp {
         dialogs::show(self, &ctx);
         #[cfg(target_os = "android")]
         pickers::show_browser(self, &ctx);
+        scan_camera::frame(self, &ctx);
         self.show_progress(&ctx);
         widgets::toast(self, &ctx);
         self.finish_render_frame(&ctx);

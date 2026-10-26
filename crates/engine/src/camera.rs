@@ -277,6 +277,17 @@ impl Session {
         self.finish_camera_pages(id, vec![out], "Enhance camera image")
     }
 
+    /// Scan with camera: straighten page `page` at the edges found on it and clean it up (only
+    /// cleaned up when no edges are found). Returns whether edges were found. One undoable step.
+    pub fn enhance_camera_page_auto(&mut self, id: DocId, page: usize, look: crate::camera_clean::Look, level: u8) -> Result<bool, EditError> {
+        let (bytes, password, src) = self.page_source(id, page)?;
+        let found = detect(&bytes, password.clone(), &src);
+        let corners = found.unwrap_or_else(|| whole_page(&src.info));
+        let out = straighten(&bytes, password, &src, corners, look, level).map_err(EditError::Invalid)?;
+        self.finish_camera_pages(id, vec![out], "Enhance camera image")?;
+        Ok(found.is_some())
+    }
+
     /// Enhance ▸ Camera image ▸ Enhance all pages: the work for every page of `id`, to run with
     /// [`CameraBatch::page`] and finish with [`Session::finish_camera_batch`].
     /// `skip` is a page left as it is (one already enhanced).

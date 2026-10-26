@@ -72,6 +72,28 @@ pub fn set_android_documents(documents: AndroidDocuments) {
     let _ = DOCUMENTS.set(documents);
 }
 
+/// Scan with camera: the device's camera app, from the Android shell.
+#[derive(Clone, Copy, Debug)]
+pub struct AndroidCamera {
+    /// Open the camera app for one photo; the error says why it couldn't.
+    pub start: fn() -> Result<(), String>,
+    /// The photo's file once the camera app is back (none when cancelled); `None` while it
+    /// shows. Polled each frame while waiting.
+    pub poll: fn() -> Option<Result<Option<PathBuf>, String>>,
+}
+
+static CAMERA: OnceLock<AndroidCamera> = OnceLock::new();
+
+/// Called once by the Android shell at startup.
+pub fn set_android_camera(camera: AndroidCamera) {
+    let _ = CAMERA.set(camera);
+}
+
+/// The camera, when this build has one (Android).
+pub(crate) fn camera() -> Option<AndroidCamera> {
+    CAMERA.get().copied()
+}
+
 /// A MIME type for a file name's extension, for the system picker.
 fn mime_for(ext: &str) -> &'static str {
     match ext.to_ascii_lowercase().as_str() {

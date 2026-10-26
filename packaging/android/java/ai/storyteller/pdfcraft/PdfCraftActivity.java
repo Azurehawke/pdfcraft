@@ -3,11 +3,13 @@ package ai.storyteller.pdfcraft;
 import android.app.NativeActivity;
 import android.app.PendingIntent;
 import android.content.ClipData;
+import android.content.ContentValues;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageInstaller;
 import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.provider.MediaStore;
 import android.provider.Settings;
 
 import java.io.ByteArrayOutputStream;
@@ -39,6 +41,14 @@ import java.util.ArrayList;
  */
 public class PdfCraftActivity extends NativeActivity {
     private static final int REQUEST_DOCUMENTS = 0x5043;
+    private static final int REQUEST_PHOTO = 0x5044;
+
+    /** Scan with camera: where the camera app writes the photo, and its outcome. */
+    private Uri photoUri;
+    private final Object photoLock = new Object();
+    private String photoResult;
+    private boolean photoDone;
+    private int photoCount;
     private static final String INSTALL_STATUS = "ai.storyteller.pdfcraft.INSTALL_STATUS";
     private static final String USER_AGENT = "PdfCraft-Android-updater";
 
@@ -112,6 +122,10 @@ public class PdfCraftActivity extends NativeActivity {
     @Override
     protected void onActivityResult(int request, int result, Intent data) {
         super.onActivityResult(request, result, data);
+        if (request == REQUEST_PHOTO) {
+            photoAnswered(result);
+            return;
+        }
         if (request != REQUEST_DOCUMENTS) {
             return;
         }
@@ -312,5 +326,95 @@ public class PdfCraftActivity extends NativeActivity {
         String s = installStatus;
         installStatus = null;
         return s;
+    }
+
+    /**
+     * Scan with camera (apps/pdfcraft-android/src/camera.rs): open the device's camera app to
+     * take one photo. The camera app writes it to a Pictures/PdfCraft entry this app creates and
+     * then removes once the photo is copied, so the gallery doesn't fill up with scans. No camera
+     * permission is needed: the camera app takes the picture. Returns false when no camera app
+     * can take it.
+     */
+    public boolean pcTakePhoto() {
+        synchronized (photoLock) {
+            photoResult = null;
+            photoDone = false;
+        }
+        ContentValues values = new ContentValues();
+        values.put(MediaStore.Images.Media.DISPLAY_NAME, "pdfcraft-scan-" + System.currentTimeMillis() + ".jpg");
+        values.put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg");
+        values.put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures/PdfCraft");
+        try {
+            photoUri = getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
+        } catch (RuntimeException e) {
+            photoUri = null;
+        }
+        if (photoUri == null) {
+            return false;
+        }
+        final Intent i = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        i.putExtra(MediaStore.EXTRA_OUTPUT, photoUri);
+        i.setClipData(ClipData.newRawUri("photo", photoUri));
+        i.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    startActivityForResult(i, REQUEST_PHOTO);
+                } catch (RuntimeException e) {
+                    photoAnswered(RESULT_CANCELED);
+                }
+            }
+        });
+        return true;
+    }
+
+    private void photoAnswered(int result) {
+        String path = "";
+        Uri uri = photoUri;
+        photoUri = null;
+        if (uri != null) {
+            if (result == RESULT_OK) {
+                File out = new File(getCacheDir(), "scan-" + (++photoCount) + ".jpg");
+                try (InputStream in = getContentResolver().openInputStream(uri); OutputStream o = new FileOutputStream(out)) {
+                    if (in != null) {
+                        byte[] buf = new byte[65536];
+                        int n;
+                        long total = 0;
+                        while ((n = in.read(buf)) >= 0) {
+                            o.write(buf, 0, n);
+                            total += n;
+                        }
+                        if (total > 0) {
+                            path = out.getAbsolutePath();
+                        }
+                    }
+                } catch (IOException | RuntimeException e) {
+                    path = "";
+                }
+            }
+            try {
+                getContentResolver().delete(uri, null, null);
+            } catch (RuntimeException ignored) {
+                // An empty entry left in Pictures/PdfCraft at worst.
+            }
+        }
+        synchronized (photoLock) {
+            photoResult = path;
+            photoDone = true;
+        }
+    }
+
+    /** The photo's path once the camera app is back ("" when cancelled), or null while it shows. */
+    public String pcTakePhotoResult() {
+        synchronized (photoLock) {
+            if (!photoDone) {
+                return null;
+            }
+            photoDone = false;
+            String r = photoResult;
+            photoResult = null;
+            return r == null ? "" : r;
+        }
     }
 }
