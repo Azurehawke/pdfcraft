@@ -27,11 +27,21 @@ pub struct TabletApp {
     /// to the front.
     check_incoming: bool,
     focused: bool,
+    /// New builds from the GitHub repository the APK came from (`updater`).
+    updater: crate::updater::Updater,
 }
 
 impl TabletApp {
     pub fn new(app: PdfCraftApp, android: AndroidApp) -> Self {
-        Self { app, android, touches: TouchRouter::default(), insets: egui::epaint::MarginF32::default(), check_incoming: true, focused: true }
+        Self {
+            app,
+            android,
+            touches: TouchRouter::default(),
+            insets: egui::epaint::MarginF32::default(),
+            check_incoming: true,
+            focused: true,
+            updater: crate::updater::Updater::default(),
+        }
     }
 
     /// Open the PDF another app sent, if there is one.
@@ -112,6 +122,8 @@ impl eframe::App for TabletApp {
         }
         // Documents from Google Drive and other apps: write back what PdfCraft saved.
         crate::cloud::sync(&mut self.app, ctx);
+        // At start-up, then at most hourly (`updater`).
+        self.updater.maybe_check(ctx.input(|i| i.time));
         self.app.logic(ctx, frame);
     }
 
@@ -131,6 +143,7 @@ impl eframe::App for TabletApp {
             ui.set_clip_rect(inner);
             self.app.ui(ui, frame);
         });
+        self.updater.show(ui.ctx(), inner);
         self.keep_soft_keyboard_away(ui.ctx());
     }
 }

@@ -10,7 +10,8 @@
 //! - PDFs from other apps ("Open with", PdfCraft as the default PDF viewer) open in a tab
 //!   (`incoming`).
 //! - Scan & OCR's models ship in the APK and are copied to the app's folder (`ocr_models`).
-//! - No system clipboard for images, no printing to a printer, no update check.
+//! - No system clipboard for images, no printing to a printer.
+//! - Updates: new builds of the `android-latest` release are offered in the app (`updater`).
 //!
 //! Elsewhere the crate is empty, so `cargo build --workspace` on a desktop still works.
 #![cfg(target_os = "android")]
@@ -20,6 +21,7 @@ mod file_access;
 mod incoming;
 mod ocr_models;
 mod tablet;
+mod updater;
 
 use pdfcraft_ui_egui::PdfCraftApp;
 use winit::platform::android::activity::AndroidApp;
