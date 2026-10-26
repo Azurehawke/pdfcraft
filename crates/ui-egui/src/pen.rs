@@ -34,6 +34,9 @@ pub fn pressure() -> Option<f64> {
     (bits != NO_PRESSURE).then(|| f64::from(f32::from_bits(bits)))
 }
 static PEN_ONLY: AtomicBool = AtomicBool::new(false);
+/// A pen has touched the screen this session. Pen-only drawing waits for one: on a phone (or a
+/// tablet used without its pen) fingers draw and place things, as they must. From RevuCraft.
+static PEN_SEEN: AtomicBool = AtomicBool::new(false);
 
 pub fn set_pointer_source(source: PointerSource) {
     let code = match source {
@@ -42,6 +45,9 @@ pub fn set_pointer_source(source: PointerSource) {
         PointerSource::Pen => 2,
         PointerSource::Mouse => 3,
     };
+    if source == PointerSource::Pen {
+        PEN_SEEN.store(true, Ordering::Relaxed);
+    }
     SOURCE.store(code, Ordering::Relaxed);
 }
 
@@ -59,7 +65,13 @@ pub fn set_pen_only_drawing(on: bool) {
     PEN_ONLY.store(on, Ordering::Relaxed);
 }
 
+/// Pen-only drawing is in force: turned on, and a pen has been used.
 pub fn pen_only_drawing() -> bool {
+    pen_only_enabled() && PEN_SEEN.load(Ordering::Relaxed)
+}
+
+/// Pen-only drawing is turned on (it takes effect once a pen touches the screen).
+pub fn pen_only_enabled() -> bool {
     PEN_ONLY.load(Ordering::Relaxed)
 }
 

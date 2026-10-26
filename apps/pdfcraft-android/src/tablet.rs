@@ -234,7 +234,9 @@ impl TouchRouter {
 
     /// Replace egui-winit's touch-to-pointer translation with a pen-first one (module docs).
     fn route(&mut self, events: &mut Vec<Event>) {
-        if !pen::pen_only_drawing() {
+        // Routed whenever pen-only drawing is turned on, so the first pen is seen and fingers say
+        // they are fingers (a phone's fingers draw: `pen::pen_only_drawing` waits for a pen).
+        if !pen::pen_only_enabled() {
             return;
         }
         // What earlier frames held back comes first.

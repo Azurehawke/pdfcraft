@@ -528,7 +528,10 @@ pub fn mode_bar(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
                 ui.painter().vline(ui.cursor().left(), ui.max_rect().y_range().shrink(12.0), Stroke::new(1.0, t.divider));
                 ui.add_space(if compact { 4.0 } else { 10.0 });
                 // Room for the buttons on the right: three 32-point icons and the search.
-                let right = 3.0 * 36.0 + 8.0 + if compact { 36.0 } else { 268.0 };
+                // A phone leaves out Print and Properties.
+                let is_phone = phone(ui.ctx());
+                let icons_right = if is_phone { 1.0 } else { 3.0 };
+                let right = icons_right * 36.0 + 8.0 + if compact { 36.0 } else { 268.0 };
                 let tabs_width = (ui.available_width() - right).max(48.0);
                 egui::ScrollArea::horizontal()
                     .id_salt("mode_tabs")
@@ -556,22 +559,24 @@ pub fn mode_bar(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
                     ui.spacing_mut().item_spacing.x = 4.0;
                     let has_doc = app.active.is_some();
                     ui.add_enabled_ui(has_doc, |ui| {
-                        let tip = crate::commands::command_tip(ui.ctx(), tl!("Print ({key})"), "print.dialog");
-                        // A document that forbids printing says so here, before the dialog (#2669).
-                        let may_print = !has_doc || pdfcraft_engine::commands::command("print.dialog").is_some_and(|c| app.command_enabled(c));
-                        let mut print = ui.add_enabled_ui(may_print, |ui| icons::button(ui, "printer", 32.0, false, &tip)).inner;
-                        if !may_print {
-                            print = print.on_disabled_hover_text(crate::print_refused());
-                        }
-                        if print.clicked() {
-                            app.run_command("print.dialog");
+                        if !is_phone {
+                            let tip = crate::commands::command_tip(ui.ctx(), tl!("Print ({key})"), "print.dialog");
+                            // A document that forbids printing says so here, before the dialog (#2669).
+                            let may_print = !has_doc || pdfcraft_engine::commands::command("print.dialog").is_some_and(|c| app.command_enabled(c));
+                            let mut print = ui.add_enabled_ui(may_print, |ui| icons::button(ui, "printer", 32.0, false, &tip)).inner;
+                            if !may_print {
+                                print = print.on_disabled_hover_text(crate::print_refused());
+                            }
+                            if print.clicked() {
+                                app.run_command("print.dialog");
+                            }
                         }
                         let tip = crate::commands::command_tip(ui.ctx(), tl!("Save ({key})"), "file.save");
                         if icons::button(ui, "save", 32.0, false, &tip).clicked() {
                             app.run_command("file.save");
                         }
                         let tip = crate::commands::command_tip(ui.ctx(), tl!("Document properties ({key})"), "file.properties");
-                        if icons::button(ui, "info", 32.0, false, &tip).clicked() {
+                        if !is_phone && icons::button(ui, "info", 32.0, false, &tip).clicked() {
                             app.dialog = Some(Dialog::Properties(PropsTab::Description));
                         }
                     });
@@ -588,6 +593,16 @@ pub fn mode_bar(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
             });
         });
 }
+
+/// A phone's screen (narrower than a small tablet): the top bar keeps its essentials (Print and
+/// Properties stay in the menu). From RevuCraft (build 191).
+pub(crate) fn phone(ctx: &egui::Context) -> bool {
+    let w = ctx.content_rect().width();
+    w.is_finite() && w < PHONE_WIDTH
+}
+
+/// Narrower than this (points) is a phone.
+pub(crate) const PHONE_WIDTH: f32 = 600.0;
 
 /// Keep menus usable when their contents are taller than the window.
 pub(crate) fn scroll_menu(ui: &mut egui::Ui, add: impl FnOnce(&mut egui::Ui)) {
