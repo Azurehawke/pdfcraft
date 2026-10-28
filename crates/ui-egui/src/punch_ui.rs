@@ -62,7 +62,7 @@ pub(crate) fn spaces(doc: &Document) -> Vec<SpaceInfo> {
 }
 
 /// The space a markup on `page` with rectangle `rect` is in (its middle decides).
-pub(crate) fn space_of<'a>(spaces: &'a [SpaceInfo], page: usize, index: usize, rect: [f32; 4]) -> Option<&'a SpaceInfo> {
+pub(crate) fn space_of(spaces: &[SpaceInfo], page: usize, index: usize, rect: [f32; 4]) -> Option<&SpaceInfo> {
     let mid = [f64::from(rect[0] + rect[2]) / 2.0, f64::from(rect[1] + rect[3]) / 2.0];
     let here: Vec<(usize, Vec<[f64; 2]>)> =
         spaces.iter().enumerate().filter(|(_, s)| s.page == page && s.index != index).map(|(i, s)| (i, s.corners.clone())).collect();
@@ -204,7 +204,7 @@ pub(crate) fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
         add = ui.add_enabled(selected, egui::Button::new(tl!("Add selected to the punch list"))).clicked();
         export = ui.add_enabled(!list.is_empty(), egui::Button::new(tl!("Export CSV"))).clicked();
     });
-    ui.checkbox(&mut app.punch.hide_closed, tl!("Hide closed items"));
+    ui.add(widgets::checkbox(&mut app.punch.hide_closed, tl!("Hide closed items")));
     let open = list.iter().filter(|i| i.punch.status != PunchStatus::Closed).count();
     let late = list.iter().filter(|i| overdue(&i.punch, today)).count();
     ui.label(
