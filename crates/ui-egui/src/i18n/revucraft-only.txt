@@ -15,13 +15,16 @@ Add legend
 Add mapping
 Add note
 Add photo callout
+Add selected to the punch list
 Add symbol from SVG…
 Add to
 Add to the open document
 Add window
 Add {symbol}
+Added 1 item to the punch list.
 Added to every run for the drop down the wall and the service loop (10' or 3m)
 Added {name} to your symbols.
+Added {n} items to the punch list.
 Align stroke
 Align to nearest wall
 Aligned dimension
@@ -40,6 +43,7 @@ Arc (start, a point on it, end)
 Area:
 Arrays
 Arrows
+Assignee
 Base point (x,y from the origin)
 Break (click a line where it splits)
 Break and join
@@ -114,6 +118,7 @@ Click two points a known distance apart, like the ends of a scale bar or a door.
 Click vertices, then finish with the check button beside the last point, Enter, a double-click or Escape. Tap the first point to close the shape.
 Close shape
 Close the workbook in GridCraft or Excel first, or its next save puts the old quantities back.
+Closed
 Code block
 Collapse panel
 Collapse to icons
@@ -121,6 +126,7 @@ Column spacing
 Column {n}
 Columns
 Columns in the array
+Comment
 Conduit stub-up
 Copied a hairline: drafting lines are hairlines now; markups take its colour and keep their width
 Copied its colour: new markups and drafted lines take it
@@ -179,12 +185,15 @@ Drag to size the photo
 Draw a floor plan
 Draw again
 Draw only horizontal and vertical lines (hold Shift for the other way)
+Draw the space on the sheet: drag a rectangle, or click its corners and double-click to finish.
 Draw wall
 Drawings (DWG, DXF)
 Drawings and tables opened with Edit original update on the sheet by themselves when you save them in CADCraft or GridCraft.
 Drawings opened with Edit original update their sheets by themselves when you save them in CADCraft.
 Drop ID
 Dual data jack
+Due
+Due (YYYY-MM-DD)
 Duplex outlet
 Edit original
 Edit points
@@ -252,6 +261,7 @@ Heading 2
 Heading 3
 Heat detector
 Heavy (2 pt)
+Hide closed items
 Hide rulers
 Hide sublayers
 Hinge the door at the other end of the opening
@@ -263,6 +273,7 @@ How many sides a new polygon has
 ISO (A sizes)
 In CADCraft
 In GridCraft
+In progress
 Inches
 Inline code
 Insert sheet
@@ -271,6 +282,8 @@ Inside
 Inside face
 Interior wall (4 1/2 in)
 Internal storage
+Item
+Item status
 Its quantity's name in the workbook's Takeoff sheet, for formulas such as ={name}*6.50
 J-hook
 Join (two lines that meet become one)
@@ -307,12 +320,14 @@ Make photo callout
 Make symbol
 Make symbol…
 Make text editable
+Make the selected shape a space
 Make this the current layer
 Make this the current layer; drag to move it
 Make what is on this layer and its sublayers part of the page: it still shows and hides with the layer, but can't be edited as markups any more
 Manage layers
 Markup and takeoff for construction drawings, built on PdfCraft.
 Markup line
+Markup status
 Markup tools
 Markups and reports
 Markups list
@@ -349,6 +364,7 @@ My symbol
 My symbols
 My tools
 Name measurements
+Name the rooms or zones of a sheet, then filter, count and export the markups in each.
 Named ranges
 Network switch
 Networking
@@ -373,6 +389,7 @@ No layers yet. Add one, then choose it as the current layer: new markups, symbol
 No markups yet. Everything you draw, measure or place is listed here.
 No room here
 No snap
+No.
 None (paper size)
 Not calibrated (paper size)
 Not found at this path
@@ -407,6 +424,7 @@ Origin
 Ortho
 Outside
 Outside face
+Overdue
 PC, VoIP…
 PDF and images
 PDF line
@@ -459,6 +477,7 @@ PoE device
 Point at the drawing to see coordinates
 Polar array (pick, then the centre)
 Polygon (centre, then a corner; sides in the ribbon)
+Polygon space
 Port
 Preset
 Previous drawings: {n} (hidden layers)
@@ -467,6 +486,9 @@ Printable area
 Progress
 Properties
 Pulled
+Punch
+Punch item
+Punch list
 Put the thickness on the other side of the line (a straight run can't tell which side the room is)
 Quad data jack
 Quantities
@@ -476,12 +498,14 @@ Rack A\n24-port switch and patch panel 1…
 Radius
 Radius dimension (click a circle)
 Range
+Ready for review
 Real
 Real-world width, drawn to the page's scale
 Real: the symbol's width in the real world, at the page's measurement scale (pages without a scale use 1/4 inch on paper). Paper: its width on the printed sheet.
 Recent files
 Recent tools
 Rectangle area
+Rectangle space
 Rectangular array (rows and columns in the ribbon)
 Refresh
 Relink
@@ -537,6 +561,7 @@ Save the drawing first: its notes are kept in a folder beside it.
 Save to Google Drive or another app…
 Saved symbol counts.
 Saved the markups list.
+Saved the punch list.
 Saved the summary report.
 Scale
 Scale (pick, base point, then drag a point or type the factor)
@@ -546,6 +571,8 @@ Search markups
 Search this folder
 Secure
 Select a markup to see its properties.
+Select markups on the sheet (a cloud, a note, a photo) and add them: each gets a number on the sheet.
+Select the markups to add first (ones already on the list are skipped).
 Selected markup
 Send
 Send again
@@ -585,6 +612,10 @@ Snap settings
 Snap to ends, middles and crossings of the drawing
 Snapshot
 Some text on page {n} is inside embedded content, so it can't be selected yet.
+Space
+Space name
+Space {n}
+Spaces
 Speaker
 Spline (a smooth curve through the points)
 Start a drawing or open a file
@@ -606,6 +637,7 @@ System
 THIS PAGE
 Take a photo with the camera…
 Take it off the sheet. The file stays as it is, and Undo brings it back.
+Take off the punch list
 Take the photo
 Take the photo with the camera, or choose a photo file
 Tap the drawing to place this symbol
@@ -739,7 +771,9 @@ has no value
 in
 is greater than
 is less than
+punch list
 the text recognition models are not installed (reinstall RevuCraft, or set PDFCRAFT_MODELS to the folder that holds them)
+{all} items, {open} open, {late} overdue
 {done} of {all} done
 {name} can't be found.
 {name} is updated on the sheet; the markups stayed put.
@@ -749,6 +783,7 @@ the text recognition models are not installed (reinstall RevuCraft, or set PDFCR
 {name} was saved without the latest quantities (it was open when they were sent).
 {name} — Markup report
 {n} linked drawings
+{n} markups
 {n} markups copied from RevuCraft
 {n} markups selected: changes apply to all of them
 {s} actions run in the JavaScript engine (M6)

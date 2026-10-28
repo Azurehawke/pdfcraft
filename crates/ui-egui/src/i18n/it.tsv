@@ -3477,3 +3477,37 @@ certificate	SHA-256 digest	Impronta SHA-256
 	Reloaded {name}.	{name} ricaricato.
 	Refresh	Aggiorna
 	List the pinned folders again now	Elenca di nuovo ora le cartelle fissate
+	Space	Spazio
+	Select the markups to add first (ones already on the list are skipped).	Seleziona prima le annotazioni da aggiungere (quelle già in elenco vengono saltate).
+	Punch	Punch
+	Added 1 item to the punch list.	Aggiunta 1 voce alla punch list.
+	Added {n} items to the punch list.	Aggiunte {n} voci alla punch list.
+	Add selected to the punch list	Aggiungi la selezione alla punch list
+	Hide closed items	Nascondi voci chiuse
+	{all} items, {open} open, {late} overdue	{all} voci, {open} aperte, {late} scadute
+	Select markups on the sheet (a cloud, a note, a photo) and add them: each gets a number on the sheet.	Seleziona annotazioni sul foglio (nuvola, nota, foto) e aggiungile: ognuna riceve un numero sul foglio.
+	Take off the punch list	Togli dalla punch list
+	Overdue	Scaduta
+	Assignee	Assegnatario
+	Due (YYYY-MM-DD)	Scadenza (AAAA-MM-GG)
+	In progress	In corso
+	Ready for review	Pronta per la verifica
+	Closed	Chiusa
+	No.	N.
+	Item	Elemento
+	Due	Scadenza
+	Markup status	Stato dell'annotazione
+	punch list	punch list
+	Saved the punch list.	Punch list salvata.
+	Space {n}	Spazio {n}
+	Draw the space on the sheet: drag a rectangle, or click its corners and double-click to finish.	Disegna lo spazio sul foglio: trascina un rettangolo, oppure fai clic sugli angoli e doppio clic per finire.
+	Rectangle space	Spazio rettangolare
+	Polygon space	Spazio poligonale
+	Make the selected shape a space	Rendi spazio la forma selezionata
+	Space name	Nome dello spazio
+	Name the rooms or zones of a sheet, then filter, count and export the markups in each.	Dai un nome alle stanze o zone del foglio, poi filtra, conta ed esporta le annotazioni di ciascuna.
+	{n} markups	{n} annotazioni
+	Punch list	Punch list
+	Spaces	Spazi
+	Item status	Stato della voce
+	Punch item	Voce di punch list

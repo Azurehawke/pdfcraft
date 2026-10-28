@@ -742,6 +742,8 @@ fn main_menu(app: &mut PdfCraftApp, ui: &mut egui::Ui, compact: bool) {
                                 (RightPanel::ToolChest, tl!("Tool chest")),
                                 (RightPanel::Links, tl!("Links")),
                                 (RightPanel::Workbook, tl!("Workbook")),
+                                (RightPanel::Punch, tl!("Punch list")),
+                                (RightPanel::Spaces, tl!("Spaces")),
                             ] {
                                 if ui.add(widgets::radio(app.right == Some(p), tl!(label))).clicked() {
                                     app.choose_right_panel(Some(p));
@@ -990,6 +992,8 @@ pub fn right_rail(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
                     }
                     if docks {
                         rail_button(ui, RightPanel::Workbook, "grid-3x3", "Workbook", false);
+                        rail_button(ui, RightPanel::Punch, "list-ordered", "Punch list", false);
+                        rail_button(ui, RightPanel::Spaces, "square-dashed", "Spaces", false);
                     }
                     rail_button(ui, RightPanel::Markups, "list-checks", "Markups list", false);
                     rail_button(ui, RightPanel::ToolChest, "wrench", "Tool chest", false);

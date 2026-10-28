@@ -153,6 +153,7 @@ pub use links::{
 pub use pdfcraft_annot::appearance as annot_text;
 pub use pdfcraft_annot::links::{Highlight as LinkHighlight, LinkAction, LinkItem, LinkStyle};
 pub use pdfcraft_annot::pen as annot_pen;
+pub use pdfcraft_annot::punch;
 pub use pdfcraft_annot::{
     AppearanceCache, AttachIcon, FillMark, LineEnding, Markup, NOTE_SIZE, NewAnnotation, NoteIcon, OverlayFont, OverlayLook, PenKind,
     Props as CommentProps, ReviewState, Rgb, Shape, StampGroup, StampKind, Style, rect_quad,
@@ -324,6 +325,8 @@ fn scope_of(edit: &Edit) -> Scope {
         | Edit::SetCalloutSide { .. }
         | Edit::SetCalloutParts { .. }
         | Edit::SetAnnotationField { .. }
+        | Edit::SetPunch { .. }
+        | Edit::SetSpace { .. }
         | Edit::SetStrokeAlign { .. }
         | Edit::RenameMeasurement { .. }
         | Edit::NameMeasurements
@@ -703,6 +706,16 @@ impl Document {
     /// RevuCraft: the Markdown notes on `page`: (index, file relative to the PDF's folder).
     pub fn markdown_notes(&self, page: usize) -> Vec<(usize, String)> {
         self.editor.as_ref().map(|e| pdfcraft_annot::notes::notes(&e.cos, page)).unwrap_or_default()
+    }
+
+    /// RevuCraft: the punch items on `page`: (index, item).
+    pub fn punch_items(&self, page: usize) -> Vec<(usize, pdfcraft_annot::punch::Punch)> {
+        self.editor.as_ref().map(|e| pdfcraft_annot::punch::punch_items(&e.cos, page)).unwrap_or_default()
+    }
+
+    /// RevuCraft: the spaces on `page` (indexes).
+    pub fn spaces(&self, page: usize) -> Vec<usize> {
+        self.editor.as_ref().map(|e| pdfcraft_annot::punch::spaces(&e.cos, page)).unwrap_or_default()
     }
 
     /// RevuCraft: the smart walls on `page` ([`pdfcraft_annot::walls`]).
@@ -1952,6 +1965,18 @@ pub enum Edit {
         index: usize,
         align: pdfcraft_annot::stroke_align::StrokeAlign,
     },
+    /// RevuCraft: put a markup on the punch list with these details, or take it off (`None`).
+    SetPunch {
+        page: usize,
+        index: usize,
+        punch: Option<pdfcraft_annot::punch::Punch>,
+    },
+    /// RevuCraft: make a polygon or rectangle a space with this name, or rename it.
+    SetSpace {
+        page: usize,
+        index: usize,
+        name: String,
+    },
     /// RevuCraft: set one of your own columns on a markup (an empty value clears it).
     SetAnnotationField {
         page: usize,
@@ -2530,6 +2555,9 @@ pub const EDIT_LABELS: &[&str] = &[
     "Add legend",
     "Draw wall",
     "Add note",
+    "Punch item",
+    "Take off the punch list",
+    "Space",
     "Join walls",
     "Add window",
     "Add door",
@@ -2744,6 +2772,9 @@ impl Edit {
             Edit::SetCalloutSide { .. } => Label::of("Move description"),
             Edit::SetCalloutParts { .. } => Label::of("Resize photo callout"),
             Edit::SetAnnotationField { name, .. } => Label::with("Set {field}", name.as_str()),
+            Edit::SetPunch { punch: Some(_), .. } => Label::of("Punch item"),
+            Edit::SetPunch { punch: None, .. } => Label::of("Take off the punch list"),
+            Edit::SetSpace { .. } => Label::of("Space"),
             Edit::SetVertices { copy: true, .. } => Label::of("Offset"),
             Edit::TransformAnnotation { copy: true, .. } => Label::of("Copy markup"),
             Edit::TransformAnnotation { matrix, .. } if matrix[..4] == [1.0, 0.0, 0.0, 1.0] => Label::of("Move markup"),
@@ -2865,6 +2896,8 @@ fn check_permission(edit: &Edit, p: &pdfcraft_cos::Permissions) -> Result<(), Ed
         | Edit::SetCalloutSide { .. }
         | Edit::SetCalloutParts { .. }
         | Edit::SetAnnotationField { .. }
+        | Edit::SetPunch { .. }
+        | Edit::SetSpace { .. }
         | Edit::SetStrokeAlign { .. }
         | Edit::SetGuides { .. }
         | Edit::RenameMeasurement { .. }
@@ -3477,6 +3510,8 @@ fn run_edit(doc: &mut pdfcraft_cos::Document, edit: &Edit, cx: &mut EditCtx) -> 
         }
         Edit::SetStrokeAlign { page, index, align } => pdfcraft_annot::stroke_align::set(doc, *page, *index, *align)?,
         Edit::SetAnnotationField { page, index, name, value } => pdfcraft_annot::fields::set_field(doc, *page, *index, name, value, &cx.meta())?,
+        Edit::SetPunch { page, index, punch } => pdfcraft_annot::punch::set_punch(doc, *page, *index, punch.as_ref(), &cx.meta())?,
+        Edit::SetSpace { page, index, name } => pdfcraft_annot::punch::set_space(doc, *page, *index, name, &cx.meta())?,
         Edit::SetCalloutSide { page, index, side } => pdfcraft_annot::photo_callout::set_side(doc, *page, *index, *side, &cx.meta())?,
         Edit::SetCalloutParts { page, index, photo_height, text_width } => {
             pdfcraft_annot::photo_callout::set_parts(doc, *page, *index, *photo_height, *text_width, &cx.meta())?;

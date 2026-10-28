@@ -6685,6 +6685,44 @@ fn doors_and_windows_only_go_where_the_wall_has_room() {
 }
 
 #[test]
+fn punch_items_and_spaces_are_kept_on_their_markups() {
+    use pdfcraft_annot::punch::{Punch, PunchStatus};
+    let mut session = Session::new();
+    let id = session.open("plan.pdf", None, Arc::new(fixture(1)), None).unwrap();
+    let add = |session: &mut Session, rect: [f64; 4]| {
+        let shape = Shape::Rectangle { rect };
+        session
+            .apply(
+                id,
+                Edit::AddAnnotation(NewAnnotation {
+                    page: 0,
+                    style: Style::default_for(&shape),
+                    shape,
+                    contents: String::new(),
+                    author: "Steve".into(),
+                }),
+            )
+            .unwrap();
+        session.get(id).unwrap().info.annotations.iter().filter(|a| a.page == 0).map(|a| a.index).max().unwrap()
+    };
+    let room = add(&mut session, [100.0, 100.0, 300.0, 300.0]);
+    let issue = add(&mut session, [150.0, 150.0, 180.0, 180.0]);
+    session.apply(id, Edit::SetSpace { page: 0, index: room, name: "Kitchen".into() }).unwrap();
+    let punch = Punch { no: 1, assignee: "Plumber".into(), due: "2026-11-02".into(), status: PunchStatus::InProgress };
+    session.apply(id, Edit::SetPunch { page: 0, index: issue, punch: Some(punch.clone()) }).unwrap();
+    let doc = session.get(id).unwrap();
+    assert_eq!(doc.spaces(0), vec![room]);
+    assert_eq!(doc.punch_items(0), vec![(issue, punch)]);
+    let a = doc.info.annotations.iter().find(|a| a.index == room).unwrap();
+    assert_eq!(a.contents.as_deref(), Some("Kitchen"));
+    // Off the list: the markup stays, its item goes; only a polygon or rectangle is a space.
+    session.apply(id, Edit::SetPunch { page: 0, index: issue, punch: None }).unwrap();
+    assert!(session.get(id).unwrap().punch_items(0).is_empty());
+    assert!(session.get(id).unwrap().info.annotations.iter().any(|a| a.index == issue));
+    assert!(session.apply(id, Edit::SetSpace { page: 0, index: room, name: "  ".into() }).is_err());
+}
+
+#[test]
 fn markdown_notes_keep_their_file_and_a_copy_of_the_text() {
     let mut session = Session::default();
     let id = session.open("plan.pdf", None, Arc::new(fixture(1)), None).unwrap();

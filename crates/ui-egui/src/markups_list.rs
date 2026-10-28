@@ -300,6 +300,10 @@ pub fn rows(doc: &Document) -> Vec<Row> {
         pages.iter().flat_map(|p| doc.wall_openings(*p).into_iter().map(move |o| (*p, o))).collect();
     let smart_walls: Vec<(usize, usize)> = pages.iter().flat_map(|p| doc.smart_walls(*p).into_iter().map(move |w| (*p, w.index))).collect();
     let notes: Vec<(usize, usize)> = pages.iter().flat_map(|p| doc.markdown_notes(*p).into_iter().map(move |(i, _)| (*p, i))).collect();
+    // Punch items and spaces (`punch_ui`).
+    let punch: Vec<(usize, usize, pdfcraft_engine::punch::Punch)> =
+        pages.iter().flat_map(|p| doc.punch_items(*p).into_iter().map(move |(i, x)| (*p, i, x))).collect();
+    let spaces = crate::punch_ui::spaces(doc);
     let mut out = Vec::new();
     for a in info.annotations.iter().filter(|a| a.in_reply_to.is_none() && a.state.is_none() && a.subtype != "Popup") {
         if out.len() >= MAX_ROWS {
@@ -315,6 +319,8 @@ pub fn rows(doc: &Document) -> Vec<Row> {
             tl!("Wall").to_string()
         } else if notes.contains(&(a.page, a.index)) {
             tl!("Note").to_string()
+        } else if spaces.iter().any(|s| s.page == a.page && s.index == a.index) {
+            tl!("Space").to_string()
         } else if a.photo {
             tl!("Photo").to_string()
         } else if measurement.is_some_and(|m| m.cable) {
@@ -362,6 +368,21 @@ pub fn rows(doc: &Document) -> Vec<Row> {
             if all > 0 {
                 note_value = crate::i18n::fmt(tl!("{done} of {all} done"), &[("done", &done.to_string()), ("all", &all.to_string())]);
             }
+        }
+        if !spaces.is_empty()
+            && let Some(s) = crate::punch_ui::space_of(&spaces, a.page, a.index, a.rect)
+        {
+            fields.push((tl!("Space").to_string(), s.name.clone()));
+        }
+        if let Some((_, _, p)) = punch.iter().find(|(pg, i, _)| *pg == a.page && *i == a.index) {
+            fields.push((tl!("Punch").to_string(), format!("#{}", p.no)));
+            if !p.assignee.is_empty() {
+                fields.push((tl!("Assignee").to_string(), p.assignee.clone()));
+            }
+            if !p.due.is_empty() {
+                fields.push((tl!("Due").to_string(), p.due.clone()));
+            }
+            fields.push((tl!("Item status").to_string(), tl!(p.status.label()).to_string()));
         }
         out.push(Row {
             page: a.page,
@@ -420,7 +441,7 @@ pub fn visible(rows: &[Row], state: &MarkupsState, custom: &[String]) -> Vec<Row
 }
 
 /// A spreadsheet cell: quoted when it has to be, and never read as a formula.
-fn cell(text: &str) -> String {
+pub(crate) fn cell(text: &str) -> String {
     let text = if text.starts_with(['=', '+', '-', '@', '\t', '\r']) { format!("'{text}") } else { text.to_string() };
     if text.contains([',', '"', '\n', '\r']) { format!("\"{}\"", text.replace('"', "\"\"")) } else { text }
 }

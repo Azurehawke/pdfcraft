@@ -3507,3 +3507,37 @@ certificate	Version	Version
 	Getting the latest {name}…	Récupération de la dernière version de {name}…
 	Reloaded {name}.	{name} a été rechargé.
 	List the pinned folders again now	Relister maintenant les dossiers épinglés
+	Space	Espace
+	Select the markups to add first (ones already on the list are skipped).	Sélectionnez d'abord les annotations à ajouter (celles déjà listées sont ignorées).
+	Punch	Réserve
+	Added 1 item to the punch list.	1 élément ajouté à la liste de réserves.
+	Added {n} items to the punch list.	{n} éléments ajoutés à la liste de réserves.
+	Add selected to the punch list	Ajouter la sélection à la liste de réserves
+	Hide closed items	Masquer les éléments clos
+	{all} items, {open} open, {late} overdue	{all} éléments, {open} ouverts, {late} en retard
+	Select markups on the sheet (a cloud, a note, a photo) and add them: each gets a number on the sheet.	Sélectionnez des annotations sur la feuille (nuage, note, photo) et ajoutez-les : chacune reçoit un numéro sur la feuille.
+	Take off the punch list	Retirer de la liste de réserves
+	Overdue	En retard
+	Assignee	Responsable
+	Due (YYYY-MM-DD)	Échéance (AAAA-MM-JJ)
+	In progress	En cours
+	Ready for review	Prêt pour vérification
+	Closed	Clos
+	No.	N°
+	Item	Élément
+	Due	Échéance
+	Markup status	Statut de l'annotation
+	punch list	liste de réserves
+	Saved the punch list.	Liste de réserves enregistrée.
+	Space {n}	Espace {n}
+	Draw the space on the sheet: drag a rectangle, or click its corners and double-click to finish.	Dessinez l'espace sur la feuille : tracez un rectangle, ou cliquez ses coins puis double-cliquez pour finir.
+	Rectangle space	Espace rectangulaire
+	Polygon space	Espace polygonal
+	Make the selected shape a space	Faire de la forme sélectionnée un espace
+	Space name	Nom de l'espace
+	Name the rooms or zones of a sheet, then filter, count and export the markups in each.	Nommez les pièces ou zones d'une feuille, puis filtrez, comptez et exportez les annotations de chacune.
+	{n} markups	{n} annotations
+	Punch list	Liste de réserves
+	Spaces	Espaces
+	Item status	Statut de l'élément
+	Punch item	Élément de réserve

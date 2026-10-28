@@ -3243,3 +3243,38 @@ animation effects	Off	Ki
 	Reloaded {name}.	{name} újratöltve.
 	Refresh	Frissítés
 	List the pinned folders again now	A rögzített mappák újralistázása most
+	Space	Helyiség
+	Select the markups to add first (ones already on the list are skipped).	Előbb jelölje ki a hozzáadandó jelöléseket (a listán lévők kimaradnak).
+	Punch	Hiba
+	Added 1 item to the punch list.	1 tétel került a hibalistára.
+	Added {n} items to the punch list.	{n} tétel került a hibalistára.
+	Add selected to the punch list	Kijelöltek felvétele a hibalistára
+	Hide closed items	Lezárt tételek elrejtése
+	{all} items, {open} open, {late} overdue	{all} tétel, {open} nyitott, {late} lejárt
+	Select markups on the sheet (a cloud, a note, a photo) and add them: each gets a number on the sheet.	Jelöljön ki jelöléseket a lapon (felhő, jegyzet, fénykép), és vegye fel őket: mindegyik számot kap a lapon.
+	Take off the punch list	Levétel a hibalistáról
+	Overdue	Lejárt
+	Assignee	Felelős
+	Due (YYYY-MM-DD)	Határidő (ÉÉÉÉ-HH-NN)
+	In progress	Folyamatban
+	Ready for review	Ellenőrzésre kész
+	Closed	Lezárva
+	No.	Sz.
+	Item	Elem
+	Comment	Megjegyzés
+	Due	Határidő
+	Markup status	Jelölés állapota
+	punch list	hibalista
+	Saved the punch list.	A hibalista mentve.
+	Space {n}	{n}. helyiség
+	Draw the space on the sheet: drag a rectangle, or click its corners and double-click to finish.	Rajzolja meg a helyiséget a lapon: húzzon egy téglalapot, vagy kattintson a sarkaira, és a végén kattintson duplán.
+	Rectangle space	Téglalap helyiség
+	Polygon space	Sokszög helyiség
+	Make the selected shape a space	A kijelölt alakzat legyen helyiség
+	Space name	Helyiség neve
+	Name the rooms or zones of a sheet, then filter, count and export the markups in each.	Nevezze el a lap helyiségeit vagy zónáit, majd szűrje, számolja és exportálja az egyes helyiségek jelöléseit.
+	{n} markups	{n} jelölés
+	Punch list	Hibalista
+	Spaces	Helyiségek
+	Item status	Tétel állapota
+	Punch item	Hibalista-tétel

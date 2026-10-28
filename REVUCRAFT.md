@@ -360,6 +360,16 @@ Markup and measuring
       file again even when nothing looked changed, asking first over unsaved changes. On Android
       a document opened from another app (Drive, Files) is fetched from that app again first.
       Changed files were already reloaded on their own (checked four times a second).
+- [x] **(Steve, build 203)** Punch list and spaces (after MarkupCraft's design, written anew in
+      Rust). Punch list box (rail): Add selected gives each markup the next number, drawn in a
+      badge at its top right so the printed sheet matches; assignee, due date (overdue ones in
+      red), item status (Open, In progress, Ready for review, Closed), hide closed, Export CSV.
+      Numbers are not reused while the drawing is open. Spaces box: draw a rectangle or polygon
+      space (or make a selected shape one) and name it; a dashed green zone with its name. Every
+      markup whose middle is in a space gets it in a Space column of the Markups list (the
+      smallest wins when spaces nest), with Punch, Assignee, Due and Item status fields for
+      punch items. Kept in the PDF (`/PCPunch`, `/PCSpace`). Not yet: a punch report PDF,
+      photos listed per item, a date picker.
 - [ ] **(Steve, next)** Touch, second pass from use on the devices: double tap to zoom, the drag
       threshold, the glide's feel, long press; quick Add photo button and field flow on the phone;
       Properties, caption box and keypad sized for the phone.

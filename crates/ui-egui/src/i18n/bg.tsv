@@ -3208,3 +3208,38 @@ animation effects	Off	Изключени
 	Reloaded {name}.	{name} е презареден.
 	Refresh	Опресняване
 	List the pinned folders again now	Прочитане на закачените папки отново сега
+	Space	Помещение
+	Select the markups to add first (ones already on the list are skipped).	Първо изберете маркиранията за добавяне (тези в списъка се пропускат).
+	Punch	Пункт
+	Added 1 item to the punch list.	Добавен е 1 пункт в списъка с дефекти.
+	Added {n} items to the punch list.	Добавени са {n} пункта в списъка с дефекти.
+	Add selected to the punch list	Добавяне на избраното в списъка с дефекти
+	Hide closed items	Скриване на закритите
+	{all} items, {open} open, {late} overdue	{all} пункта, {open} отворени, {late} просрочени
+	Select markups on the sheet (a cloud, a note, a photo) and add them: each gets a number on the sheet.	Изберете маркирания на листа (облак, бележка, снимка) и ги добавете: всяко получава номер на листа.
+	Take off the punch list	Премахване от списъка с дефекти
+	Overdue	Просрочено
+	Assignee	Отговорник
+	Due (YYYY-MM-DD)	Срок (ГГГГ-ММ-ДД)
+	In progress	В процес
+	Ready for review	Готово за проверка
+	Closed	Закрито
+	No.	№
+	Item	Елемент
+	Comment	Коментар
+	Due	Срок
+	Markup status	Състояние на маркирането
+	punch list	списък с дефекти
+	Saved the punch list.	Списъкът с дефекти е запазен.
+	Space {n}	Помещение {n}
+	Draw the space on the sheet: drag a rectangle, or click its corners and double-click to finish.	Начертайте помещението на листа: изтеглете правоъгълник или щракнете ъглите му и щракнете двукратно за край.
+	Rectangle space	Правоъгълно помещение
+	Polygon space	Многоъгълно помещение
+	Make the selected shape a space	Превръщане на избраната фигура в помещение
+	Space name	Име на помещението
+	Name the rooms or zones of a sheet, then filter, count and export the markups in each.	Наименувайте стаите или зоните на листа, после филтрирайте, бройте и експортирайте маркиранията във всяка.
+	{n} markups	{n} маркирания
+	Punch list	Списък с дефекти
+	Spaces	Помещения
+	Item status	Състояние на пункта
+	Punch item	Пункт от списъка

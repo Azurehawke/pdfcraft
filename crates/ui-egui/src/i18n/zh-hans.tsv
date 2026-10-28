@@ -3210,3 +3210,38 @@ animation effects	Off	关
 	Reloaded {name}.	已重新加载 {name}。
 	Refresh	刷新
 	List the pinned folders again now	立即重新列出固定的文件夹
+	Space	空间
+	Select the markups to add first (ones already on the list are skipped).	请先选择要添加的标记（已在列表中的会跳过）。
+	Punch	整改
+	Added 1 item to the punch list.	已向整改清单添加 1 项。
+	Added {n} items to the punch list.	已向整改清单添加 {n} 项。
+	Add selected to the punch list	将所选添加到整改清单
+	Hide closed items	隐藏已关闭的项
+	{all} items, {open} open, {late} overdue	共 {all} 项，未完成 {open} 项，逾期 {late} 项
+	Select markups on the sheet (a cloud, a note, a photo) and add them: each gets a number on the sheet.	选择图纸上的标记（云线、笔记、照片）并添加：每个都会在图纸上获得编号。
+	Take off the punch list	从整改清单中移除
+	Overdue	逾期
+	Assignee	负责人
+	Due (YYYY-MM-DD)	截止 (YYYY-MM-DD)
+	In progress	进行中
+	Ready for review	待复查
+	Closed	已关闭
+	No.	编号
+	Item	项目
+	Comment	注释
+	Due	截止
+	Markup status	标记状态
+	punch list	整改清单
+	Saved the punch list.	已保存整改清单。
+	Space {n}	空间 {n}
+	Draw the space on the sheet: drag a rectangle, or click its corners and double-click to finish.	在图纸上绘制空间：拖出矩形，或点击各角并双击完成。
+	Rectangle space	矩形空间
+	Polygon space	多边形空间
+	Make the selected shape a space	将所选形状设为空间
+	Space name	空间名称
+	Name the rooms or zones of a sheet, then filter, count and export the markups in each.	为图纸的房间或区域命名，然后筛选、统计并导出每个区域内的标记。
+	{n} markups	{n} 个标记
+	Punch list	整改清单
+	Spaces	空间
+	Item status	项目状态
+	Punch item	整改项

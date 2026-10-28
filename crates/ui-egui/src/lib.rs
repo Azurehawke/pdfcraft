@@ -137,6 +137,7 @@ pub mod pen;
 mod pickers;
 mod point_bar;
 mod props_box;
+mod punch_ui;
 mod rulers;
 mod status_bar;
 mod takeoff_ui;
@@ -265,6 +266,9 @@ pub enum RightPanel {
     Links,
     /// RevuCraft's Workbook box ([`links_ui::workbook_panel`]): a linked table's workbook.
     Workbook,
+    /// RevuCraft's Punch list and Spaces boxes ([`punch_ui`]).
+    Punch,
+    Spaces,
 }
 
 /// Quick-action bar tools (the vertical floating strip).
@@ -679,6 +683,8 @@ pub struct PdfCraftApp {
     pub(crate) props_box: Option<comment_props::PropsDraft>,
     /// RevuCraft: the Markdown note open in its editor.
     pub(crate) note_editor: Option<notes_ui::NoteEditor>,
+    /// RevuCraft's punch list and spaces ([`punch_ui`]).
+    pub(crate) punch: punch_ui::PunchState,
     /// RevuCraft's tool ribbon under the mode bar (on in the apps; see [`Self::revucraft_shell`]).
     pub show_ribbon: bool,
     /// Rulers along the top and left of the drawing (View ▸ Rulers; on in RevuCraft).
@@ -1134,6 +1140,7 @@ impl PdfCraftApp {
             dock_rect: None,
             props_box: None,
             note_editor: None,
+            punch: punch_ui::PunchState::default(),
             show_ribbon: false,
             rulers: false,
             show_guides: true,
@@ -3119,6 +3126,8 @@ impl PdfCraftApp {
                     "tool-chest" => Some(RightPanel::ToolChest),
                     "links" => Some(RightPanel::Links),
                     "workbook" => Some(RightPanel::Workbook),
+                    "punch" => Some(RightPanel::Punch),
+                    "spaces" => Some(RightPanel::Spaces),
                     "none" => None,
                     other => return Err(format!("unknown panel {other}")),
                 }
@@ -3884,6 +3893,7 @@ impl eframe::App for PdfCraftApp {
         takeoff_ui::dialog(self, &ctx);
         draft::keypad(self, &ctx);
         notes_ui::editor(self, &ctx);
+        punch_ui::tick(self);
         #[cfg(target_os = "android")]
         pickers::show_browser(self, &ctx);
         #[cfg(target_os = "windows")]

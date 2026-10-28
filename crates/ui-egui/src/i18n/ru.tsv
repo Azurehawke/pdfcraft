@@ -3161,3 +3161,38 @@ animation effects	Off	Выкл
 	Reloaded {name}.	{name} перезагружен.
 	Refresh	Обновить
 	List the pinned folders again now	Перечитать закреплённые папки сейчас
+	Space	Помещение
+	Select the markups to add first (ones already on the list are skipped).	Сначала выберите пометки (уже внесённые пропускаются).
+	Punch	Замечание
+	Added 1 item to the punch list.	В список замечаний добавлен 1 пункт.
+	Added {n} items to the punch list.	В список замечаний добавлено пунктов: {n}.
+	Add selected to the punch list	Добавить выбранное в список замечаний
+	Hide closed items	Скрыть закрытые
+	{all} items, {open} open, {late} overdue	Пунктов: {all}, открыто: {open}, просрочено: {late}
+	Select markups on the sheet (a cloud, a note, a photo) and add them: each gets a number on the sheet.	Выберите пометки на листе (облако, заметку, фото) и добавьте их: каждая получит номер на листе.
+	Take off the punch list	Убрать из списка замечаний
+	Overdue	Просрочено
+	Assignee	Исполнитель
+	Due (YYYY-MM-DD)	Срок (ГГГГ-ММ-ДД)
+	In progress	В работе
+	Ready for review	Готово к проверке
+	Closed	Закрыто
+	No.	№
+	Item	Элемент
+	Comment	Комментарий
+	Due	Срок
+	Markup status	Статус пометки
+	punch list	список замечаний
+	Saved the punch list.	Список замечаний сохранён.
+	Space {n}	Помещение {n}
+	Draw the space on the sheet: drag a rectangle, or click its corners and double-click to finish.	Нарисуйте помещение на листе: растяните прямоугольник или щёлкните углы и дважды щёлкните для завершения.
+	Rectangle space	Прямоугольное помещение
+	Polygon space	Многоугольное помещение
+	Make the selected shape a space	Сделать выбранную фигуру помещением
+	Space name	Название помещения
+	Name the rooms or zones of a sheet, then filter, count and export the markups in each.	Назовите комнаты или зоны листа, затем фильтруйте, считайте и экспортируйте пометки в каждой.
+	{n} markups	Пометок: {n}
+	Punch list	Список замечаний
+	Spaces	Помещения
+	Item status	Статус пункта
+	Punch item	Пункт замечаний

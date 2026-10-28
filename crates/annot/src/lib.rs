@@ -26,6 +26,7 @@ pub mod legend;
 pub mod links;
 pub mod notes;
 pub mod photo_callout;
+pub mod punch;
 pub mod stroke_align;
 pub mod svg_art;
 pub mod symbols;
@@ -1517,7 +1518,8 @@ fn build_appearance(doc: &Document, d: &Dict) -> Option<Stream> {
             stream.dict.set(b"Matrix".to_vec(), matrix);
         }
     }
-    Some(stream)
+    // RevuCraft: a punch item's number, a space's name.
+    Some(punch::decorate(d, stream))
 }
 
 /// Store a built appearance on the annotation: the cheap half of [`set_appearance`].

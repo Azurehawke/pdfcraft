@@ -3247,3 +3247,38 @@ animation effects	Off	オフ
 	Reloaded {name}.	{name} を再読み込みしました。
 	Refresh	更新
 	List the pinned folders again now	ピン留めしたフォルダーを今すぐ再表示
+	Space	スペース
+	Select the markups to add first (ones already on the list are skipped).	先に追加するマークアップを選択してください (リストにあるものは飛ばします)。
+	Punch	パンチ
+	Added 1 item to the punch list.	パンチリストに 1 件追加しました。
+	Added {n} items to the punch list.	パンチリストに {n} 件追加しました。
+	Add selected to the punch list	選択項目をパンチリストに追加
+	Hide closed items	完了項目を隠す
+	{all} items, {open} open, {late} overdue	{all} 件、未完了 {open} 件、期限切れ {late} 件
+	Select markups on the sheet (a cloud, a note, a photo) and add them: each gets a number on the sheet.	シート上のマークアップ (雲形、メモ、写真) を選択して追加すると、それぞれシートに番号が付きます。
+	Take off the punch list	パンチリストから外す
+	Overdue	期限切れ
+	Assignee	担当者
+	Due (YYYY-MM-DD)	期限 (YYYY-MM-DD)
+	In progress	作業中
+	Ready for review	確認待ち
+	Closed	完了
+	No.	番号
+	Item	項目
+	Comment	コメント
+	Due	期限
+	Markup status	マークアップの状態
+	punch list	パンチリスト
+	Saved the punch list.	パンチリストを保存しました。
+	Space {n}	スペース {n}
+	Draw the space on the sheet: drag a rectangle, or click its corners and double-click to finish.	シートにスペースを描きます。四角形をドラッグするか、角をクリックしてダブルクリックで終了します。
+	Rectangle space	四角形のスペース
+	Polygon space	多角形のスペース
+	Make the selected shape a space	選択した図形をスペースにする
+	Space name	スペース名
+	Name the rooms or zones of a sheet, then filter, count and export the markups in each.	シートの部屋やゾーンに名前を付け、それぞれのマークアップを絞り込み、数え、書き出します。
+	{n} markups	{n} 件のマークアップ
+	Punch list	パンチリスト
+	Spaces	スペース
+	Item status	項目の状態
+	Punch item	パンチ項目

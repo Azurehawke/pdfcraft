@@ -49,6 +49,8 @@ const PANELS: [RightPanel; 15] = [
     RightPanel::ToolChest,
     RightPanel::Links,
     RightPanel::Workbook,
+    RightPanel::Punch,
+    RightPanel::Spaces,
 ];
 
 /// A side panel by its saved name (`Comments`, `Layers`…).

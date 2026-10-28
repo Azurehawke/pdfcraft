@@ -3245,3 +3245,38 @@ animation effects	Off	Aus
 	Reloaded {name}.	{name} wurde neu geladen.
 	Refresh	Aktualisieren
 	List the pinned folders again now	Angeheftete Ordner jetzt neu auflisten
+	Space	Raum
+	Select the markups to add first (ones already on the list are skipped).	Wählen Sie zuerst die Markierungen aus (bereits gelistete werden übersprungen).
+	Punch	Punch
+	Added 1 item to the punch list.	1 Punkt zur Mängelliste hinzugefügt.
+	Added {n} items to the punch list.	{n} Punkte zur Mängelliste hinzugefügt.
+	Add selected to the punch list	Auswahl zur Mängelliste hinzufügen
+	Hide closed items	Erledigte ausblenden
+	{all} items, {open} open, {late} overdue	{all} Punkte, {open} offen, {late} überfällig
+	Select markups on the sheet (a cloud, a note, a photo) and add them: each gets a number on the sheet.	Markierungen auf dem Blatt auswählen (Wolke, Notiz, Foto) und hinzufügen: jede erhält eine Nummer auf dem Blatt.
+	Take off the punch list	Von der Mängelliste nehmen
+	Overdue	Überfällig
+	Assignee	Zuständig
+	Due (YYYY-MM-DD)	Fällig (JJJJ-MM-TT)
+	In progress	In Arbeit
+	Ready for review	Bereit zur Prüfung
+	Closed	Erledigt
+	No.	Nr.
+	Item	Element
+	Comment	Kommentar
+	Due	Fällig
+	Markup status	Markierungsstatus
+	punch list	Mängelliste
+	Saved the punch list.	Mängelliste gespeichert.
+	Space {n}	Raum {n}
+	Draw the space on the sheet: drag a rectangle, or click its corners and double-click to finish.	Raum auf dem Blatt zeichnen: Rechteck aufziehen oder Ecken anklicken und zum Abschluss doppelklicken.
+	Rectangle space	Rechteckiger Raum
+	Polygon space	Polygon-Raum
+	Make the selected shape a space	Ausgewählte Form zum Raum machen
+	Space name	Raumname
+	Name the rooms or zones of a sheet, then filter, count and export the markups in each.	Räume oder Zonen eines Blatts benennen, dann die Markierungen darin filtern, zählen und exportieren.
+	{n} markups	{n} Markierungen
+	Punch list	Mängelliste
+	Spaces	Räume
+	Item status	Punktstatus
+	Punch item	Mängelpunkt

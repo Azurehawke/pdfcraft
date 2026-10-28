@@ -3516,3 +3516,37 @@ certificate	Version	الإصدار
 	Getting the latest {name}…	جارٍ جلب أحدث نسخة من {name}…
 	Reloaded {name}.	أُعيد تحميل {name}.
 	List the pinned folders again now	اعرض المجلدات المثبتة مجدداً الآن
+	Space	مساحة
+	Select the markups to add first (ones already on the list are skipped).	حدد العلامات المراد إضافتها أولاً (يتم تخطي الموجودة في القائمة).
+	Punch	بند
+	Added 1 item to the punch list.	أُضيف بند واحد إلى قائمة الملاحظات.
+	Added {n} items to the punch list.	أُضيف {n} بنود إلى قائمة الملاحظات.
+	Add selected to the punch list	إضافة المحدد إلى قائمة الملاحظات
+	Hide closed items	إخفاء البنود المغلقة
+	{all} items, {open} open, {late} overdue	{all} بنود، {open} مفتوحة، {late} متأخرة
+	Select markups on the sheet (a cloud, a note, a photo) and add them: each gets a number on the sheet.	حدد علامات على اللوحة (سحابة، ملاحظة، صورة) وأضفها: يحصل كل منها على رقم على اللوحة.
+	Take off the punch list	إزالة من قائمة الملاحظات
+	Overdue	متأخر
+	Assignee	المكلَّف
+	Due (YYYY-MM-DD)	الاستحقاق (YYYY-MM-DD)
+	In progress	قيد التنفيذ
+	Ready for review	جاهز للمراجعة
+	Closed	مغلق
+	No.	رقم
+	Item	البند
+	Due	الاستحقاق
+	Markup status	حالة العلامة
+	punch list	قائمة الملاحظات
+	Saved the punch list.	حُفظت قائمة الملاحظات.
+	Space {n}	مساحة {n}
+	Draw the space on the sheet: drag a rectangle, or click its corners and double-click to finish.	ارسم المساحة على اللوحة: اسحب مستطيلاً، أو انقر زواياها ثم انقر مرتين للإنهاء.
+	Rectangle space	مساحة مستطيلة
+	Polygon space	مساحة مضلعة
+	Make the selected shape a space	جعل الشكل المحدد مساحة
+	Space name	اسم المساحة
+	Name the rooms or zones of a sheet, then filter, count and export the markups in each.	سمِّ غرف اللوحة أو مناطقها، ثم صفِّ العلامات في كل منها واحسبها وصدّرها.
+	{n} markups	{n} علامات
+	Punch list	قائمة الملاحظات
+	Spaces	المساحات
+	Item status	حالة البند
+	Punch item	بند ملاحظات

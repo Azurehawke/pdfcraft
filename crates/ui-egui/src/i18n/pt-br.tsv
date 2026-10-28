@@ -3522,3 +3522,37 @@ theme	Appearance	Aparência
 	Getting the latest {name}…	Obtendo a versão mais recente de {name}…
 	Reloaded {name}.	{name} recarregado.
 	List the pinned folders again now	Listar novamente as pastas fixadas agora
+	Space	Espaço
+	Select the markups to add first (ones already on the list are skipped).	Selecione primeiro as marcações a adicionar (as que já estão na lista são ignoradas).
+	Punch	Pendência
+	Added 1 item to the punch list.	1 item adicionado à lista de pendências.
+	Added {n} items to the punch list.	{n} itens adicionados à lista de pendências.
+	Add selected to the punch list	Adicionar seleção à lista de pendências
+	Hide closed items	Ocultar itens fechados
+	{all} items, {open} open, {late} overdue	{all} itens, {open} abertos, {late} atrasados
+	Select markups on the sheet (a cloud, a note, a photo) and add them: each gets a number on the sheet.	Selecione marcações na folha (nuvem, nota, foto) e adicione-as: cada uma recebe um número na folha.
+	Take off the punch list	Remover da lista de pendências
+	Overdue	Atrasado
+	Assignee	Responsável
+	Due (YYYY-MM-DD)	Prazo (AAAA-MM-DD)
+	In progress	Em andamento
+	Ready for review	Pronto para revisão
+	Closed	Fechado
+	No.	Nº
+	Item	Item
+	Due	Prazo
+	Markup status	Status da marcação
+	punch list	lista de pendências
+	Saved the punch list.	Lista de pendências salva.
+	Space {n}	Espaço {n}
+	Draw the space on the sheet: drag a rectangle, or click its corners and double-click to finish.	Desenhe o espaço na folha: arraste um retângulo ou clique nos cantos e dê um duplo clique para terminar.
+	Rectangle space	Espaço retangular
+	Polygon space	Espaço poligonal
+	Make the selected shape a space	Tornar a forma selecionada um espaço
+	Space name	Nome do espaço
+	Name the rooms or zones of a sheet, then filter, count and export the markups in each.	Nomeie os cômodos ou zonas de uma folha e depois filtre, conte e exporte as marcações de cada um.
+	{n} markups	{n} marcações
+	Punch list	Lista de pendências
+	Spaces	Espaços
+	Item status	Status do item
+	Punch item	Item de pendência

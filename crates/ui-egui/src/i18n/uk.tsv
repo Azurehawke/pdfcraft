@@ -3267,3 +3267,38 @@ animation effects	Off	Вимкнено
 	Reloaded {name}.	{name} перезавантажено.
 	Refresh	Оновити
 	List the pinned folders again now	Перечитати закріплені теки зараз
+	Space	Приміщення
+	Select the markups to add first (ones already on the list are skipped).	Спершу виберіть позначки (уже внесені пропускаються).
+	Punch	Зауваження
+	Added 1 item to the punch list.	До списку зауважень додано 1 пункт.
+	Added {n} items to the punch list.	До списку зауважень додано пунктів: {n}.
+	Add selected to the punch list	Додати вибране до списку зауважень
+	Hide closed items	Приховати закриті
+	{all} items, {open} open, {late} overdue	Пунктів: {all}, відкрито: {open}, прострочено: {late}
+	Select markups on the sheet (a cloud, a note, a photo) and add them: each gets a number on the sheet.	Виберіть позначки на аркуші (хмару, нотатку, фото) і додайте їх: кожна отримає номер на аркуші.
+	Take off the punch list	Прибрати зі списку зауважень
+	Overdue	Прострочено
+	Assignee	Виконавець
+	Due (YYYY-MM-DD)	Термін (РРРР-ММ-ДД)
+	In progress	У роботі
+	Ready for review	Готово до перевірки
+	Closed	Закрито
+	No.	№
+	Item	Елемент
+	Comment	Коментар
+	Due	Термін
+	Markup status	Статус позначки
+	punch list	список зауважень
+	Saved the punch list.	Список зауважень збережено.
+	Space {n}	Приміщення {n}
+	Draw the space on the sheet: drag a rectangle, or click its corners and double-click to finish.	Намалюйте приміщення на аркуші: розтягніть прямокутник або клацніть кути й двічі клацніть для завершення.
+	Rectangle space	Прямокутне приміщення
+	Polygon space	Багатокутне приміщення
+	Make the selected shape a space	Зробити вибрану фігуру приміщенням
+	Space name	Назва приміщення
+	Name the rooms or zones of a sheet, then filter, count and export the markups in each.	Назвіть кімнати або зони аркуша, потім фільтруйте, рахуйте й експортуйте позначки в кожній.
+	{n} markups	Позначок: {n}
+	Punch list	Список зауважень
+	Spaces	Приміщення
+	Item status	Статус пункту
+	Punch item	Пункт зауважень
