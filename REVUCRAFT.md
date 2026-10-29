@@ -360,7 +360,7 @@ Markup and measuring
       file again even when nothing looked changed, asking first over unsaved changes. On Android
       a document opened from another app (Drive, Files) is fetched from that app again first.
       Changed files were already reloaded on their own (checked four times a second).
-- [x] **(Steve, build 203)** Punch list and spaces (after MarkupCraft's design, written anew in
+- [x] **(Steve, build 207)** Punch list and spaces (after MarkupCraft's design, written anew in
       Rust). Punch list box (rail): Add selected gives each markup the next number, drawn in a
       badge at its top right so the printed sheet matches; assignee, due date (overdue ones in
       red), item status (Open, In progress, Ready for review, Closed), hide closed, Export CSV.
@@ -420,13 +420,26 @@ Markup and measuring
       (guests get the server node shared with them; HTTPS from Tailscale). RevuCraft
       connects only once a server address is set in Settings (off by default). Not interoperable
       with Bluebeam Studio.
+      Not a priority yet (Steve, 2026-10-28). People are named by Tailscale (the server asks
+      Tailscale who each connection is: login and device), so there are no accounts. Lasting
+      changes (markups, punch status, comments, chat) are kept and replayed to late joiners;
+      passing ones (presence, pointers, drags) are sent and forgotten.
   - [ ] Build 1: the server; start a session (the PDF uploaded once), join by link or code;
-        markup changes (add, move, restyle, delete, matched by each markup's `/NM`) synced
-        both ways, last change to a markup wins.
-  - [ ] Build 2: who is in and on which page, their pointers; a markup being dragged is held for
-        that person; offline changes queue and catch up.
-  - [ ] Build 3: invite tokens per session, End session (everyone's markups saved into the
-        PDF), a session report of who changed what, Android polish.
+        markup changes (add, move, restyle, delete, matched by each markup's `/NM`), punch
+        status and comment replies synced both ways, last change to a markup wins; offline
+        changes queue and catch up.
+  - [ ] Build 2: presence and pointers: a coloured badge per person (name and device) in the top
+        bar and on the page thumbnails; each person's mouse pointer with their name, finger touch
+        points and pen tips (hovering too) as coloured dots, in page coordinates so they land on
+        the right spot at any zoom (about 15 updates a second); a markup being dragged shows its
+        dragger's colour and is held for them; Follow (tap a badge: your view follows their page,
+        pan and zoom).
+  - [ ] Build 3: session chat (with @mentions, kept with the session for late joiners); an
+        activity feed ("Steve closed punch #4"), each entry jumping to its change; invite tokens
+        per session; End session (everyone's markups saved into the PDF) with a session report
+        of who changed what; Android polish (reconnects and catches up when brought back).
+  - Not planned: voice or video in the app; page edits (insert, delete, rotate) synced live
+    (they wait for End session); Bluebeam Studio compatibility.
 - [ ] **(Steve, back burner)** Paragraph and character styles inside text boxes, as InDesign: a text
       box holds paragraphs with their own styles (Header, Body); Next style (Enter after a Header
       starts a Body paragraph); character styles for runs of text; nested styles (bold up to the
