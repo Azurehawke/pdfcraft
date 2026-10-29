@@ -440,6 +440,15 @@ Markup and measuring
         of who changed what; Android polish (reconnects and catches up when brought back).
   - Not planned: voice or video in the app; page edits (insert, delete, rotate) synced live
     (they wait for End session); Bluebeam Studio compatibility.
+- [ ] **(Steve, later: after the touch second pass)** On-screen ruler for the pen, as OneNote's:
+      a see-through straight edge (about 15 cm on screen) shown or hidden from a Ruler button on
+      the pen tools' ribbon. Its marks read in real units at the sheet's scale (an architect's
+      scale laid on the plan; plain units on an unscaled sheet), its angle at one end (tap to type
+      an exact angle). A pen stroke that starts near its edge snaps to it and stays straight, with
+      the live length along the edge; ink drawn this way stays ink, while with a line or measure
+      tool on it makes a proper line or measurement. Fingers that start on the ruler move it (one)
+      or turn it (two); fingers elsewhere pan and zoom as now; the pen draws. Lay it along an
+      existing wall at any angle to draw parallel to it. Later: a protractor.
 - [ ] **(Steve, back burner)** Paragraph and character styles inside text boxes, as InDesign: a text
       box holds paragraphs with their own styles (Header, Body); Next style (Enter after a Header
       starts a Body paragraph); character styles for runs of text; nested styles (bold up to the
