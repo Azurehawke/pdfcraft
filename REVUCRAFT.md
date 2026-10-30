@@ -62,6 +62,15 @@ later tablet work, merge `android` into `revucraft` again.
 Started 2026-10-15. Steve's requests are marked **(Steve)**; the rest are suggestions to confirm.
 Tick items as they ship.
 
+Phase one (queued first, 2026-10-30)
+- [ ] **(Steve, phase one)** Bring PdfCraft up to date again: a merge build on its own, as build 176
+      was (about 1,220 upstream commits since a2ec27b). Includes upstream's split Menu: the Menu
+      dropdown becomes its submenus (File, Edit, View…) laid out along the bar, separated from the
+      tool menus by a vertical divider. Take every update that doesn't break RevuCraft: its ribbon,
+      dock rail, scale panel, layer panel, Draft tools, Links box, notes, punch list and spaces
+      stay as they are, and the ONNX OCR models already ported (build 207) are reconciled with
+      upstream's version.
+
 Panels and layout
 - [x] **(Steve)** Draggable dock boxes: reorder by dragging the title bar, drag a box out to float it
       as its own window over the drawing, drag it back to dock it.
