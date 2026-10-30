@@ -382,6 +382,24 @@ Markup and measuring
         base toward the wall, use the page's own lines as well as markups, and line it up
         automatically when it is placed near a wall (a data port's triangle base on the wall,
         whichever way the wall runs).
+- [ ] **(Steve, queued 2026-10-30)** Conditions, and the punch list on its own layer. Symbols
+      and punch items stay separate (a symbol is a thing on the plan; a punch item is work to do
+      about any markup), linked as below.
+  - [ ] Conditions on any markup (symbols first, also walls and cable runs), after Revit's
+        phases: Existing (gray), Proposed (dashed or lighter), Installed (solid, full colour),
+        Remove (red, crossed), plus your own. Set in Properties and from the context menu; a
+        Condition column in the Markups list; the legend and symbol counts split by condition
+        ("24 data ports: 10 existing, 12 installed, 2 proposed"). Covers part of Object styles
+        (back burner).
+  - [ ] Linked to the punch list: setting a punch item's markup to Installed closes the item (and,
+        later, reaches PlanCraft's dashboard).
+  - [ ] Punch badges on a Punch layer: each number badge becomes its own small marker on a Punch
+        layer that follows its markup (as doors follow walls), so the markup stays on its own
+        layer (a data port on Data) while hiding or not printing the Punch layer hides every
+        number.
+  - [ ] Issue markups (a cloud or note added to the punch list that isn't on a layer of its own)
+        go on the Punch layer; symbols, walls and cable runs keep theirs.
+  - [ ] An option to hide closed items' badges, so the sheet shows only what's open.
 - [ ] **(Steve, next)** Touch, second pass from use on the devices: double tap to zoom, the drag
       threshold, the glide's feel, long press; quick Add photo button and field flow on the phone;
       Properties, caption box and keypad sized for the phone.
