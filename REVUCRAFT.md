@@ -370,6 +370,18 @@ Markup and measuring
       smallest wins when spaces nest), with Punch, Assignee, Due and Item status fields for
       punch items. Kept in the PDF (`/PCPunch`, `/PCSpace`). Not yet: a punch report PDF,
       photos listed per item, a date picker.
+- [ ] **(Steve, queued 2026-10-30)** Text and symbols on the drawing:
+  - [ ] Every text placed on a drawing can be resized: measurement captions, symbol labels, door
+        and window marks, space names, punch badges (today only text boxes, typewriter text and
+        callouts take a font size). A Text size field in Properties, applied to the selection.
+  - [ ] Measurements' selection box is far larger than the measurement: fit it to the line and
+        its caption so it gets out of the way.
+  - [ ] Symbols face their wall. Today Properties ▸ Rotation and Align to nearest wall turn a
+        symbol, but only parallel to the nearest markup line (it may end up facing away), and the
+        drawing's own linework (a plan from a DWG) isn't looked at. Make Align turn the symbol's
+        base toward the wall, use the page's own lines as well as markups, and line it up
+        automatically when it is placed near a wall (a data port's triangle base on the wall,
+        whichever way the wall runs).
 - [ ] **(Steve, next)** Touch, second pass from use on the devices: double tap to zoom, the drag
       threshold, the glide's feel, long press; quick Add photo button and field flow on the phone;
       Properties, caption box and keypad sized for the phone.
