@@ -782,6 +782,26 @@ fn font(base: &str) -> Object {
     Object::Dict(f)
 }
 
+/// The band under the artwork a label of `label_size` (artwork units) sits in.
+fn band_for(label: &str, label_size: f64) -> f64 {
+    if label.is_empty() { 0.0 } else { label_size * LABEL_BAND / LABEL_SIZE }
+}
+
+/// A label's size in artwork units: its text size in points (`/PCTextSize`) at scale `k` (user
+/// units per artwork unit), else the usual size.
+fn label_units(text_size: Option<f64>, k: f64) -> f64 {
+    match text_size {
+        Some(pt) if k > 0.0 && k.is_finite() => (pt / k).clamp(LABEL_SIZE / 8.0, LABEL_SIZE * 8.0),
+        _ => LABEL_SIZE,
+    }
+}
+
+/// A symbol's label size in points, as drawn (`/PCTextSize`, else the usual size at its scale).
+pub fn label_points(d: &Dict) -> f64 {
+    let k = d.get(b"PCSize").and_then(Object::as_f64).filter(|v| v.is_finite() && *v > 0.0).unwrap_or(BOX) / BOX;
+    label_units(crate::text_size(d), k) * k
+}
+
 /// The side of the square the artwork is drawn in: the box itself, or room for any turn of it.
 fn art_side(degrees: f64) -> f64 {
     if degrees.rem_euclid(360.0).abs() < 1e-9 { BOX } else { BOX * std::f64::consts::SQRT_2 }
@@ -789,11 +809,11 @@ fn art_side(degrees: f64) -> f64 {
 
 /// The picture of `symbol` with `label`, its artwork turned `degrees` anticlockwise (the label
 /// stays level): a form XObject, and its width and height in its units.
-fn picture(art: &str, label: &str, color: Rgb, degrees: f64) -> (Stream, f64, f64) {
-    let label_width = if label.is_empty() { 0.0 } else { pdfcraft_fonts::helvetica_width(label, LABEL_SIZE) * 1.04 + 8.0 };
+fn picture(art: &str, label: &str, color: Rgb, degrees: f64, label_size: f64) -> (Stream, f64, f64) {
+    let label_width = if label.is_empty() { 0.0 } else { pdfcraft_fonts::helvetica_width(label, label_size) * 1.04 + 8.0 };
     let side = art_side(degrees);
     let width = side.max(label_width);
-    let band = if label.is_empty() { 0.0 } else { LABEL_BAND };
+    let band = band_for(label, label_size);
     let height = side + band;
     let mut content: Vec<u8> = Vec::new();
     content.extend_from_slice(rg(color).as_bytes());
@@ -818,7 +838,7 @@ fn picture(art: &str, label: &str, color: Rgb, degrees: f64) -> (Stream, f64, f6
     if !label.is_empty() {
         let text = pdfcraft_fonts::win_ansi(label);
         content.extend_from_slice(
-            format!("BT /F2 {} Tf {} {} Td ", n(LABEL_SIZE), n((width - label_width + 8.0) / 2.0), n(LABEL_SIZE * 0.3)).as_bytes(),
+            format!("BT /F2 {} Tf {} {} Td ", n(label_size), n((width - label_width + 8.0) / 2.0), n(label_size * 0.3)).as_bytes(),
         );
         content.extend_from_slice(&pdfcraft_fonts::literal(&text));
         content.extend_from_slice(b" Tj ET\n");
@@ -869,7 +889,7 @@ pub fn add_symbol(doc: &mut Document, new: &NewSymbol, meta: &Meta) -> Result<us
         }
         None => (new.symbol.id().to_string(), new.symbol.name().to_string(), new.symbol.art()),
     };
-    let (stream, width, height) = picture(&art, &label, new.color, turn);
+    let (stream, width, height) = picture(&art, &label, new.color, turn, LABEL_SIZE);
     let picture = doc.add(Object::Stream(stream));
     // Your own symbol keeps its artwork, so it can be turned and relabelled later.
     let art_ref = new.custom.is_some().then(|| doc.add(Object::Stream(Stream::flate(Dict::new(), art.as_bytes()))));
@@ -903,6 +923,26 @@ pub fn add_symbol(doc: &mut Document, new: &NewSymbol, meta: &Meta) -> Result<us
 /// Change a placed symbol's label and/or turn (degrees anticlockwise, absolute), keeping its size
 /// and the point its centre sits on. The label stays level as the artwork turns.
 pub fn edit_symbol(doc: &mut Document, page: usize, index: usize, label: Option<&str>, degrees: Option<f64>, meta: &Meta) -> Result<(), AnnotError> {
+    relayout(doc, page, index, label, degrees, None, meta)
+}
+
+/// Size the label of the symbol at `(page, index)` (points; `None`: back to the usual size),
+/// keeping the point its centre sits on.
+pub fn set_label_size(doc: &mut Document, page: usize, index: usize, size: Option<f64>, meta: &Meta) -> Result<(), AnnotError> {
+    relayout(doc, page, index, None, None, Some(size), meta)
+}
+
+/// Redraw a placed symbol with a new label, turn and/or label size (`Some(None)`: the usual
+/// size), keeping the point its centre sits on.
+fn relayout(
+    doc: &mut Document,
+    page: usize,
+    index: usize,
+    label: Option<&str>,
+    degrees: Option<f64>,
+    text_size: Option<Option<f64>>,
+    meta: &Meta,
+) -> Result<(), AnnotError> {
     let (_, r) = annot_ref(doc, page, index)?;
     crate::unlocked(doc, r)?;
     let d = crate::annot_dict(doc, r);
@@ -935,16 +975,23 @@ pub fn edit_symbol(doc: &mut Document, page: usize, index: usize, label: Option<
     let old_turn = d.get(b"PCRotation").and_then(|o| doc.resolve(o).as_f64()).filter(|v| v.is_finite()).unwrap_or(0.0);
     let [x0, y0, x1, y1] = nums(b"Rect")[..] else { return Err(AnnotError::Invalid("the symbol has no rectangle".into())) };
     let (x0, y0, x1, y1) = (x0.min(x1), y0.min(y1), x0.max(x1), y0.max(y1));
-    let old_band = if old_label.is_empty() { 0.0 } else { LABEL_BAND };
-    let old_height = art_side(old_turn) + old_band;
+    let old_size = crate::text_size(&d);
     // Its scale (user units per picture unit), from its size, else from its rectangle.
     let k = match d.get(b"PCSize").and_then(|o| doc.resolve(o).as_f64()).filter(|v| v.is_finite() && *v > 0.0) {
         Some(size) => size / BOX,
-        None => (y1 - y0) / old_height,
+        None => (y1 - y0) / (art_side(old_turn) + band_for(&old_label, LABEL_SIZE)),
     };
     if !k.is_finite() || k <= 0.0 {
         return Err(AnnotError::Invalid("the symbol's size can't be read".into()));
     }
+    let old_band = band_for(&old_label, label_units(old_size, k));
+    let new_size = match text_size {
+        Some(Some(pt)) if pt.is_finite() && (crate::MIN_TEXT_SIZE..=crate::MAX_TEXT_SIZE).contains(&pt) => Some(pt),
+        Some(Some(_)) => return Err(AnnotError::Invalid("invalid text size".into())),
+        Some(None) => None,
+        None => old_size,
+    };
+    let units = label_units(new_size, k);
     let center = [(x0 + x1) / 2.0, y0 + (old_band + art_side(old_turn) / 2.0) * k];
     let label = label.map_or(old_label, clean_label);
     let turn = match degrees {
@@ -952,9 +999,9 @@ pub fn edit_symbol(doc: &mut Document, page: usize, index: usize, label: Option<
         Some(_) => return Err(AnnotError::Invalid("invalid turn".into())),
         None => old_turn,
     };
-    let (stream, width, height) = picture(&art, &label, color, turn);
+    let (stream, width, height) = picture(&art, &label, color, turn, units);
     let pic = doc.add(Object::Stream(stream));
-    let band = if label.is_empty() { 0.0 } else { LABEL_BAND };
+    let band = band_for(&label, units);
     let nx0 = center[0] - width / 2.0 * k;
     let ny0 = center[1] - (band + art_side(turn) / 2.0) * k;
     let rect = [nx0, ny0, nx0 + width * k, ny0 + height * k];
@@ -968,6 +1015,12 @@ pub fn edit_symbol(doc: &mut Document, page: usize, index: usize, label: Option<
         d.set(b"PCLabel".to_vec(), PdfString::text(&label));
         d.set(b"Contents".to_vec(), PdfString::text(&label));
         d.set(b"PCSize".to_vec(), Object::Real(k * BOX));
+        match new_size {
+            Some(pt) => d.set(crate::TEXT_SIZE.to_vec(), Object::Real(pt)),
+            None => {
+                d.remove(crate::TEXT_SIZE);
+            }
+        }
         if turn == 0.0 {
             d.remove(b"PCRotation");
         } else {

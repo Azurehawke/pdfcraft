@@ -405,9 +405,9 @@ fn outline(kind: OpeningKind, at: &Place, flip: bool) -> Vec<Pt> {
 }
 
 /// Where a mark is written: in the door's swing, or beside the window.
-fn mark_at(kind: OpeningKind, at: &Place) -> (Pt, f64) {
+fn mark_at(kind: OpeningKind, at: &Place, text_size: Option<f64>) -> (Pt, f64) {
     let width = sub(at.to, at.from)[0].hypot(sub(at.to, at.from)[1]);
-    let size = (width * 0.22).clamp(4.0, 14.0);
+    let size = text_size.unwrap_or((width * 0.22).clamp(4.0, 14.0));
     let centre = mid(at.from, at.to);
     let off = match kind {
         OpeningKind::Door => at.half + width * 0.35,
@@ -467,7 +467,7 @@ pub(crate) fn opening_content(d: &Dict, stroke: Option<Rgb>) -> Option<(String, 
     }
     let label = !spec.mark.is_empty();
     if label {
-        let (p, size) = mark_at(spec.kind, &at);
+        let (p, size) = mark_at(spec.kind, &at, crate::text_size(d));
         let w = crate::appearance::text_width(&spec.mark, size);
         let mark: String = spec.mark.chars().filter(|ch| ch.is_ascii_alphanumeric() || *ch == '-').collect();
         c.push_str(&format!("{}BT /Helv {} Tf {} {} Td ({mark}) Tj ET\n", rg(col, "rg"), n(size), n(p[0] - w / 2.0), n(p[1] - size * 0.35)));
@@ -476,10 +476,10 @@ pub(crate) fn opening_content(d: &Dict, stroke: Option<Rgb>) -> Option<(String, 
 }
 
 /// A door's or window's `/Rect`: its outline and its mark, with room for its lines.
-fn opening_rect(spec: &OpeningSpec, at: &Place) -> [f64; 4] {
+fn opening_rect(spec: &OpeningSpec, at: &Place, text_size: Option<f64>) -> [f64; 4] {
     let mut pts = outline(spec.kind, at, spec.flip);
     if !spec.mark.is_empty() {
-        let (p, size) = mark_at(spec.kind, at);
+        let (p, size) = mark_at(spec.kind, at, text_size);
         let half = crate::appearance::text_width(&spec.mark, size) / 2.0;
         pts.push([p[0] - half, p[1] - size * 0.35]);
         pts.push([p[0] + half, p[1] + size * 0.8]);
@@ -612,6 +612,26 @@ pub fn add_opening(
     Ok(index)
 }
 
+/// The usual size of a door's or window's mark (points), from its width.
+pub(crate) fn default_mark_size(d: &Dict) -> Option<f64> {
+    let o = d.get(OPENING)?.as_dict()?;
+    let pt = |k: &[u8]| -> Option<Pt> {
+        match numbers(o, k).as_slice() {
+            [x, y] => Some([*x, *y]),
+            _ => None,
+        }
+    };
+    let (from, to) = (pt(b"From")?, pt(b"To")?);
+    let width = sub(to, from)[0].hypot(sub(to, from)[1]);
+    width.is_finite().then(|| (width * 0.22).clamp(4.0, 14.0))
+}
+
+/// The index of the wall that hosts the door or window `d` on `page`.
+pub(crate) fn host_of(doc: &Document, page: usize, d: &Dict) -> Option<usize> {
+    let host = d.get(OPENING)?.as_dict()?.get(b"Host").and_then(Object::as_string).map(PdfString::to_text)?;
+    walls(doc, page).into_iter().find(|w| !w.nm.is_empty() && w.nm == host).map(|w| w.index)
+}
+
 /// Brings the doors and windows of the wall at `wall` up to its outline, and its openings up to
 /// them (a copy of a wall has none of its doors, so none of its openings).
 pub fn sync(doc: &mut Document, page: usize, wall: usize, meta: &Meta) -> Result<(), AnnotError> {
@@ -623,7 +643,7 @@ pub fn sync(doc: &mut Document, page: usize, wall: usize, meta: &Meta) -> Result
         crate::geometry::set_vertices(doc, page, o.index, &outline(o.spec.kind, &at, o.spec.flip), false, meta)?;
         let (_, r) = annot_ref(doc, page, o.index)?;
         let (host, spec) = (o.host.clone(), o.spec.clone());
-        let rect = opening_rect(&spec, &at);
+        let rect = opening_rect(&spec, &at, crate::text_size(&crate::annot_dict(doc, r)));
         doc.update_dict(r, |d| {
             d.set(OPENING.to_vec(), Object::Dict(opening_dict(&host, &spec, &at)));
             d.set(b"Rect".to_vec(), num_array(&rect));

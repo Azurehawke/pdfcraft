@@ -36,6 +36,7 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
     let editable = doc.allows_annotation() && doc.read_only_reason.is_none();
     let layers = app.session.layer_details(id);
     let rotation = doc.symbol_rotation(page, ai);
+    let text_size = doc.text_size_of(page, ai);
     let callout_side = doc.callout_side(page, ai);
     let callout_parts = doc.callout_parts(page, ai);
     let fields = doc.annotation_fields(page, ai);
@@ -46,11 +47,13 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
     let opening = doc.wall_openings(page).into_iter().find(|o| o.index == ai);
     let smart_wall = doc.smart_walls(page).iter().any(|w| w.index == ai);
     let (new_side, new_height) = (app.symbols.callout_side, crate::revu::callout_height(&app.symbols));
-    // The direction of the line or wall nearest the symbol, for lining it up.
-    let wall_angle = annotation.as_ref().filter(|a| a.symbol.is_some()).and_then(|a| {
+    // Where the symbol's centre is, to face it toward the nearest wall when asked (the drawing's
+    // linework is read only then, not every frame).
+    let symbol_centre = annotation.as_ref().filter(|a| a.symbol.is_some()).map(|a| {
         let [x0, y0, x1, y1] = a.rect.map(f64::from);
-        nearest_line_angle(doc, page, [(x0 + x1) / 2.0, (y0 + y1) / 2.0])
+        [(x0 + x1) / 2.0, (y0 + y1) / 2.0]
     });
+    let mut align_wall = false;
     // A new selection, or nothing pending: show the markup as it is now.
     let reload = app.props_box.as_ref().is_none_or(|d| d.page != page || d.index != ai || d.edited == d.original);
     if reload {
@@ -177,6 +180,22 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
                         ui.data_mut(|m| m.insert_temp(text_id, text));
                     }
                     ui.end_row();
+                    // The size of the markup's own text (a caption, label, mark or name).
+                    if let Some(size) = text_size {
+                        ui.label(tl!("Text size"));
+                        let mut v = size;
+                        let r = ui.add(
+                            egui::DragValue::new(&mut v)
+                                .range(pdfcraft_engine::MIN_TEXT_SIZE..=pdfcraft_engine::MAX_TEXT_SIZE)
+                                .speed(0.25)
+                                .max_decimals(1)
+                                .suffix(" pt"),
+                        );
+                        if (r.drag_stopped() || r.lost_focus() || (r.changed() && !r.dragged() && !r.has_focus())) && (v - size).abs() > 1e-6 {
+                            extra.push(Edit::SetTextSize { page, index: ai, size: Some(v) });
+                        }
+                        ui.end_row();
+                    }
                     // A symbol's turn, and turning it to line up with the nearest wall or line.
                     if a.symbol.is_some() {
                         ui.label(tl!("Rotation"));
@@ -189,11 +208,10 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
                                 extra.push(Edit::EditSymbol { page, index: ai, label: None, rotation: Some(turn) });
                             }
                             if widgets::pill_button(ui, tl!("Align to nearest wall"), false)
-                                .on_hover_text(tl!("Turn the symbol to line up with the nearest wall or line"))
+                                .on_hover_text(tl!("Turn the symbol to face the nearest wall or line"))
                                 .clicked()
-                                && let Some(t) = wall_angle
                             {
-                                extra.push(Edit::EditSymbol { page, index: ai, label: None, rotation: Some(t) });
+                                align_wall = true;
                             }
                         });
                         ui.end_row();
@@ -351,12 +369,25 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
         d.original = d.edited.clone();
     }
     edits.extend(extra);
+    if align_wall
+        && let Some(p) = symbol_centre
+        && let Some(t) = nearest_line_angle(doc, page, p)
+    {
+        edits.push(Edit::EditSymbol { page, index: ai, label: None, rotation: Some(t) });
+    }
     if !others.is_empty() {
         let mut more_edits = Vec::new();
         for &other in &others {
             let props = doc.comment_props(page, other);
             let fit = props.as_ref().map_or((false, false, false), |p| (p.restylable, p.width.is_some(), p.fillable));
             more_edits.extend(edits.iter().filter_map(|e| retarget(e, other, fit)));
+            // A text size goes to the others with text of their own.
+            if doc.text_size_of(page, other).is_some() {
+                more_edits.extend(edits.iter().filter_map(|e| match e {
+                    Edit::SetTextSize { page, size, .. } => Some(Edit::SetTextSize { page: *page, index: other, size: *size }),
+                    _ => None,
+                }));
+            }
             // A stroke's alignment goes to the other closed shapes.
             if doc.stroke_align(page, other).is_some() {
                 more_edits.extend(edits.iter().filter_map(|e| match e {
@@ -404,34 +435,62 @@ fn retarget(e: &Edit, index: usize, (restylable, has_width, fillable): (bool, bo
     }
 }
 
-/// The angle (degrees, -90 to 90) of the markup line nearest `p` on `page`, for lining a symbol up
-/// with a wall.
+/// The turn (degrees anticlockwise) that faces a symbol at `p` on `page` toward the nearest wall:
+/// its top (an outlet's flat side) against the wall, whichever way the wall runs.
 pub(crate) fn nearest_line_angle(doc: &pdfcraft_engine::Document, page: usize, p: [f64; 2]) -> Option<f64> {
     nearest_line(doc, page, p).map(|(_, a)| a)
 }
 
-/// The distance to the markup line nearest `p` on `page`, and its angle (degrees, -90 to 90).
+/// Line segments looked at, at most (a heavy drawing has many thousands).
+const MAX_WALL_SEGMENTS: usize = 50_000;
+
+/// The distance to the line nearest `p` on `page` (markup lines and walls, and the drawing's own
+/// linework, as from a DWG), and the turn that faces a symbol there toward it (degrees
+/// anticlockwise; the symbol's top goes against the line).
 pub(crate) fn nearest_line(doc: &pdfcraft_engine::Document, page: usize, p: [f64; 2]) -> Option<(f64, f64)> {
-    let mut best: Option<(f64, f64)> = None;
-    for g in doc.markup_geometry(page) {
-        for (a, b) in g.segments() {
-            let (dx, dy) = (b[0] - a[0], b[1] - a[1]);
-            let len2 = dx * dx + dy * dy;
-            if len2 < 1e-12 {
-                continue;
-            }
-            let t = (((p[0] - a[0]) * dx + (p[1] - a[1]) * dy) / len2).clamp(0.0, 1.0);
-            let d = (p[0] - a[0] - dx * t).hypot(p[1] - a[1] - dy * t);
-            if best.is_none_or(|(bd, _)| d < bd) {
-                let mut angle = dy.atan2(dx).to_degrees();
-                if angle > 90.0 {
-                    angle -= 180.0;
-                } else if angle <= -90.0 {
-                    angle += 180.0;
-                }
-                best = Some((d, angle));
-            }
+    let mut segments: Vec<([f64; 2], [f64; 2])> = doc.markup_geometry(page).iter().flat_map(|g| g.segments()).take(MAX_WALL_SEGMENTS).collect();
+    if let Ok(paths) = doc.measurement_paths(page) {
+        segments.extend(paths.segments.iter().map(|s| (s[0], s[1])).take(MAX_WALL_SEGMENTS));
+    }
+    let mut best: Option<(f64, [f64; 2], [f64; 2])> = None;
+    for (a, b) in segments {
+        let (dx, dy) = (b[0] - a[0], b[1] - a[1]);
+        let len2 = dx * dx + dy * dy;
+        if !len2.is_finite() || len2 < 1e-12 {
+            continue;
+        }
+        let t = (((p[0] - a[0]) * dx + (p[1] - a[1]) * dy) / len2).clamp(0.0, 1.0);
+        let q = [a[0] + dx * t, a[1] + dy * t];
+        let d = (p[0] - q[0]).hypot(p[1] - q[1]);
+        if d.is_finite() && best.is_none_or(|(bd, ..)| d < bd) {
+            best = Some((d, q, [dx, dy]));
         }
     }
-    best
+    let (d, q, dir) = best?;
+    // Toward the wall; on the line itself, square to it.
+    let (mut nx, mut ny) = (q[0] - p[0], q[1] - p[1]);
+    if nx.hypot(ny) < 1e-6 {
+        (nx, ny) = (-dir[1], dir[0]);
+    }
+    Some((d, facing(nx, ny)))
+}
+
+/// The turn (degrees anticlockwise, -180 to 180) that points a symbol's top along (nx, ny).
+fn facing(nx: f64, ny: f64) -> f64 {
+    let a = (-nx).atan2(ny).to_degrees();
+    if a <= -180.0 { a + 360.0 } else { a }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::facing;
+
+    #[test]
+    fn a_symbol_turns_its_top_toward_the_wall() {
+        // A wall above: no turn. Below: half a turn. To the right: a quarter turn clockwise.
+        assert!(facing(0.0, 5.0).abs() < 1e-9);
+        assert!((facing(0.0, -5.0).abs() - 180.0).abs() < 1e-9);
+        assert!((facing(5.0, 0.0) + 90.0).abs() < 1e-9);
+        assert!((facing(-5.0, 0.0) - 90.0).abs() < 1e-9);
+    }
 }

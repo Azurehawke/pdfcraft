@@ -383,18 +383,19 @@ Markup and measuring
       smallest wins when spaces nest), with Punch, Assignee, Due and Item status fields for
       punch items. Kept in the PDF (`/PCPunch`, `/PCSpace`). Not yet: a punch report PDF,
       photos listed per item, a date picker.
-- [ ] **(Steve, queued 2026-10-30)** Text and symbols on the drawing:
-  - [ ] Every text placed on a drawing can be resized: measurement captions, symbol labels, door
-        and window marks, space names, punch badges (today only text boxes, typewriter text and
-        callouts take a font size). A Text size field in Properties, applied to the selection.
-  - [ ] Measurements' selection box is far larger than the measurement: fit it to the line and
-        its caption so it gets out of the way.
-  - [ ] Symbols face their wall. Today Properties ▸ Rotation and Align to nearest wall turn a
-        symbol, but only parallel to the nearest markup line (it may end up facing away), and the
-        drawing's own linework (a plan from a DWG) isn't looked at. Make Align turn the symbol's
-        base toward the wall, use the page's own lines as well as markups, and line it up
-        automatically when it is placed near a wall (a data port's triangle base on the wall,
-        whichever way the wall runs).
+- [x] **(Steve, build 217)** Text and symbols on the drawing:
+  - [x] A Text size field in Properties for the text RevuCraft draws on a markup: measurement
+        captions, symbol labels (the symbol is laid out again round its centre), door and window
+        marks, space names (`/PCTextSize`; also applied to the other selected markups that have
+        such text). Text boxes, typewriter text and callouts keep their font size. Punch badges
+        stay their size.
+  - [x] Measurements' boxes fit them: the caption sits beside the line at its middle, reading
+        upright (along a polyline's longest leg; an angle's at its corner; an area's in its middle),
+        and the box is the line plus its caption with a point to spare (it was the line's box grown
+        by the caption's room on every side). Measurements made before fit when next edited.
+  - [x] Symbols face their wall: Align to nearest wall (and Line up with walls when placing, now on
+        by default) turns the symbol's top (an outlet's flat side) toward the nearest line,
+        including the drawing's own linework (a plan from a DWG), whichever way the wall runs.
 - [ ] **(Steve, queued 2026-10-31)** Callout arrows stay anchored to the drawing, as the photo
       callout's pin does: moving a callout's text box leaves the arrow's tip where it points, and
       the leader line redraws from the box to the tip. Dragging the tip moves only the tip; moving

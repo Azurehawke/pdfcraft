@@ -599,14 +599,9 @@ pub fn add(doc: &mut Document, new: &NewMeasurement, meta: &Meta) -> Result<usiz
         let (x0, y0, x1, y1) =
             pts.iter().fold((f64::MAX, f64::MAX, f64::MIN, f64::MIN), |(x0, y0, x1, y1), p| (x0.min(p[0]), y0.min(p[1]), x1.max(p[0]), y1.max(p[1])));
         d.set(b"Rect".to_vec(), nums([x0 - pad, y0 - pad, x1 + pad, y1 + pad]));
-    } else if let Some(rect) = d.get(b"Rect").and_then(Object::as_array) {
-        // Leave room for the readable numeric caption above the geometry.
-        let values: Option<Vec<f64>> = rect.iter().map(Object::as_f64).collect();
-        if let Some(v) = values.filter(|v| v.len() == 4) {
-            let width = (info.label.len() as f64 * 6.0).max(40.0);
-            let cx = (v[0] + v[2]) * 0.5;
-            d.set(b"Rect".to_vec(), nums([v[0].min(cx - width / 2.0), v[1], v[2].max(cx + width / 2.0), v[3] + 16.0]));
-        }
+    } else {
+        // Room for the caption beside the line, fitted close.
+        pdfcraft_annot::geometry::fit_caption(&mut d);
     }
     doc.update_dict(r, |target| *target = d).map_err(|e| invalid(&e.to_string()))?;
     pdfcraft_annot::set_appearance(doc, r)?;
@@ -667,6 +662,8 @@ pub fn refresh(doc: &mut Document, page_index: usize, index: usize) -> Result<bo
         d.set(b"Contents".to_vec(), PdfString::text(&m.reading.label));
     }
     d.set(b"PCMeasureValue".to_vec(), PdfString::text(&m.reading.label));
+    // A longer or shorter reading needs a different caption box.
+    pdfcraft_annot::geometry::fit_caption(&mut d);
     doc.update_dict(r, |target| *target = d).map_err(|e| invalid(&e.to_string()))?;
     pdfcraft_annot::set_appearance(doc, r)?;
     Ok(true)

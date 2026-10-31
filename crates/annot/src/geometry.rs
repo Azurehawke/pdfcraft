@@ -146,9 +146,32 @@ fn write_points(d: &mut Dict, points: &[[f64; 2]], old: &[[f64; 2]], meta: &Meta
         _ => return Err(AnnotError::Invalid("not enough points for this shape".into())),
     }
     d.set(b"Rect".to_vec(), num_array(&[b[0] - m, b[1] - m, b[2] + m, b[3] + m]));
+    fit_caption(d);
     fit_dimension(d);
     touch(d, meta);
     Ok(())
+}
+
+/// A measurement's `/Rect`, fitted close: its line or outline (with room for the pen and any
+/// arrowheads) and its caption, wherever [`crate::appearance::caption_layout`] puts it. Shapes
+/// without a caption, and dimensions ([`fit_dimension`]), are left alone.
+pub fn fit_caption(d: &mut Dict) {
+    let Some(cap) = crate::appearance::caption_layout(d) else { return };
+    let nums = |k: &[u8]| -> Vec<f64> {
+        d.get(k).and_then(|o| o.as_array()).map(|a| a.iter().filter_map(|x| x.as_f64()).filter(|v| v.is_finite()).collect()).unwrap_or_default()
+    };
+    let key: &[u8] = if d.name(b"Subtype") == Some(b"Line") { b"L" } else { b"Vertices" };
+    let pts = points_of(&nums(key));
+    let Some(shape) = bounds(pts.into_iter()) else { return };
+    let w = crate::appearance::border_width(d);
+    let arrows = d.get(b"LE").and_then(|o| o.as_array()).is_some_and(|a| a.iter().any(|e| e.as_name().is_some_and(|n| n != b"None")));
+    let pad = w / 2.0 + if arrows { crate::appearance::arrow_size(w) } else { 0.0 } + 1.0;
+    let shape = [shape[0] - pad, shape[1] - pad, shape[2] + pad, shape[3] + pad];
+    let Some(text) = bounds(cap.corners().into_iter()) else { return };
+    let r = [shape[0].min(text[0] - 1.0), shape[1].min(text[1] - 1.0), shape[2].max(text[2] + 1.0), shape[3].max(text[3] + 1.0)];
+    if r.iter().all(|v| v.is_finite()) {
+        d.set(b"Rect".to_vec(), num_array(&r));
+    }
 }
 
 /// A dimension line's `/Rect`: its extension lines, dimension line and text.
@@ -357,13 +380,8 @@ pub fn set_caption(doc: &mut Document, page: usize, index: usize, text: &str, su
         d.set(b"PCMeasureValue".to_vec(), PdfString::text(text));
         d.set(b"Contents".to_vec(), PdfString::text(text));
         d.set(b"Subj".to_vec(), PdfString::text(subject));
-        // Room for the caption above the shape.
-        let rect: Vec<f64> = d.get(b"Rect").and_then(|o| o.as_array()).map(|a| a.iter().filter_map(|x| x.as_f64()).collect()).unwrap_or_default();
-        if let [x0, y0, x1, y1] = rect[..] {
-            let width = (text.chars().count() as f64 * 6.0).max(40.0);
-            let cx = (x0 + x1) / 2.0;
-            d.set(b"Rect".to_vec(), num_array(&[x0.min(cx - width / 2.0), y0.min(y1), x1.max(cx + width / 2.0), y0.max(y1) + 16.0]));
-        }
+        // Room for the caption beside the shape.
+        fit_caption(d);
     })?;
     set_appearance(doc, r)
 }

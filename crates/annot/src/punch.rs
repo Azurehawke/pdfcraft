@@ -27,7 +27,7 @@ const MAX_TEXT: usize = 120;
 pub const MAX_NUMBER: u32 = 999_999;
 /// The badge's radius (points), and the space name's size.
 const BADGE: f64 = 7.0;
-const LABEL: f64 = 9.0;
+pub const LABEL: f64 = 9.0;
 /// The badge's and a space's colours.
 const BADGE_COLOR: [f64; 3] = [0.82, 0.27, 0.12];
 pub const SPACE_STROKE: [f64; 3] = [0.16, 0.52, 0.32];
@@ -266,7 +266,7 @@ pub(crate) fn decorate(d: &Dict, stream: Stream) -> Stream {
     out.extend_from_slice(&content);
     out.extend_from_slice(b"\nQ\n");
     if let Some(name) = space {
-        out.extend(space_label(&name, bbox));
+        out.extend(space_label(&name, bbox, crate::text_size(d).unwrap_or(LABEL)));
     }
     if let Some(no) = badge {
         out.extend(badge_content(no, bbox));
@@ -335,16 +335,16 @@ fn badge_content(no: u32, bbox: [f64; 4]) -> Vec<u8> {
 }
 
 /// A space's name, at the top left inside its box.
-fn space_label(name: &str, bbox: [f64; 4]) -> Vec<u8> {
+fn space_label(name: &str, bbox: [f64; 4], size: f64) -> Vec<u8> {
     let name: String = name.chars().take(60).collect();
     let mut s = format!(
         "q {} {} {} rg BT /PCLabel {} Tf {} {} Td ",
         n(SPACE_STROKE[0] * 0.7),
         n(SPACE_STROKE[1] * 0.7),
         n(SPACE_STROKE[2] * 0.7),
-        n(LABEL),
+        n(size),
         n(bbox[0] + 4.0),
-        n(bbox[3] - LABEL - 3.0)
+        n(bbox[3] - size - 3.0)
     )
     .into_bytes();
     s.extend(literal(&win_ansi(&name)));

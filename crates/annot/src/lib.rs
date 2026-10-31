@@ -27,6 +27,8 @@ pub mod links;
 pub mod notes;
 pub mod photo_callout;
 pub mod punch;
+pub mod text_size;
+pub use text_size::{MAX_TEXT_SIZE, MIN_TEXT_SIZE, TEXT_SIZE, text_size};
 pub mod stroke_align;
 pub mod svg_art;
 pub mod symbols;

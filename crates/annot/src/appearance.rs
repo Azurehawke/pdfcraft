@@ -921,7 +921,7 @@ pub fn build(d: &Dict) -> Option<Stream> {
     if let Some(value) = d.get(b"PCMeasureValue").and_then(Object::as_string) {
         let value = value.to_text();
         if value.chars().count() <= 256 && matches!(subtype.as_slice(), b"Line" | b"PolyLine" | b"Polygon") {
-            let size = 10.0;
+            let size = crate::text_size(d).unwrap_or(MEASURE_TEXT);
             let col = stroke.unwrap_or([0.0, 0.47, 0.84]);
             match caption_at {
                 // Along the dimension line, reading left to right or upward, just clear of it.
@@ -935,11 +935,31 @@ pub fn build(d: &Dict) -> Option<Stream> {
                         format!("{}BT /Helv {} Tf {} {} {} {} {} {} Tm ", rg(col), n(size), n(cos), n(sin), n(-sin), n(cos), n(x), n(y)).bytes(),
                     );
                 }
-                None => {
-                    let x = (rect[0] + rect[2] - text_width(&value, size)) * 0.5;
-                    let y = rect[3] - 12.0;
-                    out.extend(format!("{}BT /Helv {} Tf {} {} Td ", rg(col), n(size), n(x), n(y)).bytes());
-                }
+                // Beside the line, along the longest leg, or in the middle of an area.
+                None => match caption_layout(d) {
+                    Some(cap) => {
+                        let (x, y) = cap.origin;
+                        out.extend(
+                            format!(
+                                "{}BT /Helv {} Tf {} {} {} {} {} {} Tm ",
+                                rg(col),
+                                n(size),
+                                n(cap.cos),
+                                n(cap.sin),
+                                n(-cap.sin),
+                                n(cap.cos),
+                                n(x),
+                                n(y)
+                            )
+                            .bytes(),
+                        );
+                    }
+                    None => {
+                        let x = (rect[0] + rect[2] - text_width(&value, size)) * 0.5;
+                        let y = rect[3] - size - 2.0;
+                        out.extend(format!("{}BT /Helv {} Tf {} {} Td ", rg(col), n(size), n(x), n(y)).bytes());
+                    }
+                },
             }
             // WinAnsi bytes (e.g. 0xB2 for "²") go into the stream as-is, not through UTF-8.
             out.extend(literal(&win_ansi(&value)));
@@ -965,6 +985,78 @@ fn joins(d: &Dict) -> &'static str {
 
 /// The angle (radians, anticlockwise in page space) to write text along a line at `angle` so it
 /// reads left to right, or upward, on a page shown turned `turn` degrees clockwise (`/Rotate`).
+/// A measurement caption's usual size (points).
+pub const MEASURE_TEXT: f64 = 10.0;
+
+/// Where a measurement's caption (`/PCMeasureValue`) is drawn, when it isn't a dimension's: its
+/// baseline start, its direction and its size and width.
+pub(crate) struct Caption {
+    pub origin: (f64, f64),
+    pub cos: f64,
+    pub sin: f64,
+    pub size: f64,
+    pub width: f64,
+}
+
+impl Caption {
+    /// The corners of the box the text covers.
+    pub fn corners(&self) -> [[f64; 2]; 4] {
+        let (ax, ay) = (self.cos, self.sin);
+        let (ux, uy) = (-self.sin, self.cos);
+        let at = |a: f64, u: f64| [self.origin.0 + ax * a + ux * u, self.origin.1 + ay * a + uy * u];
+        [at(0.0, -0.25 * self.size), at(self.width, -0.25 * self.size), at(self.width, self.size), at(0.0, self.size)]
+    }
+}
+
+/// The caption of a line, polyline or polygon measurement (not a dimension, whose text sits on
+/// its dimension line): beside a line at its middle, reading upright; beside a polyline's longest
+/// leg (an angle's at its corner); in the middle of a polygon.
+pub(crate) fn caption_layout(d: &Dict) -> Option<Caption> {
+    if d.contains(b"LL") {
+        return None;
+    }
+    let value = d.get(b"PCMeasureValue").and_then(Object::as_string)?.to_text();
+    if value.is_empty() || value.chars().count() > 256 {
+        return None;
+    }
+    let size = crate::text_size(d).unwrap_or(MEASURE_TEXT);
+    let width = text_width(&value, size);
+    let w = border_width(d);
+    let turn = d.get(b"PCRotate").and_then(Object::as_int).unwrap_or(0);
+    let subtype = d.name(b"Subtype")?;
+    let key: &[u8] = if subtype == b"Line" { b"L" } else { b"Vertices" };
+    let v = nums(d, key).filter(|v| v.len() >= 4 && v.len() % 2 == 0 && v.iter().all(|x| x.is_finite()))?;
+    let pts: Vec<(f64, f64)> = v.as_chunks::<2>().0.iter().map(|p| (p[0], p[1])).take(10_000).collect();
+    // Along the segment from a to b, at its middle, lifted clear of the line.
+    let along = |a: (f64, f64), b: (f64, f64)| {
+        let angle = readable((b.1 - a.1).atan2(b.0 - a.0), turn);
+        let (sin, cos) = angle.sin_cos();
+        let (mx, my) = ((a.0 + b.0) / 2.0, (a.1 + b.1) / 2.0);
+        let lift = 2.0 + w;
+        Caption { origin: (mx - cos * width / 2.0 - sin * lift, my - sin * width / 2.0 + cos * lift), cos, sin, size, width }
+    };
+    let flat = |x: f64, y: f64| Caption { origin: (x, y), cos: 1.0, sin: 0.0, size, width };
+    match subtype {
+        b"Polygon" => {
+            let count = pts.len() as f64;
+            let (sx, sy) = pts.iter().fold((0.0, 0.0), |(x, y), p| (x + p.0, y + p.1));
+            Some(flat(sx / count - width / 2.0, sy / count - size * 0.35))
+        }
+        // An angle: three points, read at the corner.
+        b"PolyLine" if pts.len() == 3 && d.name(b"IT") != Some(b"PolyLineDimension") => {
+            let c = pts.get(1)?;
+            Some(flat(c.0 - width / 2.0, c.1 + 3.0 + w))
+        }
+        _ => {
+            let (a, b) = pts
+                .windows(2)
+                .filter_map(|s| Some((*s.first()?, *s.get(1)?)))
+                .max_by(|x, y| ((x.1.0 - x.0.0).hypot(x.1.1 - x.0.1)).total_cmp(&(y.1.0 - y.0.0).hypot(y.1.1 - y.0.1)))?;
+            Some(along(a, b))
+        }
+    }
+}
+
 pub(crate) fn readable(angle: f64, turn: i64) -> f64 {
     use std::f64::consts::{FRAC_PI_2, PI, TAU};
     let turn = (turn.rem_euclid(360) / 90 * 90) as f64;

@@ -74,7 +74,7 @@ impl Default for SymbolSettings {
             paper_inches: 0.25,
             label: String::new(),
             auto_number: false,
-            align_to_wall: false,
+            align_to_wall: true,
             next: 1,
             renumber_kind: None,
             renumber_prefix: String::new(),

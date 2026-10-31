@@ -650,6 +650,7 @@ Text left
 Text markup
 Text recognition isn't installed: its model files are missing. Reinstall RevuCraft, or set PDFCRAFT_MODELS to the folder that holds them.
 Text right
+Text size
 Text width
 That page size can't be made; pages are 1 to 200 inches a side.
 That tool isn't available in this version.
@@ -707,6 +708,7 @@ Total: {n}
 Transform
 Trim (click the part to cut away at crossing lines)
 Turn new symbols to line up with the nearest wall or line
+Turn the symbol to face the nearest wall or line
 Turn the symbol to line up with the nearest wall or line
 Type SE, SM, SI, SP or SN while drafting for one snap alone on the next point (SO none, SS all).
 Type a length after placing the first point, or give coordinates.

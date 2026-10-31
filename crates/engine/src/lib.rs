@@ -158,6 +158,7 @@ pub use pdfcraft_annot::{
     AppearanceCache, AttachIcon, FillMark, LineEnding, Markup, NOTE_SIZE, NewAnnotation, NoteIcon, OverlayFont, OverlayLook, PenKind,
     Props as CommentProps, ReviewState, Rgb, Shape, StampGroup, StampKind, Style, rect_quad,
 };
+pub use pdfcraft_annot::{MAX_TEXT_SIZE, MIN_TEXT_SIZE};
 pub use pdfcraft_annot::{fields, geometry, layers, photo_callout, stroke_align, svg_art, symbols, walls};
 pub use pdfcraft_create::report;
 pub use pdfcraft_forms::detect;
@@ -327,6 +328,7 @@ fn scope_of(edit: &Edit) -> Scope {
         | Edit::SetAnnotationField { .. }
         | Edit::SetPunch { .. }
         | Edit::SetSpace { .. }
+        | Edit::SetTextSize { .. }
         | Edit::SetStrokeAlign { .. }
         | Edit::RenameMeasurement { .. }
         | Edit::NameMeasurements
@@ -711,6 +713,12 @@ impl Document {
     /// RevuCraft: the punch items on `page`: (index, item).
     pub fn punch_items(&self, page: usize) -> Vec<(usize, pdfcraft_annot::punch::Punch)> {
         self.editor.as_ref().map(|e| pdfcraft_annot::punch::punch_items(&e.cos, page)).unwrap_or_default()
+    }
+
+    /// RevuCraft: the size a markup's own text is drawn at (points), when it has such text
+    /// ([`pdfcraft_annot::text_size`]).
+    pub fn text_size_of(&self, page: usize, index: usize) -> Option<f64> {
+        self.editor.as_ref().and_then(|e| pdfcraft_annot::text_size::drawn_text_size_at(&e.cos, page, index))
     }
 
     /// RevuCraft: the spaces on `page` (indexes).
@@ -1971,6 +1979,13 @@ pub enum Edit {
         index: usize,
         punch: Option<pdfcraft_annot::punch::Punch>,
     },
+    /// RevuCraft: draw a markup's own text (a measurement's caption, a symbol's label, a door's or
+    /// window's mark, a space's name) at `size` points; `None` back to its usual size.
+    SetTextSize {
+        page: usize,
+        index: usize,
+        size: Option<f64>,
+    },
     /// RevuCraft: make a polygon or rectangle a space with this name, or rename it.
     SetSpace {
         page: usize,
@@ -2558,6 +2573,7 @@ pub const EDIT_LABELS: &[&str] = &[
     "Punch item",
     "Take off the punch list",
     "Space",
+    "Text size",
     "Join walls",
     "Add window",
     "Add door",
@@ -2775,6 +2791,7 @@ impl Edit {
             Edit::SetPunch { punch: Some(_), .. } => Label::of("Punch item"),
             Edit::SetPunch { punch: None, .. } => Label::of("Take off the punch list"),
             Edit::SetSpace { .. } => Label::of("Space"),
+            Edit::SetTextSize { .. } => Label::of("Text size"),
             Edit::SetVertices { copy: true, .. } => Label::of("Offset"),
             Edit::TransformAnnotation { copy: true, .. } => Label::of("Copy markup"),
             Edit::TransformAnnotation { matrix, .. } if matrix[..4] == [1.0, 0.0, 0.0, 1.0] => Label::of("Move markup"),
@@ -2898,6 +2915,7 @@ fn check_permission(edit: &Edit, p: &pdfcraft_cos::Permissions) -> Result<(), Ed
         | Edit::SetAnnotationField { .. }
         | Edit::SetPunch { .. }
         | Edit::SetSpace { .. }
+        | Edit::SetTextSize { .. }
         | Edit::SetStrokeAlign { .. }
         | Edit::SetGuides { .. }
         | Edit::RenameMeasurement { .. }
@@ -3512,6 +3530,7 @@ fn run_edit(doc: &mut pdfcraft_cos::Document, edit: &Edit, cx: &mut EditCtx) -> 
         Edit::SetAnnotationField { page, index, name, value } => pdfcraft_annot::fields::set_field(doc, *page, *index, name, value, &cx.meta())?,
         Edit::SetPunch { page, index, punch } => pdfcraft_annot::punch::set_punch(doc, *page, *index, punch.as_ref(), &cx.meta())?,
         Edit::SetSpace { page, index, name } => pdfcraft_annot::punch::set_space(doc, *page, *index, name, &cx.meta())?,
+        Edit::SetTextSize { page, index, size } => pdfcraft_annot::text_size::set_text_size(doc, *page, *index, *size, &cx.meta())?,
         Edit::SetCalloutSide { page, index, side } => pdfcraft_annot::photo_callout::set_side(doc, *page, *index, *side, &cx.meta())?,
         Edit::SetCalloutParts { page, index, photo_height, text_width } => {
             pdfcraft_annot::photo_callout::set_parts(doc, *page, *index, *photo_height, *text_width, &cx.meta())?;
