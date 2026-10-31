@@ -3554,3 +3554,7 @@ certificate	Version	الإصدار
 	Turn the symbol to face the nearest wall or line	أدر الرمز ليواجه أقرب جدار أو خط
 	Move the callout's arrow	نقل سهم وسيلة الشرح
 	Drag to point the arrow somewhere else	اسحب لتوجيه السهم إلى مكان آخر
+	Pen: click for corners, drag for curves; Enter ends	القلم: انقر للزوايا واسحب للمنحنيات؛ Enter للإنهاء
+	Direct selection: drag a curve's points and handles	التحديد المباشر: اسحب نقاط المنحنى ومقابضه
+	Draw curve	رسم منحنى
+	Edit curve	تحرير المنحنى

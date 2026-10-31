@@ -3284,3 +3284,7 @@ animation effects	Off	Aus
 	Turn the symbol to face the nearest wall or line	Symbol zur nächsten Wand oder Linie drehen
 	Move the callout's arrow	Pfeil der Legende verschieben
 	Drag to point the arrow somewhere else	Ziehen, um den Pfeil auf eine andere Stelle zu richten
+	Pen: click for corners, drag for curves; Enter ends	Zeichenstift: klicken für Ecken, ziehen für Kurven; Enter beendet
+	Direct selection: drag a curve's points and handles	Direktauswahl: Punkte und Griffe einer Kurve ziehen
+	Draw curve	Kurve zeichnen
+	Edit curve	Kurve bearbeiten

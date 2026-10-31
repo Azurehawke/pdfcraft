@@ -153,12 +153,12 @@ pub use links::{
 pub use pdfcraft_annot::appearance as annot_text;
 pub use pdfcraft_annot::links::{Highlight as LinkHighlight, LinkAction, LinkItem, LinkStyle};
 pub use pdfcraft_annot::pen as annot_pen;
-pub use pdfcraft_annot::punch;
 pub use pdfcraft_annot::{
     AppearanceCache, AttachIcon, FillMark, LineEnding, Markup, NOTE_SIZE, NewAnnotation, NoteIcon, OverlayFont, OverlayLook, PenKind,
     Props as CommentProps, ReviewState, Rgb, Shape, StampGroup, StampKind, Style, rect_quad,
 };
 pub use pdfcraft_annot::{MAX_TEXT_SIZE, MIN_TEXT_SIZE};
+pub use pdfcraft_annot::{bezier, punch};
 pub use pdfcraft_annot::{fields, geometry, layers, photo_callout, stroke_align, svg_art, symbols, walls};
 pub use pdfcraft_create::report;
 pub use pdfcraft_forms::detect;
@@ -331,6 +331,8 @@ fn scope_of(edit: &Edit) -> Scope {
         | Edit::SetTextSize { .. }
         | Edit::MoveWhole { .. }
         | Edit::SetCalloutTip { .. }
+        | Edit::AddPath { .. }
+        | Edit::SetPath { .. }
         | Edit::SetStrokeAlign { .. }
         | Edit::RenameMeasurement { .. }
         | Edit::NameMeasurements
@@ -715,6 +717,11 @@ impl Document {
     /// RevuCraft: the punch items on `page`: (index, item).
     pub fn punch_items(&self, page: usize) -> Vec<(usize, pdfcraft_annot::punch::Punch)> {
         self.editor.as_ref().map(|e| pdfcraft_annot::punch::punch_items(&e.cos, page)).unwrap_or_default()
+    }
+
+    /// RevuCraft: the pen curves on `page`: (index, points, closed).
+    pub fn paths(&self, page: usize) -> Vec<(usize, Vec<pdfcraft_annot::bezier::Node>, bool)> {
+        self.editor.as_ref().map(|e| pdfcraft_annot::bezier::paths(&e.cos, page)).unwrap_or_default()
     }
 
     /// RevuCraft: where a callout's arrow points.
@@ -1870,6 +1877,21 @@ pub enum Edit {
         dx: f64,
         dy: f64,
     },
+    /// RevuCraft: draw a Bézier curve with the pen tool ([`pdfcraft_annot::bezier`]).
+    AddPath {
+        page: usize,
+        nodes: Vec<pdfcraft_annot::bezier::Node>,
+        closed: bool,
+        style: pdfcraft_annot::Style,
+        author: String,
+    },
+    /// RevuCraft: replace a pen curve's points and handles (the Direct selection arrow).
+    SetPath {
+        page: usize,
+        index: usize,
+        nodes: Vec<pdfcraft_annot::bezier::Node>,
+        closed: bool,
+    },
     /// RevuCraft: move a callout with its arrow tip (a plain move leaves the tip where it points).
     MoveWhole {
         page: usize,
@@ -2595,6 +2617,8 @@ pub const EDIT_LABELS: &[&str] = &[
     "Space",
     "Text size",
     "Move the callout's arrow",
+    "Draw curve",
+    "Edit curve",
     "Join walls",
     "Add window",
     "Add door",
@@ -2814,6 +2838,8 @@ impl Edit {
             Edit::SetSpace { .. } => Label::of("Space"),
             Edit::SetTextSize { .. } => Label::of("Text size"),
             Edit::MoveWhole { .. } => Label::of("Move comment"),
+            Edit::AddPath { .. } => Label::of("Draw curve"),
+            Edit::SetPath { .. } => Label::of("Edit curve"),
             Edit::SetCalloutTip { .. } => Label::of("Move the callout's arrow"),
             Edit::SetVertices { copy: true, .. } => Label::of("Offset"),
             Edit::TransformAnnotation { copy: true, .. } => Label::of("Copy markup"),
@@ -2941,6 +2967,8 @@ fn check_permission(edit: &Edit, p: &pdfcraft_cos::Permissions) -> Result<(), Ed
         | Edit::SetTextSize { .. }
         | Edit::MoveWhole { .. }
         | Edit::SetCalloutTip { .. }
+        | Edit::AddPath { .. }
+        | Edit::SetPath { .. }
         | Edit::SetStrokeAlign { .. }
         | Edit::SetGuides { .. }
         | Edit::RenameMeasurement { .. }
@@ -3557,6 +3585,11 @@ fn run_edit(doc: &mut pdfcraft_cos::Document, edit: &Edit, cx: &mut EditCtx) -> 
         Edit::SetSpace { page, index, name } => pdfcraft_annot::punch::set_space(doc, *page, *index, name, &cx.meta())?,
         Edit::SetTextSize { page, index, size } => pdfcraft_annot::text_size::set_text_size(doc, *page, *index, *size, &cx.meta())?,
         Edit::MoveWhole { page, index, dx, dy } => pdfcraft_annot::move_whole(doc, *page, *index, *dx, *dy, &cx.meta())?,
+        Edit::AddPath { page, nodes, closed, style, author } => {
+            let index = pdfcraft_annot::bezier::add_path(doc, *page, nodes, *closed, style, author, &cx.meta())?;
+            cx.place_on_layer(doc, *page, index)?;
+        }
+        Edit::SetPath { page, index, nodes, closed } => pdfcraft_annot::bezier::set_path(doc, *page, *index, nodes, *closed, &cx.meta())?,
         Edit::SetCalloutTip { page, index, tip } => pdfcraft_annot::set_callout_tip(doc, *page, *index, *tip, &cx.meta())?,
         Edit::SetCalloutSide { page, index, side } => pdfcraft_annot::photo_callout::set_side(doc, *page, *index, *side, &cx.meta())?,
         Edit::SetCalloutParts { page, index, photo_height, text_width } => {

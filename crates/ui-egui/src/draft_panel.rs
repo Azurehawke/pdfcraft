@@ -120,7 +120,16 @@ pub const MARKUP_GROUPS: [(&str, &str, &[Entry]); 10] = [
         "Markup",
         &[run("comment.highlight"), run("comment.underline"), run("comment.strikeout"), run("comment.caret"), run("comment.replace")],
     ),
-    ("Draw", "Markup", &[run("comment.ink"), run("comment.eraser")]),
+    (
+        "Draw",
+        "Markup",
+        &[
+            run("comment.ink"),
+            run("comment.eraser"),
+            Entry::Quick { tool: QuickTool::Bezier, icon: "pen-tool", label: "Pen: click for corners, drag for curves; Enter ends" },
+            Entry::Quick { tool: QuickTool::DirectSelect, icon: "mouse-pointer-2", label: "Direct selection: drag a curve's points and handles" },
+        ],
+    ),
     (
         "Shapes",
         "Markup",

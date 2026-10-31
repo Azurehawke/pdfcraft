@@ -3282,3 +3282,7 @@ animation effects	Off	Ki
 	Turn the symbol to face the nearest wall or line	A szimbólum elforgatása a legközelebbi fal vagy vonal felé
 	Move the callout's arrow	A szövegbuborék nyilának áthelyezése
 	Drag to point the arrow somewhere else	Húzza, hogy a nyíl máshová mutasson
+	Pen: click for corners, drag for curves; Enter ends	Toll: kattintás a sarkokhoz, húzás a görbékhez; az Enter befejezi
+	Direct selection: drag a curve's points and handles	Közvetlen kijelölés: a görbe pontjainak és fogantyúinak húzása
+	Draw curve	Görbe rajzolása
+	Edit curve	Görbe szerkesztése

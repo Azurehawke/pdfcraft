@@ -98,6 +98,7 @@ mod draft_snap;
 mod edit_text_ui;
 pub mod field_table_ui;
 pub use edit_text_ui::CropMode;
+mod bezier_ui;
 mod callout_handles;
 #[cfg(not(target_arch = "wasm32"))]
 mod camera_desktop;
@@ -316,6 +317,10 @@ pub enum QuickTool {
     PhotoPin,
     /// RevuCraft: tap to place a Markdown note (kept in the job's folder).
     MdNote,
+    /// RevuCraft: the pen: Bézier curves (`bezier_ui`).
+    Bezier,
+    /// RevuCraft: the Direct selection arrow: a pen curve's points and handles.
+    DirectSelect,
     /// RevuCraft: a photo callout: tap the spot, then where the box goes.
     PhotoCallout,
     /// RevuCraft: Format copy: click a markup or line to take its look ([`format_copy`]).
@@ -346,6 +351,8 @@ impl QuickTool {
             QuickTool::Symbol => "symbol".to_string(),
             QuickTool::PhotoPin => "photo-pin".to_string(),
             QuickTool::MdNote => "md-note".to_string(),
+            QuickTool::Bezier => "bezier-pen".to_string(),
+            QuickTool::DirectSelect => "direct-select".to_string(),
             QuickTool::PhotoCallout => "photo-callout".to_string(),
             QuickTool::FormatCopy => "format-copy".to_string(),
             QuickTool::Draft(t) => format!("draft-{}", t.name()),
@@ -2713,6 +2720,8 @@ impl PdfCraftApp {
             "symbol" => QuickTool::Symbol,
             "photo-pin" => QuickTool::PhotoPin,
             "md-note" => QuickTool::MdNote,
+            "bezier-pen" => QuickTool::Bezier,
+            "direct-select" => QuickTool::DirectSelect,
             "photo-callout" => QuickTool::PhotoCallout,
             "format-copy" => QuickTool::FormatCopy,
             d if d.starts_with("draft-") => QuickTool::Draft(draft::DraftTool::from_name(&d[6..]).ok_or_else(|| format!("unknown draft tool {d}"))?),

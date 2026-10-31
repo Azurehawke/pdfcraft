@@ -567,6 +567,8 @@ pub struct DocView {
     pub cursor: Option<(usize, [f64; 2])>,
     /// Drafting state (the Draft tab).
     pub draft: crate::draft::DraftView,
+    /// RevuCraft: the pen's curve being drawn, and the Direct selection arrow's drag.
+    pub bezier: crate::bezier_ui::BezierState,
     /// Form filling state: the focused field.
     pub forms: crate::forms_ui::FormView,
     /// Prepare a form: the selected field and the gesture in progress.
@@ -902,6 +904,7 @@ impl DocView {
             label_after: None,
             cursor: None,
             draft: Default::default(),
+            bezier: Default::default(),
             forms: Default::default(),
             prepare: Default::default(),
             calc_order: Default::default(),
@@ -3442,6 +3445,8 @@ fn document_area_pages(app: &mut PdfCraftApp, index: usize, ui: &mut egui::Ui) {
         | QuickTool::Symbol
         | QuickTool::PhotoPin
         | QuickTool::MdNote
+        | QuickTool::Bezier
+        | QuickTool::DirectSelect
         | QuickTool::PhotoCallout
         | QuickTool::FormatCopy
         | QuickTool::Draft(_) => false,
@@ -3794,6 +3799,9 @@ fn document_area_pages(app: &mut PdfCraftApp, index: usize, ui: &mut egui::Ui) {
             }
             if let QuickTool::Draft(draft_tool) = tool {
                 crate::draft::page_input(ui, &resp, doc, view, &pcx, draft_tool, &draft_settings);
+            }
+            if matches!(tool, QuickTool::Bezier | QuickTool::DirectSelect) {
+                crate::bezier_ui::page_input(ui, &resp, doc, view, &pcx);
             }
 
             // Form fields take clicks first with the Select tool (as Acrobat fills fields in

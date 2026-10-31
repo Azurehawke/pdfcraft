@@ -642,6 +642,12 @@ pub fn build(d: &Dict) -> Option<Stream> {
                 n(y0)
             ));
         }
+        // RevuCraft: a curve drawn with the pen tool, as real curves.
+        b"Ink" if d.contains(crate::bezier::PATH) => {
+            let col = stroke?;
+            let path = crate::bezier::content(d)?;
+            c.push_str(&format!("{}{} w 1 J 1 j\n{}{path}S\n", rg_stroke(col), n(w), dash(d)));
+        }
         b"Ink" if pen.is_some() => {
             let col = stroke?;
             let pen = pen?;

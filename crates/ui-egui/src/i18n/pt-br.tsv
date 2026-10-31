@@ -3560,3 +3560,7 @@ theme	Appearance	Aparência
 	Turn the symbol to face the nearest wall or line	Girar o símbolo para a parede ou linha mais próxima
 	Move the callout's arrow	Mover a seta do texto explicativo
 	Drag to point the arrow somewhere else	Arraste para apontar a seta para outro lugar
+	Pen: click for corners, drag for curves; Enter ends	Caneta: clique para cantos, arraste para curvas; Enter termina
+	Direct selection: drag a curve's points and handles	Seleção direta: arraste os pontos e alças de uma curva
+	Draw curve	Desenhar curva
+	Edit curve	Editar curva

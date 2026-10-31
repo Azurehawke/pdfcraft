@@ -3200,3 +3200,7 @@ animation effects	Off	Выкл
 	Turn the symbol to face the nearest wall or line	Повернуть символ к ближайшей стене или линии
 	Move the callout's arrow	Переместить стрелку выноски
 	Drag to point the arrow somewhere else	Перетащите, чтобы направить стрелку в другое место
+	Pen: click for corners, drag for curves; Enter ends	Перо: щелчок — угол, перетаскивание — кривая; Enter завершает
+	Direct selection: drag a curve's points and handles	Прямое выделение: перетаскивайте точки и маркеры кривой
+	Draw curve	Рисование кривой
+	Edit curve	Изменение кривой

@@ -3247,3 +3247,7 @@ animation effects	Off	Изключени
 	Turn the symbol to face the nearest wall or line	Завъртане на символа към най-близката стена или линия
 	Move the callout's arrow	Преместване на стрелката на изнесения текст
 	Drag to point the arrow somewhere else	Плъзнете, за да насочите стрелката другаде
+	Pen: click for corners, drag for curves; Enter ends	Перо: щракнете за ъгли, плъзнете за криви; Enter завършва
+	Direct selection: drag a curve's points and handles	Директна селекция: плъзгайте точките и дръжките на кривата
+	Draw curve	Чертане на крива
+	Edit curve	Редактиране на крива

@@ -3306,3 +3306,7 @@ animation effects	Off	Вимкнено
 	Turn the symbol to face the nearest wall or line	Повернути символ до найближчої стіни або лінії
 	Move the callout's arrow	Перемістити стрілку виноски
 	Drag to point the arrow somewhere else	Перетягніть, щоб спрямувати стрілку в інше місце
+	Pen: click for corners, drag for curves; Enter ends	Перо: клацання — кут, перетягування — крива; Enter завершує
+	Direct selection: drag a curve's points and handles	Пряме виділення: перетягуйте точки й маркери кривої
+	Draw curve	Малювання кривої
+	Edit curve	Редагування кривої

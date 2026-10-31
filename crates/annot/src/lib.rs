@@ -19,6 +19,7 @@ use pdfcraft_cos::{Dict, Document, ObjRef, Object, PdfString, Stream};
 pub mod appearance;
 pub mod pen;
 pub use pen::PenKind;
+pub mod bezier;
 pub mod fields;
 pub mod geometry;
 pub mod layers;
@@ -2024,7 +2025,15 @@ fn move_annotation_with(doc: &mut Document, page: usize, index: usize, dx: f64, 
     };
     let popup = annot_dict(doc, r).reference(b"Popup");
     doc.update_dict(r, |d| {
-        for (k, every) in [(&b"Rect"[..], false), (b"QuadPoints", true), (b"L", false), (b"CL", true), (b"Vertices", true), (b"PCDimPoints", true)] {
+        for (k, every) in [
+            (&b"Rect"[..], false),
+            (b"QuadPoints", true),
+            (b"L", false),
+            (b"CL", true),
+            (b"Vertices", true),
+            (b"PCDimPoints", true),
+            (bezier::PATH, true),
+        ] {
             if let Some(v) = d.get(k).and_then(|o| shift(o, every)) {
                 d.set(k.to_vec(), v);
             }
@@ -2173,8 +2182,20 @@ fn resize_ink(doc: &mut Document, r: ObjRef, rect: [f64; 4], meta: &Meta) -> Res
         })
         .collect();
     let before = annot_dict(doc, r);
+    // RevuCraft: a pen curve's points and handles scale with its flattening.
+    let path: Option<Vec<f64>> = d.get(bezier::PATH).and_then(|o| o.as_array()).map(|a| {
+        let v: Vec<f64> = a.iter().filter_map(Object::as_f64).collect();
+        v.as_chunks::<2>()
+            .0
+            .iter()
+            .flat_map(|p| [axis(p[0], inner[0], inner[2], target[0], target[2]), axis(p[1], inner[1], inner[3], target[1], target[3])])
+            .collect()
+    });
     doc.update_dict(r, |d| {
         d.set(b"InkList".to_vec(), Object::Array(scaled.iter().map(|s| num_array(&s.concat())).collect()));
+        if let Some(path) = &path {
+            d.set(bezier::PATH.to_vec(), num_array(path));
+        }
         d.set(b"Rect".to_vec(), num_array(&rect));
         touch(d, meta);
     })?;

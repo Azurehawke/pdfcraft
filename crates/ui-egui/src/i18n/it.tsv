@@ -3515,3 +3515,7 @@ certificate	SHA-256 digest	Impronta SHA-256
 	Turn the symbol to face the nearest wall or line	Ruota il simbolo verso il muro o la linea più vicina
 	Move the callout's arrow	Sposta la freccia del richiamo
 	Drag to point the arrow somewhere else	Trascina per puntare la freccia altrove
+	Pen: click for corners, drag for curves; Enter ends	Penna: clic per gli angoli, trascina per le curve; Invio termina
+	Direct selection: drag a curve's points and handles	Selezione diretta: trascina punti e maniglie di una curva
+	Draw curve	Disegna curva
+	Edit curve	Modifica curva

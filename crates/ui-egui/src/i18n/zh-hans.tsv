@@ -3249,3 +3249,7 @@ animation effects	Off	关
 	Turn the symbol to face the nearest wall or line	将符号转向最近的墙或线
 	Move the callout's arrow	移动标注的箭头
 	Drag to point the arrow somewhere else	拖动以将箭头指向别处
+	Pen: click for corners, drag for curves; Enter ends	钢笔：单击得到角点，拖动得到曲线；按 Enter 结束
+	Direct selection: drag a curve's points and handles	直接选择：拖动曲线的点和手柄
+	Draw curve	绘制曲线
+	Edit curve	编辑曲线

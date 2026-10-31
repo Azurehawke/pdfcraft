@@ -402,7 +402,7 @@ Markup and measuring
       the whole callout (both selected, or a modifier) still moves everything.
       Done: a callout's box moves alone (its arrow stays put); Shift-drag, or moving it with other
       markups, moves it all; the round handle on the tip points it somewhere else.
-- [ ] **(Steve, queued 2026-10-31)** Bézier lines, as VectorCraft's pen (Illustrator's Pen tool):
+- [x] **(Steve, build 219)** Bézier lines, as VectorCraft's pen (Illustrator's Pen tool):
       click for a corner point; press on the next point and, still holding, move the mouse (or
       pen): the curve into that point bends live as the handles pull out (both sides at once,
       mirrored), and letting go fixes it; Enter, Escape or a
@@ -412,6 +412,10 @@ Markup and measuring
       white arrow): select single anchors and handles, drag them, add or delete an anchor on the
       path, and turn a point between corner and smooth. The Select arrow keeps moving whole
       markups.
+      Done (Markup tools ▸ Draw: the pen and the white arrow): curves are Ink markups with
+      `/PCPath`; double-click the curve to add a point, Delete removes the picked one, Alt-click a
+      point turns it corner or smooth, Alt-drag a handle breaks the pair. Not yet: measuring along
+      a curve.
 - [ ] **(Steve, queued 2026-10-30)** Conditions, and the punch list on its own layer. Symbols
       and punch items stay separate (a symbol is a thing on the plan; a punch item is work to do
       about any markup), linked as below.

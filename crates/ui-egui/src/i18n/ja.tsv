@@ -3286,3 +3286,7 @@ animation effects	Off	オフ
 	Turn the symbol to face the nearest wall or line	記号を最も近い壁や線のほうへ向けます
 	Move the callout's arrow	引き出し線の矢印を移動
 	Drag to point the arrow somewhere else	ドラッグして矢印の向き先を変えます
+	Pen: click for corners, drag for curves; Enter ends	ペン: クリックで角、ドラッグで曲線。Enter で終了
+	Direct selection: drag a curve's points and handles	ダイレクト選択: 曲線の点とハンドルをドラッグ
+	Draw curve	曲線を描画
+	Edit curve	曲線を編集
