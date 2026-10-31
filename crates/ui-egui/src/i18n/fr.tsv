@@ -3549,3 +3549,8 @@ certificate	Version	Version
 	Direct selection: drag a curve's points and handles	Sélection directe : faites glisser les points et poignées d'une courbe
 	Draw curve	Tracer une courbe
 	Edit curve	Modifier la courbe
+	Condition	État
+	Existing	Existant
+	Proposed	Proposé
+	Installed	Installé
+	Hide closed items' badges on the sheet	Masquer sur la feuille les pastilles des éléments clos

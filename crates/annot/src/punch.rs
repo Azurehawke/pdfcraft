@@ -20,6 +20,10 @@ use crate::{AnnotError, Meta, annot_ref, annots, n, page_ref, set_appearance};
 
 pub const PUNCH: &[u8] = b"PCPunch";
 pub const SPACE: &[u8] = b"PCSpace";
+/// A markup's condition (`/PCCondition`): Existing, Proposed, Installed, Remove, or your own word.
+pub const CONDITION: &[u8] = b"PCCondition";
+/// The conditions RevuCraft draws a look for.
+pub const CONDITIONS: [&str; 4] = ["Existing", "Proposed", "Installed", "Remove"];
 
 /// The longest assignee, due date and space name kept (characters).
 const MAX_TEXT: usize = 120;
@@ -82,6 +86,8 @@ pub struct Punch {
     /// A date as typed (`2026-11-02`), or empty.
     pub due: String,
     pub status: PunchStatus,
+    /// The badge isn't drawn (a closed item, with Hide closed items' badges on).
+    pub badge_hidden: bool,
 }
 
 fn clean(s: &str) -> String {
@@ -102,7 +108,65 @@ pub fn punch_of(d: &Dict) -> Option<Punch> {
         assignee: text(p, b"Assignee"),
         due: text(p, b"Due"),
         status: PunchStatus::from_name(p.name(b"Status").unwrap_or_default()),
+        badge_hidden: matches!(p.get(b"NoBadge"), Some(Object::Bool(true))),
     })
+}
+
+/// A markup's condition, when it has one.
+pub fn condition_of(d: &Dict) -> Option<String> {
+    Some(text(d, CONDITION)).filter(|c| !c.is_empty())
+}
+
+/// Give the markup at `(page, index)` a condition (`None`: none). Installed closes its punch
+/// item, if it has one. The markup is drawn again in the condition's look.
+pub fn set_condition(doc: &mut Document, page: usize, index: usize, condition: Option<&str>, meta: &Meta) -> Result<(), AnnotError> {
+    let (_, r) = annot_ref(doc, page, index)?;
+    crate::unlocked(doc, r)?;
+    let condition = condition.map(clean).filter(|c| !c.is_empty()).map(|c| c.chars().take(40).collect::<String>());
+    let before = crate::annot_dict(doc, r);
+    let mut punch = punch_of(&before);
+    if condition.as_deref() == Some("Installed")
+        && let Some(p) = punch.as_mut()
+    {
+        p.status = PunchStatus::Closed;
+    }
+    doc.update_dict(r, |d| {
+        match &condition {
+            Some(c) => d.set(CONDITION.to_vec(), PdfString::text(c)),
+            None => {
+                d.remove(CONDITION);
+            }
+        }
+        if let Some(p) = &punch {
+            d.set(PUNCH.to_vec(), Object::Dict(punch_dict(p)));
+        }
+        crate::touch(d, meta);
+    })?;
+    // The condition is kept either way; only its look depends on redrawing.
+    let _ = set_appearance(doc, r);
+    Ok(())
+}
+
+/// The conditions of the markups on `page`: (index, condition).
+pub fn conditions(doc: &Document, page: usize) -> Vec<(usize, String)> {
+    each(doc, page, condition_of)
+}
+
+fn punch_dict(p: &Punch) -> Dict {
+    let mut v = Dict::new();
+    v.set(b"No".to_vec(), Object::Int(i64::from(p.no)));
+    let (assignee, due) = (clean(&p.assignee), clean(&p.due));
+    if !assignee.is_empty() {
+        v.set(b"Assignee".to_vec(), PdfString::text(&assignee));
+    }
+    if !due.is_empty() {
+        v.set(b"Due".to_vec(), PdfString::text(&due));
+    }
+    v.set(b"Status".to_vec(), Object::name(p.status.name()));
+    if p.badge_hidden {
+        v.set(b"NoBadge".to_vec(), Object::Bool(true));
+    }
+    v
 }
 
 /// Put the markup at `(page, index)` on the punch list with `punch`'s details, or take it off
@@ -118,19 +182,7 @@ pub fn set_punch(doc: &mut Document, page: usize, index: usize, punch: Option<&P
     }
     doc.update_dict(r, |d| {
         match punch {
-            Some(p) => {
-                let mut v = Dict::new();
-                v.set(b"No".to_vec(), Object::Int(i64::from(p.no)));
-                let (assignee, due) = (clean(&p.assignee), clean(&p.due));
-                if !assignee.is_empty() {
-                    v.set(b"Assignee".to_vec(), PdfString::text(&assignee));
-                }
-                if !due.is_empty() {
-                    v.set(b"Due".to_vec(), PdfString::text(&due));
-                }
-                v.set(b"Status".to_vec(), Object::name(p.status.name()));
-                d.set(PUNCH.to_vec(), Object::Dict(v));
-            }
+            Some(p) => d.set(PUNCH.to_vec(), Object::Dict(punch_dict(p))),
             None => {
                 d.remove(PUNCH);
             }
@@ -141,6 +193,9 @@ pub fn set_punch(doc: &mut Document, page: usize, index: usize, punch: Option<&P
     let _ = set_appearance(doc, r);
     Ok(())
 }
+
+/// The name of the layer issue markups go on when they join the punch list.
+pub const PUNCH_LAYER: &str = "Punch";
 
 /// The punch items on `page`: (index, item).
 pub fn punch_items(doc: &Document, page: usize) -> Vec<(usize, Punch)> {
@@ -247,9 +302,10 @@ pub fn space_at<T: Copy>(spaces: &[(T, Vec<[f64; 2]>)], p: [f64; 2]) -> Option<T
 /// The appearance with a punch item's badge or a space's name drawn over it (the original is
 /// returned when there is neither, or its content can't be read).
 pub(crate) fn decorate(d: &Dict, stream: Stream) -> Stream {
-    let badge = punch_of(d).map(|p| p.no);
+    let badge = punch_of(d).filter(|p| !p.badge_hidden).map(|p| p.no);
+    let condition = condition_of(d).filter(|c| CONDITIONS.contains(&c.as_str()) && c != "Installed");
     let space = is_space(d).then(|| text(d, b"Contents")).filter(|s| !s.is_empty());
-    if badge.is_none() && space.is_none() {
+    if badge.is_none() && space.is_none() && condition.is_none() {
         return stream;
     }
     let Some(bbox) = stream.dict.get(b"BBox").and_then(Object::as_array).and_then(|a| {
@@ -262,9 +318,46 @@ pub(crate) fn decorate(d: &Dict, stream: Stream) -> Stream {
         return stream;
     };
     let Ok(content) = stream.decoded() else { return stream };
+    // Existing and Proposed are drawn faded (Proposed with a dashed box round it); Remove is
+    // crossed out in red.
+    let fade = match condition.as_deref() {
+        Some("Existing") => Some(0.4),
+        Some("Proposed") => Some(0.6),
+        _ => None,
+    };
     let mut out = b"q\n".to_vec();
+    if fade.is_some() {
+        out.extend_from_slice(b"/PCCond gs\n");
+    }
     out.extend_from_slice(&content);
     out.extend_from_slice(b"\nQ\n");
+    match condition.as_deref() {
+        Some("Proposed") => out.extend(
+            format!(
+                "q 0.2 0.4 0.8 RG 0.75 w [3 2] 0 d {} {} {} {} re S Q\n",
+                n(bbox[0] + 0.5),
+                n(bbox[1] + 0.5),
+                n((bbox[2] - bbox[0] - 1.0).max(0.0)),
+                n((bbox[3] - bbox[1] - 1.0).max(0.0))
+            )
+            .bytes(),
+        ),
+        Some("Remove") => out.extend(
+            format!(
+                "q 0.85 0.1 0.1 RG 1.2 w 1 J {} {} m {} {} l {} {} m {} {} l S Q\n",
+                n(bbox[0]),
+                n(bbox[1]),
+                n(bbox[2]),
+                n(bbox[3]),
+                n(bbox[0]),
+                n(bbox[3]),
+                n(bbox[2]),
+                n(bbox[1])
+            )
+            .bytes(),
+        ),
+        _ => {}
+    }
     if let Some(name) = space {
         out.extend(space_label(&name, bbox, crate::text_size(d).unwrap_or(LABEL)));
     }
@@ -286,6 +379,15 @@ pub(crate) fn decorate(d: &Dict, stream: Stream) -> Stream {
         fonts.set(key.to_vec(), Object::Dict(font));
     }
     res.set(b"Font".to_vec(), Object::Dict(fonts));
+    if let Some(a) = fade {
+        let mut gs = res.get(b"ExtGState").and_then(Object::as_dict).cloned().unwrap_or_default();
+        let mut g = Dict::new();
+        g.set(b"Type".to_vec(), Object::name("ExtGState"));
+        g.set(b"CA".to_vec(), Object::Real(a));
+        g.set(b"ca".to_vec(), Object::Real(a));
+        gs.set(b"PCCond".to_vec(), Object::Dict(g));
+        res.set(b"ExtGState".to_vec(), Object::Dict(gs));
+    }
     dict.set(b"Resources".to_vec(), Object::Dict(res));
     Stream::flate(dict, &out)
 }
@@ -365,7 +467,10 @@ mod tests {
         p.set(b"Assignee".to_vec(), PdfString::text("Electrician"));
         p.set(b"Status".to_vec(), Object::name("Ready"));
         d.set(PUNCH.to_vec(), Object::Dict(p.clone()));
-        assert_eq!(punch_of(&d), Some(Punch { no: 3, assignee: "Electrician".into(), due: String::new(), status: PunchStatus::Ready }));
+        assert_eq!(
+            punch_of(&d),
+            Some(Punch { no: 3, assignee: "Electrician".into(), due: String::new(), status: PunchStatus::Ready, badge_hidden: false })
+        );
         p.set(b"No".to_vec(), Object::Int(0));
         d.set(PUNCH.to_vec(), Object::Dict(p.clone()));
         assert_eq!(punch_of(&d), None);
@@ -373,6 +478,25 @@ mod tests {
         d.set(PUNCH.to_vec(), Object::Dict(p));
         assert_eq!(punch_of(&d), None);
         assert_eq!(PunchStatus::from_name(b"Nonsense"), PunchStatus::Open);
+    }
+
+    #[test]
+    fn conditions_change_the_look_and_hidden_badges_are_not_drawn() {
+        let mut sd = Dict::new();
+        sd.set(b"BBox".to_vec(), Object::Array([0.0, 0.0, 40.0, 40.0].iter().map(|v| Object::Real(*v)).collect()));
+        let look = |d: &Dict| String::from_utf8(decorate(d, Stream::flate(sd.clone(), b"0 0 m 40 40 l S")).decoded().unwrap()).unwrap();
+        let mut d = Dict::new();
+        d.set(CONDITION.to_vec(), PdfString::text("Existing"));
+        assert!(look(&d).contains("/PCCond gs"), "{}", look(&d));
+        d.set(CONDITION.to_vec(), PdfString::text("Remove"));
+        assert!(look(&d).contains("0.85 0.1 0.1 RG"), "crossed out in red");
+        d.set(CONDITION.to_vec(), PdfString::text("Installed"));
+        assert_eq!(look(&d), "0 0 m 40 40 l S", "installed is drawn as it is");
+        let mut p = Dict::new();
+        p.set(b"No".to_vec(), Object::Int(4));
+        p.set(b"NoBadge".to_vec(), Object::Bool(true));
+        d.set(PUNCH.to_vec(), Object::Dict(p));
+        assert!(!look(&d).contains("(4) Tj"), "a hidden badge isn't drawn");
     }
 
     #[test]

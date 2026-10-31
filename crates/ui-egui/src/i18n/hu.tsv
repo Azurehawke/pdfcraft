@@ -3286,3 +3286,8 @@ animation effects	Off	Ki
 	Direct selection: drag a curve's points and handles	Közvetlen kijelölés: a görbe pontjainak és fogantyúinak húzása
 	Draw curve	Görbe rajzolása
 	Edit curve	Görbe szerkesztése
+	Condition	Állapot
+	Existing	Meglévő
+	Proposed	Tervezett
+	Installed	Telepítve
+	Hide closed items' badges on the sheet	A lezárt tételek jelvényeinek elrejtése a lapon

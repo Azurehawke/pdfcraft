@@ -3310,3 +3310,8 @@ animation effects	Off	Вимкнено
 	Direct selection: drag a curve's points and handles	Пряме виділення: перетягуйте точки й маркери кривої
 	Draw curve	Малювання кривої
 	Edit curve	Редагування кривої
+	Condition	Стан
+	Existing	Наявний
+	Proposed	Запланований
+	Installed	Встановлено
+	Hide closed items' badges on the sheet	Приховати значки закритих пунктів на аркуші

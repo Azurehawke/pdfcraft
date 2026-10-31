@@ -127,6 +127,7 @@ Column {n}
 Columns
 Columns in the array
 Comment
+Condition
 Conduit stub-up
 Copied a hairline: drafting lines are hairlines now; markups take its colour and keep their width
 Copied its colour: new markups and drafted lines take it
@@ -211,6 +212,7 @@ Equipment rack
 Erase (click the markup to delete)
 Every page (otherwise this page)
 Exchange
+Existing
 Exit sign
 Expand panel
 Explode (a polyline or shape into separate lines)
@@ -266,6 +268,7 @@ Heading 3
 Heat detector
 Heavy (2 pt)
 Hide closed items
+Hide closed items' badges on the sheet
 Hide rulers
 Hide sublayers
 Hinge the door at the other end of the opening
@@ -284,6 +287,7 @@ Insert sheet
 Insert sheet…
 Inside
 Inside face
+Installed
 Interior wall (4 1/2 in)
 Internal storage
 Item
@@ -491,6 +495,7 @@ Print area or used range
 Printable area
 Progress
 Properties
+Proposed
 Pulled
 Punch
 Punch item
@@ -521,6 +526,7 @@ Relink…
 Reload from disk
 Reload “{name}” from its file? The changes you haven't saved are dropped.
 Reloaded {name}.
+Remove
 Remove drawing
 Remove from my symbols
 Remove from the sheet

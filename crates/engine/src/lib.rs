@@ -333,6 +333,7 @@ fn scope_of(edit: &Edit) -> Scope {
         | Edit::SetCalloutTip { .. }
         | Edit::AddPath { .. }
         | Edit::SetPath { .. }
+        | Edit::SetCondition { .. }
         | Edit::SetStrokeAlign { .. }
         | Edit::RenameMeasurement { .. }
         | Edit::NameMeasurements
@@ -717,6 +718,11 @@ impl Document {
     /// RevuCraft: the punch items on `page`: (index, item).
     pub fn punch_items(&self, page: usize) -> Vec<(usize, pdfcraft_annot::punch::Punch)> {
         self.editor.as_ref().map(|e| pdfcraft_annot::punch::punch_items(&e.cos, page)).unwrap_or_default()
+    }
+
+    /// RevuCraft: the conditions of the markups on `page`: (index, condition).
+    pub fn conditions(&self, page: usize) -> Vec<(usize, String)> {
+        self.editor.as_ref().map(|e| pdfcraft_annot::punch::conditions(&e.cos, page)).unwrap_or_default()
     }
 
     /// RevuCraft: the pen curves on `page`: (index, points, closed).
@@ -1877,6 +1883,13 @@ pub enum Edit {
         dx: f64,
         dy: f64,
     },
+    /// RevuCraft: give a markup a condition (Existing, Proposed, Installed, Remove, or your own
+    /// word; `None` for none). Installed closes its punch item.
+    SetCondition {
+        page: usize,
+        index: usize,
+        condition: Option<String>,
+    },
     /// RevuCraft: draw a Bézier curve with the pen tool ([`pdfcraft_annot::bezier`]).
     AddPath {
         page: usize,
@@ -2618,6 +2631,7 @@ pub const EDIT_LABELS: &[&str] = &[
     "Text size",
     "Move the callout's arrow",
     "Draw curve",
+    "Condition",
     "Edit curve",
     "Join walls",
     "Add window",
@@ -2839,6 +2853,7 @@ impl Edit {
             Edit::SetTextSize { .. } => Label::of("Text size"),
             Edit::MoveWhole { .. } => Label::of("Move comment"),
             Edit::AddPath { .. } => Label::of("Draw curve"),
+            Edit::SetCondition { .. } => Label::of("Condition"),
             Edit::SetPath { .. } => Label::of("Edit curve"),
             Edit::SetCalloutTip { .. } => Label::of("Move the callout's arrow"),
             Edit::SetVertices { copy: true, .. } => Label::of("Offset"),
@@ -2969,6 +2984,7 @@ fn check_permission(edit: &Edit, p: &pdfcraft_cos::Permissions) -> Result<(), Ed
         | Edit::SetCalloutTip { .. }
         | Edit::AddPath { .. }
         | Edit::SetPath { .. }
+        | Edit::SetCondition { .. }
         | Edit::SetStrokeAlign { .. }
         | Edit::SetGuides { .. }
         | Edit::RenameMeasurement { .. }
@@ -3590,6 +3606,9 @@ fn run_edit(doc: &mut pdfcraft_cos::Document, edit: &Edit, cx: &mut EditCtx) -> 
             cx.place_on_layer(doc, *page, index)?;
         }
         Edit::SetPath { page, index, nodes, closed } => pdfcraft_annot::bezier::set_path(doc, *page, *index, nodes, *closed, &cx.meta())?,
+        Edit::SetCondition { page, index, condition } => {
+            pdfcraft_annot::punch::set_condition(doc, *page, *index, condition.as_deref(), &cx.meta())?;
+        }
         Edit::SetCalloutTip { page, index, tip } => pdfcraft_annot::set_callout_tip(doc, *page, *index, *tip, &cx.meta())?,
         Edit::SetCalloutSide { page, index, side } => pdfcraft_annot::photo_callout::set_side(doc, *page, *index, *side, &cx.meta())?,
         Edit::SetCalloutParts { page, index, photo_height, text_width } => {

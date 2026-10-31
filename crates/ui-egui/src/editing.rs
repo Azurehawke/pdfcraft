@@ -1064,7 +1064,9 @@ fn comment_page(edit: &Edit) -> Option<usize> {
         | Edit::SetCalloutTip { page, .. }
         | Edit::SetTextSize { page, .. }
         | Edit::SetPunch { page, .. }
-        | Edit::SetSpace { page, .. } => Some(*page),
+        | Edit::SetSpace { page, .. }
+        | Edit::SetCondition { page, .. }
+        | Edit::SetPath { page, .. } => Some(*page),
         // Several markups changed together (moved, deleted, pasted) on one page.
         Edit::Batch { edits, .. } => {
             let pages: Vec<Option<usize>> = edits.iter().map(comment_page).collect();

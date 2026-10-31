@@ -6708,13 +6708,18 @@ fn punch_items_and_spaces_are_kept_on_their_markups() {
     let room = add(&mut session, [100.0, 100.0, 300.0, 300.0]);
     let issue = add(&mut session, [150.0, 150.0, 180.0, 180.0]);
     session.apply(id, Edit::SetSpace { page: 0, index: room, name: "Kitchen".into() }).unwrap();
-    let punch = Punch { no: 1, assignee: "Plumber".into(), due: "2026-11-02".into(), status: PunchStatus::InProgress };
+    let punch = Punch { no: 1, assignee: "Plumber".into(), due: "2026-11-02".into(), status: PunchStatus::InProgress, badge_hidden: false };
     session.apply(id, Edit::SetPunch { page: 0, index: issue, punch: Some(punch.clone()) }).unwrap();
     let doc = session.get(id).unwrap();
     assert_eq!(doc.spaces(0), vec![room]);
     assert_eq!(doc.punch_items(0), vec![(issue, punch)]);
     let a = doc.info.annotations.iter().find(|a| a.index == room).unwrap();
     assert_eq!(a.contents.as_deref(), Some("Kitchen"));
+    // Installed closes its punch item, and the condition is kept.
+    session.apply(id, Edit::SetCondition { page: 0, index: issue, condition: Some("Installed".into()) }).unwrap();
+    let doc = session.get(id).unwrap();
+    assert_eq!(doc.punch_items(0)[0].1.status, PunchStatus::Closed);
+    assert_eq!(doc.conditions(0), vec![(issue, "Installed".to_string())]);
     // Off the list: the markup stays, its item goes; only a polygon or rectangle is a space.
     session.apply(id, Edit::SetPunch { page: 0, index: issue, punch: None }).unwrap();
     assert!(session.get(id).unwrap().punch_items(0).is_empty());

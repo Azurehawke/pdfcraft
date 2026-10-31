@@ -416,24 +416,29 @@ Markup and measuring
       `/PCPath`; double-click the curve to add a point, Delete removes the picked one, Alt-click a
       point turns it corner or smooth, Alt-drag a handle breaks the pair. Not yet: measuring along
       a curve.
-- [ ] **(Steve, queued 2026-10-30)** Conditions, and the punch list on its own layer. Symbols
+- [ ] **(Steve, build 220: most of it)** Conditions, and the punch list on its own layer. Symbols
       and punch items stay separate (a symbol is a thing on the plan; a punch item is work to do
       about any markup), linked as below.
-  - [ ] Conditions on any markup (symbols first, also walls and cable runs), after Revit's
+  - [x] Conditions on any markup (symbols first, also walls and cable runs), after Revit's
         phases: Existing (gray), Proposed (dashed or lighter), Installed (solid, full colour),
         Remove (red, crossed), plus your own. Set in Properties and from the context menu; a
         Condition column in the Markups list; the legend and symbol counts split by condition
         ("24 data ports: 10 existing, 12 installed, 2 proposed"). Covers part of Object styles
         (back burner).
-  - [ ] Linked to the punch list: setting a punch item's markup to Installed closes the item (and,
+  - [x] Linked to the punch list: setting a punch item's markup to Installed closes the item (and,
         later, reaches PlanCraft's dashboard).
   - [ ] Punch badges on a Punch layer: each number badge becomes its own small marker on a Punch
         layer that follows its markup (as doors follow walls), so the markup stays on its own
         layer (a data port on Data) while hiding or not printing the Punch layer hides every
         number.
-  - [ ] Issue markups (a cloud or note added to the punch list that isn't on a layer of its own)
+  - [x] Issue markups (a cloud or note added to the punch list that isn't on a layer of its own)
         go on the Punch layer; symbols, walls and cable runs keep theirs.
-  - [ ] An option to hide closed items' badges, so the sheet shows only what's open.
+  - [x] An option to hide closed items' badges, so the sheet shows only what's open.
+  - Build 220: Condition in Properties (and a Condition column); Existing drawn faded, Proposed
+    lighter with a dashed box, Installed as drawn, Remove crossed out in red (`/PCCondition`; your
+    own words are kept but not yet offered). Not yet: badges as their own markers on the Punch
+    layer (they are still part of their markup, so they hide with its layer), legend counts split
+    by condition (group the Markups list by Condition instead).
 - [ ] **(Steve, next)** Touch, second pass from use on the devices: double tap to zoom, the drag
       threshold, the glide's feel, long press; quick Add photo button and field flow on the phone;
       Properties, caption box and keypad sized for the phone.

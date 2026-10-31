@@ -37,6 +37,7 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
     let layers = app.session.layer_details(id);
     let rotation = doc.symbol_rotation(page, ai);
     let text_size = doc.text_size_of(page, ai);
+    let condition = doc.conditions(page).into_iter().find(|(i, _)| *i == ai).map(|(_, c)| c);
     let callout_side = doc.callout_side(page, ai);
     let callout_parts = doc.callout_parts(page, ai);
     let fields = doc.annotation_fields(page, ai);
@@ -178,6 +179,20 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
                         ui.data_mut(|m| m.remove::<String>(text_id));
                     } else if r.has_focus() {
                         ui.data_mut(|m| m.insert_temp(text_id, text));
+                    }
+                    ui.end_row();
+                    // Its condition: Existing, Proposed, Installed or Remove (each with its look).
+                    ui.label(tl!("Condition"));
+                    let mut chosen = condition.clone();
+                    let shown = chosen.as_deref().map_or_else(|| tl!("None").to_string(), |c| tl!(c).to_string());
+                    egui::ComboBox::from_id_salt(("props-condition", page, ai)).selected_text(shown).show_ui(ui, |ui| {
+                        ui.selectable_value(&mut chosen, None, tl!("None"));
+                        for c in pdfcraft_engine::punch::CONDITIONS {
+                            ui.selectable_value(&mut chosen, Some(c.to_string()), tl!(c));
+                        }
+                    });
+                    if chosen != condition {
+                        extra.push(Edit::SetCondition { page, index: ai, condition: chosen });
                     }
                     ui.end_row();
                     // The size of the markup's own text (a caption, label, mark or name).
@@ -398,6 +413,9 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
         }
         edits.extend(more_edits);
     }
+    if edits.iter().any(|e| matches!(e, Edit::SetCondition { condition: Some(_), .. })) {
+        crate::cable::ensure_column(&mut app.markup_columns, "Condition", &[]);
+    }
     match edits.len() {
         0 => {}
         1 => {
@@ -428,6 +446,7 @@ fn retarget(e: &Edit, index: usize, (restylable, has_width, fillable): (bool, bo
         Edit::FillAnnotation { page, fill, .. } if fillable => Some(Edit::FillAnnotation { page: *page, index, fill: *fill }),
         Edit::LockAnnotation { page, locked, .. } => Some(Edit::LockAnnotation { page: *page, index, locked: *locked }),
         Edit::SetAnnotationLayer { page, layer, .. } => Some(Edit::SetAnnotationLayer { page: *page, index, layer: *layer }),
+        Edit::SetCondition { page, condition, .. } => Some(Edit::SetCondition { page: *page, index, condition: condition.clone() }),
         Edit::SetAnnotationField { page, name, value, .. } => {
             Some(Edit::SetAnnotationField { page: *page, index, name: name.clone(), value: value.clone() })
         }

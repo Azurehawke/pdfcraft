@@ -304,6 +304,7 @@ pub fn rows(doc: &Document) -> Vec<Row> {
     let punch: Vec<(usize, usize, pdfcraft_engine::punch::Punch)> =
         pages.iter().flat_map(|p| doc.punch_items(*p).into_iter().map(move |(i, x)| (*p, i, x))).collect();
     let spaces = crate::punch_ui::spaces(doc);
+    let conditions: Vec<(usize, usize, String)> = pages.iter().flat_map(|p| doc.conditions(*p).into_iter().map(move |(i, c)| (*p, i, c))).collect();
     let mut out = Vec::new();
     for a in info.annotations.iter().filter(|a| a.in_reply_to.is_none() && a.state.is_none() && a.subtype != "Popup") {
         if out.len() >= MAX_ROWS {
@@ -373,6 +374,9 @@ pub fn rows(doc: &Document) -> Vec<Row> {
             && let Some(s) = crate::punch_ui::space_of(&spaces, a.page, a.index, a.rect)
         {
             fields.push((tl!("Space").to_string(), s.name.clone()));
+        }
+        if let Some((_, _, c)) = conditions.iter().find(|(pg, i, _)| *pg == a.page && *i == a.index) {
+            fields.push((tl!("Condition").to_string(), tl!(c.as_str()).to_string()));
         }
         if let Some((_, _, p)) = punch.iter().find(|(pg, i, _)| *pg == a.page && *i == a.index) {
             fields.push((tl!("Punch").to_string(), format!("#{}", p.no)));

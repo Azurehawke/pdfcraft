@@ -3290,3 +3290,8 @@ animation effects	Off	オフ
 	Direct selection: drag a curve's points and handles	ダイレクト選択: 曲線の点とハンドルをドラッグ
 	Draw curve	曲線を描画
 	Edit curve	曲線を編集
+	Condition	状態
+	Existing	既存
+	Proposed	計画
+	Installed	設置済み
+	Hide closed items' badges on the sheet	完了項目のバッジをシートで隠す

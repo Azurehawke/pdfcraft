@@ -21,6 +21,8 @@ pub(crate) struct PunchState {
     /// given to the next item.
     high: HashMap<DocId, u32>,
     hide_closed: bool,
+    /// Closed items' badges are hidden on the sheet.
+    hide_badges: bool,
     /// A field being typed in: (page, index, which field), its text. Saved when it loses focus.
     typing: Option<((usize, usize, u8), String)>,
     /// Drawing a new space: the document and how many rectangles and polygons it had.
@@ -135,6 +137,19 @@ pub(crate) fn add_selected(app: &mut PdfCraftApp) {
         app.notify_tr("Select the markups to add first (ones already on the list are skipped).");
         return;
     }
+    // Issue markups (a cloud, a note, a photo on no layer of their own) go on the Punch layer;
+    // symbols, walls, measurements and drafting keep theirs.
+    let issue = |page: usize, index: usize| {
+        doc.info.annotations.iter().any(|a| {
+            a.page == page
+                && a.index == index
+                && a.layer.is_none()
+                && a.symbol.is_none()
+                && !a.drafting
+                && !a.intent.as_deref().is_some_and(|i| i.ends_with("Dimension"))
+        })
+    };
+    let issues: Vec<(usize, usize)> = chosen.iter().copied().filter(|&(p, i)| issue(p, i)).collect();
     let mut no = next_number(&app.punch, id, doc);
     let mut edits = Vec::new();
     for (page, index) in &chosen {
@@ -142,8 +157,13 @@ pub(crate) fn add_selected(app: &mut PdfCraftApp) {
         app.punch.high.insert(id, no);
         no = no.saturating_add(1).min(pdfcraft_engine::punch::MAX_NUMBER);
     }
-    let n = edits.len();
-    let edit = if n == 1 { edits.remove(0) } else { Edit::Batch { label: "Add to the punch list".into(), edits } };
+    if !issues.is_empty()
+        && let Some(layer) = punch_layer(app, id)
+    {
+        edits.extend(issues.iter().map(|&(page, index)| Edit::SetAnnotationLayer { page, index, layer: Some(layer) }));
+    }
+    let n = chosen.len();
+    let edit = if edits.len() == 1 { edits.remove(0) } else { Edit::Batch { label: "Add to the punch list".into(), edits } };
     if app.apply_edit(edit) {
         crate::cable::ensure_column(&mut app.markup_columns, "Punch", &[]);
         let msg = if n == 1 {
@@ -152,6 +172,41 @@ pub(crate) fn add_selected(app: &mut PdfCraftApp) {
             crate::i18n::fmt(tl!("Added {n} items to the punch list."), &[("n", &n.to_string())])
         };
         app.notify(msg);
+    }
+}
+
+/// The Punch layer's key, made (an edit of its own) when the document has none.
+fn punch_layer(app: &mut PdfCraftApp, id: DocId) -> Option<(u32, u16)> {
+    let find = |app: &PdfCraftApp| {
+        let doc = app.session.get(id)?;
+        let keys = doc.layer_keys();
+        doc.info
+            .layers
+            .iter()
+            .enumerate()
+            .find(|(_, l)| l.name == pdfcraft_engine::punch::PUNCH_LAYER)
+            .map(|(i, l)| keys.get(i).copied().unwrap_or(l.id))
+    };
+    if let Some(k) = find(app) {
+        return Some(k);
+    }
+    if !app.apply_edit(Edit::AddLayer { name: pdfcraft_engine::punch::PUNCH_LAYER.into(), color: [0.82, 0.27, 0.12] }) {
+        return None;
+    }
+    find(app)
+}
+
+/// Every closed item's badge hidden or shown again (Hide closed items' badges).
+fn badges_for_closed(app: &mut PdfCraftApp, hide: bool) {
+    let Some((_, id)) = app.active_ids() else { return };
+    let Some(doc) = app.session.get(id) else { return };
+    let edits: Vec<Edit> = items(doc)
+        .into_iter()
+        .filter(|i| i.punch.status == PunchStatus::Closed && i.punch.badge_hidden != hide)
+        .map(|i| Edit::SetPunch { page: i.page, index: i.index, punch: Some(Punch { badge_hidden: hide, ..i.punch }) })
+        .collect();
+    if !edits.is_empty() {
+        app.apply_edit(Edit::Batch { label: "Punch item".into(), edits });
     }
 }
 
@@ -198,6 +253,7 @@ pub(crate) fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
     let today = chrono::Local::now().date_naive();
     let mut add = false;
     let mut export = false;
+    let mut badges: Option<bool> = None;
     let mut goto = None;
     let mut edits: Vec<Edit> = Vec::new();
     ui.horizontal_wrapped(|ui| {
@@ -205,6 +261,11 @@ pub(crate) fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
         export = ui.add_enabled(!list.is_empty(), egui::Button::new(tl!("Export CSV"))).clicked();
     });
     ui.add(widgets::checkbox(&mut app.punch.hide_closed, tl!("Hide closed items")));
+    let mut hide_badges = app.punch.hide_badges;
+    if ui.add(widgets::checkbox(&mut hide_badges, tl!("Hide closed items' badges on the sheet"))).changed() {
+        app.punch.hide_badges = hide_badges;
+        badges = Some(hide_badges);
+    }
     let open = list.iter().filter(|i| i.punch.status != PunchStatus::Closed).count();
     let late = list.iter().filter(|i| overdue(&i.punch, today)).count();
     ui.label(
@@ -263,13 +324,18 @@ pub(crate) fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
                     }
                 });
                 if status != item.punch.status {
-                    edits.push(Edit::SetPunch { page, index, punch: Some(Punch { status, ..item.punch.clone() }) });
+                    // A closed item's badge goes when Hide closed items' badges is on.
+                    let badge_hidden = status == PunchStatus::Closed && app.punch.hide_badges;
+                    edits.push(Edit::SetPunch { page, index, punch: Some(Punch { status, badge_hidden, ..item.punch.clone() }) });
                 }
             });
         }
     });
     if add {
         add_selected(app);
+    }
+    if let Some(hide) = badges {
+        badges_for_closed(app, hide);
     }
     for edit in edits {
         app.apply_edit(edit);
@@ -473,7 +539,7 @@ mod tests {
     #[test]
     fn overdue_items_are_open_ones_past_their_date() {
         let today = chrono::NaiveDate::from_ymd_opt(2026, 10, 28).unwrap();
-        let p = |due: &str, status| Punch { no: 1, assignee: String::new(), due: due.into(), status };
+        let p = |due: &str, status| Punch { no: 1, assignee: String::new(), due: due.into(), status, badge_hidden: false };
         assert!(overdue(&p("2026-10-27", PunchStatus::Open), today));
         assert!(!overdue(&p("2026-10-28", PunchStatus::Open), today));
         assert!(!overdue(&p("2026-10-01", PunchStatus::Closed), today));
@@ -486,7 +552,7 @@ mod tests {
         let item = |no| Item {
             page: 1,
             index: 0,
-            punch: Punch { no, assignee: "Plumber, licensed".into(), due: "2026-11-02".into(), status: PunchStatus::Ready },
+            punch: Punch { no, assignee: "Plumber, licensed".into(), due: "2026-11-02".into(), status: PunchStatus::Ready, badge_hidden: false },
             kind: "Cloud".into(),
             label: "Leak".into(),
             space: "Kitchen".into(),
