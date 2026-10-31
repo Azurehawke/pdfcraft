@@ -395,6 +395,14 @@ Markup and measuring
       callout's pin does: moving a callout's text box leaves the arrow's tip where it points, and
       the leader line redraws from the box to the tip. Dragging the tip moves only the tip; moving
       the whole callout (both selected, or a modifier) still moves everything.
+- [ ] **(Steve, queued 2026-10-31)** Bézier lines, as VectorCraft's pen (Illustrator's Pen tool):
+      click for a corner point, click and drag for a smooth point with handles; Enter, Escape or a
+      click on the first point (closing it) ends the path. Kept in the PDF as a markup with its
+      curves (`/PCPath`: anchors and handles) and an appearance drawn with real curves, so other
+      viewers show it; measured lengths follow the curve. With it, a Direct selection arrow (the
+      white arrow): select single anchors and handles, drag them, add or delete an anchor on the
+      path, and turn a point between corner and smooth. The Select arrow keeps moving whole
+      markups.
 - [ ] **(Steve, queued 2026-10-30)** Conditions, and the punch list on its own layer. Symbols
       and punch items stay separate (a symbol is a thing on the plan; a punch item is work to do
       about any markup), linked as below.
