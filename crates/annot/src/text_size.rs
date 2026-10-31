@@ -60,7 +60,7 @@ pub fn set_text_size(doc: &mut Document, page: usize, index: usize, size: Option
     if d.contains(b"PCSymbol") {
         return crate::symbols::set_label_size(doc, page, index, size, meta);
     }
-    let host = crate::walls::host_of(doc, page, &d);
+    let host = crate::walls::host_wall(doc, page, &d);
     let before = d.clone();
     doc.update_dict(r, |d| {
         match size {

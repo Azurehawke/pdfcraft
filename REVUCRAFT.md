@@ -396,10 +396,12 @@ Markup and measuring
   - [x] Symbols face their wall: Align to nearest wall (and Line up with walls when placing, now on
         by default) turns the symbol's top (an outlet's flat side) toward the nearest line,
         including the drawing's own linework (a plan from a DWG), whichever way the wall runs.
-- [ ] **(Steve, queued 2026-10-31)** Callout arrows stay anchored to the drawing, as the photo
+- [x] **(Steve, build 218)** Callout arrows stay anchored to the drawing, as the photo
       callout's pin does: moving a callout's text box leaves the arrow's tip where it points, and
       the leader line redraws from the box to the tip. Dragging the tip moves only the tip; moving
       the whole callout (both selected, or a modifier) still moves everything.
+      Done: a callout's box moves alone (its arrow stays put); Shift-drag, or moving it with other
+      markups, moves it all; the round handle on the tip points it somewhere else.
 - [ ] **(Steve, queued 2026-10-31)** Bézier lines, as VectorCraft's pen (Illustrator's Pen tool):
       click for a corner point; press on the next point and, still holding, move the mouse (or
       pen): the curve into that point bends live as the handles pull out (both sides at once,

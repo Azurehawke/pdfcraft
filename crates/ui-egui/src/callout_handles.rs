@@ -1,4 +1,5 @@
-//! RevuCraft: the two handles of a selected photo callout. One, on the photo's inner bottom
+//! RevuCraft: the handle on a selected callout's arrow tip, and the two handles of a selected
+//! photo callout. One, on the photo's inner bottom
 //! corner, scales the photo (its proportions kept); the other, on the text column's outer edge,
 //! sets how wide the description wraps. The box's top edge and photo-side edge stay where they
 //! are, and so does the dot; the change is one edit ([`Edit::SetCalloutParts`]) on letting go.
@@ -59,10 +60,11 @@ pub(crate) fn input(ui: &egui::Ui, doc: &Document, view: &mut DocView, cx: &Page
     if view.comments.group().len() > 1 || !cx.allowed {
         return false;
     }
-    let Some(parts) = doc.callout_parts(page, index) else { return false };
+    // Any callout: its arrow's tip, dragged to point it somewhere else (the box stays).
+    let mut busy = tip_handle(ui, doc, view, cx, accent, page, index);
+    let Some(parts) = doc.callout_parts(page, index) else { return busy };
     let photo_at = cx.to_screen(photo_corners(&parts).0);
     let text_at = cx.to_screen(text_edge(&parts));
-    let mut busy = false;
     let painter = ui.painter().clone();
     for (photo, at) in [(true, photo_at), (false, text_at)] {
         let r = Rect::from_center_size(at, vec2(HANDLE, HANDLE));
@@ -90,6 +92,36 @@ pub(crate) fn input(ui: &egui::Ui, doc: &Document, view: &mut DocView, cx: &Page
         }
     }
     busy
+}
+
+/// The handle on a callout's arrow tip: dragged, the tip moves and the leader follows it on letting
+/// go ([`Edit::SetCalloutTip`]). Returns `true` while it is being dragged.
+fn tip_handle(ui: &egui::Ui, doc: &Document, view: &mut DocView, cx: &PageCx<'_>, accent: Color32, page: usize, index: usize) -> bool {
+    let Some(tip) = doc.callout_tip(page, index) else { return false };
+    let at = cx.to_screen(tip);
+    let r = Rect::from_center_size(at, vec2(HANDLE, HANDLE));
+    let id = ui.id().with(("callout-tip", page, index));
+    let resp = ui.interact(r.expand(3.0), id, Sense::drag()).on_hover_text(tl!("Drag to point the arrow somewhere else"));
+    if resp.hovered() || resp.dragged() {
+        ui.ctx().set_cursor_icon(egui::CursorIcon::Crosshair);
+    }
+    let painter = ui.painter();
+    painter.circle(at, HANDLE / 2.0, Color32::WHITE, Stroke::new(1.5, accent));
+    let to = ui.input(|i| i.pointer.latest_pos());
+    if resp.dragged()
+        && let Some(p) = to
+    {
+        painter.line_segment([at, p], Stroke::new(1.5, accent.gamma_multiply(0.7)));
+        painter.circle_filled(p, 3.0, accent);
+        return true;
+    }
+    if resp.drag_stopped()
+        && let Some(p) = to
+        && p.distance(at) >= 2.0
+    {
+        view.pending_edit = Some(Edit::SetCalloutTip { page, index, tip: cx.to_user(p) });
+    }
+    false
 }
 
 /// The photo or the text edge as it would be, while dragging.

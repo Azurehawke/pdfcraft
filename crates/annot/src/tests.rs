@@ -761,6 +761,21 @@ fn polygons_clouds_connected_lines_callouts_and_carets_are_drawn() {
     assert_eq!(&line[4..], &[200.0, 520.0], "now the right side");
     assert!(ap_content(&doc, callout).contains("(hello) Tj"));
 
+    // RevuCraft: moving a callout's box leaves its arrow pointing where it did; moving the whole
+    // callout takes the arrow along; the tip can be pointed elsewhere.
+    let cl_of =
+        |doc: &Document| -> Vec<f64> { list(doc, 0)[co].get(b"CL").unwrap().as_array().unwrap().iter().map(|o| o.as_f64().unwrap()).collect() };
+    let tip = cl_of(&doc)[..2].to_vec();
+    move_annotation(&mut doc, 0, co, 30.0, 10.0, &meta("mc")).unwrap();
+    assert_eq!(&cl_of(&doc)[..2], &tip[..], "the arrow stays");
+    move_whole(&mut doc, 0, co, 5.0, 5.0, &meta("mw")).unwrap();
+    assert_eq!(&cl_of(&doc)[..2], &[tip[0] + 5.0, tip[1] + 5.0], "the whole callout moved");
+    set_callout_tip(&mut doc, 0, co, [50.0, 50.0], &meta("tip")).unwrap();
+    assert_eq!(&cl_of(&doc)[..2], &[50.0, 50.0]);
+    let r = rect(&list(&doc, 0)[co]);
+    assert!(r[0] <= 50.0 && r[1] <= 50.0, "the rectangle holds the new tip: {r:?}");
+    assert!(set_callout_tip(&mut doc, 0, i, [1.0, 1.0], &meta("no")).is_err(), "a polygon has no arrow to point");
+
     // Moving shifts vertices.
     move_annotation(&mut doc, 0, i, 10.0, 0.0, &meta("m")).unwrap();
     let v: Vec<f64> = list(&doc, 0)[i].get(b"Vertices").unwrap().as_array().unwrap().iter().map(|o| o.as_f64().unwrap()).collect();

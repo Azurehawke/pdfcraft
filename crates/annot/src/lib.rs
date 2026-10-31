@@ -1937,19 +1937,79 @@ pub fn set_marked(doc: &mut Document, page: usize, index: usize, marked: bool, a
 }
 
 /// Move a comment (and its pop-up) by `(dx, dy)` points. The appearance moves with `/Rect`.
+/// RevuCraft: a callout's arrow keeps pointing where it did; only its box moves
+/// ([`move_whole`] moves the arrow too).
 pub fn move_annotation(doc: &mut Document, page: usize, index: usize, dx: f64, dy: f64, meta: &Meta) -> Result<(), AnnotError> {
+    move_annotation_with(doc, page, index, dx, dy, true, meta)
+}
+
+/// Move a comment by `(dx, dy)` points, a callout's arrow tip and all.
+pub fn move_whole(doc: &mut Document, page: usize, index: usize, dx: f64, dy: f64, meta: &Meta) -> Result<(), AnnotError> {
+    move_annotation_with(doc, page, index, dx, dy, false, meta)
+}
+
+/// Where a callout's arrow points (`/CL`'s first point), for a callout with a knee (six numbers,
+/// as PdfCraft and RevuCraft draw them).
+pub fn callout_tip(d: &Dict) -> Option<[f64; 2]> {
+    let cl = d.get(b"CL")?.as_array()?;
+    if cl.len() != 6 || d.name(b"Subtype") != Some(b"FreeText") {
+        return None;
+    }
+    Some([cl.first()?.as_f64()?, cl.get(1)?.as_f64()?]).filter(|p| finite(p))
+}
+
+/// [`callout_tip`] of the annotation at `(page, index)`.
+pub fn callout_tip_at(doc: &Document, page: usize, index: usize) -> Option<[f64; 2]> {
+    let p = page_ref(doc, page).ok()?;
+    let entry = annots(doc, p).get(index).cloned()?;
+    let obj = doc.resolve(&entry);
+    callout_tip(obj.as_dict()?)
+}
+
+/// Point the arrow of the callout at `(page, index)` at `tip`; its box stays and the leader
+/// line is drawn again from the box to the tip.
+pub fn set_callout_tip(doc: &mut Document, page: usize, index: usize, tip: [f64; 2], meta: &Meta) -> Result<(), AnnotError> {
+    if !finite(&tip) || tip.iter().any(|v| v.abs() > 1e7) {
+        return Err(AnnotError::Invalid("invalid point".into()));
+    }
+    let (_, r) = annot_ref(doc, page, index)?;
+    unlocked(doc, r)?;
+    let d = annot_dict(doc, r);
+    if callout_tip(&d).is_none() {
+        return Err(AnnotError::Invalid("not a callout".into()));
+    }
+    let tb = text_box_of(&d).ok_or_else(|| AnnotError::Invalid("the callout has no text box".into()))?;
+    if let Some(Object::Array(mut cl)) = d.get(b"CL").cloned() {
+        if let Some(x) = cl.get_mut(0) {
+            *x = Object::Real(tip[0]);
+        }
+        if let Some(y) = cl.get_mut(1) {
+            *y = Object::Real(tip[1]);
+        }
+        doc.update_dict(r, |d| d.set(b"CL".to_vec(), Object::Array(cl)))?;
+    }
+    apply_text_box(doc, r, tb, meta, false)
+}
+
+/// A callout's text box: `/Rect` less `/RD`.
+fn text_box_of(d: &Dict) -> Option<[f64; 4]> {
+    let rect =
+        d.get(b"Rect").and_then(|o| o.as_array()).map(|a| a.iter().filter_map(Object::as_f64).collect::<Vec<f64>>()).filter(|v| v.len() == 4)?;
+    let rd = d.get(b"RD").and_then(|o| o.as_array()).map(|a| a.iter().filter_map(Object::as_f64).collect::<Vec<f64>>()).filter(|v| v.len() == 4)?;
+    let rect = normalize([*rect.first()?, *rect.get(1)?, *rect.get(2)?, *rect.get(3)?]);
+    let tb = [rect[0] + rd.first()?, rect[1] + rd.get(1)?, rect[2] - rd.get(2)?, rect[3] - rd.get(3)?];
+    finite(&tb).then_some(tb)
+}
+
+fn move_annotation_with(doc: &mut Document, page: usize, index: usize, dx: f64, dy: f64, keep_tip: bool, meta: &Meta) -> Result<(), AnnotError> {
     if !finite(&[dx, dy]) {
         return Err(AnnotError::Invalid("invalid offset".into()));
     }
     let (_, r) = annot_ref(doc, page, index)?;
     unlocked(doc, r)?;
-    // RevuCraft: a photo callout's dot stays on the drawing; only its box moves.
+    // RevuCraft: a callout's arrow (a photo callout's dot) stays on the drawing; only its box moves.
     let before = annot_dict(doc, r);
-    let anchored = if photo_callout::is_photo_callout(&before) {
-        before.get(b"CL").and_then(|o| o.as_array()).and_then(|a| Some([a.first()?.as_f64()?, a.get(1)?.as_f64()?])).filter(|p| finite(p))
-    } else {
-        None
-    };
+    let anchored = if keep_tip { callout_tip(&before) } else { None };
     let shift = |o: &Object, every: bool| -> Option<Object> {
         let a = o.as_array()?;
         Some(Object::Array(

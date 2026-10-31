@@ -1409,11 +1409,28 @@ fn select_input(
                 let (dx, dy) = (b[0] - a[0], b[1] - a[1]);
                 if from.distance(p) >= 2.0 {
                     let group = cv.group();
+                    // RevuCraft: a callout's arrow stays where it points as its box moves; with
+                    // Shift, or moved with other markups, the whole callout goes.
+                    let shift = ui.input(|i| i.modifiers.shift);
+                    let callout = |i: usize| {
+                        cx.info.annotations.iter().any(|a| a.page == page && a.index == i && a.intent.as_deref() == Some("FreeTextCallout"))
+                    };
                     view.pending_edit = Some(if group.len() > 1 && group.contains(&(page, index)) {
                         Edit::Batch {
                             label: "Move markups".into(),
-                            edits: group.iter().map(|&(page, index)| Edit::MoveAnnotation { page, index, dx, dy }).collect(),
+                            edits: group
+                                .iter()
+                                .map(|&(page, index)| {
+                                    if callout(index) {
+                                        Edit::MoveWhole { page, index, dx, dy }
+                                    } else {
+                                        Edit::MoveAnnotation { page, index, dx, dy }
+                                    }
+                                })
+                                .collect(),
                         }
+                    } else if shift && callout(index) {
+                        Edit::MoveWhole { page, index, dx, dy }
                     } else {
                         Edit::MoveAnnotation { page, index, dx, dy }
                     });

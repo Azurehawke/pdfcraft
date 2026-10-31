@@ -329,6 +329,8 @@ fn scope_of(edit: &Edit) -> Scope {
         | Edit::SetPunch { .. }
         | Edit::SetSpace { .. }
         | Edit::SetTextSize { .. }
+        | Edit::MoveWhole { .. }
+        | Edit::SetCalloutTip { .. }
         | Edit::SetStrokeAlign { .. }
         | Edit::RenameMeasurement { .. }
         | Edit::NameMeasurements
@@ -713,6 +715,11 @@ impl Document {
     /// RevuCraft: the punch items on `page`: (index, item).
     pub fn punch_items(&self, page: usize) -> Vec<(usize, pdfcraft_annot::punch::Punch)> {
         self.editor.as_ref().map(|e| pdfcraft_annot::punch::punch_items(&e.cos, page)).unwrap_or_default()
+    }
+
+    /// RevuCraft: where a callout's arrow points.
+    pub fn callout_tip(&self, page: usize, index: usize) -> Option<[f64; 2]> {
+        self.editor.as_ref().and_then(|e| pdfcraft_annot::callout_tip_at(&e.cos, page, index))
     }
 
     /// RevuCraft: the size a markup's own text is drawn at (points), when it has such text
@@ -1863,6 +1870,19 @@ pub enum Edit {
         dx: f64,
         dy: f64,
     },
+    /// RevuCraft: move a callout with its arrow tip (a plain move leaves the tip where it points).
+    MoveWhole {
+        page: usize,
+        index: usize,
+        dx: f64,
+        dy: f64,
+    },
+    /// RevuCraft: point a callout's arrow at `tip`; its box stays.
+    SetCalloutTip {
+        page: usize,
+        index: usize,
+        tip: [f64; 2],
+    },
     /// Reshape a line, connected lines, a polygon or a cloud: its points in user space (a line's
     /// two ends, the others' corners).
     ReshapeAnnotation {
@@ -2574,6 +2594,7 @@ pub const EDIT_LABELS: &[&str] = &[
     "Take off the punch list",
     "Space",
     "Text size",
+    "Move the callout's arrow",
     "Join walls",
     "Add window",
     "Add door",
@@ -2792,6 +2813,8 @@ impl Edit {
             Edit::SetPunch { punch: None, .. } => Label::of("Take off the punch list"),
             Edit::SetSpace { .. } => Label::of("Space"),
             Edit::SetTextSize { .. } => Label::of("Text size"),
+            Edit::MoveWhole { .. } => Label::of("Move comment"),
+            Edit::SetCalloutTip { .. } => Label::of("Move the callout's arrow"),
             Edit::SetVertices { copy: true, .. } => Label::of("Offset"),
             Edit::TransformAnnotation { copy: true, .. } => Label::of("Copy markup"),
             Edit::TransformAnnotation { matrix, .. } if matrix[..4] == [1.0, 0.0, 0.0, 1.0] => Label::of("Move markup"),
@@ -2916,6 +2939,8 @@ fn check_permission(edit: &Edit, p: &pdfcraft_cos::Permissions) -> Result<(), Ed
         | Edit::SetPunch { .. }
         | Edit::SetSpace { .. }
         | Edit::SetTextSize { .. }
+        | Edit::MoveWhole { .. }
+        | Edit::SetCalloutTip { .. }
         | Edit::SetStrokeAlign { .. }
         | Edit::SetGuides { .. }
         | Edit::RenameMeasurement { .. }
@@ -3531,6 +3556,8 @@ fn run_edit(doc: &mut pdfcraft_cos::Document, edit: &Edit, cx: &mut EditCtx) -> 
         Edit::SetPunch { page, index, punch } => pdfcraft_annot::punch::set_punch(doc, *page, *index, punch.as_ref(), &cx.meta())?,
         Edit::SetSpace { page, index, name } => pdfcraft_annot::punch::set_space(doc, *page, *index, name, &cx.meta())?,
         Edit::SetTextSize { page, index, size } => pdfcraft_annot::text_size::set_text_size(doc, *page, *index, *size, &cx.meta())?,
+        Edit::MoveWhole { page, index, dx, dy } => pdfcraft_annot::move_whole(doc, *page, *index, *dx, *dy, &cx.meta())?,
+        Edit::SetCalloutTip { page, index, tip } => pdfcraft_annot::set_callout_tip(doc, *page, *index, *tip, &cx.meta())?,
         Edit::SetCalloutSide { page, index, side } => pdfcraft_annot::photo_callout::set_side(doc, *page, *index, *side, &cx.meta())?,
         Edit::SetCalloutParts { page, index, photo_height, text_width } => {
             pdfcraft_annot::photo_callout::set_parts(doc, *page, *index, *photo_height, *text_width, &cx.meta())?;

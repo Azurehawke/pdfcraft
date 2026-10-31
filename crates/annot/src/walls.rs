@@ -627,7 +627,7 @@ pub(crate) fn default_mark_size(d: &Dict) -> Option<f64> {
 }
 
 /// The index of the wall that hosts the door or window `d` on `page`.
-pub(crate) fn host_of(doc: &Document, page: usize, d: &Dict) -> Option<usize> {
+pub(crate) fn host_wall(doc: &Document, page: usize, d: &Dict) -> Option<usize> {
     let host = d.get(OPENING)?.as_dict()?.get(b"Host").and_then(Object::as_string).map(PdfString::to_text)?;
     walls(doc, page).into_iter().find(|w| !w.nm.is_empty() && w.nm == host).map(|w| w.index)
 }

@@ -1059,7 +1059,12 @@ fn comment_page(edit: &Edit) -> Option<usize> {
         | Edit::FillAnnotation { page, .. }
         | Edit::FontSizeAnnotation { page, .. }
         | Edit::SetAnnotationInfo { page, .. }
-        | Edit::SetLineWidth { page, .. } => Some(*page),
+        | Edit::SetLineWidth { page, .. }
+        | Edit::MoveWhole { page, .. }
+        | Edit::SetCalloutTip { page, .. }
+        | Edit::SetTextSize { page, .. }
+        | Edit::SetPunch { page, .. }
+        | Edit::SetSpace { page, .. } => Some(*page),
         // Several markups changed together (moved, deleted, pasted) on one page.
         Edit::Batch { edits, .. } => {
             let pages: Vec<Option<usize>> = edits.iter().map(comment_page).collect();

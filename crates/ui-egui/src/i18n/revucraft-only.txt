@@ -180,6 +180,7 @@ Drag a box around the detail or viewport that has this scale.
 Drag out a guide
 Drag to move · Delete removes it · Esc when done
 Drag to move, the corner to resize · Delete removes it · Esc when done
+Drag to point the arrow somewhere else
 Drag to set how wide the text wraps
 Drag to size the photo
 Draw a floor plan
@@ -359,6 +360,7 @@ Move markups
 Move on the sheet
 Move or resize on the sheet
 Move out of its layer
+Move the callout's arrow
 Move to layer
 My symbol
 My symbols
