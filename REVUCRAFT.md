@@ -391,6 +391,10 @@ Markup and measuring
         base toward the wall, use the page's own lines as well as markups, and line it up
         automatically when it is placed near a wall (a data port's triangle base on the wall,
         whichever way the wall runs).
+- [ ] **(Steve, queued 2026-10-31)** Callout arrows stay anchored to the drawing, as the photo
+      callout's pin does: moving a callout's text box leaves the arrow's tip where it points, and
+      the leader line redraws from the box to the tip. Dragging the tip moves only the tip; moving
+      the whole callout (both selected, or a modifier) still moves everything.
 - [ ] **(Steve, queued 2026-10-30)** Conditions, and the punch list on its own layer. Symbols
       and punch items stay separate (a symbol is a thing on the plan; a punch item is work to do
       about any markup), linked as below.
