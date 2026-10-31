@@ -396,7 +396,9 @@ Markup and measuring
       the leader line redraws from the box to the tip. Dragging the tip moves only the tip; moving
       the whole callout (both selected, or a modifier) still moves everything.
 - [ ] **(Steve, queued 2026-10-31)** Bézier lines, as VectorCraft's pen (Illustrator's Pen tool):
-      click for a corner point, click and drag for a smooth point with handles; Enter, Escape or a
+      click for a corner point; press on the next point and, still holding, move the mouse (or
+      pen): the curve into that point bends live as the handles pull out (both sides at once,
+      mirrored), and letting go fixes it; Enter, Escape or a
       click on the first point (closing it) ends the path. Kept in the PDF as a markup with its
       curves (`/PCPath`: anchors and handles) and an appearance drawn with real curves, so other
       viewers show it; measured lengths follow the curve. With it, a Direct selection arrow (the
