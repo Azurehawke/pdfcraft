@@ -158,7 +158,7 @@ pub fn split(nodes: &[Node], closed: bool, seg_index: usize, t: f64) -> Vec<Node
 /// A curve's points and whether it closes, from an annotation dictionary.
 pub fn path_of(d: &Dict) -> Option<(Vec<Node>, bool)> {
     let v: Vec<f64> = d.get(PATH)?.as_array()?.iter().filter_map(Object::as_f64).take(MAX_NODES * 6).collect();
-    if v.len() < 12 || v.len() % 6 != 0 || !finite(&v) {
+    if v.len() < 12 || !v.len().is_multiple_of(6) || !finite(&v) {
         return None;
     }
     let nodes = v.as_chunks::<6>().0.iter().map(|c| Node { at: [c[0], c[1]], before: [c[2], c[3]], after: [c[4], c[5]] }).collect();
