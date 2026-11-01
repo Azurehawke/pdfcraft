@@ -197,9 +197,16 @@ fn arrow_end_handles(ui: &egui::Ui, doc: &Document, view: &mut DocView, cx: &Pag
         painter.circle(at, HANDLE / 2.0, Color32::WHITE, Stroke::new(1.5, accent));
         let pointer = ui.input(|i| i.pointer.latest_pos());
         if resp.dragged() {
-            busy = true;
-            if let Some(p) = pointer {
-                painter.line_segment([at, p], Stroke::new(1.5, accent.gamma_multiply(0.7)));
+            // Over a connection point, or on a glued end, this handle takes the drag; elsewhere a
+            // free end is left to the line's own drag.
+            let alt = ui.input(|i| i.modifiers.alt);
+            let over = pointer.filter(|_| !alt).and_then(|p| snap_target(&targets, cx, p).map(|_| p));
+            let glued = doc.arrow_end_glued(page, index, is_start);
+            if over.is_some() || glued {
+                busy = true;
+                if let Some(p) = pointer {
+                    painter.line_segment([at, p], Stroke::new(1.5, accent.gamma_multiply(0.7)));
+                }
             }
             continue;
         }
