@@ -180,6 +180,7 @@ Drafting
 Drag a box around the area that has this scale
 Drag a box around the detail or viewport that has this scale.
 Drag onto a connection point to glue the arrow; drop it elsewhere, or hold Alt, to free it
+Drag onto a connection point to glue this end; drop it elsewhere, or hold Alt, to leave it free
 Drag out a guide
 Drag to move the space's name; double-click to put it back
 Drag to move · Delete removes it · Esc when done
@@ -254,6 +255,7 @@ Found by name in a subfolder of the PDF's folder
 Found by name next to the PDF
 Found relative to the PDF
 Found through a folder mapping (Preferences)
+Free the arrow's end
 Free the callout's arrow
 GFCI outlet
 Get started
@@ -261,6 +263,7 @@ Getting the latest {name}…
 Give coordinates for the base point.
 Given when sent
 Glass-break detector
+Glue the arrow's end
 Glue the callout's arrow
 Google Drive and other apps…
 Guide
@@ -371,6 +374,7 @@ Move markups
 Move on the sheet
 Move or resize on the sheet
 Move out of its layer
+Move the arrow's end
 Move the callout's arrow
 Move the space's name
 Move to layer

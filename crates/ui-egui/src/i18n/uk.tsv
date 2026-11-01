@@ -3320,3 +3320,7 @@ animation effects	Off	Вимкнено
 	Glue the callout's arrow	Прикріпити стрілку виноски
 	Free the callout's arrow	Відкріпити стрілку виноски
 	Drag onto a connection point to glue the arrow; drop it elsewhere, or hold Alt, to free it	Перетягніть на точку з'єднання, щоб прикріпити стрілку; відпустіть деінде або з Alt, щоб відкріпити
+	Move the arrow's end	Перемістити кінець стрілки
+	Drag onto a connection point to glue this end; drop it elsewhere, or hold Alt, to leave it free	Перетягніть на точку з'єднання, щоб прикріпити цей кінець; відпустіть деінде або з Alt, щоб лишити вільним
+	Glue the arrow's end	Прикріпити кінець стрілки
+	Free the arrow's end	Відкріпити кінець стрілки

@@ -3214,3 +3214,7 @@ animation effects	Off	Выкл
 	Glue the callout's arrow	Прикрепить стрелку выноски
 	Free the callout's arrow	Открепить стрелку выноски
 	Drag onto a connection point to glue the arrow; drop it elsewhere, or hold Alt, to free it	Перетащите на точку соединения, чтобы закрепить стрелку; отпустите в другом месте или с Alt, чтобы открепить
+	Move the arrow's end	Переместить конец стрелки
+	Drag onto a connection point to glue this end; drop it elsewhere, or hold Alt, to leave it free	Перетащите на точку соединения, чтобы закрепить этот конец; отпустите в другом месте или с Alt, чтобы оставить свободным
+	Glue the arrow's end	Прикрепить конец стрелки
+	Free the arrow's end	Открепить конец стрелки

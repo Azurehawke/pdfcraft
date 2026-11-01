@@ -3261,3 +3261,7 @@ animation effects	Off	Изключени
 	Glue the callout's arrow	Закрепяне на стрелката на изнесения текст
 	Free the callout's arrow	Освобождаване на стрелката на изнесения текст
 	Drag onto a connection point to glue the arrow; drop it elsewhere, or hold Alt, to free it	Плъзнете към точка на свързване, за да закрепите стрелката; пуснете другаде или с Alt, за да я освободите
+	Move the arrow's end	Преместване на края на стрелката
+	Drag onto a connection point to glue this end; drop it elsewhere, or hold Alt, to leave it free	Плъзнете към точка на свързване, за да закрепите този край; пуснете другаде или с Alt, за да остане свободен
+	Glue the arrow's end	Закрепяне на края на стрелката
+	Free the arrow's end	Освобождаване на края на стрелката

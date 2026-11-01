@@ -64,6 +64,8 @@ pub(crate) fn input(ui: &egui::Ui, doc: &Document, view: &mut DocView, cx: &Page
     let mut busy = space_label_handle(ui, doc, view, cx, accent, page, index);
     // A selected callout: its connection points, and its arrow's end to glue to one of them.
     busy |= glue_handles(ui, doc, view, cx, accent, page, index);
+    // A selected arrow: each end, dragged onto a box's connection point, glues there.
+    busy |= arrow_end_handles(ui, doc, view, cx, accent, page, index);
     // Any callout: its arrow's tip, dragged to point it somewhere else (the box stays).
     busy |= tip_handle(ui, doc, view, cx, accent, page, index);
     let Some(parts) = doc.callout_parts(page, index) else { return busy };
@@ -151,6 +153,82 @@ fn glue_handles(ui: &egui::Ui, doc: &Document, view: &mut DocView, cx: &PageCx<'
         }
     }
     false
+}
+
+/// The connection point of any box on the page nearest `p` (on screen) within [`SNAP_PX`], as the
+/// box's name and the site.
+fn snap_target(targets: &[(String, [f64; 4])], cx: &PageCx<'_>, p: Pos2) -> Option<(String, u32)> {
+    let mut best: Option<(&str, u32, f32)> = None;
+    for (name, bx) in targets {
+        for site in 0..pdfcraft_engine::callout_glue::SITES as u32 {
+            let Some(q) = pdfcraft_engine::callout_glue::site_point(*bx, site) else { continue };
+            let d = cx.to_screen(q).distance(p);
+            if d <= SNAP_PX && best.is_none_or(|b| d < b.2) {
+                best = Some((name.as_str(), site, d));
+            }
+        }
+    }
+    best.map(|(name, site, _)| (name.to_string(), site))
+}
+
+/// A selected arrow's two ends. Dragged onto a box's connection point, an end glues there on
+/// letting go; dropped elsewhere, or with Alt held, it is freed and sits where it was dropped
+/// ([`Edit::SetArrowGlue`] with a move). Returns `true` while an end is being dragged.
+fn arrow_end_handles(ui: &egui::Ui, doc: &Document, view: &mut DocView, cx: &PageCx<'_>, accent: Color32, page: usize, index: usize) -> bool {
+    let Some(a) = doc.info.annotations.iter().find(|a| a.page == page && a.index == index) else { return false };
+    if a.subtype != "Line" || a.points.len() != 2 {
+        return false;
+    }
+    let ends: Vec<[f64; 2]> = a.points.iter().map(|p| [f64::from(p[0]), f64::from(p[1])]).collect();
+    let (Some(start), Some(end)) = (ends.first().copied(), ends.get(1).copied()) else { return false };
+    let targets = doc.glue_targets(page);
+    let painter = ui.painter().clone();
+    let mut busy = false;
+    for (is_start, at_user) in [(true, start), (false, end)] {
+        let at = cx.to_screen(at_user);
+        let r = Rect::from_center_size(at, vec2(HANDLE, HANDLE));
+        let id = ui.id().with(("arrow-end", page, index, is_start));
+        let resp = ui
+            .interact(r.expand(3.0), id, Sense::drag())
+            .on_hover_text(tl!("Drag onto a connection point to glue this end; drop it elsewhere, or hold Alt, to leave it free"));
+        if resp.hovered() || resp.dragged() {
+            ui.ctx().set_cursor_icon(egui::CursorIcon::Crosshair);
+        }
+        painter.circle(at, HANDLE / 2.0, Color32::WHITE, Stroke::new(1.5, accent));
+        let pointer = ui.input(|i| i.pointer.latest_pos());
+        if resp.dragged() {
+            busy = true;
+            if let Some(p) = pointer {
+                painter.line_segment([at, p], Stroke::new(1.5, accent.gamma_multiply(0.7)));
+            }
+            continue;
+        }
+        if resp.drag_stopped()
+            && let Some(p) = pointer
+        {
+            let alt = ui.input(|i| i.modifiers.alt);
+            let hit = if alt { None } else { snap_target(&targets, cx, p) };
+            view.pending_edit = Some(match hit {
+                Some(target) => Edit::SetArrowGlue { page, index, start: is_start, target: Some(target) },
+                None => {
+                    let to = cx.to_user(p);
+                    let mut points = ends.clone();
+                    let slot = if is_start { 0 } else { 1 };
+                    if let Some(v) = points.get_mut(slot) {
+                        *v = to;
+                    }
+                    Edit::Batch {
+                        label: tl!("Move the arrow's end").to_string(),
+                        edits: vec![
+                            Edit::SetArrowGlue { page, index, start: is_start, target: None },
+                            Edit::ReshapeAnnotation { page, index, points },
+                        ],
+                    }
+                }
+            });
+        }
+    }
+    busy
 }
 
 /// The handle on a selected space's name: dragged, the name moves there on letting go

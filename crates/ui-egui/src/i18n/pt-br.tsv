@@ -3574,3 +3574,7 @@ theme	Appearance	Aparência
 	Glue the callout's arrow	Prender a seta do balão
 	Free the callout's arrow	Soltar a seta do balão
 	Drag onto a connection point to glue the arrow; drop it elsewhere, or hold Alt, to free it	Arraste até um ponto de conexão para prender a seta; solte em outro lugar, ou com Alt, para soltá-la
+	Move the arrow's end	Mover a ponta da seta
+	Drag onto a connection point to glue this end; drop it elsewhere, or hold Alt, to leave it free	Arraste até um ponto de conexão para prender esta ponta; solte em outro lugar, ou com Alt, para deixá-la livre
+	Glue the arrow's end	Prender a ponta da seta
+	Free the arrow's end	Soltar a ponta da seta

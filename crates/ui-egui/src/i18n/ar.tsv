@@ -3568,3 +3568,7 @@ certificate	Version	الإصدار
 	Glue the callout's arrow	ربط سهم وسيلة الشرح بنقطة
 	Free the callout's arrow	فك ربط سهم وسيلة الشرح
 	Drag onto a connection point to glue the arrow; drop it elsewhere, or hold Alt, to free it	اسحب إلى نقطة اتصال لربط السهم؛ أفلته في مكان آخر أو مع Alt لفكّ ربطه
+	Move the arrow's end	نقل طرف السهم
+	Drag onto a connection point to glue this end; drop it elsewhere, or hold Alt, to leave it free	اسحب إلى نقطة اتصال لربط هذا الطرف؛ أفلته في مكان آخر أو مع Alt لتركه حراً
+	Glue the arrow's end	ربط طرف السهم
+	Free the arrow's end	فك ربط طرف السهم

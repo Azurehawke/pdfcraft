@@ -3529,3 +3529,7 @@ certificate	SHA-256 digest	Impronta SHA-256
 	Glue the callout's arrow	Aggancia la freccia del callout
 	Free the callout's arrow	Sgancia la freccia del callout
 	Drag onto a connection point to glue the arrow; drop it elsewhere, or hold Alt, to free it	Trascina su un punto di connessione per agganciare la freccia; rilascia altrove, o con Alt, per sganciarla
+	Move the arrow's end	Sposta l'estremità della freccia
+	Drag onto a connection point to glue this end; drop it elsewhere, or hold Alt, to leave it free	Trascina su un punto di connessione per agganciare questa estremità; rilascia altrove, o con Alt, per lasciarla libera
+	Glue the arrow's end	Aggancia l'estremità della freccia
+	Free the arrow's end	Sgancia l'estremità della freccia

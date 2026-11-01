@@ -3296,3 +3296,7 @@ animation effects	Off	Ki
 	Glue the callout's arrow	A felhívás nyilának rögzítése
 	Free the callout's arrow	A felhívás nyilának felszabadítása
 	Drag onto a connection point to glue the arrow; drop it elsewhere, or hold Alt, to free it	Húzza csatlakozási pontra a nyíl rögzítéséhez; máshová engedve vagy Alt-tal szabadítja fel
+	Move the arrow's end	A nyíl végének áthelyezése
+	Drag onto a connection point to glue this end; drop it elsewhere, or hold Alt, to leave it free	Húzza csatlakozási pontra a vég rögzítéséhez; máshová engedve vagy Alt-tal szabadon hagyja
+	Glue the arrow's end	A nyíl végének rögzítése
+	Free the arrow's end	A nyíl végének felszabadítása

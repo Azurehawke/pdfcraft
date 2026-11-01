@@ -3263,3 +3263,7 @@ animation effects	Off	关
 	Glue the callout's arrow	将标注箭头连接到连接点
 	Free the callout's arrow	释放标注箭头
 	Drag onto a connection point to glue the arrow; drop it elsewhere, or hold Alt, to free it	拖到连接点上以固定箭头；在别处松开或按住 Alt 则释放
+	Move the arrow's end	移动箭头端点
+	Drag onto a connection point to glue this end; drop it elsewhere, or hold Alt, to leave it free	拖到连接点上以固定此端；在别处松开或按住 Alt 则保持自由
+	Glue the arrow's end	将箭头端点连接到连接点
+	Free the arrow's end	释放箭头端点

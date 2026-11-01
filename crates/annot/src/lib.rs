@@ -17,6 +17,7 @@
 use pdfcraft_cos::{Dict, Document, ObjRef, Object, PdfString, Stream};
 
 pub mod appearance;
+pub mod arrow_glue;
 pub mod pen;
 pub use pen::PenKind;
 pub mod bezier;

@@ -3559,3 +3559,7 @@ certificate	Version	Version
 	Glue the callout's arrow	Accrocher la flèche de la bulle
 	Free the callout's arrow	Détacher la flèche de la bulle
 	Drag onto a connection point to glue the arrow; drop it elsewhere, or hold Alt, to free it	Glisser sur un point de connexion pour accrocher la flèche ; la relâcher ailleurs, ou avec Alt, pour la détacher
+	Move the arrow's end	Déplacer l'extrémité de la flèche
+	Drag onto a connection point to glue this end; drop it elsewhere, or hold Alt, to leave it free	Glisser sur un point de connexion pour accrocher cette extrémité ; la relâcher ailleurs, ou avec Alt, pour la laisser libre
+	Glue the arrow's end	Accrocher l'extrémité de la flèche
+	Free the arrow's end	Détacher l'extrémité de la flèche

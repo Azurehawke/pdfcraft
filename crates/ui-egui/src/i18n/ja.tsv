@@ -3300,3 +3300,7 @@ animation effects	Off	オフ
 	Glue the callout's arrow	吹き出しの矢印を接続点に固定
 	Free the callout's arrow	吹き出しの矢印の固定を解除
 	Drag onto a connection point to glue the arrow; drop it elsewhere, or hold Alt, to free it	接続点までドラッグすると矢印が固定されます。それ以外の場所で離すか Alt を押すと固定を解除します
+	Move the arrow's end	矢印の端を移動
+	Drag onto a connection point to glue this end; drop it elsewhere, or hold Alt, to leave it free	この端を接続点までドラッグすると固定されます。それ以外の場所で離すか Alt を押すと自由になります
+	Glue the arrow's end	矢印の端を接続点に固定
+	Free the arrow's end	矢印の端の固定を解除

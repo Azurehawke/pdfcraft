@@ -3298,3 +3298,7 @@ animation effects	Off	Aus
 	Glue the callout's arrow	Pfeil des Callouts anheften
 	Free the callout's arrow	Pfeil des Callouts lösen
 	Drag onto a connection point to glue the arrow; drop it elsewhere, or hold Alt, to free it	Auf einen Verbindungspunkt ziehen, um den Pfeil anzuheften; anderswo loslassen oder mit Alt, um ihn zu lösen
+	Move the arrow's end	Pfeilende verschieben
+	Drag onto a connection point to glue this end; drop it elsewhere, or hold Alt, to leave it free	Auf einen Verbindungspunkt ziehen, um dieses Ende anzuheften; anderswo loslassen oder mit Alt, um es frei zu lassen
+	Glue the arrow's end	Pfeilende anheften
+	Free the arrow's end	Pfeilende lösen

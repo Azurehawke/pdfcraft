@@ -158,7 +158,7 @@ pub use pdfcraft_annot::{
     Props as CommentProps, ReviewState, Rgb, Shape, StampGroup, StampKind, Style, rect_quad,
 };
 pub use pdfcraft_annot::{MAX_TEXT_SIZE, MIN_TEXT_SIZE};
-pub use pdfcraft_annot::{bezier, callout_glue, punch};
+pub use pdfcraft_annot::{arrow_glue, bezier, callout_glue, punch};
 pub use pdfcraft_annot::{fields, geometry, layers, photo_callout, stroke_align, svg_art, symbols, walls};
 pub use pdfcraft_create::report;
 pub use pdfcraft_forms::detect;
@@ -330,6 +330,7 @@ fn scope_of(edit: &Edit) -> Scope {
         | Edit::SetSpace { .. }
         | Edit::SetSpaceLabel { .. }
         | Edit::SetCalloutGlue { .. }
+        | Edit::SetArrowGlue { .. }
         | Edit::SetTextSize { .. }
         | Edit::MoveWhole { .. }
         | Edit::SetCalloutTip { .. }
@@ -744,6 +745,11 @@ impl Document {
     }
 
     /// RevuCraft: a callout's glue state (its site, box and arrow end), when `(page, index)` is one.
+    /// RevuCraft: the boxes on `page` that arrows can glue to, by name.
+    pub fn glue_targets(&self, page: usize) -> Vec<(String, [f64; 4])> {
+        self.editor.as_ref().map(|e| arrow_glue::glue_targets(&e.cos, page)).unwrap_or_default()
+    }
+
     pub fn callout_glue(&self, page: usize, index: usize) -> Option<callout_glue::Glue> {
         self.editor.as_ref().and_then(|e| callout_glue::glue_at(&e.cos, page, index))
     }
@@ -2059,6 +2065,14 @@ pub enum Edit {
         index: usize,
         name: String,
     },
+    /// RevuCraft: glue one end of an arrow to a connection site of the box named `target` (`Some`),
+    /// or free it (`None`).
+    SetArrowGlue {
+        page: usize,
+        index: usize,
+        start: bool,
+        target: Option<(String, u32)>,
+    },
     /// RevuCraft: glue a callout's arrow to a connection site of its box (`Some`), or free it (`None`).
     SetCalloutGlue {
         page: usize,
@@ -2655,6 +2669,8 @@ pub const EDIT_LABELS: &[&str] = &[
     "Move the space's name",
     "Glue the callout's arrow",
     "Free the callout's arrow",
+    "Glue the arrow's end",
+    "Free the arrow's end",
     "Text size",
     "Move the callout's arrow",
     "Draw curve",
@@ -2880,6 +2896,8 @@ impl Edit {
             Edit::SetSpaceLabel { .. } => Label::of("Move the space's name"),
             Edit::SetCalloutGlue { site: Some(_), .. } => Label::of("Glue the callout's arrow"),
             Edit::SetCalloutGlue { site: None, .. } => Label::of("Free the callout's arrow"),
+            Edit::SetArrowGlue { target: Some(_), .. } => Label::of("Glue the arrow's end"),
+            Edit::SetArrowGlue { target: None, .. } => Label::of("Free the arrow's end"),
             Edit::SetTextSize { .. } => Label::of("Text size"),
             Edit::MoveWhole { .. } => Label::of("Move comment"),
             Edit::AddPath { .. } => Label::of("Draw curve"),
@@ -3011,6 +3029,7 @@ fn check_permission(edit: &Edit, p: &pdfcraft_cos::Permissions) -> Result<(), Ed
         | Edit::SetSpace { .. }
         | Edit::SetSpaceLabel { .. }
         | Edit::SetCalloutGlue { .. }
+        | Edit::SetArrowGlue { .. }
         | Edit::SetTextSize { .. }
         | Edit::MoveWhole { .. }
         | Edit::SetCalloutTip { .. }
@@ -3633,6 +3652,7 @@ fn run_edit(doc: &mut pdfcraft_cos::Document, edit: &Edit, cx: &mut EditCtx) -> 
         Edit::SetSpace { page, index, name } => pdfcraft_annot::punch::set_space(doc, *page, *index, name, &cx.meta())?,
         Edit::SetSpaceLabel { page, index, at } => pdfcraft_annot::punch::set_space_label(doc, *page, *index, *at, &cx.meta())?,
         Edit::SetCalloutGlue { page, index, site } => callout_glue::set_callout_glue(doc, *page, *index, *site, &cx.meta())?,
+        Edit::SetArrowGlue { page, index, start, target } => arrow_glue::set_arrow_glue(doc, *page, *index, *start, target.clone(), &cx.meta())?,
         Edit::SetTextSize { page, index, size } => pdfcraft_annot::text_size::set_text_size(doc, *page, *index, *size, &cx.meta())?,
         Edit::MoveWhole { page, index, dx, dy } => pdfcraft_annot::move_whole(doc, *page, *index, *dx, *dy, &cx.meta())?,
         Edit::AddPath { page, nodes, closed, style, author } => {
@@ -5057,6 +5077,8 @@ impl Session {
         // picture rather than failing the change.
         if matches!(scope_of(&edit), Scope::Comments | Scope::Full) {
             let _ = guard(|| pdfcraft_annot::legend::refresh_legends(&mut next));
+            // RevuCraft: an arrow glued to a box follows the box.
+            let _ = guard(|| arrow_glue::reroute_all(&mut next));
         }
         // Redaction removed what its own interpreter places under the marks. The marks were drawn
         // over the page as the renderer shows it, so the renderer has the last word.
