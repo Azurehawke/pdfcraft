@@ -180,6 +180,7 @@ Drafting
 Drag a box around the area that has this scale
 Drag a box around the detail or viewport that has this scale.
 Drag out a guide
+Drag to move the space's name; double-click to put it back
 Drag to move · Delete removes it · Esc when done
 Drag to move, the corner to resize · Delete removes it · Esc when done
 Drag to point the arrow somewhere else
@@ -368,6 +369,7 @@ Move on the sheet
 Move or resize on the sheet
 Move out of its layer
 Move the callout's arrow
+Move the space's name
 Move to layer
 My symbol
 My symbols

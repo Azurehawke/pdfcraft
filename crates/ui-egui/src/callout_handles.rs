@@ -60,8 +60,10 @@ pub(crate) fn input(ui: &egui::Ui, doc: &Document, view: &mut DocView, cx: &Page
     if view.comments.group().len() > 1 || !cx.allowed {
         return false;
     }
+    // A selected space: its name, dragged to another spot inside or beside it.
+    let mut busy = space_label_handle(ui, doc, view, cx, accent, page, index);
     // Any callout: its arrow's tip, dragged to point it somewhere else (the box stays).
-    let mut busy = tip_handle(ui, doc, view, cx, accent, page, index);
+    busy |= tip_handle(ui, doc, view, cx, accent, page, index);
     let Some(parts) = doc.callout_parts(page, index) else { return busy };
     let photo_at = cx.to_screen(photo_corners(&parts).0);
     let text_at = cx.to_screen(text_edge(&parts));
@@ -92,6 +94,42 @@ pub(crate) fn input(ui: &egui::Ui, doc: &Document, view: &mut DocView, cx: &Page
         }
     }
     busy
+}
+
+/// The handle on a selected space's name: dragged, the name moves there on letting go
+/// ([`Edit::SetSpaceLabel`]); double-clicked, it goes back inside the space. Returns `true` while
+/// it is being dragged.
+fn space_label_handle(ui: &egui::Ui, doc: &Document, view: &mut DocView, cx: &PageCx<'_>, accent: Color32, page: usize, index: usize) -> bool {
+    let Some(at) = doc.space_label(page, index) else { return false };
+    let screen = cx.to_screen(at);
+    let r = Rect::from_center_size(screen, vec2(HANDLE, HANDLE));
+    let id = ui.id().with(("space-label", page, index));
+    let resp =
+        ui.interact(r.expand(3.0), id, Sense::click_and_drag()).on_hover_text(tl!("Drag to move the space's name; double-click to put it back"));
+    if resp.hovered() || resp.dragged() {
+        ui.ctx().set_cursor_icon(egui::CursorIcon::Move);
+    }
+    if resp.double_clicked() {
+        view.pending_edit = Some(Edit::SetSpaceLabel { page, index, at: None });
+        return false;
+    }
+    let painter = ui.painter();
+    painter.rect(r, 1.0, Color32::WHITE, Stroke::new(1.5, accent), egui::StrokeKind::Middle);
+    let to = ui.input(|i| i.pointer.latest_pos());
+    if resp.dragged()
+        && let Some(p) = to
+    {
+        painter.line_segment([screen, p], Stroke::new(1.5, accent.gamma_multiply(0.7)));
+        painter.circle_filled(p, 3.0, accent);
+        return true;
+    }
+    if resp.drag_stopped()
+        && let Some(p) = to
+        && p.distance(screen) >= 2.0
+    {
+        view.pending_edit = Some(Edit::SetSpaceLabel { page, index, at: Some(cx.to_user(p)) });
+    }
+    false
 }
 
 /// The handle on a callout's arrow tip: dragged, the tip moves and the leader follows it on letting

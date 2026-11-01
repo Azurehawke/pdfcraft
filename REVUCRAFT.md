@@ -439,6 +439,10 @@ Markup and measuring
     own words are kept but not yet offered). Not yet: badges as their own markers on the Punch
     layer (they are still part of their markup, so they hide with its layer), legend counts split
     by condition (group the Markups list by Condition instead).
+  - Build 221 (untested on a device): a space's name is placed inside its shape (an L- or U-shape
+    no longer puts it outside, in the empty corner of its box). Select the space and drag the
+    name's handle to move it (`/PCLabelAt`, kept with the space); double-click the handle to put
+    it back. Not yet: a name in several lines, or a name that scales with the space.
 - [ ] **(Steve, next)** Touch, second pass from use on the devices: double tap to zoom, the drag
       threshold, the glide's feel, long press; quick Add photo button and field flow on the phone;
       Properties, caption box and keypad sized for the phone.

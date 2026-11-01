@@ -36,6 +36,9 @@ pub const LABEL: f64 = 9.0;
 const BADGE_COLOR: [f64; 3] = [0.82, 0.27, 0.12];
 pub const SPACE_STROKE: [f64; 3] = [0.16, 0.52, 0.32];
 pub const SPACE_FILL: [f64; 3] = [0.82, 0.94, 0.85];
+/// Where the user moved a space's name (`/PCLabelAt [x y]`, page space). Absent, it sits inside
+/// the shape.
+pub const LABEL_AT: &[u8] = b"PCLabelAt";
 /// Corners kept for the space test, at most.
 const MAX_CORNERS: usize = 4096;
 
@@ -299,6 +302,125 @@ pub fn space_at<T: Copy>(spaces: &[(T, Vec<[f64; 2]>)], p: [f64; 2]) -> Option<T
     spaces.iter().filter(|(_, c)| c.len() >= 3 && contains(c, p)).min_by(|a, b| area(&a.1).total_cmp(&area(&b.1))).map(|(id, _)| *id)
 }
 
+/// The corners of a space: a polygon's vertices, or a rectangle's four corners.
+pub fn corners_of(d: &Dict) -> Vec<[f64; 2]> {
+    let nums = |key: &[u8]| -> Vec<f64> {
+        d.get(key).and_then(Object::as_array).map(|a| a.iter().filter_map(Object::as_f64).take(MAX_CORNERS * 2).collect()).unwrap_or_default()
+    };
+    if d.name(b"Subtype") == Some(b"Polygon") {
+        return nums(b"Vertices").as_chunks::<2>().0.to_vec();
+    }
+    match nums(b"Rect").as_slice() {
+        [a, b, c, e] => {
+            let (x0, x1) = (a.min(*c), a.max(*c));
+            let (y0, y1) = (b.min(*e), b.max(*e));
+            vec![[x0, y0], [x1, y0], [x1, y1], [x0, y1]]
+        }
+        _ => Vec::new(),
+    }
+}
+
+/// The distance from `p` to the segment `a`–`b`.
+fn segment_distance(p: [f64; 2], a: [f64; 2], b: [f64; 2]) -> f64 {
+    let d = [b[0] - a[0], b[1] - a[1]];
+    let len2 = d[0] * d[0] + d[1] * d[1];
+    let t = if len2 > 0.0 { (((p[0] - a[0]) * d[0] + (p[1] - a[1]) * d[1]) / len2).clamp(0.0, 1.0) } else { 0.0 };
+    let q = [a[0] + d[0] * t - p[0], a[1] + d[1] * t - p[1]];
+    (q[0] * q[0] + q[1] * q[1]).sqrt()
+}
+
+/// Where a space's name sits when the user has not moved it: the point well inside the shape with
+/// the most room round it (a grid search, so an L- or U-shaped space gets its middle arm), the
+/// name's baseline-left point being set so the name is centred on it. `None` for no shape.
+pub fn default_label(corners: &[[f64; 2]], size: f64, name_len: usize) -> Option<[f64; 2]> {
+    let corners = corners.get(..corners.len().min(MAX_CORNERS))?;
+    if corners.len() < 3 || corners.iter().any(|c| !c[0].is_finite() || !c[1].is_finite()) {
+        return None;
+    }
+    let (mut x0, mut y0, mut x1, mut y1) = (f64::MAX, f64::MAX, f64::MIN, f64::MIN);
+    for c in corners {
+        x0 = x0.min(c[0]);
+        y0 = y0.min(c[1]);
+        x1 = x1.max(c[0]);
+        y1 = y1.max(c[1]);
+    }
+    const STEPS: usize = 24;
+    let mut best: Option<([f64; 2], f64)> = None;
+    for i in 0..=STEPS {
+        for j in 0..=STEPS {
+            let p = [x0 + (x1 - x0) * i as f64 / STEPS as f64, y0 + (y1 - y0) * j as f64 / STEPS as f64];
+            if !contains(corners, p) {
+                continue;
+            }
+            let mut room = f64::MAX;
+            for (k, a) in corners.iter().enumerate() {
+                if let Some(b) = corners.get((k + 1) % corners.len()) {
+                    room = room.min(segment_distance(p, *a, *b));
+                }
+            }
+            if best.is_none_or(|(_, r)| room > r) {
+                best = Some((p, room));
+            }
+        }
+    }
+    let (p, _) = best?;
+    let width = name_len.min(60) as f64 * size * 0.55;
+    Some([p[0] - width / 2.0, p[1] - size / 2.0])
+}
+
+/// Where the user put a space's name (`/PCLabelAt`), when they have.
+pub fn label_at_of(d: &Dict) -> Option<[f64; 2]> {
+    let v: Vec<f64> = d.get(LABEL_AT)?.as_array()?.iter().filter_map(Object::as_f64).collect();
+    match v.as_slice() {
+        [x, y] if x.is_finite() && y.is_finite() => Some([*x, *y]),
+        _ => None,
+    }
+}
+
+/// Where a space's name is drawn: where the user put it, else [`default_label`].
+pub fn label_point(d: &Dict, size: f64) -> Option<[f64; 2]> {
+    label_at_of(d).or_else(|| default_label(&corners_of(d), size, text(d, b"Contents").chars().count()))
+}
+
+/// The point a space's name is drawn at, for the space at `(page, index)`; `None` when that
+/// markup isn't a space.
+pub fn space_label_at(doc: &Document, page: usize, index: usize) -> Option<[f64; 2]> {
+    let p = page_ref(doc, page).ok()?;
+    let entry = annots(doc, p).get(index).cloned()?;
+    let obj = doc.resolve(&entry);
+    let d = obj.as_dict()?;
+    is_space(d).then(|| label_point(d, crate::text_size(d).unwrap_or(LABEL))).flatten()
+}
+
+/// Move a space's name to `at` (in page space), or back inside the space when `at` is `None`.
+pub fn set_space_label(doc: &mut Document, page: usize, index: usize, at: Option<[f64; 2]>, meta: &Meta) -> Result<(), AnnotError> {
+    if at.is_some_and(|p| !p.iter().all(|v| v.is_finite() && v.abs() <= 1e7)) {
+        return Err(AnnotError::Invalid("invalid point".into()));
+    }
+    let (_, r) = annot_ref(doc, page, index)?;
+    crate::unlocked(doc, r)?;
+    let before = crate::annot_dict(doc, r);
+    if !is_space(&before) {
+        return Err(AnnotError::Invalid("only a space's name can be moved".into()));
+    }
+    doc.update_dict(r, |d| {
+        match at {
+            Some(p) => {
+                d.set(LABEL_AT.to_vec(), Object::Array(p.iter().map(|v| Object::Real(*v)).collect()));
+            }
+            None => {
+                d.remove(LABEL_AT);
+            }
+        }
+        crate::touch(d, meta);
+    })?;
+    if let Err(e) = set_appearance(doc, r) {
+        doc.set(r, Object::Dict(before));
+        return Err(e);
+    }
+    Ok(())
+}
+
 /// The appearance with a punch item's badge or a space's name drawn over it (the original is
 /// returned when there is neither, or its content can't be read).
 pub(crate) fn decorate(d: &Dict, stream: Stream) -> Stream {
@@ -359,7 +481,10 @@ pub(crate) fn decorate(d: &Dict, stream: Stream) -> Stream {
         _ => {}
     }
     if let Some(name) = space {
-        out.extend(space_label(&name, bbox, crate::text_size(d).unwrap_or(LABEL)));
+        let size = crate::text_size(d).unwrap_or(LABEL);
+        // No shape to place it in: the old spot, at the top left of the box.
+        let at = label_point(d, size).unwrap_or([bbox[0] + 4.0, bbox[3] - size - 3.0]);
+        out.extend(space_label(&name, at, size));
     }
     if let Some(no) = badge {
         out.extend(badge_content(no, bbox));
@@ -436,8 +561,8 @@ fn badge_content(no: u32, bbox: [f64; 4]) -> Vec<u8> {
     s.into_bytes()
 }
 
-/// A space's name, at the top left inside its box.
-fn space_label(name: &str, bbox: [f64; 4], size: f64) -> Vec<u8> {
+/// A space's name, its baseline-left point at `at`.
+fn space_label(name: &str, at: [f64; 2], size: f64) -> Vec<u8> {
     let name: String = name.chars().take(60).collect();
     let mut s = format!(
         "q {} {} {} rg BT /PCLabel {} Tf {} {} Td ",
@@ -445,8 +570,8 @@ fn space_label(name: &str, bbox: [f64; 4], size: f64) -> Vec<u8> {
         n(SPACE_STROKE[1] * 0.7),
         n(SPACE_STROKE[2] * 0.7),
         n(size),
-        n(bbox[0] + 4.0),
-        n(bbox[3] - size - 3.0)
+        n(at[0]),
+        n(at[1])
     )
     .into_bytes();
     s.extend(literal(&win_ansi(&name)));
@@ -457,6 +582,18 @@ fn space_label(name: &str, bbox: [f64; 4], size: f64) -> Vec<u8> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn a_space_name_sits_inside_an_odd_shape() {
+        // An L whose top-left corner is empty: the box's top-left is outside the shape.
+        let l = [[0.0, 0.0], [100.0, 0.0], [100.0, 100.0], [40.0, 100.0], [40.0, 40.0], [0.0, 40.0]];
+        assert!(!contains(&l, [4.0, 88.0]));
+        let at = default_label(&l, 9.0, 7).unwrap_or([f64::NAN, f64::NAN]);
+        let centre = [at[0] + 7.0 * 9.0 * 0.55 / 2.0, at[1] + 4.5];
+        assert!(contains(&l, centre));
+        // Fewer than three corners is no shape at all.
+        assert_eq!(default_label(&l[..2], 9.0, 7), None);
+    }
 
     #[test]
     fn punch_items_read_back_and_bad_numbers_are_not_items() {

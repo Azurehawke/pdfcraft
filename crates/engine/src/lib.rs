@@ -328,6 +328,7 @@ fn scope_of(edit: &Edit) -> Scope {
         | Edit::SetAnnotationField { .. }
         | Edit::SetPunch { .. }
         | Edit::SetSpace { .. }
+        | Edit::SetSpaceLabel { .. }
         | Edit::SetTextSize { .. }
         | Edit::MoveWhole { .. }
         | Edit::SetCalloutTip { .. }
@@ -741,7 +742,12 @@ impl Document {
         self.editor.as_ref().and_then(|e| pdfcraft_annot::text_size::drawn_text_size_at(&e.cos, page, index))
     }
 
-    /// RevuCraft: the spaces on `page` (indexes).
+    /// RevuCraft: where a space's name is drawn (page space), when `(page, index)` is a space.
+    pub fn space_label(&self, page: usize, index: usize) -> Option<[f64; 2]> {
+        self.editor.as_ref().and_then(|e| pdfcraft_annot::punch::space_label_at(&e.cos, page, index))
+    }
+
+    /// The spaces on `page`: indexes.
     pub fn spaces(&self, page: usize) -> Vec<usize> {
         self.editor.as_ref().map(|e| pdfcraft_annot::punch::spaces(&e.cos, page)).unwrap_or_default()
     }
@@ -2047,6 +2053,12 @@ pub enum Edit {
         index: usize,
         name: String,
     },
+    /// RevuCraft: move a space's name to a point in user space, or back inside the space (`None`).
+    SetSpaceLabel {
+        page: usize,
+        index: usize,
+        at: Option<[f64; 2]>,
+    },
     /// RevuCraft: set one of your own columns on a markup (an empty value clears it).
     SetAnnotationField {
         page: usize,
@@ -2628,6 +2640,7 @@ pub const EDIT_LABELS: &[&str] = &[
     "Punch item",
     "Take off the punch list",
     "Space",
+    "Move the space's name",
     "Text size",
     "Move the callout's arrow",
     "Draw curve",
@@ -2850,6 +2863,7 @@ impl Edit {
             Edit::SetPunch { punch: Some(_), .. } => Label::of("Punch item"),
             Edit::SetPunch { punch: None, .. } => Label::of("Take off the punch list"),
             Edit::SetSpace { .. } => Label::of("Space"),
+            Edit::SetSpaceLabel { .. } => Label::of("Move the space's name"),
             Edit::SetTextSize { .. } => Label::of("Text size"),
             Edit::MoveWhole { .. } => Label::of("Move comment"),
             Edit::AddPath { .. } => Label::of("Draw curve"),
@@ -2979,6 +2993,7 @@ fn check_permission(edit: &Edit, p: &pdfcraft_cos::Permissions) -> Result<(), Ed
         | Edit::SetAnnotationField { .. }
         | Edit::SetPunch { .. }
         | Edit::SetSpace { .. }
+        | Edit::SetSpaceLabel { .. }
         | Edit::SetTextSize { .. }
         | Edit::MoveWhole { .. }
         | Edit::SetCalloutTip { .. }
@@ -3599,6 +3614,7 @@ fn run_edit(doc: &mut pdfcraft_cos::Document, edit: &Edit, cx: &mut EditCtx) -> 
         Edit::SetAnnotationField { page, index, name, value } => pdfcraft_annot::fields::set_field(doc, *page, *index, name, value, &cx.meta())?,
         Edit::SetPunch { page, index, punch } => pdfcraft_annot::punch::set_punch(doc, *page, *index, punch.as_ref(), &cx.meta())?,
         Edit::SetSpace { page, index, name } => pdfcraft_annot::punch::set_space(doc, *page, *index, name, &cx.meta())?,
+        Edit::SetSpaceLabel { page, index, at } => pdfcraft_annot::punch::set_space_label(doc, *page, *index, *at, &cx.meta())?,
         Edit::SetTextSize { page, index, size } => pdfcraft_annot::text_size::set_text_size(doc, *page, *index, *size, &cx.meta())?,
         Edit::MoveWhole { page, index, dx, dy } => pdfcraft_annot::move_whole(doc, *page, *index, *dx, *dy, &cx.meta())?,
         Edit::AddPath { page, nodes, closed, style, author } => {
