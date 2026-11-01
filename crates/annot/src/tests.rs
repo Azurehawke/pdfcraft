@@ -383,6 +383,44 @@ fn editing_a_text_box_refits_its_rectangle() {
 }
 
 #[test]
+fn a_glued_callout_arrow_stays_on_its_site_as_the_box_changes() {
+    let mut doc = fixture();
+    let c = add_annotation(
+        &mut doc,
+        &new(
+            0,
+            Shape::Callout {
+                rect: [300.0, 600.0, 500.0, 612.0],
+                knee: [260.0, 560.0],
+                point: [200.0, 520.0],
+                font_size: 12.0,
+                ending: LineEnding::OpenArrow,
+            },
+        ),
+        &meta("c"),
+    )
+    .unwrap();
+    let attach = |doc: &Document| -> [f64; 2] {
+        let cl = cl_of(doc);
+        [cl[4], cl[5]]
+    };
+    // Glued to the right side's middle: the leader meets that site, not the side facing the knee.
+    crate::callout_glue::set_callout_glue(&mut doc, 0, c, Some(1), &meta("g")).unwrap();
+    let box_now = text_box_of(&list(&doc, 0)[c]).unwrap();
+    assert_eq!(Some(attach(&doc)), crate::callout_glue::site_point(box_now, 1));
+    // A longer text grows the box; the leader stays on the right side's middle of the new box.
+    set_contents(&mut doc, 0, c, "the quick brown fox jumps over the lazy dog and keeps going", &meta("")).unwrap();
+    let box_now = text_box_of(&list(&doc, 0)[c]).unwrap();
+    assert_eq!(Some(attach(&doc)), crate::callout_glue::site_point(box_now, 1));
+    // Unglued, it goes back to the side facing the knee.
+    crate::callout_glue::set_callout_glue(&mut doc, 0, c, None, &meta("u")).unwrap();
+    let box_now = text_box_of(&list(&doc, 0)[c]).unwrap();
+    assert_eq!(attach(&doc), callout_attach(box_now, [260.0, 560.0]));
+    // A site the box does not have is refused.
+    assert!(crate::callout_glue::set_callout_glue(&mut doc, 0, c, Some(8), &meta("x")).is_err());
+}
+
+#[test]
 fn editing_a_callout_refits_the_box_and_keeps_the_leader() {
     let mut doc = fixture();
     let c = add_annotation(

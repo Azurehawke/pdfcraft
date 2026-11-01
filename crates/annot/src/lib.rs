@@ -20,6 +20,7 @@ pub mod appearance;
 pub mod pen;
 pub use pen::PenKind;
 pub mod bezier;
+pub mod callout_glue;
 pub mod fields;
 pub mod geometry;
 pub mod layers;
@@ -2228,7 +2229,8 @@ fn apply_text_box(doc: &mut Document, r: ObjRef, rect: [f64; 4], meta: &Meta, ne
                 let knee = photo_callout::nearest_on_box(rect, [l[0], l[1]]);
                 (l[2], l[3]) = (knee[0], knee[1]);
             }
-            let attach = callout_attach(rect, [l[2], l[3]]);
+            // Glued to a connection site, the leader meets that site; otherwise the side facing the knee.
+            let attach = callout_glue::attach(&d, rect, callout_attach(rect, [l[2], l[3]]));
             (l[4], l[5]) = (attach[0], attach[1]);
             let pad = border_width_of(&d) / 2.0 + appearance::arrow_size(border_width_of(&d)) + 1.0;
             let lead = grow(bounds([[l[0], l[1]], [l[2], l[3]]].into_iter()).unwrap_or_default(), pad);

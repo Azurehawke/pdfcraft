@@ -443,6 +443,7 @@ Markup and measuring
     no longer puts it outside, in the empty corner of its box). Select the space and drag the
     name's handle to move it (`/PCLabelAt`, kept with the space); double-click the handle to put
     it back. Not yet: a name in several lines, or a name that scales with the space.
+- [ ] **(Steve, in progress)** Callouts glued to their box, for every callout including photo callouts. Stage 1 (done, untested): eight connection sites on a box (four side middles, four corners), and a glued arrow stays on its site as the box moves or resizes (`/PCGlue`, `crates/annot/src/callout_glue.rs`). Stage 2: snap the arrow to a site when drawn or dragged near one (Alt forces a free arrow), and a handle to glue or unglue. Adapted from WordCraft's connector sites (MIT/Apache-2.0).
 - [ ] **(Steve, next)** Touch, second pass from use on the devices: double tap to zoom, the drag
       threshold, the glide's feel, long press; quick Add photo button and field flow on the phone;
       Properties, caption box and keypad sized for the phone.
