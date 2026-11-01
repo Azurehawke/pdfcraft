@@ -401,7 +401,7 @@ fn a_glued_callout_arrow_stays_on_its_site_as_the_box_changes() {
     )
     .unwrap();
     let attach = |doc: &Document| -> [f64; 2] {
-        let cl = cl_of(doc);
+        let cl: Vec<f64> = list(doc, 0)[c].get(b"CL").unwrap().as_array().unwrap().iter().map(|o| o.as_f64().unwrap()).collect();
         [cl[4], cl[5]]
     };
     // Glued to the right side's middle: the leader meets that site, not the side facing the knee.
