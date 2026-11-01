@@ -428,12 +428,31 @@ pub(crate) fn tick(app: &mut PdfCraftApp) {
     let name = crate::i18n::fmt(tl!("Space {n}"), &[("n", &(spaces(doc).len() + 1).to_string())]);
     app.punch.drawing = None;
     app.quick_tool = QuickTool::Select;
-    if app.apply_edit(Edit::SetSpace { page, index, name: name.clone() }) {
-        crate::cable::ensure_column(&mut app.markup_columns, "Space", &[]);
-        app.punch.naming = Some((page, index, name));
-        app.punch.focus_name = true;
+    if make_space(app, page, index, name) {
         crate::links_ui::show_pane(app, crate::RightPanel::Spaces);
     }
+}
+
+/// Make the shape at `(page, index)` a space called `name`, and start naming it. A new space goes
+/// to the bottom of the page's drawing order, so it moves to index 0 and stays selected there.
+fn make_space(app: &mut PdfCraftApp, page: usize, index: usize, name: String) -> bool {
+    let Some((i, id)) = app.active_ids() else { return false };
+    let fresh = app.session.get(id).is_some_and(|d| !spaces(d).iter().any(|s| s.page == page && s.index == index));
+    if !app.apply_edit(Edit::SetSpace { page, index, name: name.clone() }) {
+        return false;
+    }
+    let index = if fresh {
+        if let Some(view) = app.views.get_mut(i) {
+            view.comments.select_one(page, 0);
+        }
+        0
+    } else {
+        index
+    };
+    crate::cable::ensure_column(&mut app.markup_columns, "Space", &[]);
+    app.punch.naming = Some((page, index, name));
+    app.punch.focus_name = true;
+    true
 }
 
 /// The Spaces box.
@@ -518,11 +537,7 @@ pub(crate) fn spaces_box(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
     }
     if make && let Some((page, index)) = selected_shape {
         let name = crate::i18n::fmt(tl!("Space {n}"), &[("n", &(all.len() + 1).to_string())]);
-        if app.apply_edit(Edit::SetSpace { page, index, name: name.clone() }) {
-            crate::cable::ensure_column(&mut app.markup_columns, "Space", &[]);
-            app.punch.naming = Some((page, index, name));
-            app.punch.focus_name = true;
-        }
+        make_space(app, page, index, name);
     }
     if let Some((page, index, name)) = rename {
         app.apply_edit(Edit::SetSpace { page, index, name });

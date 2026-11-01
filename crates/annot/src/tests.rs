@@ -1856,3 +1856,22 @@ fn a_star_note_keeps_its_star_when_recoloured() {
     let Object::Stream(s) = &*doc.get(n) else { panic!() };
     assert_eq!(s.decoded().unwrap(), note_drawing(Some("Star"), [0.0, 0.0, 1.0]));
 }
+
+#[test]
+fn a_new_space_goes_to_the_bottom_of_the_drawing_order() {
+    let mut doc = fixture();
+    add_annotation(&mut doc, &new(0, Shape::Rectangle { rect: [300.0, 300.0, 400.0, 350.0] }), &meta("top")).unwrap();
+    let room = add_annotation(&mut doc, &new(0, Shape::Rectangle { rect: [100.0, 100.0, 200.0, 200.0] }), &meta("room")).unwrap();
+    assert_eq!(room, 1);
+    // Making it a space moves it to the front of /Annots (drawn first, under the markups).
+    let at = crate::punch::set_space(&mut doc, 0, room, "Office", &meta("s")).unwrap();
+    assert_eq!(at, 0);
+    let l = list(&doc, 0);
+    assert!(crate::punch::is_space(&l[0]), "the space is now the bottom-most markup");
+    assert!(!crate::punch::is_space(&l[1]), "the markup it was moved past keeps its place after it");
+    // Renaming a space leaves it where it is.
+    assert_eq!(crate::punch::set_space(&mut doc, 0, 0, "Office 2", &meta("r")).unwrap(), 0);
+    // A bad index is an error, not a panic.
+    assert!(crate::send_to_bottom(&mut doc, 0, usize::MAX).is_err());
+    assert!(crate::punch::set_space(&mut doc, 0, 99, "x", &meta("bad")).is_err());
+}

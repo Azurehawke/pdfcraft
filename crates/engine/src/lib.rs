@@ -3659,7 +3659,9 @@ fn run_edit(doc: &mut pdfcraft_cos::Document, edit: &Edit, cx: &mut EditCtx) -> 
         Edit::SetStrokeAlign { page, index, align } => pdfcraft_annot::stroke_align::set(doc, *page, *index, *align)?,
         Edit::SetAnnotationField { page, index, name, value } => pdfcraft_annot::fields::set_field(doc, *page, *index, name, value, &cx.meta())?,
         Edit::SetPunch { page, index, punch } => pdfcraft_annot::punch::set_punch(doc, *page, *index, punch.as_ref(), &cx.meta())?,
-        Edit::SetSpace { page, index, name } => pdfcraft_annot::punch::set_space(doc, *page, *index, name, &cx.meta())?,
+        Edit::SetSpace { page, index, name } => {
+            pdfcraft_annot::punch::set_space(doc, *page, *index, name, &cx.meta())?;
+        }
         Edit::SetSpaceLabel { page, index, at } => pdfcraft_annot::punch::set_space_label(doc, *page, *index, *at, &cx.meta())?,
         Edit::SetCalloutGlue { page, index, site } => callout_glue::set_callout_glue(doc, *page, *index, *site, &cx.meta())?,
         Edit::SetArrowGlue { page, index, start, target } => arrow_glue::set_arrow_glue(doc, *page, *index, *start, target.clone(), &cx.meta())?,

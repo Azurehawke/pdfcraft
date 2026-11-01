@@ -210,8 +210,10 @@ pub fn is_space(d: &Dict) -> bool {
     matches!(d.get(SPACE), Some(Object::Bool(true))) && matches!(d.name(b"Subtype"), Some(b"Polygon" | b"Square"))
 }
 
-/// Make the polygon or rectangle at `(page, index)` a space called `name` (or rename it).
-pub fn set_space(doc: &mut Document, page: usize, index: usize, name: &str, meta: &Meta) -> Result<(), AnnotError> {
+/// Make the polygon or rectangle at `(page, index)` a space called `name` (or rename it). A new
+/// space goes to the bottom of the page's drawing order, so markups stay on top of it; returns the
+/// space's index after the edit.
+pub fn set_space(doc: &mut Document, page: usize, index: usize, name: &str, meta: &Meta) -> Result<usize, AnnotError> {
     let (_, r) = annot_ref(doc, page, index)?;
     crate::unlocked(doc, r)?;
     let name = clean(name);
@@ -246,7 +248,10 @@ pub fn set_space(doc: &mut Document, page: usize, index: usize, name: &str, meta
         doc.set(r, Object::Dict(before));
         return Err(e);
     }
-    Ok(())
+    if fresh {
+        return crate::send_to_bottom(doc, page, index);
+    }
+    Ok(index)
 }
 
 /// The spaces on `page`: indexes.

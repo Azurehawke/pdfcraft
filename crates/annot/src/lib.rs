@@ -815,6 +815,19 @@ fn set_annots(doc: &mut Document, page: ObjRef, list: Vec<Object>) -> Result<(),
     Ok(())
 }
 
+/// Move the annotation at `(page, index)` to the bottom of the page's drawing order (the front of
+/// `/Annots`, drawn first). Returns its new index, 0. Other annotations keep their order.
+pub fn send_to_bottom(doc: &mut Document, page: usize, index: usize) -> Result<usize, AnnotError> {
+    let p = page_ref(doc, page)?;
+    let mut list = annots(doc, p);
+    // `get_mut` checks the range, so a bad index is an error rather than a panic; `checked_add`
+    // keeps `index + 1` from overflowing.
+    let part = index.checked_add(1).and_then(|end| list.get_mut(..end)).ok_or(AnnotError::NoSuchAnnotation { page, index })?;
+    part.rotate_right(1);
+    set_annots(doc, p, list)?;
+    Ok(0)
+}
+
 /// The annotation at `(page, index)` as an indirect object (inline dictionaries are promoted).
 fn annot_ref(doc: &mut Document, page: usize, index: usize) -> Result<(ObjRef, ObjRef), AnnotError> {
     let p = page_ref(doc, page)?;
