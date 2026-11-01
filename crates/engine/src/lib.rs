@@ -745,6 +745,11 @@ impl Document {
     }
 
     /// RevuCraft: a callout's glue state (its site, box and arrow end), when `(page, index)` is one.
+    /// RevuCraft: whether one end of the arrow at `(page, index)` is glued to a box.
+    pub fn arrow_end_glued(&self, page: usize, index: usize, start: bool) -> bool {
+        self.editor.as_ref().is_some_and(|e| arrow_glue::is_glued(&e.cos, page, index, start))
+    }
+
     /// RevuCraft: the boxes on `page` that arrows can glue to, by name.
     pub fn glue_targets(&self, page: usize) -> Vec<(String, [f64; 4])> {
         self.editor.as_ref().map(|e| arrow_glue::glue_targets(&e.cos, page)).unwrap_or_default()

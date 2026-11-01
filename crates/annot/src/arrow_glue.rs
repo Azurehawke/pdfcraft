@@ -158,6 +158,15 @@ pub fn set_arrow_glue(
     Ok(())
 }
 
+/// Whether one end of the arrow at `(page, index)` is glued.
+pub fn is_glued(doc: &Document, page: usize, index: usize, start: bool) -> bool {
+    let Ok(p) = page_ref(doc, page) else { return false };
+    let Some(entry) = annots(doc, p).get(index).cloned() else { return false };
+    let obj = doc.resolve(&entry);
+    let Some(d) = obj.as_dict() else { return false };
+    glue_of(d, if start { START } else { END }).is_some()
+}
+
 /// The markups on `page` whose boxes have connection sites: their names and boxes.
 pub fn glue_targets(doc: &Document, page: usize) -> Vec<(String, [f64; 4])> {
     let Ok(p) = page_ref(doc, page) else { return Vec::new() };

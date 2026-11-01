@@ -217,12 +217,15 @@ fn arrow_end_handles(ui: &egui::Ui, doc: &Document, view: &mut DocView, cx: &Pag
                     if let Some(v) = points.get_mut(slot) {
                         *v = to;
                     }
-                    Edit::Batch {
-                        label: tl!("Move the arrow's end").to_string(),
-                        edits: vec![
-                            Edit::SetArrowGlue { page, index, start: is_start, target: None },
-                            Edit::ReshapeAnnotation { page, index, points },
-                        ],
+                    let reshape = Edit::ReshapeAnnotation { page, index, points };
+                    // A free end moves as any line's end does; a glued one is freed first.
+                    if doc.arrow_end_glued(page, index, is_start) {
+                        Edit::Batch {
+                            label: tl!("Move the arrow's end").to_string(),
+                            edits: vec![Edit::SetArrowGlue { page, index, start: is_start, target: None }, reshape],
+                        }
+                    } else {
+                        reshape
                     }
                 }
             });
