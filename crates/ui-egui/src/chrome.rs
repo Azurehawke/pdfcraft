@@ -971,6 +971,8 @@ pub fn right_rail(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
             // selected markup's Properties box sits at the end.
             let docks = app.show_ribbon;
             let props_on = app.dock_properties;
+            // A selected markup has properties to show: the Properties button says so with a dot.
+            let markup_selected = app.active_ids().and_then(|(i, _)| app.views.get(i)).is_some_and(|v| v.comments.selected.is_some());
             let props_clicked = egui::ScrollArea::vertical()
                 .id_salt("rail-panels")
                 .show(ui, |ui| {
@@ -1035,7 +1037,13 @@ pub fn right_rail(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
                     }
                     // RevuCraft: the selected markup's Properties box (saved dock layouts are in
                     // View ▸ Workspaces).
-                    docks && icons::button(ui, "sliders-horizontal", 34.0, props_on, tl!("Properties")).clicked()
+                    docks && {
+                        let r = icons::button(ui, "sliders-horizontal", 34.0, props_on, tl!("Properties"));
+                        if markup_selected && !props_on {
+                            ui.painter().circle_filled(r.rect.right_top() + vec2(-8.0, 8.0), 3.0, t.accent);
+                        }
+                        r.clicked()
+                    }
                 })
                 .inner;
             if props_clicked {

@@ -443,7 +443,14 @@ Markup and measuring
     no longer puts it outside, in the empty corner of its box). Select the space and drag the
     name's handle to move it (`/PCLabelAt`, kept with the space); double-click the handle to put
     it back. Not yet: a name in several lines, or a name that scales with the space.
-- [ ] **(Steve, in progress)** Callouts glued to their box, for every callout including photo callouts. Stage 1 (done, untested): eight connection sites on a box (four side middles, four corners), and a glued arrow stays on its site as the box moves or resizes (`/PCGlue`, `crates/annot/src/callout_glue.rs`). Stage 2: snap the arrow to a site when drawn or dragged near one (Alt forces a free arrow), and a handle to glue or unglue. Adapted from WordCraft's connector sites (MIT/Apache-2.0).
+  - Build 221 (continued, untested on a device): a new space goes to the bottom of the page's
+    drawing order, so markups draw over it (`/Annots` order; spaces made before this keep their
+    place). A faint padlock sits on each space: click it to lock or unlock that space
+    (`FLAG_LOCKED`). The text-selection bar and the comment card are one box: after Add comment
+    the card keeps Highlight, Underline, Strikethrough, Replace text and Copy above the text,
+    with Cancel and Post beneath. A text box's card has a font size control. The Properties
+    button gets a dot while a markup is selected. Not yet: a font family in the text box card.
+- [ ] **(Steve, in progress)** Callouts glued to their box, for every callout including photo callouts. Stage 1 (done, untested): eight connection sites on a box (four side middles, four corners), and a glued arrow stays on its site as the box moves or resizes (`/PCGlue`, `crates/annot/src/callout_glue.rs`). Stage 2 (done, untested): snap the arrow to a site when dragged near one (Alt forces a free arrow), and a handle to glue or unglue. Option 2 (done, untested): glued arrows (`/PCGlueStart`, `/PCGlueEnd`) follow their box; a straight callout leader moves only when its own attachment is dragged to another connection point. Adapted from WordCraft's connector sites (MIT/Apache-2.0).
 - [ ] **(Steve, next)** Touch, second pass from use on the devices: double tap to zoom, the drag
       threshold, the glide's feel, long press; quick Add photo button and field flow on the phone;
       Properties, caption box and keypad sized for the phone.
