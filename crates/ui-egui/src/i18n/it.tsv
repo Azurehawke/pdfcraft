@@ -3533,3 +3533,5 @@ certificate	SHA-256 digest	Impronta SHA-256
 	Drag onto a connection point to glue this end; drop it elsewhere, or hold Alt, to leave it free	Trascina su un punto di connessione per agganciare questa estremità; rilascia altrove, o con Alt, per lasciarla libera
 	Glue the arrow's end	Aggancia l'estremità della freccia
 	Free the arrow's end	Sgancia l'estremità della freccia
+	Lock this space	Blocca questo spazio
+	Unlock this space	Sblocca questo spazio

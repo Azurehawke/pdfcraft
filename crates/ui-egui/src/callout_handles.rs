@@ -235,6 +235,46 @@ fn arrow_end_handles(ui: &egui::Ui, doc: &Document, view: &mut DocView, cx: &Pag
     busy
 }
 
+/// Each space on this page gets a faint padlock at its top-right inside corner. Clicking it locks or
+/// unlocks the space ([`Edit::LockAnnotation`]); a locked space is drawn with a full-strength lock.
+pub(crate) fn space_lock_icons(ui: &egui::Ui, doc: &Document, view: &mut DocView, cx: &PageCx<'_>, accent: Color32) {
+    let page = cx.page;
+    let painter = ui.painter().clone();
+    for s in crate::punch_ui::spaces(doc).iter().filter(|s| s.page == page) {
+        let top_right = s.corners.iter().fold(None, |acc: Option<[f64; 2]>, c| {
+            Some(match acc {
+                None => *c,
+                Some(a) => [a[0].max(c[0]), a[1].max(c[1])],
+            })
+        });
+        let Some(corner) = top_right else { continue };
+        let locked = doc.is_locked(page, s.index);
+        let at = cx.to_screen(corner) + vec2(-12.0, 12.0);
+        let r = Rect::from_center_size(at, vec2(14.0, 14.0));
+        let id = ui.id().with(("space-lock", page, s.index));
+        let resp = ui.interact(r, id, Sense::click()).on_hover_text(if locked { tl!("Unlock this space") } else { tl!("Lock this space") });
+        if resp.hovered() {
+            ui.ctx().set_cursor_icon(egui::CursorIcon::PointingHand);
+        }
+        let color = accent.gamma_multiply(if locked || resp.hovered() { 1.0 } else { 0.4 });
+        // The body, and the shackle as an arc above it (closed when locked, open otherwise).
+        let body = Rect::from_center_size(at + vec2(0.0, 2.0), vec2(8.0, 6.0));
+        painter.rect(body, 1.0, color, Stroke::NONE, egui::StrokeKind::Middle);
+        let arc: Vec<Pos2> = (0..=8)
+            .map(|k| {
+                let t = std::f32::consts::PI + std::f32::consts::PI * k as f32 / 8.0;
+                at + vec2(3.0 * t.cos(), -1.0 + 3.0 * t.sin())
+            })
+            .collect();
+        let open_end = if locked { 0.0 } else { 3.0 };
+        let shackle: Vec<Pos2> = arc.iter().map(|p| *p + vec2(0.0, -open_end * 0.5)).collect();
+        painter.add(egui::Shape::line(shackle, Stroke::new(1.2, color)));
+        if resp.clicked() {
+            view.pending_edit = Some(Edit::LockAnnotation { page, index: s.index, locked: !locked });
+        }
+    }
+}
+
 /// The handle on a selected space's name: dragged, the name moves there on letting go
 /// ([`Edit::SetSpaceLabel`]); double-clicked, it goes back inside the space. Returns `true` while
 /// it is being dragged.

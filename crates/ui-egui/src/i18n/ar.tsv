@@ -3572,3 +3572,5 @@ certificate	Version	الإصدار
 	Drag onto a connection point to glue this end; drop it elsewhere, or hold Alt, to leave it free	اسحب إلى نقطة اتصال لربط هذا الطرف؛ أفلته في مكان آخر أو مع Alt لتركه حراً
 	Glue the arrow's end	ربط طرف السهم
 	Free the arrow's end	فك ربط طرف السهم
+	Lock this space	قفل هذه المساحة
+	Unlock this space	إلغاء قفل هذه المساحة

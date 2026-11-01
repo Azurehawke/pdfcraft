@@ -4102,6 +4102,10 @@ fn document_area_pages(app: &mut PdfCraftApp, index: usize, ui: &mut egui::Ui) {
             {
                 view.links.context = Some((i, l.index));
             }
+            // RevuCraft: each space's padlock, on the Select tool.
+            if tool == QuickTool::Select {
+                crate::callout_handles::space_lock_icons(ui, doc, view, &pcx, t.accent);
+            }
             // RevuCraft: a selected photo callout's photo and text handles come first.
             let consumed = (tool == QuickTool::Select && crate::callout_handles::input(ui, doc, view, &pcx, t.accent))
                 || crate::links_ui::page_input(ui, &resp, &pcx, view)

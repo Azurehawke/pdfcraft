@@ -3563,3 +3563,5 @@ certificate	Version	Version
 	Drag onto a connection point to glue this end; drop it elsewhere, or hold Alt, to leave it free	Glisser sur un point de connexion pour accrocher cette extrémité ; la relâcher ailleurs, ou avec Alt, pour la laisser libre
 	Glue the arrow's end	Accrocher l'extrémité de la flèche
 	Free the arrow's end	Détacher l'extrémité de la flèche
+	Lock this space	Verrouiller cet espace
+	Unlock this space	Déverrouiller cet espace

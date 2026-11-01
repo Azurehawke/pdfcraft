@@ -3300,3 +3300,5 @@ animation effects	Off	Ki
 	Drag onto a connection point to glue this end; drop it elsewhere, or hold Alt, to leave it free	Húzza csatlakozási pontra a vég rögzítéséhez; máshová engedve vagy Alt-tal szabadon hagyja
 	Glue the arrow's end	A nyíl végének rögzítése
 	Free the arrow's end	A nyíl végének felszabadítása
+	Lock this space	A terület zárolása
+	Unlock this space	A terület zárolásának feloldása

@@ -764,6 +764,11 @@ impl Document {
         self.editor.as_ref().and_then(|e| pdfcraft_annot::punch::space_label_at(&e.cos, page, index))
     }
 
+    /// RevuCraft: whether the comment at `(page, index)` is locked.
+    pub fn is_locked(&self, page: usize, index: usize) -> bool {
+        self.editor.as_ref().is_some_and(|e| pdfcraft_annot::locked_at(&e.cos, page, index))
+    }
+
     /// The spaces on `page`: indexes.
     pub fn spaces(&self, page: usize) -> Vec<usize> {
         self.editor.as_ref().map(|e| pdfcraft_annot::punch::spaces(&e.cos, page)).unwrap_or_default()

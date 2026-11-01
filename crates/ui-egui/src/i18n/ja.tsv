@@ -3304,3 +3304,5 @@ animation effects	Off	オフ
 	Drag onto a connection point to glue this end; drop it elsewhere, or hold Alt, to leave it free	この端を接続点までドラッグすると固定されます。それ以外の場所で離すか Alt を押すと自由になります
 	Glue the arrow's end	矢印の端を接続点に固定
 	Free the arrow's end	矢印の端の固定を解除
+	Lock this space	このスペースをロック
+	Unlock this space	このスペースのロックを解除

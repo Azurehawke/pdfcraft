@@ -1901,6 +1901,14 @@ fn flags(doc: &Document, r: ObjRef) -> i64 {
     doc.get(r).as_dict().map(|d| annotation_flags(doc, d)).unwrap_or(0)
 }
 
+/// Whether the comment at `(page, index)` is locked.
+pub fn locked_at(doc: &Document, page: usize, index: usize) -> bool {
+    let Ok(p) = page_ref(doc, page) else { return false };
+    let Some(entry) = annots(doc, p).get(index).cloned() else { return false };
+    let obj = doc.resolve(&entry);
+    obj.as_dict().is_some_and(|d| annotation_flags(doc, d) & FLAG_LOCKED != 0)
+}
+
 /// Refuse to change a locked comment (Acrobat: Properties ▸ Locked).
 fn unlocked(doc: &Document, r: ObjRef) -> Result<(), AnnotError> {
     if flags(doc, r) & FLAG_LOCKED != 0 { Err(AnnotError::Invalid("the comment is locked".into())) } else { Ok(()) }

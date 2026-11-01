@@ -3267,3 +3267,5 @@ animation effects	Off	关
 	Drag onto a connection point to glue this end; drop it elsewhere, or hold Alt, to leave it free	拖到连接点上以固定此端；在别处松开或按住 Alt 则保持自由
 	Glue the arrow's end	将箭头端点连接到连接点
 	Free the arrow's end	释放箭头端点
+	Lock this space	锁定此区域
+	Unlock this space	解锁此区域

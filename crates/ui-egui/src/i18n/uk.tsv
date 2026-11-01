@@ -3324,3 +3324,5 @@ animation effects	Off	Вимкнено
 	Drag onto a connection point to glue this end; drop it elsewhere, or hold Alt, to leave it free	Перетягніть на точку з'єднання, щоб прикріпити цей кінець; відпустіть деінде або з Alt, щоб лишити вільним
 	Glue the arrow's end	Прикріпити кінець стрілки
 	Free the arrow's end	Відкріпити кінець стрілки
+	Lock this space	Заблокувати цю зону
+	Unlock this space	Розблокувати цю зону

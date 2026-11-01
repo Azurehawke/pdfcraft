@@ -328,6 +328,7 @@ List the pinned folders again now
 List under
 Lock guides
 Lock layer
+Lock this space
 Mag lock
 Make a callout
 Make a symbol of your own from the selected lines and shapes
@@ -740,6 +741,7 @@ Type the real length, like 12'6", 150 or 3.5m
 Type the scale factor, then Enter (2 doubles, 0.5 halves)
 Undo last point
 Unlock layer
+Unlock this space
 Up a folder
 Up one folder
 Up to date
