@@ -158,7 +158,7 @@ pub use pdfcraft_annot::{
     Props as CommentProps, ReviewState, Rgb, Shape, StampGroup, StampKind, Style, rect_quad,
 };
 pub use pdfcraft_annot::{MAX_TEXT_SIZE, MIN_TEXT_SIZE};
-pub use pdfcraft_annot::{bezier, punch};
+pub use pdfcraft_annot::{bezier, callout_glue, punch};
 pub use pdfcraft_annot::{fields, geometry, layers, photo_callout, stroke_align, svg_art, symbols, walls};
 pub use pdfcraft_create::report;
 pub use pdfcraft_forms::detect;
@@ -329,6 +329,7 @@ fn scope_of(edit: &Edit) -> Scope {
         | Edit::SetPunch { .. }
         | Edit::SetSpace { .. }
         | Edit::SetSpaceLabel { .. }
+        | Edit::SetCalloutGlue { .. }
         | Edit::SetTextSize { .. }
         | Edit::MoveWhole { .. }
         | Edit::SetCalloutTip { .. }
@@ -740,6 +741,11 @@ impl Document {
     /// ([`pdfcraft_annot::text_size`]).
     pub fn text_size_of(&self, page: usize, index: usize) -> Option<f64> {
         self.editor.as_ref().and_then(|e| pdfcraft_annot::text_size::drawn_text_size_at(&e.cos, page, index))
+    }
+
+    /// RevuCraft: a callout's glue state (its site, box and arrow end), when `(page, index)` is one.
+    pub fn callout_glue(&self, page: usize, index: usize) -> Option<callout_glue::Glue> {
+        self.editor.as_ref().and_then(|e| callout_glue::glue_at(&e.cos, page, index))
     }
 
     /// RevuCraft: where a space's name is drawn (page space), when `(page, index)` is a space.
@@ -2053,6 +2059,12 @@ pub enum Edit {
         index: usize,
         name: String,
     },
+    /// RevuCraft: glue a callout's arrow to a connection site of its box (`Some`), or free it (`None`).
+    SetCalloutGlue {
+        page: usize,
+        index: usize,
+        site: Option<u32>,
+    },
     /// RevuCraft: move a space's name to a point in user space, or back inside the space (`None`).
     SetSpaceLabel {
         page: usize,
@@ -2641,6 +2653,8 @@ pub const EDIT_LABELS: &[&str] = &[
     "Take off the punch list",
     "Space",
     "Move the space's name",
+    "Glue the callout's arrow",
+    "Free the callout's arrow",
     "Text size",
     "Move the callout's arrow",
     "Draw curve",
@@ -2864,6 +2878,8 @@ impl Edit {
             Edit::SetPunch { punch: None, .. } => Label::of("Take off the punch list"),
             Edit::SetSpace { .. } => Label::of("Space"),
             Edit::SetSpaceLabel { .. } => Label::of("Move the space's name"),
+            Edit::SetCalloutGlue { site: Some(_), .. } => Label::of("Glue the callout's arrow"),
+            Edit::SetCalloutGlue { site: None, .. } => Label::of("Free the callout's arrow"),
             Edit::SetTextSize { .. } => Label::of("Text size"),
             Edit::MoveWhole { .. } => Label::of("Move comment"),
             Edit::AddPath { .. } => Label::of("Draw curve"),
@@ -2994,6 +3010,7 @@ fn check_permission(edit: &Edit, p: &pdfcraft_cos::Permissions) -> Result<(), Ed
         | Edit::SetPunch { .. }
         | Edit::SetSpace { .. }
         | Edit::SetSpaceLabel { .. }
+        | Edit::SetCalloutGlue { .. }
         | Edit::SetTextSize { .. }
         | Edit::MoveWhole { .. }
         | Edit::SetCalloutTip { .. }
@@ -3615,6 +3632,7 @@ fn run_edit(doc: &mut pdfcraft_cos::Document, edit: &Edit, cx: &mut EditCtx) -> 
         Edit::SetPunch { page, index, punch } => pdfcraft_annot::punch::set_punch(doc, *page, *index, punch.as_ref(), &cx.meta())?,
         Edit::SetSpace { page, index, name } => pdfcraft_annot::punch::set_space(doc, *page, *index, name, &cx.meta())?,
         Edit::SetSpaceLabel { page, index, at } => pdfcraft_annot::punch::set_space_label(doc, *page, *index, *at, &cx.meta())?,
+        Edit::SetCalloutGlue { page, index, site } => callout_glue::set_callout_glue(doc, *page, *index, *site, &cx.meta())?,
         Edit::SetTextSize { page, index, size } => pdfcraft_annot::text_size::set_text_size(doc, *page, *index, *size, &cx.meta())?,
         Edit::MoveWhole { page, index, dx, dy } => pdfcraft_annot::move_whole(doc, *page, *index, *dx, *dy, &cx.meta())?,
         Edit::AddPath { page, nodes, closed, style, author } => {

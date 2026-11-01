@@ -11,7 +11,7 @@
 
 use pdfcraft_cos::{Dict, Document, Object};
 
-use crate::{AnnotError, Meta, annot_dict, annot_ref, apply_text_box, callout_tip, normalize, text_box_of, touch, unlocked};
+use crate::{AnnotError, Meta, annot_dict, annot_ref, annots, apply_text_box, callout_tip, normalize, page_ref, text_box_of, touch, unlocked};
 
 /// The glue key (`/PCGlue`).
 pub const GLUE: &[u8] = b"PCGlue";
@@ -51,6 +51,31 @@ pub fn glued_site(d: &Dict) -> Option<u32> {
 /// side facing the knee).
 pub fn attach(d: &Dict, rect: [f64; 4], fallback: [f64; 2]) -> [f64; 2] {
     glued_site(d).and_then(|s| site_point(rect, s)).unwrap_or(fallback)
+}
+
+/// A callout's glue as the interface shows it: the site it is glued to (if any), its box and where
+/// its arrow meets the box.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct Glue {
+    pub site: Option<u32>,
+    pub rect: [f64; 4],
+    pub attach: [f64; 2],
+}
+
+/// The glue of the callout at `(page, index)`, or `None` when that markup isn't a callout.
+pub fn glue_at(doc: &Document, page: usize, index: usize) -> Option<Glue> {
+    let p = page_ref(doc, page).ok()?;
+    let entry = annots(doc, p).get(index).cloned()?;
+    let obj = doc.resolve(&entry);
+    let d = obj.as_dict()?;
+    callout_tip(d)?;
+    let rect = text_box_of(d)?;
+    let cl: Vec<f64> = d.get(b"CL")?.as_array()?.iter().filter_map(Object::as_f64).collect();
+    let [x, y] = match cl.as_slice() {
+        [_, _, _, _, x, y] if x.is_finite() && y.is_finite() => [*x, *y],
+        _ => return None,
+    };
+    Some(Glue { site: glued_site(d), rect, attach: [x, y] })
 }
 
 /// Glue a callout's arrow to a site of its box, or unglue it (`None`). The leader is re-attached

@@ -3297,3 +3297,6 @@ animation effects	Off	オフ
 	Hide closed items' badges on the sheet	完了項目のバッジをシートで隠す
 	Move the space's name	スペース名を移動
 	Drag to move the space's name; double-click to put it back	ドラッグでスペース名を移動、ダブルクリックで元に戻す
+	Glue the callout's arrow	吹き出しの矢印を接続点に固定
+	Free the callout's arrow	吹き出しの矢印の固定を解除
+	Drag onto a connection point to glue the arrow; drop it elsewhere, or hold Alt, to free it	接続点までドラッグすると矢印が固定されます。それ以外の場所で離すか Alt を押すと固定を解除します

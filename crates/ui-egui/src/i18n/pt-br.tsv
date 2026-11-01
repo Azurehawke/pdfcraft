@@ -3571,3 +3571,6 @@ theme	Appearance	Aparência
 	Hide closed items' badges on the sheet	Ocultar na folha os selos dos itens fechados
 	Move the space's name	Mover o nome do espaço
 	Drag to move the space's name; double-click to put it back	Arraste para mover o nome do espaço; clique duas vezes para devolvê-lo
+	Glue the callout's arrow	Prender a seta do balão
+	Free the callout's arrow	Soltar a seta do balão
+	Drag onto a connection point to glue the arrow; drop it elsewhere, or hold Alt, to free it	Arraste até um ponto de conexão para prender a seta; solte em outro lugar, ou com Alt, para soltá-la

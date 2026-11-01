@@ -3556,3 +3556,6 @@ certificate	Version	Version
 	Hide closed items' badges on the sheet	Masquer sur la feuille les pastilles des éléments clos
 	Move the space's name	Déplacer le nom de l'espace
 	Drag to move the space's name; double-click to put it back	Glisser pour déplacer le nom de l'espace ; double-clic pour le remettre en place
+	Glue the callout's arrow	Accrocher la flèche de la bulle
+	Free the callout's arrow	Détacher la flèche de la bulle
+	Drag onto a connection point to glue the arrow; drop it elsewhere, or hold Alt, to free it	Glisser sur un point de connexion pour accrocher la flèche ; la relâcher ailleurs, ou avec Alt, pour la détacher

@@ -3260,3 +3260,6 @@ animation effects	Off	关
 	Hide closed items' badges on the sheet	在图纸上隐藏已关闭项的徽标
 	Move the space's name	移动区域名称
 	Drag to move the space's name; double-click to put it back	拖动以移动区域名称；双击恢复原位
+	Glue the callout's arrow	将标注箭头连接到连接点
+	Free the callout's arrow	释放标注箭头
+	Drag onto a connection point to glue the arrow; drop it elsewhere, or hold Alt, to free it	拖到连接点上以固定箭头；在别处松开或按住 Alt 则释放

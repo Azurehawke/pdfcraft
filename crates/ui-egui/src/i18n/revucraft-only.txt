@@ -179,6 +179,7 @@ Draft tools
 Drafting
 Drag a box around the area that has this scale
 Drag a box around the detail or viewport that has this scale.
+Drag onto a connection point to glue the arrow; drop it elsewhere, or hold Alt, to free it
 Drag out a guide
 Drag to move the space's name; double-click to put it back
 Drag to move · Delete removes it · Esc when done
@@ -253,12 +254,14 @@ Found by name in a subfolder of the PDF's folder
 Found by name next to the PDF
 Found relative to the PDF
 Found through a folder mapping (Preferences)
+Free the callout's arrow
 GFCI outlet
 Get started
 Getting the latest {name}…
 Give coordinates for the base point.
 Given when sent
 Glass-break detector
+Glue the callout's arrow
 Google Drive and other apps…
 Guide
 Guide position

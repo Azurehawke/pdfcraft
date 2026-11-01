@@ -62,6 +62,8 @@ pub(crate) fn input(ui: &egui::Ui, doc: &Document, view: &mut DocView, cx: &Page
     }
     // A selected space: its name, dragged to another spot inside or beside it.
     let mut busy = space_label_handle(ui, doc, view, cx, accent, page, index);
+    // A selected callout: its connection points, and its arrow's end to glue to one of them.
+    busy |= glue_handles(ui, doc, view, cx, accent, page, index);
     // Any callout: its arrow's tip, dragged to point it somewhere else (the box stays).
     busy |= tip_handle(ui, doc, view, cx, accent, page, index);
     let Some(parts) = doc.callout_parts(page, index) else { return busy };
@@ -94,6 +96,61 @@ pub(crate) fn input(ui: &egui::Ui, doc: &Document, view: &mut DocView, cx: &Page
         }
     }
     busy
+}
+
+/// How close (points, on screen) a dragged arrow end must come to a connection point to glue.
+const SNAP_PX: f32 = 12.0;
+
+/// The connection point of a callout's box nearest `p` (on screen) within [`SNAP_PX`].
+fn snap_site(sites: &[(u32, [f64; 2])], cx: &PageCx<'_>, p: Pos2) -> Option<u32> {
+    sites.iter().map(|(s, q)| (*s, cx.to_screen(*q).distance(p))).filter(|(_, d)| *d <= SNAP_PX).min_by(|a, b| a.1.total_cmp(&b.1)).map(|(s, _)| s)
+}
+
+/// A selected callout's connection points (dots on its box) and its arrow's end on the box (a
+/// square). Dragged onto a point, the arrow glues there on letting go; dropped anywhere else, or
+/// with Alt held, it is freed and meets the box on the side facing its knee ([`Edit::SetCalloutGlue`]).
+/// Returns `true` while the end is being dragged.
+fn glue_handles(ui: &egui::Ui, doc: &Document, view: &mut DocView, cx: &PageCx<'_>, accent: Color32, page: usize, index: usize) -> bool {
+    let Some(g) = doc.callout_glue(page, index) else { return false };
+    let sites: Vec<(u32, [f64; 2])> = (0..pdfcraft_engine::callout_glue::SITES as u32)
+        .filter_map(|s| pdfcraft_engine::callout_glue::site_point(g.rect, s).map(|p| (s, p)))
+        .collect();
+    let painter = ui.painter().clone();
+    for (s, q) in &sites {
+        let at = cx.to_screen(*q);
+        let fill = if g.site == Some(*s) { accent } else { Color32::WHITE };
+        painter.circle(at, 3.5, fill, Stroke::new(1.25, accent));
+    }
+    let attach_at = cx.to_screen(g.attach);
+    let r = Rect::from_center_size(attach_at, vec2(HANDLE, HANDLE));
+    let id = ui.id().with(("callout-glue", page, index));
+    let resp = ui
+        .interact(r.expand(3.0), id, Sense::drag())
+        .on_hover_text(tl!("Drag onto a connection point to glue the arrow; drop it elsewhere, or hold Alt, to free it"));
+    if resp.hovered() || resp.dragged() {
+        ui.ctx().set_cursor_icon(egui::CursorIcon::Crosshair);
+    }
+    painter.rect(r, 1.0, Color32::WHITE, Stroke::new(1.5, accent), egui::StrokeKind::Middle);
+    let pointer = ui.input(|i| i.pointer.latest_pos());
+    if resp.dragged()
+        && let Some(p) = pointer
+    {
+        painter.line_segment([attach_at, p], Stroke::new(1.5, accent.gamma_multiply(0.7)));
+        if let Some(hit) = snap_site(&sites, cx, p).and_then(|s| sites.iter().find(|(i, _)| *i == s)) {
+            painter.circle_filled(cx.to_screen(hit.1), 4.5, accent);
+        }
+        return true;
+    }
+    if resp.drag_stopped()
+        && let Some(p) = pointer
+    {
+        let alt = ui.input(|i| i.modifiers.alt);
+        let site = if alt { None } else { snap_site(&sites, cx, p) };
+        if site != g.site {
+            view.pending_edit = Some(Edit::SetCalloutGlue { page, index, site });
+        }
+    }
+    false
 }
 
 /// The handle on a selected space's name: dragged, the name moves there on letting go

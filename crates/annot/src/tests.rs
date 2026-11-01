@@ -406,6 +406,8 @@ fn a_glued_callout_arrow_stays_on_its_site_as_the_box_changes() {
     };
     // Glued to the right side's middle: the leader meets that site, not the side facing the knee.
     crate::callout_glue::set_callout_glue(&mut doc, 0, c, Some(1), &meta("g")).unwrap();
+    let g = crate::callout_glue::glue_at(&doc, 0, c).unwrap();
+    assert_eq!((g.site, g.attach), (Some(1), attach(&doc)));
     let box_now = text_box_of(&list(&doc, 0)[c]).unwrap();
     assert_eq!(Some(attach(&doc)), crate::callout_glue::site_point(box_now, 1));
     // A longer text grows the box; the leader stays on the right side's middle of the new box.

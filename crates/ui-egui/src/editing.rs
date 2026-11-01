@@ -1066,6 +1066,7 @@ fn comment_page(edit: &Edit) -> Option<usize> {
         | Edit::SetPunch { page, .. }
         | Edit::SetSpace { page, .. }
         | Edit::SetSpaceLabel { page, .. }
+        | Edit::SetCalloutGlue { page, .. }
         | Edit::SetCondition { page, .. }
         | Edit::SetPath { page, .. } => Some(*page),
         // Several markups changed together (moved, deleted, pasted) on one page.
