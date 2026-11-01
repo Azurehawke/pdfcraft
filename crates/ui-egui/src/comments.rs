@@ -1971,7 +1971,7 @@ pub(crate) fn composer(ctx: &egui::Context, view: &mut DocView, info: &DocInfo, 
                 ui.label(egui::RichText::new(tl!(title)).font(theme::regular(11.5)).color(t.text_faint));
             });
             ui.add_space(6.0);
-            if let Some(q) = c.quote.clone() {
+            if c.quote.is_some() {
                 // The selection the comment came from: its markup, replace and copy buttons.
                 ui.horizontal_wrapped(|ui| {
                     for (label, tool) in [
