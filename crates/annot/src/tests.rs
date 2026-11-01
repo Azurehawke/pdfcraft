@@ -432,6 +432,9 @@ fn a_glued_callout_arrow_stays_on_its_site_as_the_box_changes() {
     crate::callout_glue::set_callout_glue(&mut doc, 0, c, Some(1), &meta("g")).unwrap();
     let g = crate::callout_glue::glue_at(&doc, 0, c).unwrap();
     assert_eq!((g.site, g.attach), (Some(1), attach(&doc)));
+    // The leader is straight: its knee is on the connection point, not left at the old corner.
+    let knee: Vec<f64> = list(&doc, 0)[c].get(b"CL").unwrap().as_array().unwrap()[2..4].iter().map(|o| o.as_f64().unwrap()).collect();
+    assert_eq!(knee, vec![g.attach[0], g.attach[1]]);
     let box_now = text_box_of(&list(&doc, 0)[c]).unwrap();
     assert_eq!(Some(attach(&doc)), crate::callout_glue::site_point(box_now, 1));
     // A longer text grows the box; the leader stays on the right side's middle of the new box.

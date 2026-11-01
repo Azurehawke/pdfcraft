@@ -91,7 +91,20 @@ pub fn set_callout_glue(doc: &mut Document, page: usize, index: usize, site: Opt
         return Err(AnnotError::Invalid("not a callout".into()));
     }
     let tb = text_box_of(&before).ok_or_else(|| AnnotError::Invalid("the callout has no text box".into()))?;
+    // Glued, the leader is straight: the knee moves to the connection point too.
+    let mut cl = before.get(b"CL").and_then(Object::as_array).map(|a| a.to_vec());
+    if let (Some(p), Some(v)) = (site.and_then(|s| site_point(tb, s)), cl.as_mut()) {
+        if let Some(x) = v.get_mut(2) {
+            *x = Object::Real(p[0]);
+        }
+        if let Some(y) = v.get_mut(3) {
+            *y = Object::Real(p[1]);
+        }
+    }
     doc.update_dict(r, |d| {
+        if let Some(v) = &cl {
+            d.set(b"CL".to_vec(), Object::Array(v.clone()));
+        }
         match site {
             Some(s) => {
                 d.set(GLUE.to_vec(), Object::Int(i64::from(s)));

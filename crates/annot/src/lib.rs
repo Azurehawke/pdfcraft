@@ -2233,6 +2233,11 @@ fn apply_text_box(doc: &mut Document, r: ObjRef, rect: [f64; 4], meta: &Meta, ne
             // Glued to a connection site, the leader meets that site; otherwise the side facing the knee.
             let attach = callout_glue::attach(&d, rect, callout_attach(rect, [l[2], l[3]]));
             (l[4], l[5]) = (attach[0], attach[1]);
+            // A glued leader is straight: its knee sits on its connection point, so it redraws from
+            // the connector to the tip as the box moves.
+            if callout_glue::glued_site(&d).is_some() {
+                (l[2], l[3]) = (attach[0], attach[1]);
+            }
             let pad = border_width_of(&d) / 2.0 + appearance::arrow_size(border_width_of(&d)) + 1.0;
             let lead = grow(bounds([[l[0], l[1]], [l[2], l[3]]].into_iter()).unwrap_or_default(), pad);
             ([rect[0].min(lead[0]), rect[1].min(lead[1]), rect[2].max(lead[2]), rect[3].max(lead[3])], Some(l))
