@@ -769,6 +769,18 @@ impl Document {
         self.editor.as_ref().is_some_and(|e| pdfcraft_annot::locked_at(&e.cos, page, index))
     }
 
+    /// The PlanCraft sidecar (`markups.json`) for the document as it stands (docs/sidecar.md).
+    pub fn sidecar_json(&self) -> Result<String, String> {
+        let e = self.editor.as_ref().ok_or("the document can't be read")?;
+        pdfcraft_annot::sidecar::build(&e.cos).map(|s| pdfcraft_annot::sidecar::to_json(&s)).map_err(|e| e.to_string())
+    }
+
+    /// Writes a PlanCraft sidecar (see [`Document::sidecar_json`]) to `path`, unless the file already
+    /// holds exactly `json` (docs/sidecar.md). Returns whether it was written.
+    pub fn write_sidecar_file(path: &std::path::Path, json: &str) -> std::io::Result<bool> {
+        pdfcraft_annot::sidecar::write_if_changed(path, json)
+    }
+
     /// The spaces on `page`: indexes.
     pub fn spaces(&self, page: usize) -> Vec<usize> {
         self.editor.as_ref().map(|e| pdfcraft_annot::punch::spaces(&e.cos, page)).unwrap_or_default()
