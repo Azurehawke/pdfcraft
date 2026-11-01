@@ -316,7 +316,7 @@ pub fn mark_real_width(doc: &mut Document, page: usize, index: usize, inches: f6
 /// on paper and, for a width drawn to scale, `real_inches` in the real world (`None` takes the
 /// real-world mark off, so it is a pen width again). `/Rect` grows to hold the wider line.
 pub fn set_line_width(doc: &mut Document, page: usize, index: usize, width: f64, real_inches: Option<f64>, meta: &Meta) -> Result<(), AnnotError> {
-    if !width.is_finite() || width < 0.0 || width > 1e4 || real_inches.is_some_and(|i| !i.is_finite() || i <= 0.0 || i > 1e5) {
+    if !width.is_finite() || !(0.0..=1e4).contains(&width) || real_inches.is_some_and(|i| !i.is_finite() || i <= 0.0 || i > 1e5) {
         return Err(AnnotError::Invalid("invalid width".into()));
     }
     // 0: a hairline (RevuCraft drafting), for lines and shapes made of lines only.
