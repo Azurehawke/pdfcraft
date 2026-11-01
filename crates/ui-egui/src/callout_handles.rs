@@ -239,6 +239,10 @@ fn arrow_end_handles(ui: &egui::Ui, doc: &Document, view: &mut DocView, cx: &Pag
 /// unlocks the space ([`Edit::LockAnnotation`]); a locked space is drawn with a full-strength lock.
 pub(crate) fn space_lock_icons(ui: &egui::Ui, doc: &Document, view: &mut DocView, cx: &PageCx<'_>, accent: Color32) {
     let page = cx.page;
+    // Most pages have no spaces: look at this page only, and walk the whole document only when it has some.
+    if doc.spaces(page).is_empty() {
+        return;
+    }
     let painter = ui.painter().clone();
     for s in crate::punch_ui::spaces(doc).iter().filter(|s| s.page == page) {
         let top_right = s.corners.iter().fold(None, |acc: Option<[f64; 2]>, c| {
