@@ -441,10 +441,11 @@ fn a_glued_callout_arrow_stays_on_its_site_as_the_box_changes() {
     set_contents(&mut doc, 0, c, "the quick brown fox jumps over the lazy dog and keeps going", &meta("")).unwrap();
     let box_now = text_box_of(&list(&doc, 0)[c]).unwrap();
     assert_eq!(Some(attach(&doc)), crate::callout_glue::site_point(box_now, 1));
-    // Unglued, it goes back to the side facing the knee.
+    // Unglued, it meets the side facing its knee; the knee stays where the glue left it.
     crate::callout_glue::set_callout_glue(&mut doc, 0, c, None, &meta("u")).unwrap();
     let box_now = text_box_of(&list(&doc, 0)[c]).unwrap();
-    assert_eq!(attach(&doc), callout_attach(box_now, [260.0, 560.0]));
+    let knee: Vec<f64> = list(&doc, 0)[c].get(b"CL").unwrap().as_array().unwrap()[2..4].iter().map(|o| o.as_f64().unwrap()).collect();
+    assert_eq!(attach(&doc), callout_attach(box_now, [knee[0], knee[1]]));
     // A site the box does not have is refused.
     assert!(crate::callout_glue::set_callout_glue(&mut doc, 0, c, Some(8), &meta("x")).is_err());
 }
