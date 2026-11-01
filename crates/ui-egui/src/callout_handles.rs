@@ -208,27 +208,21 @@ fn arrow_end_handles(ui: &egui::Ui, doc: &Document, view: &mut DocView, cx: &Pag
         {
             let alt = ui.input(|i| i.modifiers.alt);
             let hit = if alt { None } else { snap_target(&targets, cx, p) };
-            view.pending_edit = Some(match hit {
-                Some(target) => Edit::SetArrowGlue { page, index, start: is_start, target: Some(target) },
-                None => {
-                    let to = cx.to_user(p);
-                    let mut points = ends.clone();
-                    let slot = if is_start { 0 } else { 1 };
-                    if let Some(v) = points.get_mut(slot) {
-                        *v = to;
-                    }
-                    let reshape = Edit::ReshapeAnnotation { page, index, points };
-                    // A free end moves as any line's end does; a glued one is freed first.
-                    if doc.arrow_end_glued(page, index, is_start) {
-                        Edit::Batch {
-                            label: tl!("Move the arrow's end").to_string(),
-                            edits: vec![Edit::SetArrowGlue { page, index, start: is_start, target: None }, reshape],
-                        }
-                    } else {
-                        reshape
-                    }
+            // A drop on a point glues the end there. Elsewhere a glued end is freed and moved as one
+            // step; a free end is left to the line's own drag, as before.
+            if let Some(target) = hit {
+                view.pending_edit = Some(Edit::SetArrowGlue { page, index, start: is_start, target: Some(target) });
+            } else if doc.arrow_end_glued(page, index, is_start) {
+                let mut points = ends.clone();
+                let slot = if is_start { 0 } else { 1 };
+                if let Some(v) = points.get_mut(slot) {
+                    *v = cx.to_user(p);
                 }
-            });
+                view.pending_edit = Some(Edit::Batch {
+                    label: tl!("Move the arrow's end").to_string(),
+                    edits: vec![Edit::SetArrowGlue { page, index, start: is_start, target: None }, Edit::ReshapeAnnotation { page, index, points }],
+                });
+            }
         }
     }
     busy
