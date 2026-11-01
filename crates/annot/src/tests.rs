@@ -383,6 +383,30 @@ fn editing_a_text_box_refits_its_rectangle() {
 }
 
 #[test]
+fn a_glued_arrow_redraws_from_its_connector_when_the_box_moves() {
+    let mut doc = fixture();
+    let b = add_annotation(&mut doc, &new(0, Shape::Rectangle { rect: [100.0, 100.0, 200.0, 150.0] }), &meta("box")).unwrap();
+    // The arrow runs from (300, 300) to (250, 200); its start is then glued to the box's right
+    // middle (site 1), which is (200, 125).
+    let l = add_annotation(
+        &mut doc,
+        &new(0, Shape::Line { from: [300.0, 300.0], to: [250.0, 200.0], start: LineEnding::None, end: LineEnding::OpenArrow }),
+        &meta("arrow"),
+    )
+    .unwrap();
+    crate::arrow_glue::set_arrow_glue(&mut doc, 0, l, true, Some(("box".to_string(), 1)), &meta("g")).unwrap();
+    let ends = |doc: &Document| -> Vec<f64> { list(doc, 0)[l].get(b"L").unwrap().as_array().unwrap().iter().map(|o| o.as_f64().unwrap()).collect() };
+    assert_eq!(ends(&doc), vec![200.0, 125.0, 250.0, 200.0], "the glued start is on the connector");
+    // The box moves up 20: the connector is now (200, 145), and the arrow is redrawn from there
+    // to its free end, with nothing left at the old connector.
+    move_annotation(&mut doc, 0, b, 0.0, 20.0, &meta("move")).unwrap();
+    crate::arrow_glue::reroute_all(&mut doc).unwrap();
+    assert_eq!(ends(&doc), vec![200.0, 145.0, 250.0, 200.0], "the start follows the connector");
+    let ap = ap_content(&doc, &list(&doc, 0)[l]);
+    assert!(!ap.contains("200 125"), "the old connector isn't drawn: {ap}");
+}
+
+#[test]
 fn a_glued_callout_arrow_stays_on_its_site_as_the_box_changes() {
     let mut doc = fixture();
     let c = add_annotation(
