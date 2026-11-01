@@ -239,8 +239,15 @@ fn arrow_end_handles(ui: &egui::Ui, doc: &Document, view: &mut DocView, cx: &Pag
 /// unlocks the space ([`Edit::LockAnnotation`]); a locked space is drawn with a full-strength lock.
 pub(crate) fn space_lock_icons(ui: &egui::Ui, doc: &Document, view: &mut DocView, cx: &PageCx<'_>, accent: Color32) {
     let page = cx.page;
-    // Most pages have no spaces: look at this page only, and walk the whole document only when it has some.
-    if doc.spaces(page).is_empty() {
+    // Most pages have no spaces. Whether this page has any is kept until the document is edited:
+    // scanning a page's annotations every frame is what made a page with many comments slow.
+    let key = (view.id, doc.edit_generation());
+    if view.space_flags_key != Some(key) {
+        view.space_flags.clear();
+        view.space_flags_key = Some(key);
+    }
+    let has_spaces = *view.space_flags.entry(page).or_insert_with(|| !doc.spaces(page).is_empty());
+    if !has_spaces {
         return;
     }
     let painter = ui.painter().clone();

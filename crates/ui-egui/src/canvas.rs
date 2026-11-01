@@ -404,6 +404,11 @@ pub struct DocView {
     /// The file changed on disk while this document had unsaved changes: the notice bar asks
     /// before replacing it (#431).
     pub disk_changed: bool,
+    /// Whether each page has spaces, for the padlock pass: kept until the document is edited, so a
+    /// frame does not rescan a page's annotations (`space_lock_icons`).
+    pub(crate) space_flags: HashMap<usize, bool>,
+    /// The document and edit generation `space_flags` was filled for.
+    pub(crate) space_flags_key: Option<(DocId, u64)>,
     /// The snapshot notice bar's Close was clicked: the tab closes at the top of the next
     /// frame, where no document borrow is held (the bar itself can't close it).
     pub close_requested: bool,
@@ -801,6 +806,8 @@ impl DocView {
             notice_dismissed: false,
             scripts_off_noted: false,
             disk_changed: false,
+            space_flags: HashMap::new(),
+            space_flags_key: None,
             close_requested: false,
             snapshot: None,
             cover: false,
