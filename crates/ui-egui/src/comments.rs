@@ -22,6 +22,8 @@ use crate::{QuickTool, icons};
 
 /// Acrobat's selection blue for annotation frames and handles (11-visual-spec §5).
 const SELECT_BLUE: Color32 = Color32::from_rgb(0x14, 0x73, 0xE6);
+/// The font size a new text box starts at, in points.
+const TEXT_BOX_FONT: f64 = 12.0;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum CommentTool {
@@ -408,6 +410,8 @@ pub enum ComposerKind {
     /// units), `None` after a click: then the box fits its text.
     TextBox {
         size: Option<[f64; 2]>,
+        /// The text's font size, in points (the box's own font).
+        font_size: f64,
     },
     /// A callout whose arrow touches `point`; the composer's anchor is the text box's top-left.
     Callout {
@@ -433,6 +437,16 @@ pub struct Composer {
     pub kind: ComposerKind,
     pub text: String,
     pub focus: bool,
+    /// The text the comment was started from, when it came from a text selection: the composer
+    /// then carries that selection's markup and copy buttons, so one box does both jobs.
+    pub quote: Option<Quote>,
+}
+
+/// Text selected on a page, as the composer keeps it: the words, and their quads for markup.
+#[derive(Clone, Debug, Default, PartialEq)]
+pub struct Quote {
+    pub text: String,
+    pub quads: Vec<[f64; 8]>,
 }
 
 /// A released drawing gesture waiting for the page raster to show its annotation.
@@ -1141,7 +1155,7 @@ pub(crate) fn page_input(ui: &egui::Ui, resp: &egui::Response, cx: &PageCx<'_>, 
                 if let [point, at] = points[..]
                     && (point[0] - at[0]).hypot(point[1] - at[1]) >= 8.0
                 {
-                    cv.composer = Some(Composer { page, at, kind: ComposerKind::Callout { point }, text: String::new(), focus: true });
+                    cv.composer = Some(Composer { page, at, kind: ComposerKind::Callout { point }, text: String::new(), focus: true, quote: None });
                 }
             }
             true
@@ -1176,7 +1190,7 @@ pub(crate) fn page_input(ui: &egui::Ui, resp: &egui::Response, cx: &PageCx<'_>, 
                 let (vx, vy) = cx.xf.screen_to_view(p);
                 let snapped = cx.info.pages.get(cx.page).zip(caret_text.as_deref()).and_then(|(page, t)| snapped_caret(page, t, vx, vy));
                 let (at, size) = snapped.unwrap_or_else(|| (cx.to_user(p), CARET_SIZE));
-                cv.composer = Some(Composer { page: cx.page, at, kind: ComposerKind::Caret { size }, text: String::new(), focus: true });
+                cv.composer = Some(Composer { page: cx.page, at, kind: ComposerKind::Caret { size }, text: String::new(), focus: true, quote: None });
                 cv.selected = None;
             }
             true
@@ -1216,7 +1230,14 @@ pub(crate) fn page_input(ui: &egui::Ui, resp: &egui::Response, cx: &PageCx<'_>, 
                         let drawn =
                             (r.width() >= 6.0 && r.height() >= 6.0).then(|| cx.info.pages.get(page)).flatten().map(|p| drawn_box(p, *first, *last));
                         let (at, size) = drawn.map_or((*first, None), |(at, size)| (at, Some(size)));
-                        cv.composer = Some(Composer { page, at, kind: ComposerKind::TextBox { size }, text: String::new(), focus: true });
+                        cv.composer = Some(Composer {
+                            page,
+                            at,
+                            kind: ComposerKind::TextBox { size, font_size: TEXT_BOX_FONT },
+                            text: String::new(),
+                            focus: true,
+                            quote: None,
+                        });
                     }
                 }
             }
@@ -1224,8 +1245,9 @@ pub(crate) fn page_input(ui: &egui::Ui, resp: &egui::Response, cx: &PageCx<'_>, 
                 && over_page
                 && let Some(p) = pointer
             {
-                let kind = if tool == CommentTool::Note { ComposerKind::Note } else { ComposerKind::TextBox { size: None } };
-                cv.composer = Some(Composer { page: cx.page, at: cx.to_user(p), kind, text: String::new(), focus: true });
+                let kind =
+                    if tool == CommentTool::Note { ComposerKind::Note } else { ComposerKind::TextBox { size: None, font_size: TEXT_BOX_FONT } };
+                cv.composer = Some(Composer { page: cx.page, at: cx.to_user(p), kind, text: String::new(), focus: true, quote: None });
                 cv.selected = None;
             }
             true
@@ -1522,6 +1544,7 @@ fn select_input(
             kind: ComposerKind::Edit(a.index),
             text: a.contents.clone().unwrap_or_default(),
             focus: true,
+            quote: None,
         });
         consumed = true;
     }
@@ -1538,7 +1561,7 @@ pub(crate) fn page_after_text(resp: &egui::Response, cx: &PageCx<'_>, view: &mut
             let last = quads.last().copied().unwrap_or_default();
             let at = [last[2].max(last[6]), last[1].max(last[3])];
             view.comments.replace = Some(quads);
-            view.comments.composer = Some(Composer { page, at, kind: ComposerKind::Replace, text: String::new(), focus: true });
+            view.comments.composer = Some(Composer { page, at, kind: ComposerKind::Replace, text: String::new(), focus: true, quote: None });
         }
         return;
     }
@@ -1926,6 +1949,10 @@ pub(crate) fn composer(ctx: &egui::Context, view: &mut DocView, info: &DocInfo, 
     let t = Tokens::get(ctx);
     let mut post = false;
     let mut cancel = false;
+    // A selection's markup button, the Replace button and the Copy button, acted on after the card.
+    let mut markup = None;
+    let mut replace_now = false;
+    let mut copy_now = false;
     let c = view.comments.composer.as_mut()?;
     let title = match c.kind {
         ComposerKind::Note => "Sticky note",
@@ -1944,6 +1971,34 @@ pub(crate) fn composer(ctx: &egui::Context, view: &mut DocView, info: &DocInfo, 
                 ui.label(egui::RichText::new(tl!(title)).font(theme::regular(11.5)).color(t.text_faint));
             });
             ui.add_space(6.0);
+            if let Some(q) = c.quote.clone() {
+                // The selection the comment came from: its markup, replace and copy buttons.
+                ui.horizontal_wrapped(|ui| {
+                    for (label, tool) in [
+                        (tl!("Highlight"), CommentTool::Highlight),
+                        (tl!("Underline"), CommentTool::Underline),
+                        (tl!("Strikethrough"), CommentTool::StrikeOut),
+                    ] {
+                        if ui.button(label).clicked() {
+                            markup = Some(tool);
+                        }
+                    }
+                    if ui.button(tl!("Replace text")).clicked() {
+                        replace_now = true;
+                    }
+                    if ui.button(tl!("Copy")).clicked() {
+                        copy_now = true;
+                    }
+                });
+                ui.separator();
+            }
+            if let ComposerKind::TextBox { font_size, .. } = &mut c.kind {
+                ui.horizontal(|ui| {
+                    ui.label(egui::RichText::new(tl!("Font size")).color(t.text_faint));
+                    ui.add(egui::DragValue::new(font_size).range(6.0..=72.0).speed(0.25).suffix(" pt"));
+                });
+                ui.add_space(4.0);
+            }
             let hint = match c.kind {
                 ComposerKind::TextBox { .. } | ComposerKind::Callout { .. } => tl!("Type text"),
                 ComposerKind::Caret { .. } => tl!("Text to insert"),
@@ -1985,6 +2040,30 @@ pub(crate) fn composer(ctx: &egui::Context, view: &mut DocView, info: &DocInfo, 
         view.comments.composer = None;
         return None;
     }
+    if copy_now && let Some(q) = view.comments.composer.as_ref().and_then(|c| c.quote.as_ref()) {
+        ctx.copy_text(q.text.clone());
+    }
+    if let Some(tool) = markup {
+        // Marking up the selection is the whole job: the card closes with the markup made.
+        let quads = view.comments.composer.take()?.quote?.quads;
+        let kind = tool.markup()?;
+        return Some(Edit::AddAnnotation(pdfcraft_engine::NewAnnotation {
+            page,
+            shape: pdfcraft_engine::Shape::TextMarkup { kind, quads },
+            style: prefs.style(tool),
+            contents: String::new(),
+            author: prefs.author.clone(),
+        }));
+    }
+    if replace_now {
+        // Replace turns the same card into the replacement box, on the same selection.
+        let c = view.comments.composer.as_mut()?;
+        view.comments.replace = c.quote.take().map(|q| q.quads);
+        c.kind = ComposerKind::Replace;
+        c.text.clear();
+        c.focus = true;
+        return None;
+    }
     if !post {
         return None;
     }
@@ -1996,15 +2075,17 @@ pub(crate) fn composer(ctx: &egui::Context, view: &mut DocView, info: &DocInfo, 
             view.comments.tool_done = true;
             Some(new_comment(&cx, CommentTool::Note, Shape::Note { at: c.at, icon: NoteIcon::Comment }, text))
         }
-        ComposerKind::TextBox { size } => {
+        ComposerKind::TextBox { size, font_size } => {
             view.comments.tool_done = true;
             let rotation = page_rotation(info, page);
             let border = prefs.style(CommentTool::TextBox).width;
+            // The size comes from the card's own control; a value that isn't a number falls back.
+            let font_size = if font_size.is_finite() { font_size.clamp(6.0, 72.0) } else { TEXT_BOX_FONT };
             let rect = match (size, info.pages.get(page)) {
-                (Some(size), Some(p)) => drawn_text_box_rect(p, c.at, size, &text, 12.0, border),
-                _ => text_box_rect(c.at, &text, 12.0, rotation),
+                (Some(size), Some(p)) => drawn_text_box_rect(p, c.at, size, &text, font_size, border),
+                _ => text_box_rect(c.at, &text, font_size, rotation),
             };
-            Some(new_comment(&cx, CommentTool::TextBox, Shape::TextBox { rect, font_size: 12.0 }, text))
+            Some(new_comment(&cx, CommentTool::TextBox, Shape::TextBox { rect, font_size }, text))
         }
         ComposerKind::Callout { point } => {
             view.comments.tool_done = true;
@@ -2251,6 +2332,7 @@ pub(crate) fn context_menu(ui: &mut egui::Ui, view: &mut DocView, info: &DocInfo
                     kind: ComposerKind::Edit(index),
                     text: a.contents.clone().unwrap_or_default(),
                     focus: true,
+                    quote: None,
                 });
                 ui.close();
             }
@@ -2329,7 +2411,7 @@ pub(crate) fn context_menu(ui: &mut egui::Ui, view: &mut DocView, info: &DocInfo
             if let Some((page, at)) = view.comments.context_at
                 && ui.add_enabled(allowed, egui::Button::new(tl!("Add a sticky note here"))).clicked()
             {
-                view.comments.composer = Some(Composer { page, at, kind: ComposerKind::Note, text: String::new(), focus: true });
+                view.comments.composer = Some(Composer { page, at, kind: ComposerKind::Note, text: String::new(), focus: true, quote: None });
                 ui.close();
             }
             if ui.button(tl!("Comments panel")).clicked() {

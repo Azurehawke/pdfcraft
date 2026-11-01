@@ -5068,6 +5068,10 @@ fn selection_actions(
     if ui.input(|input| input.pointer.is_decidedly_dragging()) {
         return false;
     }
+    // A comment card already open on this selection carries its buttons: no second bar.
+    if view.comments.composer.is_some() {
+        return false;
+    }
     let Some(selection) = view.selection else {
         view.actions_dismissed = None;
         return false;
@@ -5121,15 +5125,19 @@ fn selection_actions(
     view.clear_selection();
     match action {
         SelectionAction::Note | SelectionAction::Replace => {
-            if matches!(action, SelectionAction::Replace) {
+            let replacing = matches!(action, SelectionAction::Replace);
+            let quote = comments::Quote { text: selected, quads: quads.clone() };
+            if replacing {
                 view.comments.replace = Some(quads);
             }
             view.comments.composer = Some(comments::Composer {
                 page,
                 at,
-                kind: if matches!(action, SelectionAction::Replace) { comments::ComposerKind::Replace } else { comments::ComposerKind::Note },
+                kind: if replacing { comments::ComposerKind::Replace } else { comments::ComposerKind::Note },
                 text: String::new(),
                 focus: true,
+                // The comment card keeps the selection's markup, replace and copy buttons.
+                quote: (!replacing).then_some(quote),
             });
         }
         SelectionAction::Markup(tool) => {
