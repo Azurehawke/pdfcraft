@@ -30,6 +30,7 @@ pub mod links;
 pub mod notes;
 pub mod photo_callout;
 pub mod punch;
+pub mod sidecar;
 pub mod text_size;
 pub use text_size::{MAX_TEXT_SIZE, MIN_TEXT_SIZE, TEXT_SIZE, text_size};
 pub mod stroke_align;
@@ -791,6 +792,12 @@ fn annots(doc: &Document, page: ObjRef) -> Vec<Object> {
     #[cfg(test)]
     ANNOTS_ENTRIES_COPIED.with(|n| n.set(n.get() + list.len()));
     list
+}
+
+/// The annotation dictionaries of every page, in page order and then drawing order. References are
+/// resolved, and entries that are not dictionaries are skipped.
+pub fn all_page_annotation_dicts(doc: &Document) -> Result<Vec<Vec<pdfcraft_cos::Dict>>, AnnotError> {
+    Ok(page_refs(doc)?.into_iter().map(|p| annots(doc, p).iter().filter_map(|e| doc.resolve(e).as_dict().cloned()).collect()).collect())
 }
 
 #[cfg(test)]
