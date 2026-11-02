@@ -509,6 +509,7 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
     let cols = all_columns(&custom);
     let mut export = false;
     let mut report = false;
+    let mut package = false;
     let mut send = false;
     // Wraps in a narrow dock, so the buttons stay in view.
     ui.horizontal_wrapped(|ui| {
@@ -541,6 +542,9 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
         }
         if icons::button(ui, "file-text", 26.0, false, tl!("Summary report (PDF): the markups shown, with photos, by layer")).clicked() {
             report = true;
+        }
+        if icons::button(ui, "folder", 26.0, false, tl!("Package the drawing: the PDF with its notes and photos, in one zip")).clicked() {
+            package = true;
         }
         if icons::button(ui, "send", 26.0, false, tl!("Send quantities to a workbook's Takeoff sheet, each a named cell")).clicked() {
             send = true;
@@ -720,6 +724,9 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
     if report {
         summary_report(app, &shown, &custom);
     }
+    if package {
+        package_job(app);
+    }
     if send {
         crate::takeoff_ui::send_quantities(app);
     }
@@ -799,20 +806,42 @@ fn summary_report(app: &mut PdfCraftApp, shown: &[Row], custom: &[String]) {
 
 /// Save the report where the user chooses.
 fn save_report(app: &mut PdfCraftApp, name: String, bytes: std::sync::Arc<Vec<u8>>) {
+    save_file(app, name, bytes, ("PDF", &["pdf"]), tl!("Saved the summary report.").to_string());
+}
+
+/// Package the drawing with its job folder (notes and photos) into a zip the user saves.
+fn package_job(app: &mut PdfCraftApp) {
+    let Some((_, id)) = app.active_ids() else { return };
+    let Some(pdf) = app.session.get(id).and_then(|d| d.path.clone()).map(std::path::PathBuf::from) else {
+        app.notify(tl!("Save the drawing first: its notes are kept in a folder beside it.").to_string());
+        return;
+    };
+    let folder = crate::notes_ui::job_folder(&pdf).filter(|f| f.is_dir());
+    let stem = pdf.file_stem().map(|s| s.to_string_lossy().into_owned()).unwrap_or_else(|| "drawing".into());
+    match pdfcraft_engine::package::package(&pdf, folder.as_deref()) {
+        Ok(bytes) => save_file(app, format!("{stem}.zip"), std::sync::Arc::new(bytes), ("Zip", &["zip"]), tl!("Saved the package.").to_string()),
+        Err(e) => app.notify(e),
+    }
+}
+
+/// Save `bytes` as `name` where the user chooses (or into the export folder when one is set).
+fn save_file(app: &mut PdfCraftApp, name: String, bytes: std::sync::Arc<Vec<u8>>, filter: (&str, &[&str]), done: String) {
     #[cfg(not(target_arch = "wasm32"))]
     {
         let write = move |app: &mut PdfCraftApp, path: std::path::PathBuf| match crate::editing::write_atomically(&path.to_string_lossy(), &bytes) {
-            Ok(()) => app.notify(tl!("Saved the summary report.")),
+            Ok(()) => app.notify(done.clone()),
             Err(e) => app.notify(e.to_string()),
         };
         match app.export_dir_override.as_ref().map(|d| std::path::PathBuf::from(d).join(&name)) {
             Some(path) => write(app, path),
             None => {
-                let dialog = crate::dialog::AsyncFileDialog::new().set_file_name(&name).add_filter("PDF", &["pdf"]);
+                let dialog = crate::dialog::AsyncFileDialog::new().set_file_name(&name).add_filter(filter.0, filter.1);
                 app.ask_one(crate::pickers::Ask::Save(dialog), None, write);
             }
         }
     }
+    #[cfg(target_arch = "wasm32")]
+    let _ = (&filter, &done);
     #[cfg(target_arch = "wasm32")]
     if let Err(e) = crate::editing::download(&name, &bytes) {
         app.notify(&e);

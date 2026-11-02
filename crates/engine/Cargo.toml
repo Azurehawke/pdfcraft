@@ -36,6 +36,7 @@ pdfcraft-create = { workspace = true }
 pdfcraft-model = { workspace = true }
 pdfcraft-geom = { workspace = true }
 thiserror = { workspace = true }
+zip = { workspace = true }
 png = "0.18"
 # Already in the graph (through image and pdfcraft-create): image's TiffEncoder can't set the
 # resolution or the compression of an exported page.

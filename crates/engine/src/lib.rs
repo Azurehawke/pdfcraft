@@ -31,6 +31,7 @@ pub mod js;
 pub mod links;
 pub mod ocr;
 pub mod optimizer;
+pub mod package;
 pub mod photos;
 pub mod print_raster;
 pub mod printcheck;
