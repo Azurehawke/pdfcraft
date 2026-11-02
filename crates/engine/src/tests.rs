@@ -6562,6 +6562,38 @@ fn cable_runs_add_their_allowance_and_fields_stay_with_the_markup() {
 }
 
 #[test]
+fn a_joined_wall_follows_its_partner_through_the_engine() {
+    let mut session = Session::default();
+    let id = session.open("plan.pdf", None, Arc::new(fixture(1)), None).unwrap();
+    let style = Style { color: [0.0; 3], opacity: 1.0, width: 0.75, fill: None };
+    // The L the Wall tool joins: W along x (its end B at the joint), N up from the joint.
+    let w = [[0.0, 3.0], [97.0, 3.0], [103.0, -3.0], [0.0, -3.0]];
+    let n = [[97.0, 3.0], [97.0, 80.0], [103.0, 80.0], [103.0, -3.0]];
+    let add = |quad, nm: &str, ja: bool, jb: bool, ja_with: &str, jb_with: &str| Edit::AddWall {
+        page: 0,
+        quad,
+        ja,
+        jb,
+        style: style.clone(),
+        author: "Steve".into(),
+        nm: nm.into(),
+        ja_with: ja_with.into(),
+        jb_with: jb_with.into(),
+    };
+    session.apply(id, add(w, "w", false, true, "", "n")).unwrap();
+    session.apply(id, add(n, "n", true, false, "w", "")).unwrap();
+    let find = |session: &Session, nm: &str| session.get(id).unwrap().smart_walls(0).into_iter().find(|x| x.nm == nm).unwrap();
+    assert_eq!(find(&session, "w").data.jb_with, "n", "the joint names its partner");
+    // Move W up 20: N's end follows it to W's lower face.
+    let up: Vec<[f64; 2]> = w.iter().map(|p| [p[0], p[1] + 20.0]).collect();
+    let wi = find(&session, "w").index;
+    session.apply(id, Edit::SetVertices { page: 0, index: wi, vertices: up, copy: false }).unwrap();
+    let q = find(&session, "n").quad;
+    let near = |a: [f64; 2], b: [f64; 2]| (a[0] - b[0]).hypot(a[1] - b[1]) < 1e-6;
+    assert!(near(q[0], [97.0, 23.0]) && near(q[3], [103.0, 17.0]), "{q:?}");
+}
+
+#[test]
 fn smart_walls_keep_their_doors_through_moves_copies_and_deletes() {
     use pdfcraft_annot::walls::{OpeningKind, OpeningSpec};
     let mut session = Session::default();
@@ -6569,7 +6601,22 @@ fn smart_walls_keep_their_doors_through_moves_copies_and_deletes() {
     let style = Style { color: [0.0; 3], opacity: 1.0, width: 0.75, fill: Some([0.78; 3]) };
     // 200 long along x, 6 thick, centred on y = 200.
     let quad = [[100.0, 203.0], [300.0, 203.0], [300.0, 197.0], [100.0, 197.0]];
-    session.apply(id, Edit::AddWall { page: 0, quad, ja: false, jb: false, style, author: "Steve".into() }).unwrap();
+    session
+        .apply(
+            id,
+            Edit::AddWall {
+                page: 0,
+                quad,
+                ja: false,
+                jb: false,
+                style,
+                author: "Steve".into(),
+                nm: String::new(),
+                ja_with: String::new(),
+                jb_with: String::new(),
+            },
+        )
+        .unwrap();
     let wall = session.get(id).unwrap().smart_walls(0)[0].index;
     let mark = session.get(id).unwrap().next_opening_mark(OpeningKind::Door);
     assert_eq!(mark, "D1");
@@ -6646,7 +6693,24 @@ fn smart_walls_keep_their_doors_through_moves_copies_and_deletes() {
     // A wall with no length, or a door in something that isn't a smart wall, is refused.
     let flat = [[0.0, 0.0], [0.0, 0.0], [0.0, 0.0], [0.0, 0.0]];
     let style = Style::default();
-    assert!(session.apply(id, Edit::AddWall { page: 0, quad: flat, ja: false, jb: false, style, author: String::new() }).is_err());
+    assert!(
+        session
+            .apply(
+                id,
+                Edit::AddWall {
+                    page: 0,
+                    quad: flat,
+                    ja: false,
+                    jb: false,
+                    style,
+                    author: String::new(),
+                    nm: String::new(),
+                    ja_with: String::new(),
+                    jb_with: String::new()
+                }
+            )
+            .is_err()
+    );
     let spec = OpeningSpec { kind: OpeningKind::Window, t0: 0.1, t1: 0.2, side: 1.0, flip: false, mark: "W1".into() };
     assert!(session.apply(id, Edit::AddOpening { page: 0, wall: 99, spec, color: [0.0; 3], author: String::new() }).is_err());
 }
@@ -6659,7 +6723,22 @@ fn doors_and_windows_only_go_where_the_wall_has_room() {
     let style = Style { color: [0.0; 3], opacity: 1.0, width: 0.75, fill: Some([0.78; 3]) };
     // 200 long, 6 thick, joined at end B (a corner there).
     let quad = [[100.0, 203.0], [300.0, 203.0], [300.0, 197.0], [100.0, 197.0]];
-    session.apply(id, Edit::AddWall { page: 0, quad, ja: false, jb: true, style, author: "Steve".into() }).unwrap();
+    session
+        .apply(
+            id,
+            Edit::AddWall {
+                page: 0,
+                quad,
+                ja: false,
+                jb: true,
+                style,
+                author: "Steve".into(),
+                nm: String::new(),
+                ja_with: String::new(),
+                jb_with: String::new(),
+            },
+        )
+        .unwrap();
     let wall = session.get(id).unwrap().smart_walls(0)[0].index;
     let spec = |kind, t0, t1| OpeningSpec { kind, t0, t1, side: 1.0, flip: false, mark: String::new() };
     let add = |s: &mut Session, o: OpeningSpec| s.apply(id, Edit::AddOpening { page: 0, wall, spec: o, color: [0.0; 3], author: "Steve".into() });
@@ -6680,7 +6759,9 @@ fn doors_and_windows_only_go_where_the_wall_has_room() {
     let moved = doc.wall_openings(0).into_iter().find(|o| o.index == door).unwrap();
     assert!((moved.spec.t1 - 0.5).abs() < 1e-9, "stopped at the window: {:?}", moved.spec);
     // And a wall meeting this one in a T takes its place too.
-    session.apply(id, Edit::SetWall { page: 0, index: wall, quad: None, ja: None, jb: None, gap: Some((0, 0.7, 0.73)) }).unwrap();
+    session
+        .apply(id, Edit::SetWall { page: 0, index: wall, quad: None, ja: None, jb: None, gap: Some((0, 0.7, 0.73)), ja_with: None, jb_with: None })
+        .unwrap();
     assert!(!session.get(id).unwrap().opening_fits(0, wall, 0.65, 0.75));
 }
 

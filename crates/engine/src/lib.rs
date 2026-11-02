@@ -2026,6 +2026,11 @@ pub enum Edit {
         jb: bool,
         style: pdfcraft_annot::Style,
         author: String,
+        /// The wall's `/NM` (chosen by the front end, so the joints can name it); "" for the engine to choose.
+        nm: String,
+        /// The `/NM` of the wall each joined end is joined to ("" when none).
+        ja_with: String,
+        jb_with: String,
     },
     /// RevuCraft: change a smart wall: its outline, which ends are joined, or a gap in a face
     /// (0 or 1, from and to along it, 0 to 1) where another wall meets it. Its doors and windows
@@ -2037,6 +2042,9 @@ pub enum Edit {
         ja: Option<bool>,
         jb: Option<bool>,
         gap: Option<(u8, f64, f64)>,
+        /// The `/NM` of the wall each joined end is joined to, when it changes.
+        ja_with: Option<String>,
+        jb_with: Option<String>,
     },
     /// RevuCraft: a door or window in the smart wall at `wall`, which opens there.
     AddOpening {
@@ -3448,14 +3456,18 @@ fn run_edit(doc: &mut pdfcraft_cos::Document, edit: &Edit, cx: &mut EditCtx) -> 
             pdfcraft_annot::notes::mark(doc, *page, index, file)?;
             cx.place_on_layer(doc, *page, index)?;
         }
-        Edit::AddWall { page, quad, ja, jb, style, author } => {
-            let data = pdfcraft_annot::walls::WallData { ja: *ja, jb: *jb, ..Default::default() };
-            let index = pdfcraft_annot::walls::add_wall(doc, *page, *quad, &data, style, author, &cx.meta())?;
+        Edit::AddWall { page, quad, ja, jb, style, author, nm, ja_with, jb_with } => {
+            let data = pdfcraft_annot::walls::WallData { ja: *ja, jb: *jb, ja_with: ja_with.clone(), jb_with: jb_with.clone(), ..Default::default() };
+            let mut meta = cx.meta();
+            if !nm.is_empty() {
+                meta.id = nm.clone();
+            }
+            let index = pdfcraft_annot::walls::add_wall(doc, *page, *quad, &data, style, author, &meta)?;
             pdfcraft_annot::geometry::mark_drafting(doc, *page, index)?;
             cx.place_on_layer(doc, *page, index)?;
         }
-        Edit::SetWall { page, index, quad, ja, jb, gap } => {
-            pdfcraft_annot::walls::set_wall(doc, *page, *index, *quad, *ja, *jb, *gap, &cx.meta())?;
+        Edit::SetWall { page, index, quad, ja, jb, gap, ja_with, jb_with } => {
+            pdfcraft_annot::walls::set_wall(doc, *page, *index, *quad, *ja, *jb, *gap, (ja_with.clone(), jb_with.clone()), &cx.meta())?;
         }
         Edit::AddOpening { page, wall, spec, color, author } => {
             let index = pdfcraft_annot::walls::add_opening(doc, *page, *wall, spec, *color, author, &cx.meta())?;

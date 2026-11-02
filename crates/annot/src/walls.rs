@@ -37,6 +37,9 @@ pub struct WallData {
     /// End A (side 3–0) and end B (side 1–2) are joined to another wall: no line across them.
     pub ja: bool,
     pub jb: bool,
+    /// The `/NM` of the wall each joined end is joined to ("" when not known).
+    pub ja_with: String,
+    pub jb_with: String,
     /// Gaps in a face (0: side 0–1, 1: side 3–2) along the centre line, 0 to 1.
     pub gaps: Vec<(u8, f64, f64)>,
     /// Where doors and windows open the wall, along its centre line, 0 to 1.
@@ -196,13 +199,19 @@ pub fn wall_data(d: &Dict) -> Option<WallData> {
         .take(MAX_PARTS)
         .collect();
     let open = numbers(w, b"Open").as_chunks::<2>().0.iter().filter_map(|o| range(o[0], o[1])).take(MAX_PARTS).collect();
-    Some(WallData { ja: flag(w, b"JA"), jb: flag(w, b"JB"), gaps, open })
+    Some(WallData { ja: flag(w, b"JA"), jb: flag(w, b"JB"), ja_with: text(w, b"JAWith"), jb_with: text(w, b"JBWith"), gaps, open })
 }
 
 fn data_dict(data: &WallData) -> Dict {
     let mut w = Dict::new();
     w.set(b"JA".to_vec(), Object::Bool(data.ja));
     w.set(b"JB".to_vec(), Object::Bool(data.jb));
+    if !data.ja_with.is_empty() {
+        w.set(b"JAWith".to_vec(), PdfString::text(&data.ja_with));
+    }
+    if !data.jb_with.is_empty() {
+        w.set(b"JBWith".to_vec(), PdfString::text(&data.jb_with));
+    }
     let gaps: Vec<f64> = data.gaps.iter().take(MAX_PARTS).flat_map(|(f, a, b)| [f64::from(*f), *a, *b]).collect();
     w.set(b"Gaps".to_vec(), num_array(&gaps));
     let open: Vec<f64> = data.open.iter().take(MAX_PARTS).flat_map(|(a, b)| [*a, *b]).collect();
@@ -545,11 +554,18 @@ pub fn set_wall(
     ja: Option<bool>,
     jb: Option<bool>,
     gap: Option<(u8, f64, f64)>,
+    with: (Option<String>, Option<String>),
     meta: &Meta,
 ) -> Result<(), AnnotError> {
     let (_, r) = annot_ref(doc, page, index)?;
     let d = annot_dict(doc, r);
     let mut data = wall_data(&d).ok_or_else(|| AnnotError::Invalid("that isn't a smart wall".into()))?;
+    if let Some(v) = with.0 {
+        data.ja_with = v;
+    }
+    if let Some(v) = with.1 {
+        data.jb_with = v;
+    }
     if let Some(q) = quad {
         axis(&q).ok_or_else(|| AnnotError::Invalid("a wall needs a length and a thickness".into()))?;
         crate::geometry::set_vertices(doc, page, index, &q, false, meta)?;
@@ -690,11 +706,143 @@ pub fn fits(doc: &Document, page: usize, w: &Wall, t0: f64, t1: f64, except: Opt
         && taken(doc, page, w, except).iter().all(|(c0, c1)| b <= c0 + 1e-9 || a >= c1 - 1e-9)
 }
 
+/// How far past a joint's end (points) a joined wall may still be taken to meet it.
+const JOINT_REACH: f64 = 2.0;
+/// Walls this close to parallel don't have a joint.
+const PARALLEL: f64 = 0.1;
+/// Walls one move may reach through joints, at most.
+const MAX_STRETCH: usize = 256;
+
+fn meet(p: Pt, q: Pt, r: Pt, s: Pt) -> Option<Pt> {
+    let (d1, d2) = (sub(q, p), sub(s, r));
+    let den = d1[0] * d2[1] - d1[1] * d2[0];
+    if den.abs() < 1e-12 {
+        return None;
+    }
+    let t = ((r[0] - p[0]) * d2[1] - (r[1] - p[1]) * d2[0]) / den;
+    let x = add(p, mul(d1, t));
+    finite(x).then_some(x)
+}
+
+/// The corners of the joint at `end` of wall `n` that a moved wall `w` (end `w_end`) meets: each
+/// on one of `n`'s faces, and where it meets the nearer pairing of `w`'s faces (its moved faces).
+/// `None` when the walls are parallel, or the joint has moved past the wall's end.
+fn mitre(w: &[Pt; 4], w_end: usize, n: &[Pt; 4], n_end: usize) -> Option<[Pt; 4]> {
+    let (wa, na) = (axis(w)?, axis(n)?);
+    if (wa.along[0] * na.along[1] - wa.along[1] * na.along[0]).abs() < PARALLEL {
+        return None;
+    }
+    let (k0, k1) = if n_end == 0 { (0, 3) } else { (1, 2) };
+    let (wf0, wf1) = ((w[0], w[1]), (w[3], w[2]));
+    let (nf0, nf1) = ((n[0], n[1]), (n[3], n[2]));
+    let pairing = |a: (Pt, Pt), b: (Pt, Pt)| Some((meet(nf0.0, nf0.1, a.0, a.1)?, meet(nf1.0, nf1.1, b.0, b.1)?));
+    let straight = pairing(wf0, wf1);
+    let crossed = pairing(wf1, wf0);
+    let cost = |p: Option<(Pt, Pt)>| p.map(|(x, y)| dist(x, n[k0]) + dist(y, n[k1]));
+    let (x, y) = match (cost(straight), cost(crossed)) {
+        (Some(a), Some(b)) if b < a => crossed?,
+        (Some(_), _) => straight?,
+        (None, Some(_)) => crossed?,
+        (None, None) => return None,
+    };
+    let end_t = if w_end == 0 { 0.0 } else { 1.0 };
+    let joint_mid = mul(add(x, y), 0.5);
+    if (wa.t_of(joint_mid) - end_t).abs() * wa.len > wa.thickness() / 2.0 + JOINT_REACH {
+        return None;
+    }
+    let mut out = *n;
+    *out.get_mut(k0)? = x;
+    *out.get_mut(k1)? = y;
+    axis(&out)?;
+    Some(out)
+}
+
+fn dist(a: Pt, b: Pt) -> f64 {
+    (a[0] - b[0]).hypot(a[1] - b[1])
+}
+
+/// The end of `n` joined to the wall named `with`, if it is one.
+fn joint_end(n: &Wall, with: &str) -> Option<usize> {
+    if n.data.ja && n.data.ja_with == with {
+        Some(0)
+    } else if n.data.jb && n.data.jb_with == with {
+        Some(1)
+    } else {
+        None
+    }
+}
+
+/// Frees end `end` of wall `index` (and its end on `partner`, if it is still there).
+fn release(doc: &mut Document, page: usize, index: usize, end: usize, partner: Option<usize>) -> Result<(), AnnotError> {
+    let Some(w) = walls(doc, page).into_iter().find(|w| w.index == index) else { return Ok(()) };
+    let mut data = w.data.clone();
+    if end == 0 {
+        data.ja = false;
+        data.ja_with.clear();
+    } else {
+        data.jb = false;
+        data.jb_with.clear();
+    }
+    let (_, r) = annot_ref(doc, page, index)?;
+    doc.update_dict(r, |d| d.set(WALL.to_vec(), Object::Dict(data_dict(&data))))?;
+    set_appearance(doc, r)?;
+    if let Some(p) = partner.and_then(|p| walls(doc, page).into_iter().find(|n| n.index == p))
+        && let Some(pe) = joint_end(&p, &w.nm)
+    {
+        let mut pd = p.data.clone();
+        if pe == 0 {
+            pd.ja = false;
+            pd.ja_with.clear();
+        } else {
+            pd.jb = false;
+            pd.jb_with.clear();
+        }
+        let (_, pr) = annot_ref(doc, page, p.index)?;
+        doc.update_dict(pr, |d| d.set(WALL.to_vec(), Object::Dict(data_dict(&pd))))?;
+        set_appearance(doc, pr)?;
+    }
+    Ok(())
+}
+
+/// After wall `moved` changed shape: the walls joined to it follow its faces (each joint's
+/// corners on their outline move to meet them), and a joint is released when the wall has moved
+/// past its partner or the partner is gone. Walls reached through joints follow in turn.
+pub fn stretch(doc: &mut Document, page: usize, moved: usize, meta: &Meta) -> Result<(), AnnotError> {
+    let mut queue = vec![moved];
+    let mut seen = vec![moved];
+    while let Some(i) = queue.pop() {
+        let Some(w) = walls(doc, page).into_iter().find(|w| w.index == i) else { continue };
+        for (end, joined, with) in [(0usize, w.data.ja, w.data.ja_with.clone()), (1, w.data.jb, w.data.jb_with.clone())] {
+            if !joined {
+                continue;
+            }
+            let partner = walls(doc, page).into_iter().find(|n| n.index != w.index && !with.is_empty() && n.nm == with);
+            let moved_quad = partner.as_ref().filter(|n| !n.locked).and_then(|n| {
+                let ne = joint_end(n, &w.nm)?;
+                mitre(&w.quad, end, &n.quad, ne).map(|q| (n.index, q))
+            });
+            match moved_quad {
+                Some((n, q)) => {
+                    crate::geometry::set_vertices(doc, page, n, &q, false, meta)?;
+                    sync(doc, page, n, meta)?;
+                    if seen.len() < MAX_STRETCH && !seen.contains(&n) {
+                        seen.push(n);
+                        queue.push(n);
+                    }
+                }
+                None => release(doc, page, w.index, end, partner.map(|p| p.index))?,
+            }
+        }
+    }
+    Ok(())
+}
+
 /// After the markup at `index` moved by `delta`: a wall's doors and windows follow it; a door or
 /// window slides along its wall by as much of the move as runs along it.
 pub fn after_move(doc: &mut Document, page: usize, index: usize, delta: Option<Pt>, meta: &Meta) -> Result<(), AnnotError> {
     if walls(doc, page).iter().any(|w| w.index == index) {
-        return sync(doc, page, index, meta);
+        sync(doc, page, index, meta)?;
+        return stretch(doc, page, index, meta);
     }
     let Some(o) = openings(doc, page).into_iter().find(|o| o.index == index) else { return Ok(()) };
     let Some(w) = walls(doc, page).into_iter().find(|w| w.nm == o.host) else { return Ok(()) };
@@ -799,6 +947,101 @@ pub fn host_of(doc: &Document, page: usize, index: usize) -> Option<String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn a_joint_remembers_the_wall_it_is_joined_to() {
+        let data = WallData { ja: true, ja_with: "w-north".into(), jb: true, jb_with: "w-east".into(), ..Default::default() };
+        let mut d = Dict::new();
+        d.set(WALL.to_vec(), Object::Dict(data_dict(&data)));
+        assert_eq!(wall_data(&d), Some(data));
+        // Nothing recorded: the ends are joined as before, to nothing in particular.
+        let mut bare = Dict::new();
+        bare.set(WALL.to_vec(), Object::Dict(data_dict(&WallData { ja: true, ..Default::default() })));
+        assert_eq!(wall_data(&bare).map(|w| w.ja_with), Some(String::new()));
+    }
+
+    fn blank() -> Document {
+        let pdf = b"%PDF-1.7\n1 0 obj << /Type /Catalog /Pages 2 0 R >> endobj\n2 0 obj << /Type /Pages /Kids [3 0 R] /Count 1 >> endobj\n3 0 obj << /Type /Page /Parent 2 0 R /MediaBox [0 0 300 300] >> endobj\ntrailer << /Root 1 0 R >>\n%%EOF";
+        Document::open(std::sync::Arc::new(pdf.to_vec())).unwrap()
+    }
+
+    fn near(a: Pt, b: Pt) -> bool {
+        (a[0] - b[0]).hypot(a[1] - b[1]) < 1e-6
+    }
+
+    fn meta(id: &str) -> Meta {
+        Meta { date: None, id: id.into() }
+    }
+
+    /// An L as the Wall tool joins it: W along x from 0 to 100 (its end B corners at 97 and 103),
+    /// and N up from its joint, each naming the other there.
+    fn joined_l(doc: &mut Document) -> usize {
+        let style = Style { color: [0.0; 3], opacity: 1.0, width: 0.75, fill: None };
+        let w_data = WallData { jb: true, jb_with: "n".into(), ..Default::default() };
+        add_wall(doc, 0, [[0.0, 3.0], [97.0, 3.0], [103.0, -3.0], [0.0, -3.0]], &w_data, &style, "A", &meta("w")).unwrap();
+        let n_data = WallData { ja: true, ja_with: "w".into(), ..Default::default() };
+        add_wall(doc, 0, [[97.0, 3.0], [97.0, 80.0], [103.0, 80.0], [103.0, -3.0]], &n_data, &style, "A", &meta("n")).unwrap();
+        0
+    }
+
+    fn wall_named(doc: &Document, nm: &str) -> Wall {
+        walls(doc, 0).into_iter().find(|w| w.nm == nm).unwrap()
+    }
+
+    #[test]
+    fn a_joined_wall_follows_when_the_wall_it_meets_moves() {
+        let mut doc = blank();
+        joined_l(&mut doc);
+        // Move W up 20: its faces move with it, and N's end moves up to meet its lower face.
+        let w = wall_named(&doc, "w");
+        let up: Vec<[f64; 2]> = w.quad.iter().map(|p| [p[0], p[1] + 20.0]).collect();
+        crate::geometry::set_vertices(&mut doc, 0, w.index, &up, false, &meta("m")).unwrap();
+        after_move(&mut doc, 0, w.index, None, &meta("m")).unwrap();
+        let n = wall_named(&doc, "n");
+        assert!(near(n.quad[0], [97.0, 23.0]) && near(n.quad[3], [103.0, 17.0]), "{:?}", n.quad);
+        assert!(wall_named(&doc, "w").data.jb, "still joined");
+        assert!(n.data.ja, "still joined");
+    }
+
+    #[test]
+    fn a_joint_is_released_when_its_wall_moves_past_the_other() {
+        let mut doc = blank();
+        joined_l(&mut doc);
+        // W's end B runs on past N, along its own length.
+        let w = wall_named(&doc, "w");
+        let long = [w.quad[0], [127.0, 3.0], [133.0, -3.0], w.quad[3]];
+        crate::geometry::set_vertices(&mut doc, 0, w.index, &long, false, &meta("m")).unwrap();
+        after_move(&mut doc, 0, w.index, None, &meta("m")).unwrap();
+        let (w, n) = (wall_named(&doc, "w"), wall_named(&doc, "n"));
+        assert!(!w.data.jb && w.data.jb_with.is_empty(), "W's end is free again");
+        assert!(!n.data.ja && n.data.ja_with.is_empty(), "N's end is free again");
+        assert!(near(n.quad[0], [97.0, 3.0]) && near(n.quad[3], [103.0, -3.0]), "N stays where it was");
+    }
+
+    #[test]
+    fn a_joint_whose_wall_is_gone_is_released() {
+        let mut doc = blank();
+        let style = Style { color: [0.0; 3], opacity: 1.0, width: 0.75, fill: None };
+        let data = WallData { jb: true, jb_with: "gone".into(), ..Default::default() };
+        add_wall(&mut doc, 0, [[0.0, 3.0], [100.0, 3.0], [100.0, -3.0], [0.0, -3.0]], &data, &style, "A", &meta("w")).unwrap();
+        let w = wall_named(&doc, "w");
+        let moved: Vec<[f64; 2]> = w.quad.iter().map(|p| [p[0], p[1] + 5.0]).collect();
+        crate::geometry::set_vertices(&mut doc, 0, w.index, &moved, false, &meta("m")).unwrap();
+        after_move(&mut doc, 0, w.index, None, &meta("m")).unwrap();
+        assert!(!wall_named(&doc, "w").data.jb);
+    }
+
+    #[test]
+    fn a_free_wall_is_not_touched() {
+        let mut doc = blank();
+        let style = Style { color: [0.0; 3], opacity: 1.0, width: 0.75, fill: None };
+        add_wall(&mut doc, 0, [[0.0, 3.0], [100.0, 3.0], [100.0, -3.0], [0.0, -3.0]], &WallData::default(), &style, "A", &meta("w")).unwrap();
+        let w = wall_named(&doc, "w");
+        let moved: Vec<[f64; 2]> = w.quad.iter().map(|p| [p[0], p[1] + 5.0]).collect();
+        crate::geometry::set_vertices(&mut doc, 0, w.index, &moved, false, &meta("m")).unwrap();
+        after_move(&mut doc, 0, w.index, None, &meta("m")).unwrap();
+        assert_eq!(wall_named(&doc, "w").quad[0], [0.0, 8.0]);
+    }
 
     #[test]
     fn ranges_lose_their_cuts() {
