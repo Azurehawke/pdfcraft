@@ -208,6 +208,7 @@ pub fn tool_name(app: &PdfCraftApp, id: &str) -> String {
         "redact" => tl_str("Redact"),
         "add-text" => tl_str("Add text"),
         "edit-text" => tl_str("Edit text"),
+        "knife" => tl_str("Wall knife"),
         "link" => tl_str("Link"),
         "snapshot" => tl_str("Snapshot"),
         other => match crate::comments::CommentTool::from_command(&format!("comment.{other}")) {

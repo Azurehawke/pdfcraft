@@ -54,6 +54,7 @@ mod organize_drag;
 mod pageboxes;
 mod plancraft_sidecar;
 mod wall_ends;
+mod wall_knife;
 // RevuCraft: its side panels differ from PdfCraft's (its own Layers panel, dock rail and header
 // controls), so upstream's accessibility snapshots of them don't apply. Kept out until RevuCraft has
 // its own snapshots.

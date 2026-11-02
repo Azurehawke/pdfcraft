@@ -291,6 +291,7 @@ pub const COMMANDS: &[CommandSpec] = &[
     c("form.calculation_order", "Calculation order", None, None, Document, "list-ordered"),
     c("edit.text", "Add text", None, None, Modification, "type"),
     c("edit.edit_text", "Edit text & images", None, None, Modification, "text-cursor-input"),
+    c("edit.wall_knife", "Wall knife", None, None, Modification, "scissors"),
     c("edit.link", "Add or edit links", None, None, Modification, "link-2"),
     c("edit.links_from_urls", "Create links from URLs", None, None, Modification, "link-2"),
     c("edit.remove_links", "Remove all links", None, None, Modification, "trash-2"),
