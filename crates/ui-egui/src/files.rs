@@ -15,6 +15,8 @@ pub enum FilePurpose {
     TextFont {
         page: usize,
     },
+    /// Text ▸ Font ▸ Add font file…: keep a copy of the font in the app's font folder.
+    InstallFont,
     Combine,
     InsertPages,
     ReplacePages,
@@ -28,39 +30,72 @@ pub enum FilePurpose {
     RedactWords,
 }
 
+/// The app's own font folder: fonts added with Add font file… are kept here, and they are listed
+/// with the installed fonts. In portable mode it sits in the portable data folder.
+#[cfg(not(target_arch = "wasm32"))]
+pub(crate) fn app_font_dir() -> Option<std::path::PathBuf> {
+    match crate::portable::data_dir() {
+        Some(dir) => Some(dir.join("Fonts")),
+        None => crate::portable::user_data_dir("Fonts", "fonts"),
+    }
+}
+
+#[cfg(target_arch = "wasm32")]
+pub(crate) fn app_font_dir() -> Option<std::path::PathBuf> {
+    None
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+type FoundFonts = Arc<std::sync::Mutex<Option<Vec<pdfcraft_engine::text_fonts::FontFile>>>>;
+
+/// The last scan, started on first use and dropped by [`forget_installed_font_files`].
+#[cfg(not(target_arch = "wasm32"))]
+static INSTALLED: std::sync::Mutex<Option<FoundFonts>> = std::sync::Mutex::new(None);
+
 /// Discover installed document fonts off the GUI thread, only when the picker is opened.
 #[cfg(not(target_arch = "wasm32"))]
 pub(crate) fn installed_font_files(ctx: &egui::Context) -> Option<Vec<pdfcraft_engine::text_fonts::FontFile>> {
-    use std::sync::{Mutex, OnceLock};
-    type Files = Arc<Mutex<Option<Vec<pdfcraft_engine::text_fonts::FontFile>>>>;
-    static CACHE: OnceLock<Files> = OnceLock::new();
-    let files = CACHE.get_or_init(|| {
-        let files: Files = Arc::new(Mutex::new(None));
-        let result = files.clone();
-        let ctx = ctx.clone();
-        if std::thread::Builder::new()
-            .name("document-font-discovery".into())
-            .spawn(move || {
-                let fonts = pdfcraft_engine::text_fonts::discover(&pdfcraft_engine::text_fonts::installed_directories());
-                if let Ok(mut result) = result.lock() {
-                    *result = Some(fonts);
-                }
-                ctx.request_repaint();
-            })
-            .is_err()
-            && let Ok(mut result) = files.lock()
-        {
-            *result = Some(Vec::new());
+    let found = {
+        let mut cache = INSTALLED.lock().ok()?;
+        cache.get_or_insert_with(|| scan_fonts(ctx)).clone()
+    };
+    found.lock().ok().and_then(|f| f.clone())
+}
+
+/// Drop the cached scan, so the next look includes a font that was just added.
+#[cfg(not(target_arch = "wasm32"))]
+pub(crate) fn forget_installed_font_files() {
+    if let Ok(mut cache) = INSTALLED.lock() {
+        *cache = None;
+    }
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+fn scan_fonts(ctx: &egui::Context) -> FoundFonts {
+    let found: FoundFonts = Arc::new(std::sync::Mutex::new(None));
+    let mut roots = pdfcraft_engine::text_fonts::installed_directories();
+    roots.extend(app_font_dir());
+    let result = found.clone();
+    let ctx = ctx.clone();
+    let spawned = std::thread::Builder::new().name("document-font-discovery".into()).spawn(move || {
+        let fonts = pdfcraft_engine::text_fonts::discover(&roots);
+        if let Ok(mut result) = result.lock() {
+            *result = Some(fonts);
         }
-        files
+        ctx.request_repaint();
     });
-    files.lock().ok().and_then(|f| f.clone())
+    if spawned.is_err()
+        && let Ok(mut result) = found.lock()
+    {
+        *result = Some(Vec::new());
+    }
+    found
 }
 
 /// The picker for `purpose`: PDFs, and for Create and Insert also what they convert.
 fn files_picker(purpose: FilePurpose) -> crate::dialog::AsyncFileDialog {
     let dialog = crate::dialog::AsyncFileDialog::new();
-    if matches!(purpose, FilePurpose::TextFont { .. }) {
+    if matches!(purpose, FilePurpose::TextFont { .. } | FilePurpose::InstallFont) {
         return dialog.add_filter("TrueType / OpenType font", &["ttf", "otf"]);
     }
     if purpose == FilePurpose::RedactWords {
@@ -363,7 +398,7 @@ impl PdfCraftApp {
                 self.notify_fmt("{name} is too large for a word list (at most 1 MB).", &[("name", &name)]);
                 return;
             }
-            let read = if matches!(purpose, FilePurpose::TextFont { .. }) {
+            let read = if matches!(purpose, FilePurpose::TextFont { .. } | FilePurpose::InstallFont) {
                 use std::io::Read;
                 std::fs::File::open(p).and_then(|f| {
                     let mut bytes = Vec::new();
@@ -477,6 +512,22 @@ impl PdfCraftApp {
     /// Use picked files (also the entry point for tests and automation).
     pub fn use_files(&mut self, purpose: FilePurpose, files: Vec<(String, Vec<u8>)>) {
         match purpose {
+            FilePurpose::InstallFont => {
+                let Some(dir) = app_font_dir() else {
+                    self.notify("Fonts can't be added on this computer: there is no folder to keep them in.");
+                    return;
+                };
+                for (name, bytes) in files {
+                    match pdfcraft_engine::text_fonts::import(&bytes, &name, &dir) {
+                        Ok(font) => {
+                            #[cfg(not(target_arch = "wasm32"))]
+                            forget_installed_font_files();
+                            self.notify_fmt("Added {font}. It is listed under Installed fonts.", &[("font", &font.face)]);
+                        }
+                        Err(e) => self.notify_fmt("Couldn't add {name}: {e}", &[("name", &name), ("e", &e)]),
+                    }
+                }
+            }
             FilePurpose::TextFont { page } => {
                 let Some((_, bytes)) = files.into_iter().next() else { return };
                 let bytes = Arc::new(bytes);

@@ -171,14 +171,7 @@ impl RecoveryStore {
         if let Some(dir) = crate::portable::data_dir() {
             return Some(dir.join("Recovery"));
         }
-        let env = |k: &str| std::env::var_os(k).filter(|v| !v.is_empty()).map(PathBuf::from);
-        if cfg!(target_os = "macos") {
-            env("HOME").map(|h| h.join("Library/Application Support/RevuCraft/Recovery"))
-        } else if cfg!(windows) {
-            env("LOCALAPPDATA").map(|d| d.join("RevuCraft").join("Recovery"))
-        } else {
-            env("XDG_DATA_HOME").or_else(|| env("HOME").map(|h| h.join(".local/share"))).map(|d| d.join("revucraft/recovery"))
-        }
+        crate::portable::user_data_dir("Recovery", "recovery")
     }
 
     pub fn dir(&self) -> &Path {

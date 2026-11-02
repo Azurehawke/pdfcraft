@@ -28,6 +28,9 @@ pub(crate) enum FontChoice {
     Load,
     /// A font file installed on this computer.
     Installed(std::path::PathBuf),
+    /// Add font file…: copy a font into the app's font folder.
+    #[cfg(not(target_arch = "wasm32"))]
+    Add,
 }
 
 /// What the font list offers and shows.
@@ -92,7 +95,8 @@ pub(crate) fn panel(ui: &mut egui::Ui, t: &Tokens, look: &mut AddedText, extras:
                 }
                 ui.separator();
             }
-            for f in [FontFamily::Helvetica, FontFamily::Times, FontFamily::Courier] {
+            // Times is left out until its metrics match the other two families.
+            for f in [FontFamily::Helvetica, FontFamily::Courier] {
                 if ui.selectable_label(fonts.sources.is_none() && look.family == f, f.label()).clicked() {
                     out.font = Some(FontChoice::Family(f));
                 }
@@ -119,6 +123,10 @@ pub(crate) fn panel(ui: &mut egui::Ui, t: &Tokens, look: &mut AddedText, extras:
                         ui.label(tl!("Finding document fonts…"));
                     }
                 });
+                #[cfg(not(target_arch = "wasm32"))]
+                if ui.selectable_label(false, tl!("Add font file…")).clicked() {
+                    out.font = Some(FontChoice::Add);
+                }
             }
         })
         .response
