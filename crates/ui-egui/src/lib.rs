@@ -139,6 +139,7 @@ mod pickers;
 mod point_bar;
 mod props_box;
 mod punch_ui;
+mod rename_ui;
 mod rulers;
 mod status_bar;
 mod takeoff_ui;
@@ -690,6 +691,8 @@ pub struct PdfCraftApp {
     pub(crate) props_box: Option<comment_props::PropsDraft>,
     /// RevuCraft: the Markdown note open in its editor.
     pub(crate) note_editor: Option<notes_ui::NoteEditor>,
+    /// Rename the drawing: the open dialog, when there is one.
+    pub(crate) rename_job: Option<rename_ui::RenameJob>,
     /// RevuCraft's punch list and spaces ([`punch_ui`]).
     pub(crate) punch: punch_ui::PunchState,
     /// RevuCraft's tool ribbon under the mode bar (on in the apps; see [`Self::revucraft_shell`]).
@@ -1147,6 +1150,7 @@ impl PdfCraftApp {
             dock_rect: None,
             props_box: None,
             note_editor: None,
+            rename_job: None,
             punch: punch_ui::PunchState::default(),
             show_ribbon: false,
             rulers: false,
@@ -3911,6 +3915,7 @@ impl eframe::App for PdfCraftApp {
         takeoff_ui::dialog(self, &ctx);
         draft::keypad(self, &ctx);
         notes_ui::editor(self, &ctx);
+        rename_ui::dialog(self, &ctx);
         punch_ui::tick(self);
         #[cfg(target_os = "android")]
         pickers::show_browser(self, &ctx);

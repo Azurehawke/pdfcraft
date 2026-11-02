@@ -510,6 +510,7 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
     let mut export = false;
     let mut report = false;
     let mut package = false;
+    let mut rename = false;
     let mut send = false;
     // Wraps in a narrow dock, so the buttons stay in view.
     ui.horizontal_wrapped(|ui| {
@@ -545,6 +546,9 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
         }
         if icons::button(ui, "folder", 26.0, false, tl!("Package the drawing: the PDF with its notes and photos, in one zip")).clicked() {
             package = true;
+        }
+        if icons::button(ui, "pencil", 26.0, false, tl!("Rename the drawing: its job folder and the links in its notes follow")).clicked() {
+            rename = true;
         }
         if icons::button(ui, "send", 26.0, false, tl!("Send quantities to a workbook's Takeoff sheet, each a named cell")).clicked() {
             send = true;
@@ -726,6 +730,9 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
     }
     if package {
         package_job(app);
+    }
+    if rename {
+        crate::rename_ui::start(app);
     }
     if send {
         crate::takeoff_ui::send_quantities(app);
