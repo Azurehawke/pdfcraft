@@ -1239,6 +1239,16 @@ pub struct Grip {
     pub kind: Kind,
     pub start: Vec<Pt>,
     pub points: Vec<Pt>,
+    /// A smart wall's end connector: the end (0 for A, 1 for B) stretched, not a corner moved.
+    pub end: Option<usize>,
+}
+
+/// A smart wall's outline as its four corners, when it is one.
+fn quad_of(v: &[Pt]) -> Option<[Pt; 4]> {
+    match v {
+        [a, b, c, d] => Some([*a, *b, *c, *d]),
+        _ => None,
+    }
 }
 
 /// Grips on the selected line, polyline or polygon with the Select tool: a square on each point,
@@ -1263,7 +1273,10 @@ pub(crate) fn grips(ui: &egui::Ui, doc: &Document, view: &mut DocView, cx: &Page
     if active {
         let Some(mut grip) = view.draft.grip.take() else { return false };
         if down {
-            if let Some(pos) = pointer {
+            if let (Some(e), Some(pos), Some(q)) = (grip.end, pointer, quad_of(&grip.start)) {
+                let to = cx.to_user(pos);
+                grip.points = pdfcraft_engine::wall_joins::stretch_end(&q, e, to).to_vec();
+            } else if let Some(pos) = pointer {
                 let mut p = cx.to_user(pos);
                 let pixels_per_unit = f64::from((cx.xf.rect.width() / cx.xf.pw).max(1e-6));
                 let tolerance = crate::draft::SNAP_PX / pixels_per_unit;
@@ -1290,7 +1303,9 @@ pub(crate) fn grips(ui: &egui::Ui, doc: &Document, view: &mut DocView, cx: &Page
             let closed = grip.kind == Kind::Polygon;
             draw_path(painter, cx, &grip.start, closed, Stroke::new(1.0, accent.gamma_multiply(0.5)));
             draw_path(painter, cx, &grip.points, closed, Stroke::new(1.5, accent));
-            if let Some(v) = grip.points.get(grip.vertex) {
+            if grip.end.is_none()
+                && let Some(v) = grip.points.get(grip.vertex)
+            {
                 painter.rect_filled(egui::Rect::from_center_size(cx.to_screen(*v), egui::Vec2::splat(GRIP_PX)), 1.0, accent);
             }
             view.draft.grip = Some(grip);
@@ -1310,12 +1325,46 @@ pub(crate) fn grips(ui: &egui::Ui, doc: &Document, view: &mut DocView, cx: &Page
         painter.rect_filled(r, 1.0, Color32::WHITE);
         painter.rect_stroke(r, 1.0, Stroke::new(1.0, accent), egui::StrokeKind::Middle);
     }
+    // A smart wall's end connectors: a round grip in the middle of each end, which stretches the
+    // wall from that end without moving its other corners.
+    let wall_ends = quad_of(&g.points)
+        .filter(|_| doc.smart_walls(page).iter().any(|w| w.index == index))
+        .map(|q| (pdfcraft_engine::wall_joins::end_points(&q), q));
+    // A grip nearest the pointer wins: a thin wall's corners are close to the middle of its end.
+    let connector = |pos: Pos2| {
+        wall_ends.and_then(|(ends, _)| {
+            ends.iter()
+                .enumerate()
+                .map(|(e, p)| (e, cx.to_screen(*p).distance(pos)))
+                .filter(|(_, d)| *d <= GRIP_PX)
+                .min_by(|a, b| a.1.total_cmp(&b.1))
+                .map(|(e, _)| e)
+        })
+    };
+    if let Some((ends, _)) = wall_ends {
+        for e in ends {
+            let c = cx.to_screen(e);
+            painter.circle(c, GRIP_PX * 0.5, Color32::WHITE, Stroke::new(1.0, accent));
+        }
+    }
     let hovered = pointer.and_then(near);
-    if hovered.is_some() {
+    let on_connector = pointer.and_then(connector).filter(|_| {
+        // The connector is the nearer of the two when both are under the pointer.
+        let (Some(p), Some((ends, _))) = (pointer, wall_ends) else { return false };
+        let corner = hovered.and_then(|i| g.points.get(i)).map(|v| cx.to_screen(*v).distance(p));
+        let end = pointer.and_then(connector).and_then(|e| ends.get(e)).map(|v| cx.to_screen(*v).distance(p));
+        corner.is_none_or(|c| end.is_some_and(|d| d <= c))
+    });
+    let hovered = if on_connector.is_some() { None } else { hovered };
+    if hovered.is_some() || on_connector.is_some() {
         ui.ctx().set_cursor_icon(egui::CursorIcon::Grab);
     }
     if pressed && let Some(vertex) = hovered {
-        view.draft.grip = Some(Grip { page, index, vertex, kind: g.kind, start: g.points.clone(), points: g.points.clone() });
+        view.draft.grip = Some(Grip { page, index, vertex, kind: g.kind, start: g.points.clone(), points: g.points.clone(), end: None });
+        return true;
+    }
+    if pressed && let Some(end) = on_connector {
+        view.draft.grip = Some(Grip { page, index, vertex: 0, kind: g.kind, start: g.points.clone(), points: g.points.clone(), end: Some(end) });
         return true;
     }
     false

@@ -186,6 +186,43 @@ fn fresh_names(count: usize, existing: &[Wall]) -> Vec<String> {
         .collect()
 }
 
+/// The middles of a wall's two ends: end A (its corners 3 and 0), then end B (corners 1 and 2).
+pub fn end_points(q: &[Pt; 4]) -> [Pt; 2] {
+    [mid(q[3], q[0]), mid(q[1], q[2])]
+}
+
+/// The outline with end `end` (0 for A, 1 for B) dragged to `to`: its two corners move together, along
+/// the wall only, so the rest of the wall stays put. A stretch that would close the wall (or isn't
+/// finite) is not made.
+pub fn stretch_end(q: &[Pt; 4], end: usize, to: Pt) -> [Pt; 4] {
+    let ends = end_points(q);
+    let (from, other) = if end == 0 { (ends[0], ends[1]) } else { (ends[1], ends[0]) };
+    let along = sub(from, other);
+    let len = dot(along, along).sqrt();
+    if !len.is_finite() || len <= 1e-9 {
+        return *q;
+    }
+    let dir = [along[0] / len, along[1] / len];
+    let shift = dot(sub(to, from), dir);
+    let moved = [dir[0] * shift, dir[1] * shift];
+    let corners = if end == 0 { [0, 3] } else { [1, 2] };
+    let mut out = *q;
+    for k in corners {
+        if let Some(c) = out.get_mut(k) {
+            *c = [c[0] + moved[0], c[1] + moved[1]];
+        }
+    }
+    let new_len = dot(sub(add(from, moved), other), dir);
+    if !new_len.is_finite() || new_len <= 1e-9 || !out.iter().all(|p| p.iter().all(|v| v.is_finite())) {
+        return *q;
+    }
+    out
+}
+
+fn add(a: Pt, b: Pt) -> Pt {
+    [a[0] + b[0], a[1] + b[1]]
+}
+
 /// The join for free end `end` (0 for A, 1 for B) of the wall named `nm` with outline `q`, against
 /// `existing`: its new outline, the edit to the wall it joins, and that wall's name when the joint is
 /// a corner (a T names nothing: the wall it meets runs on through).
@@ -300,6 +337,27 @@ mod tests {
                 _ => None,
             })
             .collect()
+    }
+
+    #[test]
+    fn an_end_connector_sits_in_the_middle_of_its_end() {
+        let q = [[0.0, 3.0], [100.0, 3.0], [100.0, -3.0], [0.0, -3.0]];
+        assert_eq!(end_points(&q), [[0.0, 0.0], [100.0, 0.0]]);
+    }
+
+    #[test]
+    fn stretching_an_end_moves_its_two_corners_along_the_wall_only() {
+        let q = [[0.0, 3.0], [100.0, 3.0], [100.0, -3.0], [0.0, -3.0]];
+        // Dragged to (130, 9): the wall grows to 130 along its length; the sideways part is ignored.
+        assert_eq!(stretch_end(&q, 1, [130.0, 9.0]), [[0.0, 3.0], [130.0, 3.0], [130.0, -3.0], [0.0, -3.0]]);
+        // The other end, pulled back in: the wall shortens from its start.
+        assert_eq!(stretch_end(&q, 0, [20.0, 0.0]), [[20.0, 3.0], [100.0, 3.0], [100.0, -3.0], [20.0, -3.0]]);
+    }
+
+    #[test]
+    fn a_stretch_that_would_close_the_wall_is_not_made() {
+        let q = [[0.0, 3.0], [100.0, 3.0], [100.0, -3.0], [0.0, -3.0]];
+        assert_eq!(stretch_end(&q, 1, [-50.0, 0.0]), q, "the wall keeps its length");
     }
 
     fn near(a: Pt, b: Pt) -> bool {
