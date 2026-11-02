@@ -57,6 +57,7 @@ mod crop;
 mod drag_pointer;
 mod export_ui;
 mod js_ui;
+mod knife_ui;
 #[cfg(target_os = "macos")]
 mod macos_association;
 mod marks_ui;
@@ -301,6 +302,8 @@ pub enum QuickTool {
     CustomStamp(usize),
     /// Edit a PDF ▸ Link: draw link areas, select and edit links.
     Link,
+    /// RevuCraft: click a plain smart wall to cut it across its thickness at that point.
+    Knife,
     /// Use a certificate ▸ Digitally sign / Certify (visible): drag the signature's rectangle.
     SignArea {
         certify: bool,
@@ -344,6 +347,7 @@ impl QuickTool {
             QuickTool::AddText => "add-text".to_string(),
             QuickTool::EditText => "edit-text".to_string(),
             QuickTool::Link => "link".to_string(),
+            QuickTool::Knife => "knife".to_string(),
             QuickTool::SignArea { certify: false } => "sign".to_string(),
             QuickTool::SignArea { certify: true } => "certify".to_string(),
             QuickTool::MarqueeZoom => "marquee-zoom".to_string(),

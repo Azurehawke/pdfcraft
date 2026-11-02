@@ -3446,6 +3446,7 @@ fn document_area_pages(app: &mut PdfCraftApp, index: usize, ui: &mut egui::Ui) {
         | QuickTool::Stamp(_)
         | QuickTool::CustomStamp(_)
         | QuickTool::Link
+        | QuickTool::Knife
         | QuickTool::SignArea { .. }
         | QuickTool::MarqueeZoom
         | QuickTool::Snapshot
@@ -3813,6 +3814,21 @@ fn document_area_pages(app: &mut PdfCraftApp, index: usize, ui: &mut egui::Ui) {
                 crate::bezier_ui::page_input(ui, &resp, doc, view, &pcx);
             }
 
+            // RevuCraft: the knife cuts the smart wall under a click, at the click.
+            if tool == QuickTool::Knife
+                && allowed
+                && resp.clicked()
+                && let Some(p) = ui.input(|inp| inp.pointer.hover_pos()).filter(|p| xf.rect.contains(*p))
+            {
+                let (vx, vy) = xf.screen_to_view(p);
+                let u = info.pages[i].view_to_user(vx, vy);
+                if let Some(edit) = crate::knife_ui::cut(&doc.smart_walls(i), i, [u[0] as f64, u[1] as f64]) {
+                    view.pending_edit = Some(edit);
+                }
+            }
+            if tool == QuickTool::Knife && allowed {
+                ui.ctx().set_cursor_icon(egui::CursorIcon::Crosshair);
+            }
             // Form fields take clicks first with the Select tool (as Acrobat fills fields in
             // every viewing mode); then comments; then text selection.
             if let QuickTool::Stamp(kind) = tool

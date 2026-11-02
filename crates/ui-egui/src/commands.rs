@@ -442,6 +442,10 @@ impl PdfCraftApp {
             }
             "app.preferences" => self.dialog = Some(Dialog::Preferences),
             "ocr.recognize_batch" => self.ocr_files_dialog(),
+            "edit.wall_knife" => {
+                self.quick_tool = crate::QuickTool::Knife;
+                self.notify_tr("Click a plain wall to cut it there; select a piece and press Delete to remove it");
+            }
             "edit.edit_text" => {
                 self.quick_tool = crate::QuickTool::EditText;
                 self.left = crate::LeftPanel::Tool("edit");
