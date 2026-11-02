@@ -39,7 +39,7 @@ pub fn package(pdf: &Path, folder: Option<&Path>) -> Result<Vec<u8>, String> {
 }
 
 /// The files under `dir` (not through symbolic links), at most [`MAX_DEPTH`] folders down.
-fn collect(dir: &Path, depth: usize, out: &mut Vec<PathBuf>) -> Result<(), String> {
+pub(crate) fn collect(dir: &Path, depth: usize, out: &mut Vec<PathBuf>) -> Result<(), String> {
     if depth > MAX_DEPTH {
         return Ok(());
     }
