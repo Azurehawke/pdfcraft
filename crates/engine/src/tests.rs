@@ -6593,6 +6593,77 @@ fn a_joined_wall_follows_its_partner_through_the_engine() {
     assert!(near(q[0], [97.0, 23.0]) && near(q[3], [103.0, 17.0]), "{q:?}");
 }
 
+fn named_wall(session: &mut Session, id: DocId, quad: [[f64; 2]; 4], nm: &str) {
+    let style = Style { color: [0.0; 3], opacity: 1.0, width: 0.75, fill: None };
+    session
+        .apply(
+            id,
+            Edit::AddWall {
+                page: 0,
+                quad,
+                ja: false,
+                jb: false,
+                style,
+                author: "Steve".into(),
+                nm: nm.into(),
+                ja_with: String::new(),
+                jb_with: String::new(),
+            },
+        )
+        .unwrap();
+}
+
+fn wall_named_in(session: &Session, id: DocId, nm: &str) -> pdfcraft_annot::walls::Wall {
+    session.get(id).unwrap().smart_walls(0).into_iter().find(|x| x.nm == nm).unwrap()
+}
+
+#[test]
+fn a_wall_dropped_on_another_walls_end_joins_it() {
+    let mut session = Session::default();
+    let id = session.open("plan.pdf", None, Arc::new(fixture(1)), None).unwrap();
+    named_wall(&mut session, id, [[0.0, 3.0], [100.0, 3.0], [100.0, -3.0], [0.0, -3.0]], "w");
+    // Its end A 40 above the old wall's end B, which it is dragged down to.
+    named_wall(&mut session, id, [[97.0, 40.0], [97.0, 140.0], [103.0, 140.0], [103.0, 40.0]], "m");
+    let mi = wall_named_in(&session, id, "m").index;
+    session.apply(id, Edit::MoveAnnotation { page: 0, index: mi, dx: 0.0, dy: -40.0 }).unwrap();
+    let (w, m) = (wall_named_in(&session, id, "w"), wall_named_in(&session, id, "m"));
+    assert!(m.data.ja && m.data.ja_with == "w", "the dropped wall's end joins the wall it reached");
+    assert!(w.data.jb && w.data.jb_with == "m", "and the old wall names it back");
+    let near = |a: [f64; 2], b: [f64; 2]| (a[0] - b[0]).hypot(a[1] - b[1]) < 1e-6;
+    assert!(near(m.quad[0], [97.0, 3.0]) && near(m.quad[3], [103.0, -3.0]), "the L is mitred: {:?}", m.quad);
+}
+
+#[test]
+fn a_wall_dropped_along_another_wall_joins_it_as_a_t() {
+    let mut session = Session::default();
+    let id = session.open("plan.pdf", None, Arc::new(fixture(1)), None).unwrap();
+    named_wall(&mut session, id, [[0.0, 3.0], [100.0, 3.0], [100.0, -3.0], [0.0, -3.0]], "w");
+    // Its end A 37 above the old wall's face, in the middle of it.
+    named_wall(&mut session, id, [[47.0, 40.0], [47.0, 140.0], [53.0, 140.0], [53.0, 40.0]], "m");
+    let mi = wall_named_in(&session, id, "m").index;
+    session.apply(id, Edit::MoveAnnotation { page: 0, index: mi, dx: 0.0, dy: -37.0 }).unwrap();
+    let (w, m) = (wall_named_in(&session, id, "w"), wall_named_in(&session, id, "m"));
+    assert!(m.data.ja, "its end is joined");
+    assert!(m.data.ja_with.is_empty(), "a T names nothing: the old wall runs on through it");
+    assert!(
+        w.data.gaps.iter().any(|g| g.0 == 0 && (g.1 - 0.47).abs() < 1e-6 && (g.2 - 0.53).abs() < 1e-6),
+        "the old wall opens for it on its near face: {:?}",
+        w.data.gaps
+    );
+}
+
+#[test]
+fn a_wall_dropped_clear_of_others_stays_free() {
+    let mut session = Session::default();
+    let id = session.open("plan.pdf", None, Arc::new(fixture(1)), None).unwrap();
+    named_wall(&mut session, id, [[0.0, 3.0], [100.0, 3.0], [100.0, -3.0], [0.0, -3.0]], "w");
+    named_wall(&mut session, id, [[97.0, 40.0], [97.0, 140.0], [103.0, 140.0], [103.0, 40.0]], "m");
+    let mi = wall_named_in(&session, id, "m").index;
+    session.apply(id, Edit::MoveAnnotation { page: 0, index: mi, dx: 0.0, dy: -10.0 }).unwrap();
+    let (w, m) = (wall_named_in(&session, id, "w"), wall_named_in(&session, id, "m"));
+    assert!(!m.data.ja && !m.data.jb && !w.data.jb && w.data.gaps.is_empty());
+}
+
 #[test]
 fn smart_walls_keep_their_doors_through_moves_copies_and_deletes() {
     use pdfcraft_annot::walls::{OpeningKind, OpeningSpec};

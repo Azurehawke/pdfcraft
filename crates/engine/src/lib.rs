@@ -42,6 +42,7 @@ mod stamp_preview;
 pub mod takeoff;
 pub mod text_fonts;
 mod text_preview;
+pub mod wall_joins;
 pub mod word_count;
 pub mod xfa;
 
@@ -3346,6 +3347,26 @@ fn carried_openings(doc: &pdfcraft_cos::Document, edits: &[Edit]) -> Vec<(usize,
     out
 }
 
+/// A wall that a drag leaves stopping on another wall joins it, as the Wall tool joins a new one: an
+/// L at the other wall's end, a T along its face. Each free end is looked at in turn; a joined end is
+/// left as it is (a joint the drag moved past its partner was freed by the stretch that ran first).
+fn join_moved_wall(doc: &mut pdfcraft_cos::Document, cx: &mut EditCtx, page: usize, index: usize) -> Result<(), EditError> {
+    for end in [0usize, 1] {
+        let Some(w) = pdfcraft_annot::walls::walls(doc, page).into_iter().find(|w| w.index == index) else { return Ok(()) };
+        let joined = if end == 0 { w.data.ja } else { w.data.jb };
+        if joined || w.nm.is_empty() || w.locked {
+            continue;
+        }
+        let others: Vec<pdfcraft_annot::walls::Wall> = pdfcraft_annot::walls::walls(doc, page).into_iter().filter(|o| o.index != index).collect();
+        let Some((quad, edit, partner)) = wall_joins::join_end(page, &w.quad, end, &w.nm, &others) else { continue };
+        run_edit(doc, &edit, cx)?;
+        let with = partner.unwrap_or_default();
+        let (ja, jb, joints) = if end == 0 { (Some(true), None, (Some(with), None)) } else { (None, Some(true), (None, Some(with))) };
+        pdfcraft_annot::walls::set_wall(doc, page, index, Some(quad), ja, jb, None, joints, &cx.meta())?;
+    }
+    Ok(())
+}
+
 /// Squares up smart walls after an edit: copied doors and windows go into their wall's copy (or
 /// slide along their own), and a deleted wall's doors and windows go with it.
 fn finish_walls(doc: &mut pdfcraft_cos::Document, cx: &mut EditCtx) -> Result<(), EditError> {
@@ -3615,6 +3636,7 @@ fn run_edit(doc: &mut pdfcraft_cos::Document, edit: &Edit, cx: &mut EditCtx) -> 
             if !cx.walls.carried.contains(&(*page, *index)) {
                 pdfcraft_annot::move_annotation(doc, *page, *index, *dx, *dy, &cx.meta())?;
                 pdfcraft_annot::walls::after_move(doc, *page, *index, Some([*dx, *dy]), &cx.meta())?;
+                join_moved_wall(doc, cx, *page, *index)?;
             }
         }
         Edit::ReshapeAnnotation { page, index, points } => pdfcraft_annot::set_points(doc, *page, *index, points, &cx.meta())?,
@@ -3629,6 +3651,7 @@ fn run_edit(doc: &mut pdfcraft_cos::Document, edit: &Edit, cx: &mut EditCtx) -> 
             } else {
                 // A wall's doors follow its new outline; a door's points snap back to its wall.
                 pdfcraft_annot::walls::after_move(doc, *page, changed, None, &cx.meta())?;
+                join_moved_wall(doc, cx, *page, changed)?;
             }
         }
         Edit::AddPhotoCallout { page, point, center, data, text, side, photo_height, author } => {

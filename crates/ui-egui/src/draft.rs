@@ -976,7 +976,7 @@ fn finish_edit(tool: DraftTool, page: usize, points: &[[f64; 2]], closed: bool, 
             let quads = wall_quads(points, thickness, closed, wall_shift(points, settings.wall_side, settings.wall_flip));
             // Smart walls: joined at the run's corners and to the smart walls they end on.
             let style = Style { color, opacity: 1.0, width: 0.75, fill: Some([0.78, 0.78, 0.78]) };
-            let edits = crate::wall_joins::wall_edits(page, &quads, closed, &doc.smart_walls(page), &style, author);
+            let edits = pdfcraft_engine::wall_joins::wall_edits(page, &quads, closed, &doc.smart_walls(page), &style, author);
             (!edits.is_empty()).then(|| Edit::Batch { label: "Draw wall".into(), edits })
         }
         DraftTool::Circle => match points {
