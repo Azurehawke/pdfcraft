@@ -804,6 +804,23 @@ fn release(doc: &mut Document, page: usize, index: usize, end: usize, partner: O
     Ok(())
 }
 
+/// Frees every joint that names the wall `gone` (just deleted): the walls it was joined to have an
+/// open end again.
+pub fn forget_partner(doc: &mut Document, page: usize, gone: &str) -> Result<(), AnnotError> {
+    if gone.is_empty() {
+        return Ok(());
+    }
+    for w in walls(doc, page) {
+        if w.data.ja && w.data.ja_with == gone {
+            release(doc, page, w.index, 0, None)?;
+        }
+        if w.data.jb && w.data.jb_with == gone {
+            release(doc, page, w.index, 1, None)?;
+        }
+    }
+    Ok(())
+}
+
 /// After wall `moved` changed shape: the walls joined to it follow its faces (each joint's
 /// corners on their outline move to meet them), and a joint is released when the wall has moved
 /// past its partner or the partner is gone. Walls reached through joints follow in turn.

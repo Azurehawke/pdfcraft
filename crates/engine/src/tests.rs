@@ -6665,6 +6665,30 @@ fn a_wall_dropped_clear_of_others_stays_free() {
 }
 
 #[test]
+fn deleting_a_joined_wall_frees_the_wall_it_was_joined_to() {
+    let mut session = Session::default();
+    let id = session.open("plan.pdf", None, Arc::new(fixture(1)), None).unwrap();
+    let style = Style { color: [0.0; 3], opacity: 1.0, width: 0.75, fill: None };
+    let add = |quad, nm: &str, ja: bool, jb: bool, ja_with: &str, jb_with: &str| Edit::AddWall {
+        page: 0,
+        quad,
+        ja,
+        jb,
+        style: style.clone(),
+        author: "Steve".into(),
+        nm: nm.into(),
+        ja_with: ja_with.into(),
+        jb_with: jb_with.into(),
+    };
+    session.apply(id, add([[0.0, 3.0], [97.0, 3.0], [103.0, -3.0], [0.0, -3.0]], "w", false, true, "", "m")).unwrap();
+    session.apply(id, add([[97.0, 3.0], [97.0, 80.0], [103.0, 80.0], [103.0, -3.0]], "m", true, false, "w", "")).unwrap();
+    let mi = wall_named_in(&session, id, "m").index;
+    session.apply(id, Edit::DeleteAnnotation { page: 0, index: mi }).unwrap();
+    let w = wall_named_in(&session, id, "w");
+    assert!(!w.data.jb && w.data.jb_with.is_empty(), "the wall it was joined to has its end free again");
+}
+
+#[test]
 fn smart_walls_keep_their_doors_through_moves_copies_and_deletes() {
     use pdfcraft_annot::walls::{OpeningKind, OpeningSpec};
     let mut session = Session::default();

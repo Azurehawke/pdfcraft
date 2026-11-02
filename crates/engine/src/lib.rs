@@ -3607,8 +3607,13 @@ fn run_edit(doc: &mut pdfcraft_cos::Document, edit: &Edit, cx: &mut EditCtx) -> 
             if pdfcraft_annot::walls::wall_name(doc, *page, *index).is_some() {
                 cx.walls.tidy.push(*page);
             }
+            // A deleted wall frees the walls it was joined to.
+            let gone = pdfcraft_annot::walls::wall_name(doc, *page, *index);
             if !pdfcraft_annot::walls::delete_opening(doc, *page, *index, &cx.meta())? {
                 pdfcraft_annot::delete_annotation(doc, *page, *index)?;
+            }
+            if let Some(nm) = gone {
+                pdfcraft_annot::walls::forget_partner(doc, *page, &nm)?;
             }
         }
         Edit::SetAnnotationContents { page, index, text } => pdfcraft_annot::set_contents(doc, *page, *index, text, &cx.meta())?,
