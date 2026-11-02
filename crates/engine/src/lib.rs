@@ -307,6 +307,7 @@ fn scope_of(edit: &Edit) -> Scope {
         | Edit::AddWall { .. }
         | Edit::AddMarkdownNote { .. }
         | Edit::SetWall { .. }
+        | Edit::SplitWall { .. }
         | Edit::AddOpening { .. }
         | Edit::FlipOpening { .. }
         | Edit::AddAnnotation(_)
@@ -2035,6 +2036,13 @@ pub enum Edit {
         ja_with: String,
         jb_with: String,
     },
+    /// RevuCraft: cut a plain smart wall in two across its thickness, at `t` (0 to 1 along its
+    /// centre line). The engine names the new piece. A wall with a gap or an opening is refused.
+    SplitWall {
+        page: usize,
+        index: usize,
+        t: f64,
+    },
     /// RevuCraft: change a smart wall: its outline, which ends are joined, or a gap in a face
     /// (0 or 1, from and to along it, 0 to 1) where another wall meets it. Its doors and windows
     /// follow.
@@ -2896,6 +2904,7 @@ impl Edit {
             Edit::AddWall { .. } => Label::of("Draw wall"),
             Edit::AddMarkdownNote { .. } => Label::of("Add note"),
             Edit::SetWall { .. } => Label::of("Join walls"),
+            Edit::SplitWall { .. } => Label::of("Cut wall"),
             Edit::AddOpening { spec, .. } if spec.kind == pdfcraft_annot::walls::OpeningKind::Window => Label::of("Add window"),
             Edit::AddOpening { .. } => Label::of("Add door"),
             Edit::FlipOpening { hinge: true, .. } => Label::of("Flip hinge"),
@@ -3024,6 +3033,7 @@ fn check_permission(edit: &Edit, p: &pdfcraft_cos::Permissions) -> Result<(), Ed
         | Edit::AddWall { .. }
         | Edit::AddMarkdownNote { .. }
         | Edit::SetWall { .. }
+        | Edit::SplitWall { .. }
         | Edit::AddOpening { .. }
         | Edit::FlipOpening { .. }
         | Edit::AddAnnotation(_)
@@ -3488,6 +3498,13 @@ fn run_edit(doc: &mut pdfcraft_cos::Document, edit: &Edit, cx: &mut EditCtx) -> 
             let index = pdfcraft_annot::walls::add_wall(doc, *page, *quad, &data, style, author, &meta)?;
             pdfcraft_annot::geometry::mark_drafting(doc, *page, index)?;
             cx.place_on_layer(doc, *page, index)?;
+        }
+        Edit::SplitWall { page, index, t } => {
+            // The new piece's name must not be the /NM of any wall on the page.
+            let name = wall_joins::fresh_names(1, &pdfcraft_annot::walls::walls(doc, *page)).into_iter().next().unwrap_or_default();
+            let new = pdfcraft_annot::walls::split(doc, *page, *index, *t, &name, &cx.meta())?;
+            pdfcraft_annot::geometry::mark_drafting(doc, *page, new)?;
+            cx.place_on_layer(doc, *page, new)?;
         }
         Edit::SetWall { page, index, quad, ja, jb, gap, ja_with, jb_with } => {
             pdfcraft_annot::walls::set_wall(doc, *page, *index, *quad, *ja, *jb, *gap, (ja_with.clone(), jb_with.clone()), &cx.meta())?;

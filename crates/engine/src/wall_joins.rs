@@ -168,7 +168,7 @@ fn join(q: &[Pt; 4], end: End, nm: &str, existing: &[Wall], page: usize) -> Opti
 }
 
 /// Names for `count` new walls, none of them the `/NM` of a wall already on the page.
-fn fresh_names(count: usize, existing: &[Wall]) -> Vec<String> {
+pub(crate) fn fresh_names(count: usize, existing: &[Wall]) -> Vec<String> {
     let salt = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map_or(0, |d| d.as_nanos());
     let mut taken: Vec<String> = existing.iter().map(|w| w.nm.clone()).collect();
     (0..count)

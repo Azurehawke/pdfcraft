@@ -586,6 +586,51 @@ pub fn set_wall(
     sync(doc, page, index, meta)
 }
 
+/// The shortest piece a cut may leave, in points.
+const MIN_PIECE: f64 = 2.0;
+
+/// Cuts the plain smart wall `index` across its thickness at `t` (0 to 1 along its centre line)
+/// into two walls; returns the index of the new piece, which is named `new_nm`. The first piece
+/// keeps `index` and its name, open at the cut. The second keeps the far end and its joint, and
+/// the wall it was joined to now names it. A wall with a gap or an opening is refused.
+pub fn split(doc: &mut Document, page: usize, index: usize, t: f64, new_nm: &str, meta: &Meta) -> Result<usize, AnnotError> {
+    let all = walls(doc, page);
+    let w = all.iter().find(|w| w.index == index).ok_or_else(|| AnnotError::Invalid("that isn't a smart wall".into()))?;
+    if !w.data.gaps.is_empty() {
+        return Err(AnnotError::Invalid("a wall with a gap in it can't be cut yet".into()));
+    }
+    if !w.data.open.is_empty() {
+        return Err(AnnotError::Invalid("a wall with a door or window in it can't be cut yet".into()));
+    }
+    if new_nm.is_empty() {
+        return Err(AnnotError::Invalid("the new piece needs a name".into()));
+    }
+    let ax = axis(&w.quad).ok_or_else(|| AnnotError::Invalid("a wall needs a length and a thickness".into()))?;
+    if !t.is_finite() || t <= 0.0 || t >= 1.0 || t * ax.len < MIN_PIECE || (1.0 - t) * ax.len < MIN_PIECE {
+        return Err(AnnotError::Invalid("cut the wall inside its length, leaving pieces at least 2 points long".into()));
+    }
+    let [c0, c1, c2, c3] = w.quad;
+    // Where the cut crosses each face: along face 0 (corners 0→1) and face 1 (corners 3→2).
+    let p0 = add(c0, mul(sub(c1, c0), t));
+    let p1 = add(c3, mul(sub(c2, c3), t));
+    let partner = all.iter().find(|n| n.index != index && n.nm == w.data.jb_with && w.data.jb).cloned();
+    let (kept, far) = ([c0, p0, p1, c3], [p0, c1, c2, p1]);
+
+    // The far piece is a copy of the wall, so it keeps the style and layer; its joint at the cut is
+    // open, and its far joint is the original one.
+    let far_meta = Meta { date: meta.date.clone(), id: new_nm.to_string() };
+    let new_index = crate::geometry::set_vertices(doc, page, index, &far, true, &far_meta)?;
+    set_wall(doc, page, new_index, None, Some(false), None, None, (Some(String::new()), None), meta)?;
+    set_wall(doc, page, index, Some(kept), None, Some(false), None, (None, Some(String::new())), meta)?;
+    if let Some(p) = partner
+        && let Some(pe) = joint_end(&p, &w.nm)
+    {
+        let (ja_with, jb_with) = if pe == 0 { (Some(new_nm.to_string()), None) } else { (None, Some(new_nm.to_string())) };
+        set_wall(doc, page, p.index, None, None, None, None, (ja_with, jb_with), meta)?;
+    }
+    Ok(new_index)
+}
+
 /// Adds a door or window to the smart wall at `wall`; returns its index on the page.
 pub fn add_opening(
     doc: &mut Document,

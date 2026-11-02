@@ -6860,6 +6860,86 @@ fn doors_and_windows_only_go_where_the_wall_has_room() {
     assert!(!session.get(id).unwrap().opening_fits(0, wall, 0.65, 0.75));
 }
 
+fn near_quad(a: [[f64; 2]; 4], b: [[f64; 2]; 4]) -> bool {
+    a.iter().zip(b.iter()).all(|(p, q)| (p[0] - q[0]).hypot(p[1] - q[1]) < 1e-6)
+}
+
+#[test]
+fn a_plain_wall_is_cut_into_two_pieces_that_share_the_cut() {
+    let mut session = Session::new();
+    let id = session.open("plan.pdf", None, Arc::new(fixture(1)), None).unwrap();
+    named_wall(&mut session, id, [[0.0, 3.0], [100.0, 3.0], [100.0, -3.0], [0.0, -3.0]], "w");
+    let index = wall_named_in(&session, id, "w").index;
+    session.apply(id, Edit::SplitWall { page: 0, index, t: 0.4 }).unwrap();
+    let walls = session.get(id).unwrap().smart_walls(0);
+    assert_eq!(walls.len(), 2);
+    let kept = walls.iter().find(|w| w.nm == "w").unwrap();
+    let new = walls.iter().find(|w| w.nm != "w").unwrap();
+    assert!(near_quad(kept.quad, [[0.0, 3.0], [40.0, 3.0], [40.0, -3.0], [0.0, -3.0]]), "{:?}", kept.quad);
+    assert!(near_quad(new.quad, [[40.0, 3.0], [100.0, 3.0], [100.0, -3.0], [40.0, -3.0]]), "{:?}", new.quad);
+    assert!(!kept.data.jb && !new.data.ja, "the cut is open on both sides");
+}
+
+#[test]
+fn cutting_a_joined_wall_moves_the_joint_to_the_new_piece() {
+    let mut session = Session::new();
+    let id = session.open("plan.pdf", None, Arc::new(fixture(1)), None).unwrap();
+    named_wall(&mut session, id, [[0.0, 3.0], [97.0, 3.0], [103.0, -3.0], [0.0, -3.0]], "w");
+    named_wall(&mut session, id, [[97.0, 3.0], [97.0, 80.0], [103.0, 80.0], [103.0, -3.0]], "n");
+    let (w, n) = (wall_named_in(&session, id, "w").index, wall_named_in(&session, id, "n").index);
+    session
+        .apply(id, Edit::SetWall { page: 0, index: w, quad: None, ja: None, jb: Some(true), gap: None, ja_with: None, jb_with: Some("n".into()) })
+        .unwrap();
+    session
+        .apply(id, Edit::SetWall { page: 0, index: n, quad: None, ja: Some(true), jb: None, gap: None, ja_with: Some("w".into()), jb_with: None })
+        .unwrap();
+    session.apply(id, Edit::SplitWall { page: 0, index: w, t: 0.5 }).unwrap();
+    let walls = session.get(id).unwrap().smart_walls(0);
+    let kept = walls.iter().find(|x| x.nm == "w").unwrap();
+    let new = walls.iter().find(|x| x.nm != "w" && x.nm != "n").unwrap();
+    assert!(!kept.data.jb, "the piece left behind has an open end at the cut");
+    assert!(new.data.jb && new.data.jb_with == "n", "the piece at the joint keeps the joint");
+    assert!(!new.data.ja, "the cut end is open");
+    let partner = walls.iter().find(|x| x.nm == "n").unwrap();
+    assert_eq!(partner.data.ja_with, new.nm, "the partner now names the piece it touches");
+    assert!(near_quad(partner.quad, [[97.0, 3.0], [97.0, 80.0], [103.0, 80.0], [103.0, -3.0]]), "the partner did not move");
+}
+
+#[test]
+fn a_wall_with_a_gap_an_opening_or_a_cut_at_its_end_is_refused() {
+    use pdfcraft_annot::walls::{OpeningKind, OpeningSpec};
+    let mut session = Session::new();
+    let id = session.open("plan.pdf", None, Arc::new(fixture(1)), None).unwrap();
+    named_wall(&mut session, id, [[0.0, 3.0], [100.0, 3.0], [100.0, -3.0], [0.0, -3.0]], "w");
+    let index = wall_named_in(&session, id, "w").index;
+    // A gap in a face.
+    session
+        .apply(id, Edit::SetWall { page: 0, index, quad: None, ja: None, jb: None, gap: Some((0, 0.4, 0.6)), ja_with: None, jb_with: None })
+        .unwrap();
+    let err = session.apply(id, Edit::SplitWall { page: 0, index, t: 0.5 }).unwrap_err();
+    assert!(err.to_string().contains("gap"), "{err}");
+    assert_eq!(session.get(id).unwrap().smart_walls(0).len(), 1);
+    // A door in it.
+    let mut session = Session::new();
+    let id = session.open("plan.pdf", None, Arc::new(fixture(1)), None).unwrap();
+    named_wall(&mut session, id, [[0.0, 3.0], [100.0, 3.0], [100.0, -3.0], [0.0, -3.0]], "w");
+    let wall = wall_named_in(&session, id, "w").index;
+    let spec = OpeningSpec { kind: OpeningKind::Door, t0: 0.2, t1: 0.35, side: 1.0, flip: false, mark: String::new() };
+    session.apply(id, Edit::AddOpening { page: 0, wall, spec, color: [0.0; 3], author: "Steve".into() }).unwrap();
+    let err = session.apply(id, Edit::SplitWall { page: 0, index: wall, t: 0.5 }).unwrap_err();
+    assert!(err.to_string().contains("door or window"), "{err}");
+    assert_eq!(session.get(id).unwrap().smart_walls(0).len(), 1);
+    // Cuts at the very ends, or leaving a sliver, are refused.
+    for t in [0.0, 1.0, f64::NAN, 0.005, 0.995] {
+        let mut session = Session::new();
+        let id = session.open("plan.pdf", None, Arc::new(fixture(1)), None).unwrap();
+        named_wall(&mut session, id, [[0.0, 3.0], [100.0, 3.0], [100.0, -3.0], [0.0, -3.0]], "w");
+        let index = wall_named_in(&session, id, "w").index;
+        assert!(session.apply(id, Edit::SplitWall { page: 0, index, t }).is_err(), "t = {t}");
+        assert_eq!(session.get(id).unwrap().smart_walls(0).len(), 1, "t = {t}");
+    }
+}
+
 #[test]
 fn punch_items_and_spaces_are_kept_on_their_markups() {
     use pdfcraft_annot::punch::{Punch, PunchStatus};
