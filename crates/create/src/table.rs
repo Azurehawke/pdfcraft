@@ -25,6 +25,9 @@ pub const MAX_COLS: u32 = 60;
 /// The most rows and columns the workbook view shows of a sheet.
 pub const VIEW_ROWS: u32 = 500;
 pub const VIEW_COLS: u32 = 52;
+/// The most rows and columns a note's preview of a workbook shows.
+pub const PREVIEW_ROWS: u32 = 40;
+pub const PREVIEW_COLS: u32 = 12;
 /// GridCraft measures columns and rows in pixels at 96 per inch.
 const PX_TO_PT: f64 = 0.75;
 
@@ -169,8 +172,22 @@ impl Book {
         let Some(used) = sh.used_range() else {
             return Some(SheetGrid { name: sh.name.clone(), ..SheetGrid::default() });
         };
-        let last_row = used.end.row.min(used.start.row.saturating_add(VIEW_ROWS - 1));
-        let last_col = used.end.col.min(used.start.col.saturating_add(VIEW_COLS - 1));
+        self.grid_in(index, used, VIEW_ROWS, VIEW_COLS)
+    }
+
+    /// Sheet `sheet` (its first when empty) and range `range` (its print area or used range when
+    /// empty), as text, at most [`PREVIEW_ROWS`] by [`PREVIEW_COLS`]: a note's view of a workbook.
+    pub fn preview(&self, sheet: &str, range: &str) -> Result<SheetGrid, CreateError> {
+        let (si, area) = self.resolve(sheet, range)?;
+        self.grid_in(si, area, PREVIEW_ROWS, PREVIEW_COLS).ok_or_else(|| invalid("that sheet can't be read"))
+    }
+
+    /// The cells of `area` on sheet `index`, from its top left, at most `max_rows` by `max_cols`.
+    fn grid_in(&self, index: usize, area: RangeRef, max_rows: u32, max_cols: u32) -> Option<SheetGrid> {
+        let sh = self.wb.sheet(index)?;
+        let used = area;
+        let last_row = used.end.row.min(used.start.row.saturating_add(max_rows.saturating_sub(1)));
+        let last_col = used.end.col.min(used.start.col.saturating_add(max_cols.saturating_sub(1)));
         let cols: Vec<u32> = (used.start.col..=last_col).filter(|c| !sh.is_col_hidden(*c)).collect();
         let widths = cols.iter().map(|c| (f64::from(sh.col_width(*c)) * PX_TO_PT) as f32).collect();
         let rows = (used.start.row..=last_row)
@@ -287,6 +304,29 @@ mod tests {
             s.execute("cell.set", serde_json::json!({ "cell": cell, "input": input })).unwrap();
         }
         gridcraft_engine::io::save_bytes(&s.doc().unwrap().wb, "budget.xlsx").unwrap()
+    }
+
+    #[test]
+    fn a_note_previews_a_range_with_its_formulas_worked_out() {
+        let book = open(&budget_xlsx(), "budget.xlsx").unwrap();
+        let grid = book.preview("", "B2:D3").unwrap();
+        assert_eq!(grid.origin, (1, 1));
+        assert_eq!(grid.rows, vec![vec!["24", "85", "2040"], vec!["6", "410", "2460"]]);
+        assert!(!grid.cut);
+    }
+
+    #[test]
+    fn a_preview_is_capped_and_says_so() {
+        let book = open(&budget_xlsx(), "budget.xlsx").unwrap();
+        let grid = book.preview("", "A1:A100").unwrap();
+        assert_eq!(grid.rows.len(), PREVIEW_ROWS as usize);
+        assert!(grid.cut);
+    }
+
+    #[test]
+    fn a_preview_of_a_sheet_that_is_not_there_is_an_error() {
+        let book = open(&budget_xlsx(), "budget.xlsx").unwrap();
+        assert!(book.preview("Nope", "A1").is_err());
     }
 
     #[test]

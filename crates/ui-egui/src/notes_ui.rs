@@ -44,6 +44,10 @@ pub(crate) struct NoteEditor {
     /// The format painter's copied markers, waiting for the next selection.
     painter: Option<Vec<&'static str>>,
     problem: Option<String>,
+    /// The preview of the workbook link last tapped in the reading view.
+    workbook: Option<WorkbookView>,
+    /// The paperclip was tapped: the picker opens after this frame.
+    pick_workbook: bool,
 }
 
 /// The job's folder beside the PDF: the PDF's name without `.pdf`.
@@ -120,6 +124,8 @@ impl PdfCraftApp {
                 last_snap: 0.0,
                 painter: None,
                 problem: None,
+                workbook: None,
+                pick_workbook: false,
             });
         }
     }
@@ -148,6 +154,8 @@ impl PdfCraftApp {
             last_snap: 0.0,
             painter: None,
             problem: None,
+            workbook: None,
+            pick_workbook: false,
         });
     }
 
@@ -189,6 +197,121 @@ enum ReadAct {
     Link(Link),
 }
 
+/// A workbook link's preview, read from the file when the link is tapped.
+pub(crate) struct WorkbookView {
+    title: String,
+    grid: Result<pdfcraft_engine::workbook::SheetGrid, String>,
+}
+
+/// The PDF's folder: the note files and linked workbooks are relative to it.
+fn pdf_dir(app: &PdfCraftApp, doc: DocId) -> Option<PathBuf> {
+    app.session.get(doc).and_then(|d| d.path.as_deref()).and_then(|p| Path::new(p).parent()).map(Path::to_path_buf)
+}
+
+/// The cells a workbook link shows, read from `path` beside the PDF (`dir`).
+fn workbook_preview(
+    dir: Option<&Path>,
+    path: &str,
+    sheet: Option<&str>,
+    range: Option<&str>,
+) -> Result<pdfcraft_engine::workbook::SheetGrid, String> {
+    let dir = dir.ok_or("Save the drawing first: a linked workbook is read from its folder.")?;
+    if Path::new(path).is_absolute() {
+        return Err("A linked workbook must be beside the PDF, not at an absolute path.".into());
+    }
+    let file = dir.join(path);
+    let len = std::fs::metadata(&file).map_err(|_| format!("Can't find {path}."))?.len();
+    if len > pdfcraft_engine::workbook::MAX_BYTES as u64 {
+        return Err(format!("{path} is too large to show."));
+    }
+    let bytes = std::fs::read(&file).map_err(|e| format!("Can't read {path}: {e}"))?;
+    let name = file.file_name().map(|n| n.to_string_lossy().into_owned()).unwrap_or_default();
+    let book = pdfcraft_engine::workbook::open(&bytes, &name).map_err(|e| e.to_string())?;
+    book.preview(sheet.unwrap_or(""), range.unwrap_or("")).map_err(|e| e.to_string())
+}
+
+/// The path from `base` to `file`, with `../` where `file` leaves `base`, joined with `/`.
+fn relative_to(file: &Path, base: &Path) -> Option<String> {
+    let f: Vec<_> = file.components().collect();
+    let b: Vec<_> = base.components().collect();
+    let common = f.iter().zip(&b).take_while(|(x, y)| x == y).count();
+    let mut parts: Vec<String> = (common..b.len()).map(|_| "..".to_string()).collect();
+    for c in f.get(common..)? {
+        parts.push(c.as_os_str().to_str()?.to_string());
+    }
+    (!parts.is_empty()).then(|| parts.join("/"))
+}
+
+/// The reading view's preview of a linked workbook, with a way to close it.
+fn workbook_view(ui: &mut egui::Ui, view: &WorkbookView, close: &mut bool) {
+    ui.separator();
+    ui.horizontal(|ui| {
+        ui.label(RichText::new(&view.title).font(theme::semibold(13.0)));
+        if ui.small_button(tl!("Close")).clicked() {
+            *close = true;
+        }
+    });
+    match &view.grid {
+        Err(e) => {
+            ui.colored_label(ui.visuals().error_fg_color, e);
+        }
+        Ok(grid) => {
+            egui::ScrollArea::horizontal().id_salt("note-workbook").auto_shrink([false, true]).show(ui, |ui| {
+                egui::Grid::new("note-workbook-cells").striped(true).show(ui, |ui| {
+                    for row in &grid.rows {
+                        for cell in row {
+                            ui.label(cell);
+                        }
+                        ui.end_row();
+                    }
+                });
+            });
+            if grid.cut {
+                ui.label(RichText::new(tl!("Only the first rows and columns are shown.")).weak());
+            }
+        }
+    }
+}
+
+/// Read the linked workbook for the reading view (live: read again each time it is tapped).
+fn show_workbook(app: &mut PdfCraftApp, path: &str, sheet: Option<&str>, range: Option<&str>) {
+    let Some(doc) = app.note_editor.as_ref().map(|ed| ed.doc) else { return };
+    let dir = pdf_dir(app, doc);
+    let title = match (sheet, range) {
+        (Some(s), Some(r)) => format!("{path} · {s}!{r}"),
+        (Some(s), None) => format!("{path} · {s}"),
+        _ => path.to_string(),
+    };
+    let grid = workbook_preview(dir.as_deref(), path, sheet, range);
+    if let Some(ed) = app.note_editor.as_mut() {
+        ed.workbook = Some(WorkbookView { title, grid });
+    }
+}
+
+impl PdfCraftApp {
+    /// The paperclip's picked workbook: a link to it, relative to the PDF's folder, in the note.
+    pub(crate) fn insert_workbook_link(&mut self, file: &Path) {
+        let Some(doc) = self.note_editor.as_ref().map(|ed| ed.doc) else { return };
+        let Some(dir) = pdf_dir(self, doc) else {
+            self.notify_tr("Save the drawing first: its notes are kept in a folder beside it.");
+            return;
+        };
+        let Some(rel) = relative_to(file, &dir) else {
+            self.notify_tr("That workbook's name can't be linked.");
+            return;
+        };
+        // Spaces and brackets are escaped so the link stays one Markdown link; `%` first.
+        let target = rel.replace('%', "%25").replace(' ', "%20").replace('(', "%28").replace(')', "%29");
+        let shown = file.file_name().map(|n| n.to_string_lossy().into_owned()).unwrap_or_default();
+        let now = self.ctx.as_ref().map_or(0.0, |c| c.input(|i| i.time));
+        if let Some(ed) = self.note_editor.as_mut() {
+            let (s, e) = ed.sel;
+            let edit = markdown::link_to(&ed.text, s, e, &shown, &target);
+            apply(ed, now, edit);
+        }
+    }
+}
+
 /// The open note, over the drawing.
 pub(crate) fn editor(app: &mut PdfCraftApp, ctx: &egui::Context) {
     let Some(ed) = app.note_editor.as_mut() else { return };
@@ -203,6 +326,8 @@ pub(crate) fn editor(app: &mut PdfCraftApp, ctx: &egui::Context) {
     let now = ctx.input(|i| i.time);
     let mut close = false;
     let mut acts: Vec<ReadAct> = Vec::new();
+    let mut pick = false;
+    let mut close_view = false;
     let modal = egui::Modal::new(id).area(area).show(ctx, |ui| {
         ui.set_width(width);
         ui.set_max_width(width);
@@ -228,15 +353,25 @@ pub(crate) fn editor(app: &mut PdfCraftApp, ctx: &egui::Context) {
         ui.separator();
         if ed.editing {
             toolbar(ui, ed, now);
+            pick |= std::mem::take(&mut ed.pick_workbook);
             ui.add_space(4.0);
             edit_box(ui, ed, now, height - 120.0);
         } else {
             egui::ScrollArea::vertical().id_salt("note-read").max_height((height - 80.0).max(120.0)).auto_shrink([false, true]).show(ui, |ui| {
                 ui.set_width(width - 16.0);
                 read_view(ui, &t, &ed.text, &mut acts);
+                if let Some(view) = ed.workbook.as_ref() {
+                    workbook_view(ui, view, &mut close_view);
+                }
             });
+            if close_view {
+                ed.workbook = None;
+            }
         }
     });
+    if pick {
+        app.pick_files(crate::files::FilePurpose::NoteWorkbook, false);
+    }
     if modal.should_close() {
         close = true;
     }
@@ -250,6 +385,7 @@ pub(crate) fn editor(app: &mut PdfCraftApp, ctx: &egui::Context) {
             }
             ReadAct::Link(Link::Web(url)) => app.request_document_url(&url, crate::LinkOrigin::Link),
             ReadAct::Link(Link::Markup(target)) => go_to_markup(app, &target),
+            ReadAct::Link(Link::Workbook { path, sheet, range }) => show_workbook(app, &path, sheet.as_deref(), range.as_deref()),
         }
     }
     if close && app.save_note() {
@@ -398,6 +534,9 @@ fn toolbar(ui: &mut egui::Ui, ed: &mut NoteEditor, now: f64) {
                         ui.close();
                     }
                 });
+                if icon(ui, "paperclip", tl!("Link a workbook beside the PDF")) {
+                    ed.pick_workbook = true;
+                }
                 ui.separator();
                 if icon(ui, "list-checks", tl!("Checklist")) {
                     let edit = markdown::toggle_list(&ed.text, s, e, ListKind::Task);

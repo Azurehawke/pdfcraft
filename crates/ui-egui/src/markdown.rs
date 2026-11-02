@@ -33,6 +33,61 @@ pub enum Link {
     Web(String),
     /// `[[target]]`: a markup on the plan, by its name, label or mark.
     Markup(String),
+    /// A workbook beside the PDF: `[shown](Takeoff.xlsx#Budget!A1:D20)`. The path is relative to the
+    /// PDF's folder; the sheet and range are optional (the first sheet, its used range).
+    Workbook {
+        path: String,
+        sheet: Option<String>,
+        range: Option<String>,
+    },
+}
+
+/// Where a `[shown](url)` link goes: a workbook (`.xlsx` or `.xlsm`, with an optional
+/// `#Sheet!A1:D20` after the path), or else a web address. Spaces in the path may be `%20`.
+pub fn target(url: &str) -> Link {
+    let url = url.trim();
+    let (path, fragment) = match url.split_once('#') {
+        Some((p, f)) => (p, Some(f)),
+        None => (url, None),
+    };
+    let lower = path.to_ascii_lowercase();
+    if url.contains("://") || !(lower.ends_with(".xlsx") || lower.ends_with(".xlsm")) {
+        return Link::Web(url.to_string());
+    }
+    let unquote = |s: &str| {
+        let s = s.trim();
+        let s = s.strip_prefix('\'').and_then(|x| x.strip_suffix('\'')).unwrap_or(s);
+        (!s.is_empty()).then(|| s.to_string())
+    };
+    let (sheet, range) = match fragment {
+        None => (None, None),
+        Some(f) => match f.rsplit_once('!') {
+            Some((sheet, range)) => (unquote(sheet), unquote(range)),
+            None => (unquote(f), None),
+        },
+    };
+    Link::Workbook { path: percent_decode(path), sheet, range }
+}
+
+/// `%20` and the other `%XX` escapes Obsidian writes in a link's path. A bad escape stays as it is.
+pub fn percent_decode(s: &str) -> String {
+    let bytes = s.as_bytes();
+    let mut out: Vec<u8> = Vec::with_capacity(bytes.len());
+    let mut i = 0;
+    while let Some(&b) = bytes.get(i) {
+        let hex = bytes.get(i + 1..i + 3).and_then(|h| std::str::from_utf8(h).ok()).and_then(|h| u8::from_str_radix(h, 16).ok());
+        match (b, hex) {
+            (b'%', Some(v)) => {
+                out.push(v);
+                i += 3;
+            }
+            _ => {
+                out.push(b);
+                i += 1;
+            }
+        }
+    }
+    String::from_utf8_lossy(&out).into_owned()
 }
 
 /// A run of text and how it looks.
@@ -215,7 +270,7 @@ pub fn spans(text: &str) -> Vec<Span> {
             flush(&mut out, &cur, &mut buf);
             let shown: String = chars.get(i + 1..close).map(|s| s.iter().collect()).unwrap_or_default();
             let url: String = chars.get(close + 2..end).map(|s| s.iter().collect()).unwrap_or_default();
-            out.push(Span { text: shown, link: Some(Link::Web(url.trim().to_string())), ..cur.clone() });
+            out.push(Span { text: shown, link: Some(target(&url)), ..cur.clone() });
             i = end + 1;
             continue;
         }
@@ -516,6 +571,21 @@ pub fn link(text: &str, start: usize, end: usize, markup: bool) -> Edit {
     Edit { text: out.into_iter().collect(), start: sel.0, end: sel.1 }
 }
 
+/// A `[shown](target)` link in place of the selection (its text when there is one, else `shown`).
+/// The caret goes after it. Brackets are dropped from the text, which would end the link early.
+pub fn link_to(text: &str, start: usize, end: usize, shown: &str, target: &str) -> Edit {
+    let c = chars_of(text);
+    let (s, e) = ordered(c.len(), start, end);
+    let selected: String = c.get(s..e).map(|x| x.iter().collect()).unwrap_or_default();
+    let shown = if selected.trim().is_empty() { shown.to_string() } else { selected };
+    let insert = format!("[{}]({target})", shown.replace(['[', ']'], ""));
+    let at = s + insert.chars().count();
+    let mut out: Vec<char> = c.get(..s).map(<[char]>::to_vec).unwrap_or_default();
+    out.extend(insert.chars());
+    out.extend(c.get(e..).map(<[char]>::to_vec).unwrap_or_default());
+    Edit { text: out.into_iter().collect(), start: at, end: at }
+}
+
 /// The selected lines in a fenced code block.
 pub fn code_block(text: &str, start: usize, end: usize) -> Edit {
     let c = chars_of(text);
@@ -560,6 +630,22 @@ mod tests {
         assert!(find("b").bold && find("c").italic && find("d").strike && find("e").highlight);
         assert!(find("f **g**").code, "code is read as it is");
         assert_eq!(find("w").link, Some(Link::Web("https://x.y".into())));
+        assert_eq!(
+            target("Takeoff%20budget.xlsx#Budget!A1:D20"),
+            Link::Workbook { path: "Takeoff budget.xlsx".into(), sheet: Some("Budget".into()), range: Some("A1:D20".into()) }
+        );
+        assert_eq!(target("../Takeoff.XLSM"), Link::Workbook { path: "../Takeoff.XLSM".into(), sheet: None, range: None });
+        assert_eq!(
+            target("Takeoff.xlsx#'Main floor'!B2"),
+            Link::Workbook { path: "Takeoff.xlsx".into(), sheet: Some("Main floor".into()), range: Some("B2".into()) }
+        );
+        assert_eq!(target("Takeoff.xlsx#Budget"), Link::Workbook { path: "Takeoff.xlsx".into(), sheet: Some("Budget".into()), range: None });
+        assert_eq!(target("https://example.com/a.xlsx"), Link::Web("https://example.com/a.xlsx".into()));
+        assert_eq!(percent_decode("100%zz%2"), "100%zz%2", "a bad escape stays as it is");
+        let e = link_to("see ", 4, 4, "Takeoff.xlsx", "Takeoff.xlsx");
+        assert_eq!(e.text, "see [Takeoff.xlsx](Takeoff.xlsx)");
+        assert_eq!(e.start, e.end);
+        assert_eq!(link_to("a b", 2, 3, "x", "t.xlsx").text, "a [b](t.xlsx)", "a selection is the text shown");
         assert_eq!(find("door").link, Some(Link::Markup("D1".into())));
         assert!(find("#tag").tag);
         assert!(s.iter().all(|x| !x.text.contains("#no") || !x.tag));

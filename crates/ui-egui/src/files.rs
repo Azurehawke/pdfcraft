@@ -17,6 +17,8 @@ pub enum FilePurpose {
     },
     /// Text ▸ Font ▸ Add font file…: keep a copy of the font in the app's font folder.
     InstallFont,
+    /// A note's paperclip: link a workbook beside the PDF from the note's text.
+    NoteWorkbook,
     Combine,
     InsertPages,
     ReplacePages,
@@ -95,6 +97,9 @@ fn scan_fonts(ctx: &egui::Context) -> FoundFonts {
 /// The picker for `purpose`: PDFs, and for Create and Insert also what they convert.
 fn files_picker(purpose: FilePurpose) -> crate::dialog::AsyncFileDialog {
     let dialog = crate::dialog::AsyncFileDialog::new();
+    if purpose == FilePurpose::NoteWorkbook {
+        return dialog.add_filter("Workbook", &["xlsx", "xlsm"]);
+    }
     if matches!(purpose, FilePurpose::TextFont { .. } | FilePurpose::InstallFont) {
         return dialog.add_filter("TrueType / OpenType font", &["ttf", "otf"]);
     }
@@ -362,6 +367,12 @@ impl PdfCraftApp {
     /// Read the picked files and use them.
     #[cfg(not(target_arch = "wasm32"))]
     pub(crate) fn use_paths(&mut self, purpose: FilePurpose, paths: &[std::path::PathBuf]) {
+        if purpose == FilePurpose::NoteWorkbook {
+            if let Some(path) = paths.first() {
+                self.insert_workbook_link(path);
+            }
+            return;
+        }
         if purpose == FilePurpose::CreateMultiple {
             // Each file is read when its turn comes, so the selection's bytes are not all held at once.
             if !paths.is_empty() {
@@ -512,6 +523,8 @@ impl PdfCraftApp {
     /// Use picked files (also the entry point for tests and automation).
     pub fn use_files(&mut self, purpose: FilePurpose, files: Vec<(String, Vec<u8>)>) {
         match purpose {
+            // A workbook is linked by its path, which a browser does not give.
+            FilePurpose::NoteWorkbook => self.notify_tr("Linking a workbook needs the desktop app."),
             FilePurpose::InstallFont => {
                 let Some(dir) = app_font_dir() else {
                     self.notify("Fonts can't be added on this computer: there is no folder to keep them in.");
