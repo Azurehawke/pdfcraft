@@ -3459,6 +3459,8 @@ fn document_area_pages(app: &mut PdfCraftApp, index: usize, ui: &mut egui::Ui) {
         | QuickTool::Draft(_) => false,
     };
     let prefs = &app.comment_prefs;
+    // The document's layers, for a markup's Move to Layer submenu.
+    let layers: Vec<(String, (u32, u16))> = app.session.layer_details(view.id).into_iter().map(|l| (l.name, (l.id.num, l.id.generation))).collect();
     let redact_mark = (app.redact_prefs.hover_fill, app.redact_prefs.opacity);
     let units = app.units;
     let allowed = doc.allows_annotation();
@@ -4635,7 +4637,7 @@ fn document_area_pages(app: &mut PdfCraftApp, index: usize, ui: &mut egui::Ui) {
                 }
                 ui.separator();
             }
-            canvas_action = comments::context_menu(ui, view, info, prefs, allowed).or(copy_image);
+            canvas_action = comments::context_menu(ui, view, info, prefs, allowed, &layers).or(copy_image);
         });
         (wanted, visible_now)
     });

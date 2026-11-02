@@ -2318,7 +2318,14 @@ pub(crate) fn attachment_items(ui: &mut egui::Ui, view: &mut DocView, info: &Doc
 }
 
 /// Items of the canvas context menu for the selected comment (or the page).
-pub(crate) fn context_menu(ui: &mut egui::Ui, view: &mut DocView, info: &DocInfo, prefs: &CommentPrefs, allowed: bool) -> Option<CanvasAction> {
+pub(crate) fn context_menu(
+    ui: &mut egui::Ui,
+    view: &mut DocView,
+    info: &DocInfo,
+    prefs: &CommentPrefs,
+    allowed: bool,
+    layers: &[(String, (u32, u16))],
+) -> Option<CanvasAction> {
     let mut action = None;
     let selected = view.comments.selected.and_then(|(p, i)| info.annotations.iter().find(|a| a.page == p && a.index == i && a.in_reply_to.is_none()));
     match selected {
@@ -2363,6 +2370,23 @@ pub(crate) fn context_menu(ui: &mut egui::Ui, view: &mut DocView, info: &DocInfo
                             endings: None,
                         })));
                         ui.close();
+                    }
+                });
+            });
+            // Move to Layer: the markup onto one of the document's layers, or off them all.
+            let movable = allowed && !a.locked;
+            ui.add_enabled_ui(movable && !layers.is_empty(), |ui| {
+                ui.menu_button(tl!("Move to Layer"), |ui| {
+                    if ui.button(tl!("No layer")).clicked() {
+                        action = Some(CanvasAction::Edit(Box::new(Edit::SetAnnotationLayer { page, index, layer: None })));
+                        ui.close();
+                    }
+                    ui.separator();
+                    for (name, key) in layers {
+                        if ui.button(name.as_str()).clicked() {
+                            action = Some(CanvasAction::Edit(Box::new(Edit::SetAnnotationLayer { page, index, layer: Some(*key) })));
+                            ui.close();
+                        }
                     }
                 });
             });
@@ -2953,7 +2977,7 @@ mod tests {
         let mut h = egui_kittest::Harness::new_ui_state(
             |ui, (view, actions): &mut (DocView, Vec<CanvasAction>)| {
                 ui.button("Page").context_menu(|ui| {
-                    if let Some(a) = context_menu(ui, view, &info, &prefs, true) {
+                    if let Some(a) = context_menu(ui, view, &info, &prefs, true, &[]) {
                         actions.push(a);
                     }
                 });

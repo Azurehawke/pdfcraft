@@ -47,6 +47,7 @@ mod javascript;
 mod layer_actions;
 mod links;
 mod marks;
+mod move_to_layer;
 mod object_selection;
 mod ocr;
 mod organize_drag;

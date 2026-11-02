@@ -404,6 +404,7 @@ No cable runs yet.
 No drawings here.
 No grouping
 No layer
+Move to Layer
 No layers yet. Add one, then choose it as the current layer: new markups, symbols and photos go on it.
 No markups yet. Everything you draw, measure or place is listed here.
 No room here

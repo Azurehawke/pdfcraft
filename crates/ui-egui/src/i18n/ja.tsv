@@ -3137,6 +3137,7 @@ animation effects	Off	オフ
 	Electrical	電気
 	Make symbol	シンボルを作成
 	Make symbol…	シンボルを作成…
+	Move to Layer	レイヤーへ移動
 	Make a symbol of your own from the selected lines and shapes	選択した線と図形から独自のシンボルを作成
 	The selected lines and shapes become a symbol of your own, kept with your symbols for every drawing. The drawing stays as it is.	選択した線と図形が独自のシンボルになり、すべての図面で使えるようにシンボルと一緒に保存されます。図面はそのままです。
 	Symbol name	シンボル名
