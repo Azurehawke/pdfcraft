@@ -419,8 +419,8 @@ impl Default for DraftSettings {
             polar_angle: 360.0,
             mirror_keep: true,
             dim_ticks: false,
-            line_width: LineWidth::Paper(1.0),
-            by_layer: true,
+            line_width: LineWidth::Hairline,
+            by_layer: false,
             color: None,
             color_layer: None,
             panel_collapsed: false,
@@ -2360,5 +2360,19 @@ mod tests {
         let (y0, y1) = ys(&wall_quads(&run, 6.0, false, wall_shift(&run, WallSide::Inside, true)));
         assert!(y0.abs() < 1e-9 && (y1 - 6.0).abs() < 1e-9);
         assert_eq!(wall_shift(&run, WallSide::Centre, true), 0.0, "a centre line has no side");
+    }
+}
+
+#[cfg(test)]
+mod default_line_tests {
+    use super::*;
+
+    /// New drafting lines are hairlines (the thinnest the printer draws) unless a layer or a
+    /// width chosen in the ribbon says otherwise.
+    #[test]
+    fn default_drafting_line_is_the_hairline() {
+        let d = DraftSettings::default();
+        assert_eq!(d.line_width, LineWidth::Hairline);
+        assert!(!d.by_layer);
     }
 }
