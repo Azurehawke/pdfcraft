@@ -52,6 +52,8 @@ pub(crate) struct NoteEditor {
     pictures: Vec<Picture>,
     /// The text changed in edit mode: the pictures are loaded again before the next read.
     pictures_stale: bool,
+    /// The size the reader or editor was resized to (`None`: fills the window).
+    size: Option<egui::Vec2>,
     /// A `[[file]]` link tapped in the reading view: its note, image or problem.
     linked: Option<Linked>,
     /// The camera was tapped: the photo picker opens after this frame.
@@ -170,6 +172,7 @@ impl PdfCraftApp {
                 pick_workbook: false,
                 pictures: Vec::new(),
                 pictures_stale: false,
+                size: None,
                 linked: None,
                 pick_photo: false,
             });
@@ -209,6 +212,7 @@ impl PdfCraftApp {
             pick_workbook: false,
             pictures,
             pictures_stale: false,
+            size: None,
             linked: None,
             pick_photo: false,
         });
@@ -380,8 +384,13 @@ pub(crate) fn editor(app: &mut PdfCraftApp, ctx: &egui::Context) {
     let Some(ed) = app.note_editor.as_mut() else { return };
     let t = Tokens::get(ctx);
     let screen = ctx.content_rect();
-    let width = (screen.width() - 16.0).clamp(200.0, 900.0);
-    let height = (screen.height() - 32.0).max(200.0);
+    let max_width = (screen.width() - 16.0).max(200.0);
+    let max_height = (screen.height() - 32.0).max(200.0);
+    let (width, height) = match ed.size {
+        Some(v) => (fit(v.x, 200.0, max_width), fit(v.y, 200.0, max_height)),
+        None => ((screen.width() - 16.0).clamp(200.0, 900.0), max_height),
+    };
+    let mut drag = egui::Vec2::ZERO;
     let id = egui::Id::new("revucraft-note");
     let pos = screen.min + vec2(((screen.width() - width) / 2.0).max(8.0), 16.0);
     let area =
@@ -441,7 +450,27 @@ pub(crate) fn editor(app: &mut PdfCraftApp, ctx: &egui::Context) {
                 ed.linked = None;
             }
         }
+        // The grip in the bottom-right corner: drag to resize.
+        ui.with_layout(egui::Layout::right_to_left(egui::Align::Max), |ui| {
+            let (rect, resp) = ui.allocate_exact_size(vec2(16.0, 16.0), egui::Sense::drag());
+            let color = if resp.hovered() || resp.dragged() { t.text } else { t.text_faint };
+            for k in [4.0_f32, 8.0, 12.0] {
+                let a = rect.right_bottom() - vec2(k, 2.0);
+                let b = rect.right_bottom() - vec2(2.0, k);
+                ui.painter().line_segment([a, b], egui::Stroke::new(1.0, color));
+            }
+            if resp.hovered() || resp.dragged() {
+                ui.ctx().set_cursor_icon(egui::CursorIcon::ResizeNwSe);
+            }
+            drag += resp.drag_delta();
+        });
     });
+    if drag != egui::Vec2::ZERO
+        && let Some(ed) = app.note_editor.as_mut()
+    {
+        let v = vec2(width, height) + drag;
+        ed.size = Some(vec2(fit(v.x, 200.0, max_width), fit(v.y, 200.0, max_height)));
+    }
     if pick {
         app.pick_files(crate::files::FilePurpose::NoteWorkbook, false);
     }
@@ -723,6 +752,12 @@ fn toolbar(ui: &mut egui::Ui, ed: &mut NoteEditor, now: f64) {
     );
 }
 
+/// `v` kept between `lo` and `hi` (`hi` is raised to `lo` when the window is smaller than that),
+/// so a small window never panics.
+fn fit(v: f32, lo: f32, hi: f32) -> f32 {
+    v.max(lo).min(hi.max(lo))
+}
+
 /// The note's text, being typed.
 fn edit_box(ui: &mut egui::Ui, ed: &mut NoteEditor, now: f64, height: f32) {
     let id = egui::Id::new("revucraft-note-text");
@@ -928,5 +963,20 @@ mod tests {
         assert_eq!(read_file(&dir.join("Note 1.md")).as_deref(), Some("x"));
         assert_eq!(read_file(&dir.join("missing.md")), None);
         let _ = std::fs::remove_dir_all(&dir);
+    }
+}
+
+#[cfg(test)]
+mod size_tests {
+    use super::fit;
+
+    /// A resized note stays inside the window, and a window smaller than the minimum still
+    /// clamps without panicking.
+    #[test]
+    fn fit_keeps_the_size_between_the_bounds() {
+        assert_eq!(fit(5000.0, 200.0, 900.0), 900.0);
+        assert_eq!(fit(10.0, 200.0, 900.0), 200.0);
+        assert_eq!(fit(500.0, 200.0, 900.0), 500.0);
+        assert_eq!(fit(500.0, 200.0, 100.0), 200.0);
     }
 }
