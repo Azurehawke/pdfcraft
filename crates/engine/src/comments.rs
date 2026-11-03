@@ -119,6 +119,78 @@ pub fn create(pdf: &Path, page0: usize, author: &str, stamp: &Stamp) -> Result<C
     Ok(Created { path, rel: format!("{folder}/{name}"), text })
 }
 
+/// The largest note file read (bytes).
+pub const NOTE_MAX_BYTES: u64 = 1 << 20;
+/// The largest image decoded (bytes on disk).
+pub const IMAGE_MAX_BYTES: u64 = 25 << 20;
+/// The most pixels an image may have once decoded.
+pub const IMAGE_MAX_PIXELS: u64 = 40_000_000;
+/// The longest link target accepted (characters).
+const MAX_TARGET: usize = 1024;
+
+/// Whether a `[[target]]` names an image (by its extension).
+pub fn is_image(target: &str) -> bool {
+    matches!(extension(target).as_deref(), Some("png" | "jpg" | "jpeg" | "gif" | "tif" | "tiff" | "bmp"))
+}
+
+/// Whether a `[[target]]` names a file beside the PDF (a Markdown note or an image). Any other
+/// `[[target]]` names a markup on the plan.
+pub fn is_file_target(target: &str) -> bool {
+    is_image(target) || extension(target).as_deref() == Some("md")
+}
+
+fn extension(target: &str) -> Option<String> {
+    Path::new(target.trim()).extension().map(|e| e.to_string_lossy().to_ascii_lowercase())
+}
+
+/// Where a link's target is, inside the PDF's folder `dir`. A target that leaves the folder
+/// (`../`, an absolute path, a drive, or a symbolic link out of it) is refused with a message. A
+/// target that is inside but not there yet is returned: the caller shows it as broken.
+pub fn resolve(dir: &Path, target: &str) -> Result<PathBuf, String> {
+    let refused = || format!("{} must stay inside the PDF's folder.", target.trim());
+    let t = target.trim();
+    if t.is_empty() || t.chars().count() > MAX_TARGET || t.chars().any(|c| c.is_control() || c == ':' || c == '\\') {
+        return Err(refused());
+    }
+    let rel = Path::new(t);
+    if rel.components().any(|c| !matches!(c, std::path::Component::Normal(_) | std::path::Component::CurDir)) {
+        return Err(refused());
+    }
+    let joined = dir.join(rel);
+    // A symbolic link may point out of the folder: compare where the file really is.
+    if let (Ok(real), Ok(base)) = (joined.canonicalize(), dir.canonicalize())
+        && !real.starts_with(&base)
+    {
+        return Err(refused());
+    }
+    Ok(joined)
+}
+
+/// Decodes an image for display: its width, its height and its RGBA bytes. Refuses files and
+/// images that are too large, and returns an error rather than a partial image.
+pub fn load_image(path: &Path) -> Result<(usize, usize, Vec<u8>), String> {
+    let len = std::fs::metadata(path).map_err(|e| format!("Can't read the image: {e}"))?.len();
+    if len > IMAGE_MAX_BYTES {
+        return Err("The image is too large to show.".into());
+    }
+    let bytes = std::fs::read(path).map_err(|e| format!("Can't read the image: {e}"))?;
+    let (w, h) = image::ImageReader::new(std::io::Cursor::new(&bytes))
+        .with_guessed_format()
+        .map_err(|e| format!("Can't read the image: {e}"))?
+        .into_dimensions()
+        .map_err(|e| format!("Can't read the image: {e}"))?;
+    if u64::from(w).saturating_mul(u64::from(h)) > IMAGE_MAX_PIXELS {
+        return Err("The image has too many pixels to show.".into());
+    }
+    let rgba = image::load_from_memory(&bytes).map_err(|e| format!("Can't decode the image: {e}"))?.to_rgba8();
+    let (w, h) = (rgba.width() as usize, rgba.height() as usize);
+    let pixels = rgba.into_raw();
+    if pixels.len() != w.saturating_mul(h).saturating_mul(4) {
+        return Err("The image could not be read whole.".into());
+    }
+    Ok((w, h, pixels))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -176,6 +248,58 @@ mod tests {
         assert!(second.rel.ends_with("-003-20261103-122100-2.md"), "{}", second.rel);
         assert_ne!(first.path, second.path);
         assert_eq!(std::fs::read_to_string(&first.path).unwrap(), first.text, "the first comment is untouched");
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn links_inside_the_folder_resolve_and_others_are_refused() {
+        let dir = std::env::temp_dir().join(format!("pdfcraft-links-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(dir.join("Plan.images")).unwrap();
+        assert_eq!(resolve(&dir, "Plan.images/a.jpg"), Ok(dir.join("Plan.images/a.jpg")), "missing but inside is returned");
+        assert_eq!(resolve(&dir, "./Plan.images/a.jpg"), Ok(dir.join("./Plan.images/a.jpg")));
+        for bad in ["../x.md", "a/../../x.md", "/etc/passwd", "C:x.md", "\\\\server\\x.md", "", "   ", "x\0.md", "x\n.md"] {
+            assert!(resolve(&dir, bad).is_err(), "{bad:?} must be refused");
+        }
+        let long = "a".repeat(MAX_TARGET + 1);
+        assert!(resolve(&dir, &long).is_err());
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn a_link_through_a_symbolic_link_out_of_the_folder_is_refused() {
+        let root = std::env::temp_dir().join(format!("pdfcraft-symlink-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&root);
+        let dir = root.join("job");
+        std::fs::create_dir_all(&dir).unwrap();
+        std::fs::write(root.join("secret.md"), "x").unwrap();
+        std::os::unix::fs::symlink(root.join("secret.md"), dir.join("link.md")).unwrap();
+        assert!(resolve(&dir, "link.md").is_err());
+        let _ = std::fs::remove_dir_all(&root);
+    }
+
+    #[test]
+    fn only_images_and_markdown_are_file_links() {
+        assert!(is_file_target("Plan.images/Photo 1.JPG"));
+        assert!(is_file_target("note.md"));
+        assert!(!is_file_target("Callout 3"), "a markup name stays a markup");
+        assert!(!is_file_target("sheet.xlsx"), "workbooks have their own link");
+        assert!(!is_image(""));
+    }
+
+    #[test]
+    fn a_broken_or_hostile_image_is_an_error_not_a_panic() {
+        let dir = std::env::temp_dir().join(format!("pdfcraft-image-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(&dir).unwrap();
+        assert!(load_image(&dir.join("missing.jpg")).is_err());
+        let junk = dir.join("junk.jpg");
+        std::fs::write(&junk, b"not an image at all").unwrap();
+        assert!(load_image(&junk).is_err());
+        let empty = dir.join("empty.png");
+        std::fs::write(&empty, b"").unwrap();
+        assert!(load_image(&empty).is_err());
         let _ = std::fs::remove_dir_all(&dir);
     }
 }

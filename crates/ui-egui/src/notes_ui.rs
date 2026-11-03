@@ -48,6 +48,62 @@ pub(crate) struct NoteEditor {
     workbook: Option<WorkbookView>,
     /// The paperclip was tapped: the picker opens after this frame.
     pick_workbook: bool,
+    /// The images the note shows, loaded from the PDF's folder.
+    pictures: Vec<Picture>,
+    /// The text changed in edit mode: the pictures are loaded again before the next read.
+    pictures_stale: bool,
+    /// A `[[file]]` link tapped in the reading view: its note, image or problem.
+    linked: Option<Linked>,
+}
+
+/// The most images one note loads.
+const MAX_PICTURES: usize = 16;
+
+/// An image a note shows on its own line (`[[Plan.images/photo.jpg]]`), loaded once.
+pub(crate) struct Picture {
+    target: String,
+    tex: Result<egui::TextureHandle, String>,
+}
+
+/// What a tapped `[[file]]` link shows beneath the note.
+pub(crate) enum Linked {
+    Note { title: String, text: String },
+    Image { title: String, tex: egui::TextureHandle },
+    Problem { title: String, message: String },
+}
+
+/// The image a line names when it is only `[[file.jpg]]` (or `[[file.jpg|shown]]`).
+fn picture_target(text: &str) -> Option<String> {
+    let inner = text.trim().strip_prefix("[[")?.strip_suffix("]]")?;
+    let target = inner.split('|').next()?.trim();
+    (!target.is_empty() && !target.contains("]]") && !target.contains("[[") && pdfcraft_engine::comments::is_image(target))
+        .then(|| target.to_string())
+}
+
+/// The images `text` shows, loaded from `id`'s folder: each once, at most [`MAX_PICTURES`].
+fn load_pictures(app: &PdfCraftApp, id: DocId, text: &str) -> Vec<Picture> {
+    let (Some(ctx), Some(dir)) = (app.ctx.as_ref(), pdf_dir(app, id)) else { return Vec::new() };
+    let mut out: Vec<Picture> = Vec::new();
+    for block in markdown::blocks(text) {
+        let Block::Paragraph(line) = block else { continue };
+        let Some(target) = picture_target(&line) else { continue };
+        if out.iter().any(|p| p.target == target) {
+            continue;
+        }
+        if out.len() >= MAX_PICTURES {
+            break;
+        }
+        let tex = pdfcraft_engine::comments::resolve(&dir, &target).and_then(|path| texture(ctx, &target, &path));
+        out.push(Picture { target, tex });
+    }
+    out
+}
+
+/// Decodes the image at `path` into a texture for the reading view.
+fn texture(ctx: &egui::Context, name: &str, path: &Path) -> Result<egui::TextureHandle, String> {
+    let (w, h, pixels) = pdfcraft_engine::comments::load_image(path)?;
+    let img = egui::ColorImage::from_rgba_unmultiplied([w, h], &pixels);
+    Ok(ctx.load_texture(format!("linked-{name}"), img, egui::TextureOptions::LINEAR))
 }
 
 /// The job's folder beside the PDF: the PDF's name without `.pdf`.
@@ -110,6 +166,9 @@ impl PdfCraftApp {
                 problem: None,
                 workbook: None,
                 pick_workbook: false,
+                pictures: Vec::new(),
+                pictures_stale: false,
+                linked: None,
             });
         }
     }
@@ -121,8 +180,13 @@ impl PdfCraftApp {
         let Some(doc) = self.session.get(id) else { return };
         let Some((_, rel)) = doc.markdown_notes(page).into_iter().find(|(i, _)| *i == index) else { return };
         let saved = doc.info.annotations.iter().find(|a| a.page == page && a.index == index).and_then(|a| a.contents.clone()).unwrap_or_default();
-        let file = doc.path.as_ref().and_then(|p| Path::new(p).parent().map(|d| d.join(&rel)));
-        let text = file.as_deref().and_then(read_file).unwrap_or_else(|| saved.clone());
+        let in_file = doc.note_in_file(page, index);
+        let file = pdf_dir(self, id).and_then(|dir| pdfcraft_engine::comments::resolve(&dir, &rel).ok());
+        let loaded = file.as_deref().and_then(read_file);
+        // A note kept in its file alone has nothing to show when that file is gone.
+        let problem = (in_file && loaded.is_none()).then(|| format!("The note's file {rel} isn't there."));
+        let text = loaded.unwrap_or_else(|| saved.clone());
+        let pictures = load_pictures(self, id, &text);
         self.note_editor = Some(NoteEditor {
             doc: id,
             page,
@@ -137,9 +201,12 @@ impl PdfCraftApp {
             redo: Vec::new(),
             last_snap: 0.0,
             painter: None,
-            problem: None,
+            problem,
             workbook: None,
             pick_workbook: false,
+            pictures,
+            pictures_stale: false,
+            linked: None,
         });
     }
 
@@ -320,6 +387,7 @@ pub(crate) fn editor(app: &mut PdfCraftApp, ctx: &egui::Context) {
     let mut acts: Vec<ReadAct> = Vec::new();
     let mut pick = false;
     let mut close_view = false;
+    let mut close_linked = false;
     let modal = egui::Modal::new(id).area(area).show(ctx, |ui| {
         ui.set_width(width);
         ui.set_max_width(width);
@@ -336,6 +404,7 @@ pub(crate) fn editor(app: &mut PdfCraftApp, ctx: &egui::Context) {
                     if ed.editing { (tl!("Read"), tl!("Show the note formatted")) } else { (tl!("Edit"), tl!("Edit the note's text")) };
                 if crate::widgets::pill_button(ui, label, false).on_hover_text(tip).clicked() {
                     ed.editing = !ed.editing;
+                    ed.pictures_stale |= !ed.editing;
                 }
             });
         });
@@ -351,18 +420,27 @@ pub(crate) fn editor(app: &mut PdfCraftApp, ctx: &egui::Context) {
         } else {
             egui::ScrollArea::vertical().id_salt("note-read").max_height((height - 80.0).max(120.0)).auto_shrink([false, true]).show(ui, |ui| {
                 ui.set_width(width - 16.0);
-                read_view(ui, &t, &ed.text, &mut acts);
+                read_view(ui, &t, &ed.text, &ed.pictures, &mut acts);
                 if let Some(view) = ed.workbook.as_ref() {
                     workbook_view(ui, view, &mut close_view);
+                }
+                if let Some(linked) = ed.linked.as_ref() {
+                    linked_view(ui, &t, linked, &mut close_linked);
                 }
             });
             if close_view {
                 ed.workbook = None;
             }
+            if close_linked {
+                ed.linked = None;
+            }
         }
     });
     if pick {
         app.pick_files(crate::files::FilePurpose::NoteWorkbook, false);
+    }
+    if app.note_editor.as_ref().is_some_and(|ed| ed.pictures_stale && !ed.editing) {
+        refresh_pictures(app);
     }
     if modal.should_close() {
         close = true;
@@ -385,8 +463,52 @@ pub(crate) fn editor(app: &mut PdfCraftApp, ctx: &egui::Context) {
     }
 }
 
-/// A `[[link]]`: the markup on the plan whose label, name, mark or note title it names.
+/// Shows the note or image a `[[file]]` link names, beneath the open note. A link that leaves the
+/// PDF's folder, or names a file that is not there, shows a warning in its place.
+fn open_linked(app: &mut PdfCraftApp, target: &str) {
+    let Some((_, id)) = app.active_ids() else { return };
+    let title = target.trim().to_string();
+    let linked = match pdf_dir(app, id) {
+        None => Linked::Problem { title, message: "Save the drawing first: its linked files are read from the folder beside it.".into() },
+        Some(dir) => match pdfcraft_engine::comments::resolve(&dir, target) {
+            Err(message) => Linked::Problem { title, message: format!("Broken link: {message}") },
+            Ok(path) if !path.is_file() => Linked::Problem { title, message: format!("Broken link: {} isn't in the PDF's folder.", target.trim()) },
+            Ok(path) if pdfcraft_engine::comments::is_image(target) => match app.ctx.clone() {
+                Some(ctx) => match texture(&ctx, target, &path) {
+                    Ok(tex) => Linked::Image { title, tex },
+                    Err(message) => Linked::Problem { title, message },
+                },
+                None => Linked::Problem { title, message: "The image can't be shown yet.".into() },
+            },
+            Ok(path) => match read_file(&path) {
+                Some(text) => Linked::Note { title, text },
+                None => Linked::Problem { title, message: format!("{} can't be read.", target.trim()) },
+            },
+        },
+    };
+    if let Some(ed) = app.note_editor.as_mut() {
+        ed.linked = Some(linked);
+    }
+}
+
+/// Loads the open note's pictures again, after its text was edited.
+fn refresh_pictures(app: &mut PdfCraftApp) {
+    let Some(ed) = app.note_editor.as_ref() else { return };
+    let (id, text) = (ed.doc, ed.text.clone());
+    let pictures = load_pictures(app, id, &text);
+    if let Some(ed) = app.note_editor.as_mut() {
+        ed.pictures = pictures;
+        ed.pictures_stale = false;
+    }
+}
+
+/// A `[[link]]`: a note or image beside the PDF, or else the markup on the plan whose label,
+/// name, mark or note title it names.
 fn go_to_markup(app: &mut PdfCraftApp, target: &str) {
+    if pdfcraft_engine::comments::is_file_target(target) {
+        open_linked(app, target);
+        return;
+    }
     let Some((index, id)) = app.active_ids() else { return };
     let Some(doc) = app.session.get(id) else { return };
     let want = target.trim().to_lowercase();
@@ -594,7 +716,7 @@ fn edit_box(ui: &mut egui::Ui, ed: &mut NoteEditor, now: f64, height: f32) {
 }
 
 /// The note, formatted.
-fn read_view(ui: &mut egui::Ui, t: &Tokens, text: &str, acts: &mut Vec<ReadAct>) {
+fn read_view(ui: &mut egui::Ui, t: &Tokens, text: &str, pictures: &[Picture], acts: &mut Vec<ReadAct>) {
     let blocks = markdown::blocks(text);
     if blocks.is_empty() {
         ui.label(RichText::new(tl!("This note is empty. Press Edit to write it.")).color(t.text_muted));
@@ -611,7 +733,10 @@ fn read_view(ui: &mut egui::Ui, t: &Tokens, text: &str, acts: &mut Vec<ReadAct>)
                 ui.add_space(4.0);
                 line(ui, t, &text, size, true, acts);
             }
-            Block::Paragraph(text) => line(ui, t, &text, 14.0, false, acts),
+            Block::Paragraph(text) => match picture_target(&text) {
+                Some(target) => picture(ui, t, &target, pictures),
+                None => line(ui, t, &text, 14.0, false, acts),
+            },
             Block::Quote(text) => {
                 egui::Frame::NONE
                     .inner_margin(egui::Margin { left: 10, right: 0, top: 2, bottom: 2 })
@@ -648,6 +773,53 @@ fn read_view(ui: &mut egui::Ui, t: &Tokens, text: &str, acts: &mut Vec<ReadAct>)
                     spans(ui, t, &text, 14.0, false, acts, matches!(kind, ItemKind::Task(true)));
                 });
             }
+        }
+    }
+}
+
+/// An image on its own line, scaled to the width of the note.
+fn picture(ui: &mut egui::Ui, t: &Tokens, target: &str, pictures: &[Picture]) {
+    match pictures.iter().find(|p| p.target == target).map(|p| &p.tex) {
+        Some(Ok(tex)) => {
+            let size = tex.size_vec2();
+            let w = size.x.min(ui.available_width()).clamp(1.0, 480.0);
+            let h = if size.x > 0.0 { size.y * w / size.x } else { 0.0 };
+            ui.add(egui::Image::new(egui::load::SizedTexture::new(tex.id(), vec2(w, h))));
+        }
+        Some(Err(message)) => {
+            ui.colored_label(ui.visuals().error_fg_color, format!("[{target}] {message}"));
+        }
+        None => {
+            ui.label(RichText::new(format!("[{target}]")).color(t.text_muted));
+        }
+    }
+}
+
+/// What a tapped `[[file]]` link shows: a note's text, an image, or the warning why it cannot.
+fn linked_view(ui: &mut egui::Ui, t: &Tokens, linked: &Linked, close: &mut bool) {
+    ui.separator();
+    ui.horizontal(|ui| {
+        let title = match linked {
+            Linked::Note { title, .. } | Linked::Image { title, .. } | Linked::Problem { title, .. } => title,
+        };
+        ui.label(RichText::new(title).font(theme::semibold(14.0)));
+        ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+            if crate::widgets::pill_button(ui, tl!("Close"), false).clicked() {
+                *close = true;
+            }
+        });
+    });
+    match linked {
+        // Links inside a linked note are not followed from here.
+        Linked::Note { text, .. } => read_view(ui, t, text, &[], &mut Vec::new()),
+        Linked::Image { tex, .. } => {
+            let size = tex.size_vec2();
+            let w = size.x.min(ui.available_width()).max(1.0);
+            let h = if size.x > 0.0 { size.y * w / size.x } else { 0.0 };
+            ui.add(egui::Image::new(egui::load::SizedTexture::new(tex.id(), vec2(w, h))));
+        }
+        Linked::Problem { message, .. } => {
+            ui.colored_label(ui.visuals().error_fg_color, message);
         }
     }
 }
@@ -692,6 +864,17 @@ fn spans(ui: &mut egui::Ui, t: &Tokens, text: &str, size: f32, heading: bool, ac
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn a_line_that_is_only_an_image_link_shows_the_picture() {
+        assert_eq!(picture_target("[[Plan.images/Photo 1.jpg]]"), Some("Plan.images/Photo 1.jpg".into()));
+        assert_eq!(picture_target("  [[photo.png|Shown]] "), Some("photo.png".into()));
+        assert_eq!(picture_target("[[note.md]]"), None, "a note is a link, not a picture");
+        assert_eq!(picture_target("see [[photo.jpg]] here"), None);
+        assert_eq!(picture_target("[[a.jpg]] [[b.jpg]]"), None, "two links on a line are not one picture");
+        assert_eq!(picture_target("[[]]"), None);
+        assert_eq!(picture_target("[[.jpg"), None);
+    }
 
     #[test]
     fn a_note_file_is_read_back_or_none() {
