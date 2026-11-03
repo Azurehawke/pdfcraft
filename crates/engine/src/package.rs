@@ -1,6 +1,7 @@
-//! The Package job: the PDF and its job folder (notes and photos) in one zip, so the drawing and
-//! its notes travel together. The folder keeps its name inside the zip, so the links in the notes
-//! (relative to the PDF) still work once the zip is unpacked beside the PDF.
+//! The Package job: the PDF and its folders (the job folder, `<name>.comments` and `<name>.images`)
+//! in one zip, so the drawing and its notes and photos travel together. Each folder keeps its name
+//! inside the zip, so the links in the notes (relative to the PDF) still work once the zip is
+//! unpacked beside the PDF.
 use std::io::{Cursor, Write};
 use std::path::{Path, PathBuf};
 
@@ -11,8 +12,8 @@ pub const MAX_DEPTH: usize = 8;
 /// The most bytes read from disk for one package.
 pub const MAX_TOTAL_BYTES: u64 = 2 << 30;
 
-/// The zip of `pdf` and, when there is one, every file under `folder`, below a folder of the same name.
-pub fn package(pdf: &Path, folder: Option<&Path>) -> Result<Vec<u8>, String> {
+/// The zip of `pdf` and every file under each of `folders`, each below a folder of its own name.
+pub fn package(pdf: &Path, folders: &[PathBuf]) -> Result<Vec<u8>, String> {
     let pdf_name = pdf.file_name().and_then(|n| n.to_str()).ok_or("the drawing has no file name")?;
     let options = zip::write::SimpleFileOptions::default().compression_method(zip::CompressionMethod::Deflated);
     let mut zip = zip::ZipWriter::new(Cursor::new(Vec::new()));
@@ -20,7 +21,7 @@ pub fn package(pdf: &Path, folder: Option<&Path>) -> Result<Vec<u8>, String> {
     let pdf_bytes = read_capped(pdf, &mut total)?;
     zip.start_file(pdf_name, options).map_err(|e| e.to_string())?;
     zip.write_all(&pdf_bytes).map_err(|e| e.to_string())?;
-    if let Some(folder) = folder {
+    for folder in folders {
         let root = folder.file_name().and_then(|n| n.to_str()).ok_or("the folder has no name")?;
         let mut files = Vec::new();
         collect(folder, 0, &mut files)?;
@@ -116,7 +117,7 @@ mod tests {
         std::fs::write(job.join("notes").join("Note 1.md"), "# Note 1\n\n[[D1]]").unwrap();
         std::fs::write(job.join("photos").join("panel.jpg"), b"jpeg").unwrap();
 
-        let zipped = package(&scratch.0.join("Smith Residence.pdf"), Some(&job)).unwrap();
+        let zipped = package(&scratch.0.join("Smith Residence.pdf"), std::slice::from_ref(&job)).unwrap();
         assert_eq!(names(&zipped), vec!["Smith Residence.pdf", "Smith Residence/notes/Note 1.md", "Smith Residence/photos/panel.jpg"]);
         assert_eq!(read_entry(&zipped, "Smith Residence/notes/Note 1.md"), "# Note 1\n\n[[D1]]");
     }
@@ -126,7 +127,7 @@ mod tests {
         let scratch = Scratch::new("pdf");
         std::fs::create_dir_all(&scratch.0).unwrap();
         std::fs::write(scratch.0.join("Plan.pdf"), b"%PDF-1.7").unwrap();
-        let zipped = package(&scratch.0.join("Plan.pdf"), None).unwrap();
+        let zipped = package(&scratch.0.join("Plan.pdf"), &[]).unwrap();
         assert_eq!(names(&zipped), vec!["Plan.pdf"]);
     }
 
@@ -142,15 +143,30 @@ mod tests {
         std::fs::write(deep.join("far.md"), "x").unwrap();
         std::fs::write(job.join("near.md"), "y").unwrap();
         std::fs::write(scratch.0.join("Job.pdf"), b"%PDF").unwrap();
-        let zipped = package(&scratch.0.join("Job.pdf"), Some(&job)).unwrap();
+        let zipped = package(&scratch.0.join("Job.pdf"), std::slice::from_ref(&job)).unwrap();
         let all = names(&zipped);
         assert!(all.contains(&"Job/near.md".to_string()));
         assert!(!all.iter().any(|n| n.ends_with("far.md")), "{all:?}");
     }
 
     #[test]
+    fn every_folder_given_goes_in_and_nothing_else() {
+        let scratch = Scratch::new("many");
+        let comments = scratch.0.join("Plan.comments");
+        let images = scratch.0.join("Plan.images");
+        std::fs::create_dir_all(&comments).unwrap();
+        std::fs::create_dir_all(&images).unwrap();
+        std::fs::write(scratch.0.join("Plan.pdf"), b"%PDF").unwrap();
+        std::fs::write(comments.join("Plan-001-x.md"), "# Note").unwrap();
+        std::fs::write(images.join("IMG_1.jpg"), b"jpeg").unwrap();
+        std::fs::write(scratch.0.join("other.md"), "outside").unwrap();
+        let zipped = package(&scratch.0.join("Plan.pdf"), &[comments, images]).unwrap();
+        assert_eq!(names(&zipped), vec!["Plan.comments/Plan-001-x.md", "Plan.images/IMG_1.jpg", "Plan.pdf"]);
+    }
+
+    #[test]
     fn a_drawing_that_is_not_there_is_an_error() {
         let scratch = Scratch::new("missing");
-        assert!(package(&scratch.0.join("Gone.pdf"), None).is_err());
+        assert!(package(&scratch.0.join("Gone.pdf"), &[]).is_err());
     }
 }

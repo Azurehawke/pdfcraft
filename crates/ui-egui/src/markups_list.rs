@@ -823,9 +823,15 @@ fn package_job(app: &mut PdfCraftApp) {
         app.notify(tl!("Save the drawing first: its notes are kept in a folder beside it.").to_string());
         return;
     };
-    let folder = crate::notes_ui::job_folder(&pdf).filter(|f| f.is_dir());
+    // The job folder (older notes), the comments and the photos: whichever of them exist.
+    let folders: Vec<std::path::PathBuf> =
+        [crate::notes_ui::job_folder(&pdf), Some(pdfcraft_engine::comments::comments_dir(&pdf)), Some(pdfcraft_engine::comments::images_dir(&pdf))]
+            .into_iter()
+            .flatten()
+            .filter(|f| f.is_dir())
+            .collect();
     let stem = pdf.file_stem().map(|s| s.to_string_lossy().into_owned()).unwrap_or_else(|| "drawing".into());
-    match pdfcraft_engine::package::package(&pdf, folder.as_deref()) {
+    match pdfcraft_engine::package::package(&pdf, &folders) {
         Ok(bytes) => save_file(app, format!("{stem}.zip"), std::sync::Arc::new(bytes), ("Zip", &["zip"]), tl!("Saved the package.").to_string()),
         Err(e) => app.notify(e),
     }

@@ -7032,6 +7032,25 @@ fn markdown_notes_keep_their_text_in_their_file_not_the_pdf() {
     assert!(!local_stamp().is_empty());
 }
 
+#[test]
+fn a_renamed_note_marker_points_at_its_new_file_and_stays_in_file() {
+    let mut session = Session::default();
+    let id = session.open("plan.pdf", None, Arc::new(fixture(1)), None).unwrap();
+    session
+        .apply(
+            id,
+            Edit::AddMarkdownNote { page: 0, at: [100.0, 300.0], file: "plan.comments/plan-001-20261103-122100.md".into(), author: "Steve".into() },
+        )
+        .unwrap();
+    let index = session.get(id).unwrap().markdown_notes(0)[0].0;
+    session.apply(id, Edit::SetNoteFile { page: 0, index, file: "Jones.comments/Jones-001-20261103-122100.md".into() }).unwrap();
+    let doc = session.get(id).unwrap();
+    assert_eq!(doc.markdown_notes(0), vec![(index, "Jones.comments/Jones-001-20261103-122100.md".to_string())]);
+    assert!(doc.note_in_file(0, index), "moving the file keeps the note's text out of the PDF");
+    session.undo(id).unwrap();
+    assert_eq!(session.get(id).unwrap().markdown_notes(0)[0].1, "plan.comments/plan-001-20261103-122100.md");
+}
+
 /// AES-256 passwords as typed, each with its SASLprep form, which ISO 32000-2 keys the file on:
 /// a decomposed é (NFKC composes it), a no-break space (mapped to a space) and fullwidth letters
 /// (what a Japanese IME types in full-width mode; NFKC narrows them). Precomposed "café" is the

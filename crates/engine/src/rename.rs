@@ -1,11 +1,13 @@
-//! The Rename job: the PDF and its job folder (notes and photos) get a new name together, and the
-//! links in the notes that name the old PDF or folder are rewritten to the new one. Links to
-//! markups (`[[label]]`) name markups, not files, so they are left as they are.
+//! The Rename job: the drawing and its folders get a new name together. The folders are the job
+//! folder (notes made before comments were files), `<name>.comments` and `<name>.images`. Comment
+//! files named with the old name are renamed, and the `[[links]]` in notes that name the old
+//! drawing or a folder are rewritten to the new one. Links to markups (`[[label]]`) name markups,
+//! not files, so they are left as they are.
 //!
 //! [`plan`] reads and works out everything without touching a file; [`apply`] makes the changes.
 use std::path::{Path, PathBuf};
 
-use crate::package;
+use crate::{comments, package};
 
 /// The most bytes read from one note.
 const MAX_NOTE_BYTES: u64 = 1 << 20;
@@ -15,15 +17,38 @@ const MAX_NOTE_BYTES: u64 = 1 << 20;
 pub struct Plan {
     pub old_pdf: PathBuf,
     pub new_pdf: PathBuf,
-    /// The job folder, when there is one (it is renamed with the PDF).
-    pub folder: Option<(PathBuf, PathBuf)>,
-    /// Each note file under the job folder whose text changes: its current path and the new text.
+    /// The folders renamed with the drawing, as (current, new).
+    pub folders: Vec<(PathBuf, PathBuf)>,
+    /// Comment files renamed inside their folder, as (current, new), both in full.
+    pub files: Vec<(PathBuf, PathBuf)>,
+    /// Each note file whose text changes: its current path and the new text.
     pub notes: Vec<(PathBuf, String)>,
 }
 
-/// `text` with each link to `old` (the PDF's or job folder's name) changed to `new`. A name counts
-/// as a link when it starts the text or follows `[`, `(` or `/`, and when it is followed by `/`,
-/// `.pdf`, `]`, `|`, `)`, `#` or the end.
+impl Plan {
+    /// Where the file at `path` (as it is now) is once the plan is applied.
+    pub fn moved(&self, path: &Path) -> PathBuf {
+        match self.files.iter().find(|(from, _)| from == path) {
+            Some((_, to)) => to.clone(),
+            None => self.in_renamed_folder(path),
+        }
+    }
+
+    /// Where `path` is once its folder is renamed (the file's own name is not changed yet).
+    fn in_renamed_folder(&self, path: &Path) -> PathBuf {
+        for (old, new) in &self.folders {
+            if let Ok(rel) = path.strip_prefix(old) {
+                return new.join(rel);
+            }
+        }
+        path.to_path_buf()
+    }
+}
+
+/// `text` with each link to `old` (the PDF's name, a folder's name or a comment file's start)
+/// changed to `new`. A name counts as a link when it starts the text or follows `[`, `(` or `/`,
+/// and it is followed by `/`, `.pdf`, `.images/`, `.comments/`, `]`, `|`, `)`, `#` or the end. A
+/// comment file's name (`old-…`) counts when it follows `/`, so `[[Old.comments/Old-001-…]]` moves.
 pub fn rewrite_links(text: &str, old: &str, new: &str) -> String {
     if old.is_empty() || old == new {
         return text.to_string();
@@ -37,7 +62,12 @@ pub fn rewrite_links(text: &str, old: &str, new: &str) -> String {
         let char_before = head.chars().last().or(before);
         let tail = rest.get(i + old.len()..).unwrap_or("");
         let before_ok = matches!(char_before, None | Some('[' | '(' | '/'));
-        let after_ok = tail.is_empty() || tail.starts_with(['/', ']', '|', ')', '#']) || tail.starts_with(".pdf");
+        let after_ok = tail.is_empty()
+            || tail.starts_with(['/', ']', '|', ')', '#'])
+            || tail.starts_with(".pdf")
+            || tail.starts_with(".images/")
+            || tail.starts_with(".comments/")
+            || (tail.starts_with('-') && char_before == Some('/'));
         out.push_str(head);
         out.push_str(if before_ok && after_ok { new } else { old });
         let consumed = i + old.len();
@@ -74,61 +104,107 @@ pub fn plan(pdf: &Path, new_stem: &str) -> Result<Plan, String> {
     if new_pdf.exists() {
         return Err(format!("{new_stem}.{ext} is already there"));
     }
-    let old_folder = dir.join(&old_stem);
-    let folder = if old_folder.is_dir() {
-        let new_folder = dir.join(new_stem);
-        if new_folder.exists() {
-            return Err(format!("the folder {new_stem} is already there"));
+
+    // The folders beside the drawing: the job folder, the comments and the images.
+    let old_comments = comments::comments_dir(pdf);
+    let new_comments = comments::comments_dir(&new_pdf);
+    let pairs = [
+        (dir.join(&old_stem), dir.join(new_stem)),
+        (old_comments.clone(), new_comments.clone()),
+        (comments::images_dir(pdf), comments::images_dir(&new_pdf)),
+    ];
+    let mut folders = Vec::new();
+    for (old, new) in pairs {
+        if old == new || !old.is_dir() {
+            continue;
         }
-        Some((old_folder.clone(), new_folder))
-    } else {
-        None
-    };
-    let mut notes = Vec::new();
-    if folder.is_some() {
-        let mut files = Vec::new();
-        package::collect(&old_folder, 0, &mut files)?;
-        for file in files.into_iter().filter(|f| f.extension().is_some_and(|e| e.eq_ignore_ascii_case("md"))) {
-            let len = std::fs::metadata(&file).map_err(|e| e.to_string())?.len();
-            if len > MAX_NOTE_BYTES {
+        if new.exists() {
+            let name = new.file_name().map(|n| n.to_string_lossy().into_owned()).unwrap_or_default();
+            return Err(format!("the folder {name} is already there"));
+        }
+        folders.push((old, new));
+    }
+
+    // The comment files named with the old name take the new one.
+    let old_clean = comments::clean_stem(&old_stem);
+    let new_clean = comments::clean_stem(new_stem);
+    let mut files = Vec::new();
+    if old_clean != new_clean && old_comments.is_dir() {
+        let prefix = format!("{old_clean}-");
+        let entries = std::fs::read_dir(&old_comments).map_err(|e| format!("can't read the comments folder: {e}"))?;
+        for entry in entries.filter_map(Result::ok).take(package::MAX_FILES) {
+            let name = entry.file_name().to_string_lossy().into_owned();
+            let Some(rest) = name.strip_prefix(&prefix) else { continue };
+            if !name.ends_with(".md") || !entry.path().is_file() {
                 continue;
             }
-            let Ok(text) = std::fs::read_to_string(&file) else { continue };
-            let changed = rewrite_links(&text, &old_stem, new_stem);
-            if changed != text {
-                notes.push((file, changed));
-            }
+            files.push((entry.path(), new_comments.join(format!("{new_clean}-{rest}"))));
         }
     }
-    Ok(Plan { old_pdf: pdf.to_path_buf(), new_pdf, folder, notes })
+
+    // Each note's text, with its links to the old names rewritten.
+    let mut scanned = Vec::new();
+    for (folder, _) in &folders {
+        package::collect(folder, 0, &mut scanned)?;
+    }
+    let mut notes = Vec::new();
+    for file in scanned.into_iter().filter(|f| f.extension().is_some_and(|e| e.eq_ignore_ascii_case("md"))) {
+        let len = std::fs::metadata(&file).map_err(|e| e.to_string())?.len();
+        if len > MAX_NOTE_BYTES {
+            continue;
+        }
+        let Ok(text) = std::fs::read_to_string(&file) else { continue };
+        let changed = rewrite_links(&rewrite_links(&text, &old_stem, new_stem), &old_clean, &new_clean);
+        if changed != text {
+            notes.push((file, changed));
+        }
+    }
+    Ok(Plan { old_pdf: pdf.to_path_buf(), new_pdf, folders, files, notes })
 }
 
-/// Make the changes `plan` worked out: the folder and the drawing are renamed, and the changed notes
-/// are written under their new folder. If the drawing can't be renamed, the folder is put back.
+/// Make the changes `plan` worked out: the folders are renamed, then the comment files, then the
+/// changed notes are written under their new names, and the drawing is renamed last. If a step
+/// fails, the steps before it are put back, so the drawing and its notes keep their old names.
 pub fn apply(plan: &Plan) -> Result<(), String> {
-    if let Some((old, new)) = &plan.folder {
-        std::fs::rename(old, new).map_err(|e| format!("can't rename the folder: {e}"))?;
+    // Renames so far, and each note's text before it was written: what a failure undoes.
+    let mut renamed: Vec<(PathBuf, PathBuf)> = Vec::new();
+    let mut written: Vec<(PathBuf, Vec<u8>)> = Vec::new();
+    for (old, new) in &plan.folders {
+        if let Err(e) = std::fs::rename(old, new) {
+            return Err(undo(&renamed, &written, format!("can't rename the folder: {e}")));
+        }
+        renamed.push((old.clone(), new.clone()));
+    }
+    for (old, new) in &plan.files {
+        let from = plan.in_renamed_folder(old);
+        if let Err(e) = std::fs::rename(&from, new) {
+            return Err(undo(&renamed, &written, format!("can't rename {}: {e}", from.display())));
+        }
+        renamed.push((from, new.clone()));
     }
     for (file, text) in &plan.notes {
-        let now = match plan.folder.as_ref() {
-            Some((old, new)) => match file.strip_prefix(old) {
-                Ok(rel) => new.join(rel),
-                Err(_) => file.clone(),
-            },
-            None => file.clone(),
-        };
-        if let Err(e) = std::fs::write(&now, text) {
-            // The notes so far are written; the names stay as they are, and the error says why.
-            return Err(format!("can't update {}: {e}", now.display()));
+        let dest = plan.moved(file);
+        let before = std::fs::read(&dest).unwrap_or_default();
+        if let Err(e) = std::fs::write(&dest, text) {
+            return Err(undo(&renamed, &written, format!("can't update {}: {e}", dest.display())));
         }
+        written.push((dest, before));
     }
     if let Err(e) = std::fs::rename(&plan.old_pdf, &plan.new_pdf) {
-        if let Some((old, new)) = &plan.folder {
-            let _ = std::fs::rename(new, old);
-        }
-        return Err(format!("can't rename the drawing: {e}"));
+        return Err(undo(&renamed, &written, format!("can't rename the drawing: {e}")));
     }
     Ok(())
+}
+
+/// Puts back the notes written and the renames made, newest first, and returns `message`.
+fn undo(renamed: &[(PathBuf, PathBuf)], written: &[(PathBuf, Vec<u8>)], message: String) -> String {
+    for (path, before) in written.iter().rev() {
+        let _ = std::fs::write(path, before);
+    }
+    for (from, to) in renamed.iter().rev() {
+        let _ = std::fs::rename(to, from);
+    }
+    message
 }
 
 #[cfg(test)]
@@ -161,29 +237,53 @@ mod tests {
     }
 
     #[test]
+    fn the_folders_and_comment_file_names_in_links_move_but_other_dashes_do_not() {
+        let text = "[[Smith-Residence.images/a.jpg]] [[Smith-Residence.comments/Smith-Residence-001-x]] [[Smith-Residence-notes]]";
+        assert_eq!(
+            rewrite_links(text, "Smith-Residence", "Jones-House"),
+            "[[Jones-House.images/a.jpg]] [[Jones-House.comments/Jones-House-001-x]] [[Smith-Residence-notes]]"
+        );
+    }
+
+    #[test]
     fn the_same_name_or_an_empty_one_changes_nothing() {
         assert_eq!(rewrite_links("[[A/b]]", "A", "A"), "[[A/b]]");
         assert_eq!(rewrite_links("[[A/b]]", "", "C"), "[[A/b]]");
     }
 
     #[test]
-    fn a_renamed_job_moves_its_folder_and_drawing_and_rewrites_its_notes() {
+    fn a_renamed_drawing_moves_its_folders_and_comment_files_and_rewrites_their_links() {
         let scratch = Scratch::new("job");
         let job = scratch.0.join("Smith Residence");
         std::fs::create_dir_all(job.join("notes")).unwrap();
         std::fs::write(scratch.0.join("Smith Residence.pdf"), b"%PDF").unwrap();
         std::fs::write(job.join("notes").join("Note 1.md"), "See [[Smith Residence/notes/Note 2]] and [[D1]].").unwrap();
         std::fs::write(job.join("notes").join("Note 2.md"), "No links here.").unwrap();
+        // The comments and images folders beside the drawing.
+        let comments = scratch.0.join("Smith-Residence.comments");
+        let images = scratch.0.join("Smith-Residence.images");
+        std::fs::create_dir_all(&comments).unwrap();
+        std::fs::create_dir_all(&images).unwrap();
+        let first = "Smith-Residence-001-20261103-120000";
+        std::fs::write(comments.join(format!("{first}.md")), "# Panel\n\n[[Smith-Residence.images/IMG_1.jpg]]").unwrap();
+        std::fs::write(comments.join("Smith-Residence-002-20261103-120500.md"), format!("Also [[Smith-Residence.comments/{first}]]")).unwrap();
+        std::fs::write(images.join("IMG_1.jpg"), b"jpeg").unwrap();
 
         let plan = plan(&scratch.0.join("Smith Residence.pdf"), "Jones House").unwrap();
-        assert_eq!(plan.notes.len(), 1, "only the note that names the job changes");
+        assert_eq!(plan.files.len(), 2, "both comment files take the new name");
         apply(&plan).unwrap();
 
         assert!(scratch.0.join("Jones House.pdf").exists());
         assert!(!scratch.0.join("Smith Residence.pdf").exists());
         let note = std::fs::read_to_string(scratch.0.join("Jones House").join("notes").join("Note 1.md")).unwrap();
         assert_eq!(note, "See [[Jones House/notes/Note 2]] and [[D1]].");
-        assert!(scratch.0.join("Jones House").join("notes").join("Note 2.md").exists());
+        let new_comments = scratch.0.join("Jones-House.comments");
+        assert!(!comments.exists());
+        let moved = std::fs::read_to_string(new_comments.join("Jones-House-001-20261103-120000.md")).unwrap();
+        assert_eq!(moved, "# Panel\n\n[[Jones-House.images/IMG_1.jpg]]");
+        let second = std::fs::read_to_string(new_comments.join("Jones-House-002-20261103-120500.md")).unwrap();
+        assert_eq!(second, "Also [[Jones-House.comments/Jones-House-001-20261103-120000]]");
+        assert!(scratch.0.join("Jones-House.images").join("IMG_1.jpg").exists(), "photos keep their names");
     }
 
     #[test]
@@ -196,5 +296,15 @@ mod tests {
         assert!(plan(&scratch.0.join("A.pdf"), "  ").is_err());
         assert!(plan(&scratch.0.join("A.pdf"), "A").is_err());
         assert!(scratch.0.join("A.pdf").exists());
+    }
+
+    #[test]
+    fn a_folder_already_named_for_the_new_name_stops_the_rename() {
+        let scratch = Scratch::new("folder-taken");
+        std::fs::write(scratch.0.join("A.pdf"), b"%PDF").unwrap();
+        std::fs::create_dir_all(scratch.0.join("A.images")).unwrap();
+        std::fs::create_dir_all(scratch.0.join("B.images")).unwrap();
+        assert!(plan(&scratch.0.join("A.pdf"), "B").is_err());
+        assert!(scratch.0.join("A.images").is_dir());
     }
 }

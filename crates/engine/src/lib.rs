@@ -307,6 +307,7 @@ fn scope_of(edit: &Edit) -> Scope {
         | Edit::AddLegend { .. }
         | Edit::AddWall { .. }
         | Edit::AddMarkdownNote { .. }
+        | Edit::SetNoteFile { .. }
         | Edit::SetWall { .. }
         | Edit::SplitWall { .. }
         | Edit::AddOpening { .. }
@@ -2021,6 +2022,12 @@ pub enum Edit {
     /// RevuCraft: a Markdown note at `at` (its icon's top-left corner): a sticky note whose text is
     /// the Markdown file `file` (relative to the PDF's folder; `pdfcraft_annot::notes`). Its text
     /// stays in that file, not in the PDF.
+    /// Points a Markdown note at a file that a rename moved.
+    SetNoteFile {
+        page: usize,
+        index: usize,
+        file: String,
+    },
     AddMarkdownNote {
         page: usize,
         at: [f64; 2],
@@ -2909,6 +2916,7 @@ impl Edit {
             Edit::AddLegend { .. } => Label::of("Add legend"),
             Edit::AddWall { .. } => Label::of("Draw wall"),
             Edit::AddMarkdownNote { .. } => Label::of("Add note"),
+            Edit::SetNoteFile { .. } => Label::of("Move note"),
             Edit::SetWall { .. } => Label::of("Join walls"),
             Edit::SplitWall { .. } => Label::of("Cut wall"),
             Edit::AddOpening { spec, .. } if spec.kind == pdfcraft_annot::walls::OpeningKind::Window => Label::of("Add window"),
@@ -3038,6 +3046,7 @@ fn check_permission(edit: &Edit, p: &pdfcraft_cos::Permissions) -> Result<(), Ed
         | Edit::AddLegend { .. }
         | Edit::AddWall { .. }
         | Edit::AddMarkdownNote { .. }
+        | Edit::SetNoteFile { .. }
         | Edit::SetWall { .. }
         | Edit::SplitWall { .. }
         | Edit::AddOpening { .. }
@@ -3495,6 +3504,7 @@ fn run_edit(doc: &mut pdfcraft_cos::Document, edit: &Edit, cx: &mut EditCtx) -> 
             pdfcraft_annot::notes::mark(doc, *page, index, file)?;
             cx.place_on_layer(doc, *page, index)?;
         }
+        Edit::SetNoteFile { page, index, file } => pdfcraft_annot::notes::set_file(doc, *page, *index, file)?,
         Edit::AddWall { page, quad, ja, jb, style, author, nm, ja_with, jb_with } => {
             let data = pdfcraft_annot::walls::WallData { ja: *ja, jb: *jb, ja_with: ja_with.clone(), jb_with: jb_with.clone(), ..Default::default() };
             let mut meta = cx.meta();

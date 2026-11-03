@@ -77,17 +77,32 @@ fn rename(app: &mut PdfCraftApp, doc: DocId, new_stem: &str) -> Result<(), Strin
     let plan = pdfcraft_engine::rename::plan(&pdf, new_stem)?;
     let dir = pdf.parent().map(Path::to_path_buf).ok_or("the drawing has no folder")?;
 
-    // Each note's copy in the drawing follows its file's text, which the rename rewrites.
+    // Each note marker in the drawing follows its file: the file's new place, and for a note whose
+    // text is also kept in the drawing, that text as the rename rewrites it.
+    let mut moves = Vec::new();
     let mut copies = Vec::new();
     if let Some(d) = app.session.get(doc) {
         let pages: BTreeSet<usize> = d.info.annotations.iter().map(|a| a.page).collect();
         for page in pages {
             for (index, rel) in d.markdown_notes(page) {
                 let file = dir.join(&rel);
+                let moved = plan.moved(&file);
+                if moved != file {
+                    let new_rel = moved.strip_prefix(&dir).map(|r| r.to_string_lossy().replace('\\', "/")).unwrap_or_default();
+                    moves.push((page, index, new_rel));
+                }
+                if d.note_in_file(page, index) {
+                    continue;
+                }
                 if let Some((_, text)) = plan.notes.iter().find(|(f, _)| *f == file) {
                     copies.push((page, index, text.clone()));
                 }
             }
+        }
+    }
+    for (page, index, file) in moves {
+        if !app.apply_edit(Edit::SetNoteFile { page, index, file }) {
+            return Err(tl!("The note's copy in the drawing can't be updated.").to_string());
         }
     }
     for (page, index, text) in copies {

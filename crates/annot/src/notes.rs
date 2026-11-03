@@ -40,6 +40,19 @@ pub fn mark(doc: &mut Document, page: usize, index: usize, file: &str) -> Result
     set_appearance(doc, r)
 }
 
+/// Points the Markdown note at `(page, index)` at `file` (relative to the PDF's folder), keeping
+/// whether its text is in the file alone. Used when a rename moves the file.
+pub fn set_file(doc: &mut Document, page: usize, index: usize, file: &str) -> Result<(), AnnotError> {
+    let (_, r) = annot_ref(doc, page, index)?;
+    let file: String = file.chars().take(MAX_PATH).collect();
+    doc.update_dict(r, |d| {
+        let mut n = d.get(NOTE).and_then(Object::as_dict).cloned().unwrap_or_default();
+        n.set(b"File".to_vec(), PdfString::text(&file));
+        d.set(NOTE.to_vec(), Object::Dict(n));
+    })?;
+    Ok(())
+}
+
 /// Whether the Markdown note at `(page, index)` keeps its text only in its file.
 pub fn in_file_at(doc: &Document, page: usize, index: usize) -> bool {
     let Ok(p) = page_ref(doc, page) else { return false };
