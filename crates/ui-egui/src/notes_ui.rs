@@ -54,6 +54,8 @@ pub(crate) struct NoteEditor {
     pictures_stale: bool,
     /// A `[[file]]` link tapped in the reading view: its note, image or problem.
     linked: Option<Linked>,
+    /// The camera was tapped: the photo picker opens after this frame.
+    pick_photo: bool,
 }
 
 /// The most images one note loads.
@@ -169,6 +171,7 @@ impl PdfCraftApp {
                 pictures: Vec::new(),
                 pictures_stale: false,
                 linked: None,
+                pick_photo: false,
             });
         }
     }
@@ -207,6 +210,7 @@ impl PdfCraftApp {
             pictures,
             pictures_stale: false,
             linked: None,
+            pick_photo: false,
         });
     }
 
@@ -388,6 +392,7 @@ pub(crate) fn editor(app: &mut PdfCraftApp, ctx: &egui::Context) {
     let mut pick = false;
     let mut close_view = false;
     let mut close_linked = false;
+    let mut pick_photo = false;
     let modal = egui::Modal::new(id).area(area).show(ctx, |ui| {
         ui.set_width(width);
         ui.set_max_width(width);
@@ -415,6 +420,7 @@ pub(crate) fn editor(app: &mut PdfCraftApp, ctx: &egui::Context) {
         if ed.editing {
             toolbar(ui, ed, now);
             pick |= std::mem::take(&mut ed.pick_workbook);
+            pick_photo |= std::mem::take(&mut ed.pick_photo);
             ui.add_space(4.0);
             edit_box(ui, ed, now, height - 120.0);
         } else {
@@ -438,6 +444,9 @@ pub(crate) fn editor(app: &mut PdfCraftApp, ctx: &egui::Context) {
     });
     if pick {
         app.pick_files(crate::files::FilePurpose::NoteWorkbook, false);
+    }
+    if std::mem::take(&mut pick_photo) {
+        app.pick_files(crate::files::FilePurpose::NotePhoto, false);
     }
     if app.note_editor.as_ref().is_some_and(|ed| ed.pictures_stale && !ed.editing) {
         refresh_pictures(app);
@@ -488,6 +497,37 @@ fn open_linked(app: &mut PdfCraftApp, target: &str) {
     };
     if let Some(ed) = app.note_editor.as_mut() {
         ed.linked = Some(linked);
+    }
+}
+
+/// The PDF this note belongs to, when it has been saved.
+fn note_pdf_of(app: &PdfCraftApp) -> Option<PathBuf> {
+    let doc = app.note_editor.as_ref()?.doc;
+    app.session.get(doc).and_then(|d| d.path.as_deref()).map(PathBuf::from)
+}
+
+impl PdfCraftApp {
+    /// The PDF the open note belongs to.
+    pub(crate) fn note_pdf(&self) -> Option<PathBuf> {
+        note_pdf_of(self)
+    }
+
+    /// A photo was kept (its link, relative to the PDF's folder) or refused (why). A kept photo's
+    /// link goes on its own line in the open note, and the note's pictures are loaded again.
+    pub(crate) fn photo_done(&mut self, result: Result<String, String>) {
+        let rel = match result {
+            Ok(rel) => rel,
+            Err(e) => {
+                self.notify_fmt("{e}", &[("e", &e)]);
+                return;
+            }
+        };
+        let now = self.ctx.as_ref().map_or(0.0, |c| c.input(|i| i.time));
+        let Some(ed) = self.note_editor.as_mut() else { return };
+        let (s, e) = ed.sel;
+        let edit = markdown::insert_line(&ed.text, s, e, &format!("[[{rel}]]"));
+        apply(ed, now, edit);
+        refresh_pictures(self);
     }
 }
 
@@ -650,6 +690,9 @@ fn toolbar(ui: &mut egui::Ui, ed: &mut NoteEditor, now: f64) {
                 });
                 if icon(ui, "paperclip", tl!("Link a workbook beside the PDF")) {
                     ed.pick_workbook = true;
+                }
+                if icon(ui, "camera", tl!("Add a photo: kept beside the PDF and linked here")) {
+                    ed.pick_photo = true;
                 }
                 ui.separator();
                 if icon(ui, "list-checks", tl!("Checklist")) {

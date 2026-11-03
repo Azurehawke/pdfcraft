@@ -586,6 +586,18 @@ pub fn link_to(text: &str, start: usize, end: usize, shown: &str, target: &str) 
     Edit { text: out.into_iter().collect(), start: at, end: at }
 }
 
+/// `insert` on its own line in place of the selection. The caret goes after it.
+pub fn insert_line(text: &str, start: usize, end: usize, insert: &str) -> Edit {
+    let c = chars_of(text);
+    let (s, e) = ordered(c.len(), start, end);
+    let line = format!("\n{insert}\n");
+    let at = s + line.chars().count();
+    let mut out: Vec<char> = c.get(..s).map(<[char]>::to_vec).unwrap_or_default();
+    out.extend(line.chars());
+    out.extend(c.get(e..).map(<[char]>::to_vec).unwrap_or_default());
+    Edit { text: out.into_iter().collect(), start: at, end: at }
+}
+
 /// The selected lines in a fenced code block.
 pub fn code_block(text: &str, start: usize, end: usize) -> Edit {
     let c = chars_of(text);
@@ -652,6 +664,16 @@ mod tests {
         // Unclosed markers and stray brackets read as text, without losing any.
         let odd = spans("`open [half](no close **");
         assert!(odd.iter().map(|x| x.text.as_str()).collect::<String>().contains("open [half](no close"));
+    }
+
+    #[test]
+    fn a_photo_link_goes_on_its_own_line_at_the_caret() {
+        let e = insert_line("hello world", 5, 5, "[[Plan.images/a.jpg]]");
+        assert_eq!(e.text, "hello\n[[Plan.images/a.jpg]]\n world");
+        assert_eq!(e.start, 5 + "\n[[Plan.images/a.jpg]]\n".chars().count());
+        assert_eq!(e.start, e.end);
+        // A selection is replaced, and an out-of-range one is clamped rather than panicking.
+        assert_eq!(insert_line("abc", 9, 2, "X").text, "ab\nX\n");
     }
 
     #[test]

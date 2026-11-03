@@ -52,10 +52,20 @@ pub fn page_label(page0: usize) -> String {
     format!("{:03}", page0.saturating_add(1))
 }
 
+/// A folder beside `pdf` named `<pdf-name>.<suffix>`.
+fn beside(pdf: &Path, suffix: &str) -> PathBuf {
+    let stem = pdf.file_stem().map(|s| s.to_string_lossy().into_owned()).unwrap_or_default();
+    pdf.parent().unwrap_or(Path::new("")).join(format!("{}.{suffix}", clean_stem(&stem)))
+}
+
 /// The folder of comment files beside `pdf`: `<pdf-name>.comments`.
 pub fn comments_dir(pdf: &Path) -> PathBuf {
-    let stem = pdf.file_stem().map(|s| s.to_string_lossy().into_owned()).unwrap_or_default();
-    pdf.parent().unwrap_or(Path::new("")).join(format!("{}.comments", clean_stem(&stem)))
+    beside(pdf, "comments")
+}
+
+/// The folder of photos beside `pdf`: `<pdf-name>.images`.
+pub fn images_dir(pdf: &Path) -> PathBuf {
+    beside(pdf, "images")
 }
 
 /// The first free file name `<base>.md`, `<base>-2.md`, `<base>-3.md`… in `dir`.
@@ -166,6 +176,19 @@ pub fn resolve(dir: &Path, target: &str) -> Result<PathBuf, String> {
     Ok(joined)
 }
 
+/// Checks an image's header without decoding it: that it is an image and not too many pixels.
+fn check_image(bytes: &[u8]) -> Result<(), String> {
+    let (w, h) = image::ImageReader::new(std::io::Cursor::new(bytes))
+        .with_guessed_format()
+        .map_err(|e| format!("Can't read the image: {e}"))?
+        .into_dimensions()
+        .map_err(|e| format!("Can't read the image: {e}"))?;
+    if u64::from(w).saturating_mul(u64::from(h)) > IMAGE_MAX_PIXELS {
+        return Err("The image has too many pixels to show.".into());
+    }
+    Ok(())
+}
+
 /// Decodes an image for display: its width, its height and its RGBA bytes. Refuses files and
 /// images that are too large, and returns an error rather than a partial image.
 pub fn load_image(path: &Path) -> Result<(usize, usize, Vec<u8>), String> {
@@ -174,14 +197,7 @@ pub fn load_image(path: &Path) -> Result<(usize, usize, Vec<u8>), String> {
         return Err("The image is too large to show.".into());
     }
     let bytes = std::fs::read(path).map_err(|e| format!("Can't read the image: {e}"))?;
-    let (w, h) = image::ImageReader::new(std::io::Cursor::new(&bytes))
-        .with_guessed_format()
-        .map_err(|e| format!("Can't read the image: {e}"))?
-        .into_dimensions()
-        .map_err(|e| format!("Can't read the image: {e}"))?;
-    if u64::from(w).saturating_mul(u64::from(h)) > IMAGE_MAX_PIXELS {
-        return Err("The image has too many pixels to show.".into());
-    }
+    check_image(&bytes)?;
     let rgba = image::load_from_memory(&bytes).map_err(|e| format!("Can't decode the image: {e}"))?.to_rgba8();
     let (w, h) = (rgba.width() as usize, rgba.height() as usize);
     let pixels = rgba.into_raw();
@@ -189,6 +205,60 @@ pub fn load_image(path: &Path) -> Result<(usize, usize, Vec<u8>), String> {
         return Err("The image could not be read whole.".into());
     }
     Ok((w, h, pixels))
+}
+
+/// The longest photo file name kept (characters).
+const MAX_PHOTO_NAME: usize = 200;
+
+/// A photo's file name, as the camera gave it, checked: a plain name (no folders, no characters
+/// that Windows forbids) with an image extension.
+pub fn photo_file_name(name: &str) -> Result<String, String> {
+    let n = name.trim();
+    let plain = !n.is_empty()
+        && n.chars().count() <= MAX_PHOTO_NAME
+        && n != "."
+        && n != ".."
+        && !n.chars().any(|c| c.is_control() || matches!(c, '/' | '\\' | ':' | '*' | '?' | '"' | '<' | '>' | '|'));
+    if !plain || !is_image(n) {
+        return Err(format!("{name} isn't a photo this drawing can take."));
+    }
+    Ok(n.to_string())
+}
+
+/// Keeps a photo beside the PDF, in `<pdf-name>.images/`, under the camera's own name (with `-2`,
+/// `-3`… before the extension if that name is taken). The bytes are copied as they are. Returns
+/// the photo's path relative to the PDF's folder, for a `[[...]]` link.
+pub fn add_photo(pdf: &Path, name: &str, bytes: &[u8]) -> Result<String, String> {
+    use std::io::Write;
+    let name = photo_file_name(name)?;
+    if bytes.len() as u64 > IMAGE_MAX_BYTES {
+        return Err("The photo is too large to keep.".into());
+    }
+    check_image(bytes)?;
+    let dir = images_dir(pdf);
+    std::fs::create_dir_all(&dir).map_err(|e| format!("Couldn't make the images folder: {e}"))?;
+    let (base, ext) = name.rsplit_once('.').unwrap_or((name.as_str(), ""));
+    let file = (1..10_000u32)
+        .map(|n| if n == 1 { name.clone() } else { format!("{base}-{n}.{ext}") })
+        .find(|candidate| !dir.join(candidate).exists())
+        .ok_or("There is no free name for the photo.")?;
+    let path = dir.join(&file);
+    let mut out = std::fs::OpenOptions::new().write(true).create_new(true).open(&path).map_err(|e| format!("Couldn't keep {file}: {e}"))?;
+    out.write_all(bytes).map_err(|e| format!("Couldn't keep {file}: {e}"))?;
+    let folder = dir.file_name().map(|f| f.to_string_lossy().into_owned()).unwrap_or_default();
+    Ok(format!("{folder}/{file}"))
+}
+
+/// Keeps the photo file at `source` beside the PDF (see [`add_photo`]). A file too large to read
+/// is refused before it is read.
+pub fn add_photo_file(pdf: &Path, source: &Path) -> Result<String, String> {
+    let name = source.file_name().map(|n| n.to_string_lossy().into_owned()).unwrap_or_default();
+    let len = std::fs::metadata(source).map_err(|e| format!("Can't read {name}: {e}"))?.len();
+    if len > IMAGE_MAX_BYTES {
+        return Err("The photo is too large to keep.".into());
+    }
+    let bytes = std::fs::read(source).map_err(|e| format!("Can't read {name}: {e}"))?;
+    add_photo(pdf, &name, &bytes)
 }
 
 #[cfg(test)]
@@ -286,6 +356,44 @@ mod tests {
         assert!(!is_file_target("Callout 3"), "a markup name stays a markup");
         assert!(!is_file_target("sheet.xlsx"), "workbooks have their own link");
         assert!(!is_image(""));
+    }
+
+    fn tiny_png() -> Vec<u8> {
+        let img = image::RgbaImage::new(2, 3);
+        let mut out = std::io::Cursor::new(Vec::new());
+        img.write_to(&mut out, image::ImageFormat::Png).unwrap();
+        out.into_inner()
+    }
+
+    #[test]
+    fn photo_names_are_the_cameras_and_hostile_ones_are_refused() {
+        assert_eq!(photo_file_name(" IMG_1234.JPG ").as_deref(), Ok("IMG_1234.JPG"));
+        assert!(photo_file_name("Kitchen sink.heic").is_err(), "only the image types a drawing can show");
+        for bad in ["../x.jpg", "a/b.jpg", "a\\b.jpg", "C:x.jpg", "x\0.jpg", ".jpg", "", "   ", "doc.pdf"] {
+            assert!(photo_file_name(bad).is_err(), "{bad:?} must be refused");
+        }
+        assert!(photo_file_name(&format!("{}.jpg", "a".repeat(MAX_PHOTO_NAME))).is_err());
+    }
+
+    #[test]
+    fn a_photo_keeps_its_name_and_is_never_overwritten() {
+        let dir = std::env::temp_dir().join(format!("pdfcraft-photos-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(&dir).unwrap();
+        let pdf = dir.join("Smith Residence.pdf");
+        let png = tiny_png();
+        let first = add_photo(&pdf, "IMG_1.png", &png).unwrap();
+        assert_eq!(first, "Smith-Residence.images/IMG_1.png");
+        assert_eq!(std::fs::read(dir.join(&first)).unwrap(), png, "the bytes are kept as they are");
+        let second = add_photo(&pdf, "IMG_1.png", &png).unwrap();
+        assert_eq!(second, "Smith-Residence.images/IMG_1-2.png");
+        assert_eq!(std::fs::read(dir.join(&first)).unwrap(), png, "the first photo is untouched");
+        assert!(add_photo(&pdf, "IMG_2.png", b"not a picture").is_err());
+        assert!(!dir.join("Smith-Residence.images/IMG_2.png").exists(), "a refused photo leaves no file");
+        let from_disk = dir.join("camera.png");
+        std::fs::write(&from_disk, &png).unwrap();
+        assert_eq!(add_photo_file(&pdf, &from_disk).unwrap(), "Smith-Residence.images/camera.png");
+        let _ = std::fs::remove_dir_all(&dir);
     }
 
     #[test]

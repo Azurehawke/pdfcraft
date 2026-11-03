@@ -19,6 +19,8 @@ pub enum FilePurpose {
     InstallFont,
     /// A note's paperclip: link a workbook beside the PDF from the note's text.
     NoteWorkbook,
+    /// A note's camera: keep a photo in the PDF's images folder and link it from the note.
+    NotePhoto,
     Combine,
     InsertPages,
     ReplacePages,
@@ -99,6 +101,9 @@ fn files_picker(purpose: FilePurpose) -> crate::dialog::AsyncFileDialog {
     let dialog = crate::dialog::AsyncFileDialog::new();
     if purpose == FilePurpose::NoteWorkbook {
         return dialog.add_filter("Workbook", &["xlsx", "xlsm"]);
+    }
+    if purpose == FilePurpose::NotePhoto {
+        return dialog.add_filter("Photo", &["jpg", "jpeg", "png", "gif", "tif", "tiff", "bmp"]);
     }
     if matches!(purpose, FilePurpose::TextFont { .. } | FilePurpose::InstallFont) {
         return dialog.add_filter("TrueType / OpenType font", &["ttf", "otf"]);
@@ -373,6 +378,16 @@ impl PdfCraftApp {
             }
             return;
         }
+        if purpose == FilePurpose::NotePhoto {
+            if let Some(path) = paths.first() {
+                let result = self
+                    .note_pdf()
+                    .ok_or_else(|| "Save the drawing first: its photos are kept in a folder beside it.".to_string())
+                    .and_then(|pdf| pdfcraft_engine::comments::add_photo_file(&pdf, path));
+                self.photo_done(result);
+            }
+            return;
+        }
         if purpose == FilePurpose::CreateMultiple {
             // Each file is read when its turn comes, so the selection's bytes are not all held at once.
             if !paths.is_empty() {
@@ -525,6 +540,14 @@ impl PdfCraftApp {
         match purpose {
             // A workbook is linked by its path, which a browser does not give.
             FilePurpose::NoteWorkbook => self.notify_tr("Linking a workbook needs the desktop app."),
+            FilePurpose::NotePhoto => {
+                let result = match (self.note_pdf(), files.first()) {
+                    (Some(pdf), Some((name, bytes))) => pdfcraft_engine::comments::add_photo(&pdf, name, bytes),
+                    (None, _) => Err("Save the drawing first: its photos are kept in a folder beside it.".to_string()),
+                    (_, None) => Err("No photo was picked.".to_string()),
+                };
+                self.photo_done(result);
+            }
             FilePurpose::InstallFont => {
                 let Some(dir) = app_font_dir() else {
                     self.notify("Fonts can't be added on this computer: there is no folder to keep them in.");
