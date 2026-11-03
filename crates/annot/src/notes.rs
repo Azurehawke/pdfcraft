@@ -1,8 +1,8 @@
 //! RevuCraft's Markdown notes: a note placed on the plan (a sticky note, `/Subtype /Text`) whose
-//! text is Markdown and whose master copy is a `.md` file in the job's folder, beside the PDF
-//! (`Smith Residence/notes/Note 1.md`). `/PCNote` names that file, relative to the PDF's folder;
-//! `/Contents` keeps a copy of the Markdown, so the PDF still carries the note when it travels
-//! without its folder, and other viewers show the note as plain text.
+//! text is Markdown in a `.md` file beside the PDF. `/PCNote` names that file, relative to the
+//! PDF's folder. Older notes (no `/InFile`) also keep a copy of the Markdown in `/Contents`, so
+//! the PDF still carries them when they travel without their folder. Newer notes (`/InFile true`)
+//! keep their text only in the file, so their `/Contents` stays empty and the PDF stays small.
 
 use pdfcraft_cos::{Dict, Document, Object, PdfString};
 
@@ -20,17 +20,30 @@ pub fn file_of(d: &Dict) -> Option<String> {
     Some(file.chars().take(MAX_PATH).collect())
 }
 
-/// Make the sticky note at `(page, index)` a Markdown note kept in `file`, and draw its icon.
+/// Whether the note keeps its text only in its file (no copy in `/Contents`).
+pub fn in_file_of(d: &Dict) -> bool {
+    d.get(NOTE).and_then(Object::as_dict).is_some_and(|n| matches!(n.get(b"InFile"), Some(Object::Bool(true))))
+}
+
+/// Make the sticky note at `(page, index)` a Markdown note kept in `file` alone (its text is not
+/// copied into the PDF), and draw its icon.
 pub fn mark(doc: &mut Document, page: usize, index: usize, file: &str) -> Result<(), AnnotError> {
     let (_, r) = annot_ref(doc, page, index)?;
     let file: String = file.chars().take(MAX_PATH).collect();
     doc.update_dict(r, |d| {
         let mut n = Dict::new();
         n.set(b"File".to_vec(), PdfString::text(&file));
+        n.set(b"InFile".to_vec(), Object::Bool(true));
         d.set(NOTE.to_vec(), Object::Dict(n));
         d.set(b"Subj".to_vec(), PdfString::text("Note"));
     })?;
     set_appearance(doc, r)
+}
+
+/// Whether the Markdown note at `(page, index)` keeps its text only in its file.
+pub fn in_file_at(doc: &Document, page: usize, index: usize) -> bool {
+    let Ok(p) = page_ref(doc, page) else { return false };
+    annots(doc, p).get(index).map(|e| doc.resolve(e)).and_then(|o| o.as_dict().map(in_file_of)).unwrap_or(false)
 }
 
 /// The Markdown notes on `page`: (index, file).
@@ -64,6 +77,23 @@ pub(crate) fn icon(col: crate::Rgb) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn a_note_flagged_in_file_keeps_its_text_out_of_the_pdf() {
+        let mut new = Dict::new();
+        let mut n = Dict::new();
+        n.set(b"File".to_vec(), PdfString::text("a.md"));
+        n.set(b"InFile".to_vec(), Object::Bool(true));
+        new.set(NOTE.to_vec(), Object::Dict(n));
+        assert!(in_file_of(&new));
+        // An older note has no flag, so its copy in /Contents is still its text.
+        let mut old = Dict::new();
+        let mut m = Dict::new();
+        m.set(b"File".to_vec(), PdfString::text("a.md"));
+        old.set(NOTE.to_vec(), Object::Dict(m));
+        assert!(!in_file_of(&old));
+        assert!(!in_file_of(&Dict::new()));
+    }
 
     #[test]
     fn a_note_names_its_file() {

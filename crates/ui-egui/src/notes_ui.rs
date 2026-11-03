@@ -56,17 +56,6 @@ pub(crate) fn job_folder(pdf: &Path) -> Option<PathBuf> {
     (!stem.trim().is_empty()).then(|| pdf.with_file_name(stem))
 }
 
-/// A new note's file name in `dir`: `Note 1.md`, `Note 2.md`…, the first free one.
-fn free_name(dir: &Path) -> Option<(u32, String)> {
-    (1..10_000u32).map(|n| (n, format!("Note {n}.md"))).find(|(_, name)| !dir.join(name).exists())
-}
-
-/// A new note's first lines: its title and who wrote it when.
-pub(crate) fn starter(n: u32, stamp: &str, author: &str) -> String {
-    let who = [stamp.trim(), author.trim()].into_iter().filter(|s| !s.is_empty()).collect::<Vec<_>>().join(" · ");
-    if who.is_empty() { format!("# Note {n}\n\n") } else { format!("# Note {n}\n\n*{who}*\n\n") }
-}
-
 fn read_file(path: &Path) -> Option<String> {
     let meta = std::fs::metadata(path).ok()?;
     if !meta.is_file() || meta.len() > MAX_FILE {
@@ -84,24 +73,19 @@ impl PdfCraftApp {
             self.notify_tr("Save the drawing first: its notes are kept in a folder beside it.");
             return;
         };
-        let (Some(job), Some(pdf_dir)) = (job_folder(&pdf), pdf.parent().map(Path::to_path_buf)) else { return };
-        let dir = job.join("notes");
-        if let Err(e) = std::fs::create_dir_all(&dir) {
-            self.notify_fmt("Couldn't make the notes folder {name}: {e}", &[("name", &dir.display().to_string()), ("e", &e.to_string())]);
-            return;
-        }
-        let Some((n, name)) = free_name(&dir) else { return };
         let author = self.comment_prefs.author.clone();
-        let text = starter(n, &pdfcraft_engine::local_stamp(), &author);
-        let path = dir.join(&name);
-        if let Err(e) = std::fs::write(&path, &text) {
-            self.notify_fmt("Couldn't write {name}: {e}", &[("name", &path.display().to_string()), ("e", &e.to_string())]);
-            return;
-        }
-        let rel = path.strip_prefix(&pdf_dir).map_or_else(|_| path.display().to_string(), |r| r.to_string_lossy().replace('\\', "/"));
+        // The comment's file goes in `<pdf-name>.comments/`; its text lives there, not in the PDF.
+        let made = match pdfcraft_engine::comments::create(&pdf, page, &author, &pdfcraft_engine::comments::stamp_now()) {
+            Ok(made) => made,
+            Err(e) => {
+                self.notify_fmt("{e}", &[("e", &e)]);
+                return;
+            }
+        };
+        let (path, text) = (made.path.clone(), made.text.clone());
         let before = self.session.get(id).map(|d| d.markdown_notes(page).len()).unwrap_or(0);
         self.views[index].comments.tool_done = true;
-        if !self.apply_edit(Edit::AddMarkdownNote { page, at, text: text.clone(), file: rel, author }) {
+        if !self.apply_edit(Edit::AddMarkdownNote { page, at, file: made.rel, author }) {
             return;
         }
         let notes = self.session.get(id).map(|d| d.markdown_notes(page)).unwrap_or_default();
@@ -175,6 +159,14 @@ impl PdfCraftApp {
             return true;
         }
         let (doc, page, index, text) = (ed.doc, ed.page, ed.index, ed.text.clone());
+        // A note kept in its file alone has no copy in the PDF to update.
+        let in_file = self.session.get(doc).is_some_and(|d| d.note_in_file(page, index));
+        if in_file {
+            if let Some(ed) = self.note_editor.as_mut() {
+                ed.saved = text;
+            }
+            return true;
+        }
         // Another tab in front: the file holds the note; the PDF's copy is brought up to date
         // the next time the note is opened there.
         if self.active_ids().map(|(_, id)| id) != Some(doc) {
@@ -702,18 +694,11 @@ mod tests {
     use super::*;
 
     #[test]
-    fn a_note_lives_in_the_job_folder_beside_its_pdf() {
-        let pdf = Path::new("/jobs/Smith Residence.pdf");
-        assert_eq!(job_folder(pdf), Some(PathBuf::from("/jobs/Smith Residence")));
-        assert_eq!(job_folder(Path::new("/")), None);
-        assert_eq!(starter(3, "2026-10-26 13:45", "Steve"), "# Note 3\n\n*2026-10-26 13:45 · Steve*\n\n");
-        assert_eq!(starter(1, "", ""), "# Note 1\n\n");
+    fn a_note_file_is_read_back_or_none() {
         let dir = std::env::temp_dir().join(format!("revucraft-notes-{}", std::process::id()));
         let _ = std::fs::remove_dir_all(&dir);
         std::fs::create_dir_all(&dir).unwrap();
-        assert_eq!(free_name(&dir).map(|f| f.1), Some("Note 1.md".to_string()));
         std::fs::write(dir.join("Note 1.md"), "x").unwrap();
-        assert_eq!(free_name(&dir).map(|f| f.1), Some("Note 2.md".to_string()));
         assert_eq!(read_file(&dir.join("Note 1.md")).as_deref(), Some("x"));
         assert_eq!(read_file(&dir.join("missing.md")), None);
         let _ = std::fs::remove_dir_all(&dir);

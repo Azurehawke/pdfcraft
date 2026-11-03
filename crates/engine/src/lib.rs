@@ -21,6 +21,7 @@ pub mod camera_clean;
 pub mod camera_edges;
 pub mod catalog;
 pub mod commands;
+pub mod comments;
 pub mod compare;
 mod copy_image;
 pub mod dates;
@@ -720,6 +721,11 @@ impl Document {
     /// RevuCraft: the Markdown notes on `page`: (index, file relative to the PDF's folder).
     pub fn markdown_notes(&self, page: usize) -> Vec<(usize, String)> {
         self.editor.as_ref().map(|e| pdfcraft_annot::notes::notes(&e.cos, page)).unwrap_or_default()
+    }
+
+    /// RevuCraft: whether the Markdown note at `(page, index)` keeps its text only in its file.
+    pub fn note_in_file(&self, page: usize, index: usize) -> bool {
+        self.editor.as_ref().is_some_and(|e| pdfcraft_annot::notes::in_file_at(&e.cos, page, index))
     }
 
     /// RevuCraft: the punch items on `page`: (index, item).
@@ -2012,12 +2018,12 @@ pub enum Edit {
         /// Your columns filled in on the new run (its system and cable type, say): (name, value).
         fields: Vec<(String, String)>,
     },
-    /// RevuCraft: a Markdown note at `at` (its icon's top-left corner): a sticky note holding
-    /// `text`, whose master copy is `file` (relative to the PDF's folder; `pdfcraft_annot::notes`).
+    /// RevuCraft: a Markdown note at `at` (its icon's top-left corner): a sticky note whose text is
+    /// the Markdown file `file` (relative to the PDF's folder; `pdfcraft_annot::notes`). Its text
+    /// stays in that file, not in the PDF.
     AddMarkdownNote {
         page: usize,
         at: [f64; 2],
-        text: String,
         file: String,
         author: String,
     },
@@ -3481,10 +3487,10 @@ fn run_edit(doc: &mut pdfcraft_cos::Document, edit: &Edit, cx: &mut EditCtx) -> 
             let index = pdfcraft_annot::legend::add_legend(doc, *page, *top_left, *whole_document, title, author, &cx.meta())?;
             cx.place_on_layer(doc, *page, index)?;
         }
-        Edit::AddMarkdownNote { page, at, text, file, author } => {
+        Edit::AddMarkdownNote { page, at, file, author } => {
             let shape = Shape::Note { at: *at, icon: pdfcraft_annot::NoteIcon::Note };
             let style = pdfcraft_annot::Style { color: [0.16, 0.55, 0.62], ..pdfcraft_annot::Style::default_for(&shape) };
-            let new = NewAnnotation { page: *page, shape, style, contents: text.clone(), author: author.clone() };
+            let new = NewAnnotation { page: *page, shape, style, contents: String::new(), author: author.clone() };
             let index = pdfcraft_annot::add_annotation(doc, &new, &cx.meta())?;
             pdfcraft_annot::notes::mark(doc, *page, index, file)?;
             cx.place_on_layer(doc, *page, index)?;

@@ -7012,23 +7012,23 @@ fn punch_items_and_spaces_are_kept_on_their_markups() {
 }
 
 #[test]
-fn markdown_notes_keep_their_file_and_a_copy_of_the_text() {
+fn markdown_notes_keep_their_text_in_their_file_not_the_pdf() {
     let mut session = Session::default();
     let id = session.open("plan.pdf", None, Arc::new(fixture(1)), None).unwrap();
-    let text = "# Kitchen\n\n- [ ] check the trap #leak\n";
     session
         .apply(
             id,
-            Edit::AddMarkdownNote { page: 0, at: [100.0, 300.0], text: text.into(), file: "plan/notes/Note 1.md".into(), author: "Steve".into() },
+            Edit::AddMarkdownNote { page: 0, at: [100.0, 300.0], file: "plan.comments/plan-001-20261103-122100.md".into(), author: "Steve".into() },
         )
         .unwrap();
     let doc = session.get(id).unwrap();
     let notes = doc.markdown_notes(0);
     assert_eq!(notes.len(), 1);
-    assert_eq!(notes[0].1, "plan/notes/Note 1.md");
+    assert_eq!(notes[0].1, "plan.comments/plan-001-20261103-122100.md");
     let a = doc.info.annotations.iter().find(|a| a.index == notes[0].0).unwrap();
     assert_eq!(a.subtype, "Text");
-    assert_eq!(a.contents.as_deref().map(str::trim_end), Some(text.trim_end()), "the PDF keeps the note's text");
+    assert!(a.contents.as_deref().unwrap_or("").is_empty(), "the PDF keeps no copy of the text");
+    assert!(doc.note_in_file(0, notes[0].0), "the note's text is only in its file");
     assert!(!local_stamp().is_empty());
 }
 
