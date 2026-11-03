@@ -6,27 +6,35 @@
 
 use egui::{Color32, Pos2, Rect, Sense, Stroke, Vec2, pos2, vec2};
 
+use pdfcraft_engine::symbols::{CustomArt, Symbol, Trade};
+
 use crate::cad_icons::{self, CadIcon};
 use crate::draft::DraftTool;
+use crate::revu;
 use crate::ribbon::Workflow;
 use crate::theme::{self, Tokens};
 use crate::{PdfCraftApp, QuickTool, icons};
 
 /// One button: a drafting tool, a commenting command drawn with a CAD icon (text, callouts), a
-/// registry command with its ribbon icon, or one of RevuCraft's own tools.
+/// registry command with its ribbon icon, one of RevuCraft's own tools, or a symbol (a library
+/// symbol, or one of your own by its place in `my_symbols`).
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Entry {
     Tool(DraftTool),
     Command { id: &'static str, icon: CadIcon, label: &'static str },
     Run(&'static str),
     Quick { tool: QuickTool, icon: &'static str, label: &'static str },
+    Symbol(Symbol),
+    Mine(usize),
 }
 
-/// An entry's picture: a CAD icon or a ribbon (Lucide) icon.
+/// An entry's picture: a CAD icon, a ribbon (Lucide) icon, or a symbol's artwork.
 #[derive(Clone, Copy)]
 enum Glyph {
     Cad(CadIcon),
     Line(&'static str),
+    Symbol(Symbol),
+    Mine(usize),
 }
 
 impl Entry {
@@ -36,14 +44,19 @@ impl Entry {
             Entry::Command { icon, .. } => Glyph::Cad(icon),
             Entry::Run(id) => Glyph::Line(pdfcraft_engine::commands::command(id).map_or("circle", |c| crate::ribbon::icon(id, c.icon))),
             Entry::Quick { icon, .. } => Glyph::Line(icon),
+            Entry::Symbol(s) => Glyph::Symbol(s),
+            Entry::Mine(i) => Glyph::Mine(i),
         }
     }
 
-    fn label(self) -> &'static str {
+    /// The name shown as the tooltip and in the fly-out (your own symbols have their own names).
+    fn label(self, app: &PdfCraftApp) -> String {
         match self {
-            Entry::Tool(t) => t.label(),
-            Entry::Command { label, .. } | Entry::Quick { label, .. } => label,
-            Entry::Run(id) => pdfcraft_engine::commands::command(id).map_or(id, |c| c.label),
+            Entry::Tool(t) => tl!(t.label()).to_string(),
+            Entry::Command { label, .. } | Entry::Quick { label, .. } => tl!(label).to_string(),
+            Entry::Run(id) => tl!(pdfcraft_engine::commands::command(id).map_or(id, |c| c.label)).to_string(),
+            Entry::Symbol(s) => tl!(s.name()).to_string(),
+            Entry::Mine(i) => app.my_symbols.get(i).map(|a| a.name.clone()).unwrap_or_default(),
         }
     }
 
@@ -53,6 +66,11 @@ impl Entry {
             Entry::Command { id, .. } => crate::comments::CommentTool::from_command(id).is_some_and(|c| app.quick_tool == QuickTool::Comment(c)),
             Entry::Run(id) => crate::ribbon::tool_active(app, id),
             Entry::Quick { tool, .. } => app.quick_tool == tool,
+            Entry::Symbol(s) => app.quick_tool == QuickTool::Symbol && app.symbols.custom.is_none() && app.symbols.symbol == s,
+            Entry::Mine(i) => {
+                app.quick_tool == QuickTool::Symbol
+                    && app.symbols.custom.as_ref().is_some_and(|c| app.my_symbols.get(i).is_some_and(|m| m.name == c.name))
+            }
         }
     }
 
@@ -63,11 +81,41 @@ impl Entry {
     }
 }
 
-fn button(ui: &mut egui::Ui, e: Entry, selected: bool) -> egui::Response {
-    let tip = tl!(e.label());
+/// One button for `e`; a symbol's button shows its artwork.
+fn button(app: &PdfCraftApp, ui: &mut egui::Ui, e: Entry, selected: bool) -> egui::Response {
+    let tip = e.label(app);
     match e.glyph() {
-        Glyph::Cad(icon) => cad_icons::button(ui, icon, BUTTON, selected, tip),
-        Glyph::Line(name) => icons::button(ui, name, BUTTON, selected, tip),
+        Glyph::Cad(icon) => cad_icons::button(ui, icon, BUTTON, selected, &tip),
+        Glyph::Line(name) => icons::button(ui, name, BUTTON, selected, &tip),
+        glyph => {
+            let t = Tokens::get(ui.ctx());
+            let (rect, resp) = ui.allocate_exact_size(vec2(BUTTON, BUTTON), Sense::click());
+            let fill = if selected {
+                t.accent_soft
+            } else if resp.hovered() {
+                t.hover
+            } else {
+                Color32::TRANSPARENT
+            };
+            ui.painter().rect_filled(rect, t.radius, fill);
+            let color = if selected { t.accent_text } else { t.icon };
+            paint_glyph(app, ui, rect.shrink(4.0), glyph, color, &t);
+            resp.on_hover_text(tip)
+        }
+    }
+}
+
+/// A glyph painted into `rect`.
+fn paint_glyph(app: &PdfCraftApp, ui: &egui::Ui, rect: Rect, glyph: Glyph, color: Color32, t: &Tokens) {
+    match glyph {
+        Glyph::Cad(c) => cad_icons::paint(ui.painter(), rect, c, color, cad_icons::made_color(t)),
+        Glyph::Line(name) => icons::paint(ui, rect, name, 18.0, color),
+        Glyph::Symbol(s) => revu::paint_symbol(ui.painter(), rect, s, color),
+        Glyph::Mine(i) => {
+            if let Some(art) = app.my_symbols.get(i) {
+                revu::paint_art(ui.painter(), rect, &art.art, color);
+            }
+        }
     }
 }
 
@@ -188,11 +236,18 @@ pub struct Panel {
     title: &'static str,
     sections: &'static [&'static str],
     groups: &'static [(&'static str, &'static str, &'static [Entry])],
+    /// The symbol library: its groups are the trades (built per frame, so your own symbols
+    /// show), each collapsible, with the SVG footer. `groups` is unused.
+    library: bool,
 }
 
-const DRAFT: Panel = Panel { key: "draft_tools", title: "Draft tools", sections: &SECTIONS, groups: &GROUPS };
-const MARKUP: Panel = Panel { key: "markup_tools", title: "Markup tools", sections: &["Markup", "Comments"], groups: &MARKUP_GROUPS };
-const MEASURE: Panel = Panel { key: "measure_tools", title: "Measure tools", sections: &["Measure"], groups: &MEASURE_GROUPS };
+/// One group: its caption, its section and its entries.
+type Group = (&'static str, &'static str, Vec<Entry>);
+
+const DRAFT: Panel = Panel { key: "draft_tools", title: "Draft tools", sections: &SECTIONS, groups: &GROUPS, library: false };
+const MARKUP: Panel = Panel { key: "markup_tools", title: "Markup tools", sections: &["Markup", "Comments"], groups: &MARKUP_GROUPS, library: false };
+const MEASURE: Panel = Panel { key: "measure_tools", title: "Measure tools", sections: &["Measure"], groups: &MEASURE_GROUPS, library: false };
+const SYMBOLS: Panel = Panel { key: "symbol_tools", title: "Symbols", sections: &["Library"], groups: &[], library: true };
 
 /// The tools panel of tab `w`, if it has one.
 pub fn panel_for(w: Workflow) -> Option<&'static Panel> {
@@ -200,16 +255,44 @@ pub fn panel_for(w: Workflow) -> Option<&'static Panel> {
         Workflow::Draft => Some(&DRAFT),
         Workflow::Markup => Some(&MARKUP),
         Workflow::Measure => Some(&MEASURE),
+        Workflow::Symbols => Some(&SYMBOLS),
         _ => None,
     }
 }
+
+/// The symbol library's groups: one per trade (your symbols under the trade you chose for
+/// them), then your symbols without a trade.
+fn symbol_groups(mine: &[CustomArt]) -> Vec<Group> {
+    let mut groups: Vec<Group> = Trade::ALL
+        .into_iter()
+        .map(|trade| {
+            let mut entries: Vec<Entry> = Symbol::ALL.into_iter().filter(|s| s.trade() == trade).map(Entry::Symbol).collect();
+            entries.extend(mine.iter().enumerate().filter(|(_, a)| a.trade == Some(trade)).map(|(i, _)| Entry::Mine(i)));
+            (trade.name(), "Library", entries)
+        })
+        .collect();
+    let loose: Vec<Entry> = mine.iter().enumerate().filter(|(_, a)| a.trade.is_none()).map(|(i, _)| Entry::Mine(i)).collect();
+    if !loose.is_empty() {
+        groups.push(("My symbols", "Library", loose));
+    }
+    groups
+}
+
+/// What the panel asks the app to do once it has been drawn.
+#[derive(Default)]
+struct Out {
+    run: Option<&'static str>,
+    remove: Option<usize>,
+    add_svg: bool,
+}
+
 const BUTTON: f32 = 34.0;
 const EXPANDED_WIDTH: f32 = 214.0;
 const COLLAPSED_WIDTH: f32 = 48.0;
 
 /// The tool a group shows when collapsed: the last one used from it.
-fn shown(app: &PdfCraftApp, panel: &Panel, group: usize) -> Entry {
-    let Some((_, _, entries)) = panel.groups.get(group) else { return Entry::Tool(D::Line) };
+fn shown(app: &PdfCraftApp, panel: &Panel, groups: &[Group], group: usize) -> Entry {
+    let Some((_, _, entries)) = groups.get(group) else { return Entry::Tool(D::Line) };
     let first = entries.first().copied().unwrap_or(Entry::Tool(D::Line));
     if let Some(e) = entries.iter().copied().find(|e| e.active(app)) {
         return e;
@@ -221,7 +304,7 @@ fn shown(app: &PdfCraftApp, panel: &Panel, group: usize) -> Entry {
 }
 
 /// Pick `entry` (or put it down again when it is already in use).
-fn choose(app: &mut PdfCraftApp, panel: &Panel, group: usize, entry: Entry, run: &mut Option<&'static str>) {
+fn choose(app: &mut PdfCraftApp, panel: &Panel, group: usize, entry: Entry, out: &mut Out) {
     match entry {
         Entry::Tool(t) => {
             let selected = app.quick_tool == QuickTool::Draft(t);
@@ -235,13 +318,37 @@ fn choose(app: &mut PdfCraftApp, panel: &Panel, group: usize, entry: Entry, run:
                 }
             }
         }
-        Entry::Command { id, .. } | Entry::Run(id) => *run = Some(id),
+        Entry::Command { id, .. } | Entry::Run(id) => out.run = Some(id),
         Entry::Quick { tool, .. } => {
             app.quick_tool = if app.quick_tool == tool { QuickTool::Select } else { tool };
             if tool == QuickTool::PhotoCallout {
                 app.symbols.callout_spot = None;
             }
         }
+        Entry::Symbol(s) => {
+            // Picking the symbol that is already being placed puts the tool down.
+            let same = entry.active(app);
+            app.symbols.symbol = s;
+            app.symbols.custom = None;
+            app.quick_tool = if same { QuickTool::Select } else { QuickTool::Symbol };
+        }
+        Entry::Mine(i) => {
+            let same = entry.active(app);
+            if let Some(art) = app.my_symbols.get(i).cloned() {
+                app.symbols.custom = Some(std::sync::Arc::new(art));
+                app.quick_tool = if same { QuickTool::Select } else { QuickTool::Symbol };
+            }
+        }
+    }
+}
+
+/// Flip a group's caption in the collapsed list.
+fn toggle_group(collapsed: &mut Vec<String>, caption: &str) {
+    match collapsed.iter().position(|c| c == caption) {
+        Some(i) => {
+            collapsed.remove(i);
+        }
+        None => collapsed.push(caption.to_string()),
     }
 }
 
@@ -258,7 +365,9 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui, panel: &Panel) {
     // A phone has room for the icons only.
     let phone = crate::chrome::phone(ui.ctx());
     let collapsed = app.draft.panel_collapsed || phone;
-    let mut run: Option<&'static str> = None;
+    let groups: Vec<Group> =
+        if panel.library { symbol_groups(&app.my_symbols) } else { panel.groups.iter().map(|&(c, s, e)| (c, s, e.to_vec())).collect() };
+    let mut out = Out::default();
     egui::Panel::left(panel.key)
         .resizable(false)
         .exact_size(if collapsed { COLLAPSED_WIDTH } else { EXPANDED_WIDTH })
@@ -278,33 +387,60 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui, panel: &Panel) {
             ui.add_space(2.0);
             egui::ScrollArea::vertical().id_salt(panel.key).auto_shrink([false, false]).show(ui, |ui| {
                 if collapsed {
-                    icon_column(app, ui, &t, panel, allowed, &mut run);
+                    icon_column(app, ui, &t, panel, &groups, allowed, &mut out);
                 } else {
-                    sections(app, ui, &t, panel, allowed, &mut run);
+                    sections(app, ui, &t, panel, &groups, allowed, &mut out);
                 }
             });
         });
-    if let Some(id) = run {
+    if let Some(i) = out.remove
+        && let Some(name) = app.my_symbols.get(i).map(|a| a.name.clone())
+    {
+        app.my_symbols.retain(|a| a.name != name);
+        if app.symbols.custom.as_ref().is_some_and(|c| c.name == name) {
+            app.symbols.custom = None;
+        }
+    }
+    if out.add_svg {
+        app.add_symbol_from_svg();
+    }
+    if let Some(id) = out.run {
         app.execute(id);
     }
 }
 
-/// Expanded: each section's groups, every tool a button, in rows.
-fn sections(app: &mut PdfCraftApp, ui: &mut egui::Ui, t: &Tokens, panel: &Panel, allowed: bool, run: &mut Option<&'static str>) {
+/// Expanded: each section's groups, every tool a button, in rows. A library group has a header
+/// that collapses it.
+fn sections(app: &mut PdfCraftApp, ui: &mut egui::Ui, t: &Tokens, panel: &Panel, groups: &[Group], allowed: bool, out: &mut Out) {
     for section in panel.sections.iter().copied() {
         ui.add_space(4.0);
         ui.label(egui::RichText::new(tl!(section)).font(theme::medium(12.0)).color(t.text_muted));
         let y = ui.cursor().top();
         ui.painter().hline(ui.max_rect().x_range(), y, Stroke::new(1.0, t.divider));
         ui.add_space(4.0);
-        for (g, (caption, sec, entries)) in panel.groups.iter().enumerate() {
+        for (g, (caption, sec, entries)) in groups.iter().enumerate() {
             if *sec != section {
                 continue;
             }
-            ui.add(
-                egui::Label::new(egui::RichText::new(tl!(caption)).font(theme::regular(11.0)).color(t.text_faint))
-                    .wrap_mode(egui::TextWrapMode::Extend),
-            );
+            if panel.library {
+                let folded = app.draft.collapsed_groups.iter().any(|c| c == caption);
+                let (rect, header) = ui.allocate_exact_size(vec2(ui.available_width(), 20.0), Sense::click());
+                let icon = Rect::from_center_size(pos2(rect.left() + 7.0, rect.center().y), Vec2::splat(12.0));
+                icons::paint(ui, icon, if folded { "chevron-right" } else { "chevron-down" }, 12.0, t.text_muted);
+                let color = if header.hovered() { t.text } else { t.text_muted };
+                ui.painter().text(pos2(rect.left() + 20.0, rect.center().y), egui::Align2::LEFT_CENTER, tl!(caption), theme::medium(12.0), color);
+                if header.clicked() {
+                    toggle_group(&mut app.draft.collapsed_groups, caption);
+                }
+                if folded {
+                    continue;
+                }
+            } else {
+                ui.add(
+                    egui::Label::new(egui::RichText::new(tl!(caption)).font(theme::regular(11.0)).color(t.text_faint))
+                        .wrap_mode(egui::TextWrapMode::Extend),
+                );
+            }
             // One enabled state for the group: a child Ui per button would stop the row wrapping.
             let enabled = allowed || !entries.iter().all(|e| e.annotates());
             ui.add_enabled_ui(enabled, |ui| {
@@ -312,23 +448,43 @@ fn sections(app: &mut PdfCraftApp, ui: &mut egui::Ui, t: &Tokens, panel: &Panel,
                     ui.spacing_mut().item_spacing = vec2(2.0, 2.0);
                     for e in entries.iter().copied() {
                         let on = e.active(app);
-                        if button(ui, e, on).clicked() {
-                            choose(app, panel, g, e, run);
+                        let resp = button(app, ui, e, on);
+                        if let Entry::Mine(i) = e {
+                            resp.context_menu(|ui| {
+                                if ui.button(tl!("Remove from my symbols")).clicked() {
+                                    out.remove = Some(i);
+                                    ui.close();
+                                }
+                            });
+                        }
+                        if resp.clicked() {
+                            choose(app, panel, g, e, out);
                         }
                     }
                 });
             });
             ui.add_space(2.0);
         }
+        if panel.library && section == "Library" {
+            ui.add_space(4.0);
+            ui.label(
+                egui::RichText::new(tl!("To make a symbol from your own drawing, select the lines and choose Make symbol from their menu."))
+                    .font(theme::regular(11.0))
+                    .color(t.text_faint),
+            );
+            if ui.button(tl!("Add symbol from SVG…")).on_hover_text(tl!("Use a line drawing saved as SVG as a symbol of your own")).clicked() {
+                out.add_svg = true;
+            }
+        }
     }
 }
 
 /// Collapsed: one button per group; its arrow (or a long press, or a right click) flies out the
 /// group.
-fn icon_column(app: &mut PdfCraftApp, ui: &mut egui::Ui, t: &Tokens, panel: &Panel, allowed: bool, run: &mut Option<&'static str>) {
+fn icon_column(app: &mut PdfCraftApp, ui: &mut egui::Ui, t: &Tokens, panel: &Panel, groups: &[Group], allowed: bool, out: &mut Out) {
     ui.spacing_mut().item_spacing.y = 2.0;
     let mut last_section = "";
-    for (g, (caption, section, entries)) in panel.groups.iter().enumerate() {
+    for (g, (caption, section, entries)) in groups.iter().enumerate() {
         if *section != last_section {
             if !last_section.is_empty() {
                 ui.add_space(3.0);
@@ -338,11 +494,11 @@ fn icon_column(app: &mut PdfCraftApp, ui: &mut egui::Ui, t: &Tokens, panel: &Pan
             }
             last_section = section;
         }
-        let entry = shown(app, panel, g);
+        let entry = shown(app, panel, groups, g);
         let many = entries.len() > 1;
         let on = entry.active(app);
         let enabled = allowed || !entries.iter().all(|e| e.annotates());
-        let resp = ui.add_enabled_ui(enabled, |ui| button(ui, entry, on)).inner;
+        let resp = ui.add_enabled_ui(enabled, |ui| button(app, ui, entry, on)).inner;
         let rect = resp.rect;
         if many {
             flyout_mark(ui.painter(), rect, if ui.is_enabled() { t.text_muted } else { t.text_faint });
@@ -354,7 +510,7 @@ fn icon_column(app: &mut PdfCraftApp, ui: &mut egui::Ui, t: &Tokens, panel: &Pan
         if many && (on_arrow || resp.secondary_clicked() || resp.long_touched()) {
             egui::Popup::open_id(ui.ctx(), popup_id);
         } else if resp.clicked() {
-            choose(app, panel, g, entry, run);
+            choose(app, panel, g, entry, out);
         }
         if many {
             let mut picked: Option<Entry> = None;
@@ -365,22 +521,22 @@ fn icon_column(app: &mut PdfCraftApp, ui: &mut egui::Ui, t: &Tokens, panel: &Pan
                 .show(|ui| {
                     ui.label(egui::RichText::new(tl!(caption)).font(theme::medium(12.0)).color(t.text_muted));
                     for e in entries.iter().copied() {
-                        if ui.add_enabled_ui(allowed || !e.annotates(), |ui| flyout_row(ui, t, e, e.active(app))).inner.clicked() {
+                        if ui.add_enabled_ui(allowed || !e.annotates(), |ui| flyout_row(app, ui, t, e, e.active(app))).inner.clicked() {
                             picked = Some(e);
                         }
                     }
                 });
             if let Some(e) = picked {
-                choose(app, panel, g, e, run);
+                choose(app, panel, g, e, out);
             }
         }
     }
 }
 
 /// A fly-out row: the icon and the tool's name.
-fn flyout_row(ui: &mut egui::Ui, t: &Tokens, e: Entry, selected: bool) -> egui::Response {
-    let label = tl!(e.label());
-    let galley = ui.painter().layout_no_wrap(label.to_string(), theme::regular(13.0), t.text);
+fn flyout_row(app: &PdfCraftApp, ui: &mut egui::Ui, t: &Tokens, e: Entry, selected: bool) -> egui::Response {
+    let label = e.label(app);
+    let galley = ui.painter().layout_no_wrap(label, theme::regular(13.0), t.text);
     let size = Vec2::new((galley.size().x + 44.0).max(180.0), 30.0);
     let (rect, resp) = ui.allocate_exact_size(size, Sense::click());
     if selected {
@@ -390,10 +546,7 @@ fn flyout_row(ui: &mut egui::Ui, t: &Tokens, e: Entry, selected: bool) -> egui::
     }
     let icon = Rect::from_center_size(pos2(rect.left() + 16.0, rect.center().y), Vec2::splat(20.0));
     let color = if selected { t.accent_text } else { t.icon };
-    match e.glyph() {
-        Glyph::Cad(c) => cad_icons::paint(ui.painter(), icon, c, color, cad_icons::made_color(t)),
-        Glyph::Line(name) => icons::paint(ui, icon, name, 18.0, color),
-    }
+    paint_glyph(app, ui, icon, e.glyph(), color, t);
     ui.painter().galley(Pos2::new(rect.left() + 34.0, rect.center().y - galley.size().y / 2.0), galley, t.text);
     resp
 }
@@ -423,5 +576,47 @@ mod tests {
             }
         }
         assert!(panel_for(Workflow::Document).is_none());
+    }
+
+    /// The library lists every symbol once, under its trade, in the trades' order.
+    #[test]
+    fn library_lists_every_symbol_once_under_its_trade() {
+        let groups = symbol_groups(&[]);
+        let trades: Vec<&str> = Trade::ALL.into_iter().map(|t| t.name()).collect();
+        assert_eq!(groups.iter().map(|g| g.0).collect::<Vec<_>>(), trades);
+        let mut seen = std::collections::HashSet::new();
+        for (caption, _, entries) in &groups {
+            for e in entries {
+                let Entry::Symbol(s) = e else { panic!("{caption}: not a symbol") };
+                assert_eq!(s.trade().name(), *caption, "{s:?} under the wrong trade");
+                assert!(seen.insert(*s), "{s:?} listed twice");
+            }
+        }
+        assert_eq!(seen.len(), Symbol::ALL.len());
+    }
+
+    /// Your own symbols sit under their trade, or in My symbols when they have none.
+    #[test]
+    fn my_symbols_follow_their_trade() {
+        let mine = vec![
+            CustomArt { name: "Sensor".into(), art: String::new(), trade: Some(Trade::Security) },
+            CustomArt { name: "Loose".into(), art: String::new(), trade: None },
+        ];
+        let groups = symbol_groups(&mine);
+        let security = groups.iter().find(|g| g.0 == Trade::Security.name()).map(|g| g.2.clone()).unwrap_or_default();
+        assert!(security.contains(&Entry::Mine(0)));
+        let loose = groups.iter().find(|g| g.0 == "My symbols").map(|g| g.2.clone()).unwrap_or_default();
+        assert_eq!(loose, vec![Entry::Mine(1)]);
+    }
+
+    /// A group's caption toggles in and out of the collapsed list.
+    #[test]
+    fn groups_collapse_and_expand() {
+        let mut collapsed = Vec::new();
+        toggle_group(&mut collapsed, "Data");
+        assert_eq!(collapsed, vec!["Data".to_string()]);
+        toggle_group(&mut collapsed, "Plumbing");
+        toggle_group(&mut collapsed, "Data");
+        assert_eq!(collapsed, vec!["Plumbing".to_string()]);
     }
 }

@@ -381,6 +381,8 @@ pub struct DraftSettings {
     pub panel_collapsed: bool,
     /// The tool each fly-out group shows, by group.
     pub group_tool: Vec<DraftTool>,
+    /// The symbol library groups that are folded shut, by caption.
+    pub collapsed_groups: Vec<String>,
     /// What a cable run adds for the drop down the wall and the service loop (inches).
     pub cable_inches: f64,
     /// The system (a network, a circuit) and cable type new cable runs get.
@@ -423,6 +425,7 @@ impl Default for DraftSettings {
             color_layer: None,
             panel_collapsed: false,
             group_tool: Vec::new(),
+            collapsed_groups: Vec::new(),
             cable_inches: 120.0,
             cable_system: String::new(),
             cable_type: String::new(),
