@@ -6860,6 +6860,34 @@ fn doors_and_windows_only_go_where_the_wall_has_room() {
     assert!(!session.get(id).unwrap().opening_fits(0, wall, 0.65, 0.75));
 }
 
+#[test]
+fn deleting_a_wall_squares_off_the_end_of_the_wall_it_was_joined_to() {
+    let mut session = Session::new();
+    let id = session.open("plan.pdf", None, Arc::new(fixture(1)), None).unwrap();
+    named_wall(&mut session, id, [[0.0, 3.0], [100.0, 3.0], [100.0, -3.0], [0.0, -3.0]], "w");
+    // A wall whose end at the joint is skewed: its corners sit at different distances along it.
+    named_wall(&mut session, id, [[96.0, 3.0], [96.0, 80.0], [104.0, 80.0], [103.0, -3.0]], "n");
+    let (w, n) = (wall_named_in(&session, id, "w").index, wall_named_in(&session, id, "n").index);
+    session
+        .apply(id, Edit::SetWall { page: 0, index: w, quad: None, ja: None, jb: Some(true), gap: None, ja_with: None, jb_with: Some("n".into()) })
+        .unwrap();
+    session
+        .apply(id, Edit::SetWall { page: 0, index: n, quad: None, ja: Some(true), jb: None, gap: None, ja_with: Some("w".into()), jb_with: None })
+        .unwrap();
+    // How far the end's corners are apart along the wall (0 when the end is square).
+    let skew = |q: [[f64; 2]; 4]| {
+        let mid = |a: [f64; 2], b: [f64; 2]| [(a[0] + b[0]) / 2.0, (a[1] + b[1]) / 2.0];
+        let (e, f) = (mid(q[1], q[2]), mid(q[3], q[0]));
+        let (dx, dy) = (e[0] - f[0], e[1] - f[1]);
+        ((q[0][0] - q[3][0]) * dx + (q[0][1] - q[3][1]) * dy) / dx.hypot(dy)
+    };
+    assert!(skew(wall_named_in(&session, id, "n").quad).abs() > 1.0, "skewed before the delete");
+    session.apply(id, Edit::DeleteAnnotation { page: 0, index: w }).unwrap();
+    let after = wall_named_in(&session, id, "n");
+    assert!(skew(after.quad).abs() < 1e-6, "the freed end is square: {:?}", after.quad);
+    assert!(!after.data.ja, "the joint is released");
+}
+
 fn near_quad(a: [[f64; 2]; 4], b: [[f64; 2]; 4]) -> bool {
     a.iter().zip(b.iter()).all(|(p, q)| (p[0] - q[0]).hypot(p[1] - q[1]) < 1e-6)
 }

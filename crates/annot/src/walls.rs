@@ -817,8 +817,36 @@ fn joint_end(n: &Wall, with: &str) -> Option<usize> {
     }
 }
 
-/// Frees end `end` of wall `index` (and its end on `partner`, if it is still there).
-fn release(doc: &mut Document, page: usize, index: usize, end: usize, partner: Option<usize>) -> Result<(), AnnotError> {
+/// The outline with the corners at `end` squared off: each moved along the wall onto the line
+/// across its end through their middle, so a wall whose joint is gone ends straight across.
+fn square_end(q: &[Pt; 4], end: usize) -> Option<[Pt; 4]> {
+    let ax = axis(q)?;
+    let (i, j) = if end == 0 { (3, 0) } else { (1, 2) };
+    let middle = mid(q[i], q[j]);
+    let mut out = *q;
+    for k in [i, j] {
+        let along = dot(sub(q[k], middle), ax.along);
+        out[k] = sub(q[k], mul(ax.along, along));
+    }
+    Some(out)
+}
+
+/// Squares off end `end` of the wall `index`, now that its joint is gone.
+fn square_off(doc: &mut Document, page: usize, index: usize, quad: &[Pt; 4], end: usize, locked: bool, meta: &Meta) -> Result<(), AnnotError> {
+    if locked {
+        return Ok(());
+    }
+    if let Some(sq) = square_end(quad, end) {
+        crate::geometry::set_vertices(doc, page, index, &sq, false, meta)?;
+        sync(doc, page, index, meta)?;
+    }
+    Ok(())
+}
+
+/// Frees end `end` of wall `index` (and its end on `partner`, if it is still there). When `square`
+/// (the wall was deleted, so the freed ends are left where a joint was), each freed end is squared
+/// off; a wall that moved past its partner keeps its outline.
+fn release(doc: &mut Document, page: usize, index: usize, end: usize, partner: Option<usize>, meta: &Meta, square: bool) -> Result<(), AnnotError> {
     let Some(w) = walls(doc, page).into_iter().find(|w| w.index == index) else { return Ok(()) };
     let mut data = w.data.clone();
     if end == 0 {
@@ -831,6 +859,9 @@ fn release(doc: &mut Document, page: usize, index: usize, end: usize, partner: O
     let (_, r) = annot_ref(doc, page, index)?;
     doc.update_dict(r, |d| d.set(WALL.to_vec(), Object::Dict(data_dict(&data))))?;
     set_appearance(doc, r)?;
+    if square {
+        square_off(doc, page, index, &w.quad, end, w.locked, meta)?;
+    }
     if let Some(p) = partner.and_then(|p| walls(doc, page).into_iter().find(|n| n.index == p))
         && let Some(pe) = joint_end(&p, &w.nm)
     {
@@ -845,22 +876,25 @@ fn release(doc: &mut Document, page: usize, index: usize, end: usize, partner: O
         let (_, pr) = annot_ref(doc, page, p.index)?;
         doc.update_dict(pr, |d| d.set(WALL.to_vec(), Object::Dict(data_dict(&pd))))?;
         set_appearance(doc, pr)?;
+        if square {
+            square_off(doc, page, p.index, &p.quad, pe, p.locked, meta)?;
+        }
     }
     Ok(())
 }
 
 /// Frees every joint that names the wall `gone` (just deleted): the walls it was joined to have an
 /// open end again.
-pub fn forget_partner(doc: &mut Document, page: usize, gone: &str) -> Result<(), AnnotError> {
+pub fn forget_partner(doc: &mut Document, page: usize, gone: &str, meta: &Meta) -> Result<(), AnnotError> {
     if gone.is_empty() {
         return Ok(());
     }
     for w in walls(doc, page) {
         if w.data.ja && w.data.ja_with == gone {
-            release(doc, page, w.index, 0, None)?;
+            release(doc, page, w.index, 0, None, meta, true)?;
         }
         if w.data.jb && w.data.jb_with == gone {
-            release(doc, page, w.index, 1, None)?;
+            release(doc, page, w.index, 1, None, meta, true)?;
         }
     }
     Ok(())
@@ -892,7 +926,7 @@ pub fn stretch(doc: &mut Document, page: usize, moved: usize, meta: &Meta) -> Re
                         queue.push(n);
                     }
                 }
-                None => release(doc, page, w.index, end, partner.map(|p| p.index))?,
+                None => release(doc, page, w.index, end, partner.map(|p| p.index), meta, false)?,
             }
         }
     }

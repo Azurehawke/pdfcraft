@@ -3632,7 +3632,7 @@ fn run_edit(doc: &mut pdfcraft_cos::Document, edit: &Edit, cx: &mut EditCtx) -> 
                 pdfcraft_annot::delete_annotation(doc, *page, *index)?;
             }
             if let Some(nm) = gone {
-                pdfcraft_annot::walls::forget_partner(doc, *page, &nm)?;
+                pdfcraft_annot::walls::forget_partner(doc, *page, &nm, &cx.meta())?;
             }
         }
         Edit::SetAnnotationContents { page, index, text } => pdfcraft_annot::set_contents(doc, *page, *index, text, &cx.meta())?,
