@@ -7,12 +7,13 @@ use serde::Serialize;
 
 use crate::AnnotError;
 use crate::all_page_annotation_dicts;
+use crate::notes;
 use crate::punch::{self, PunchStatus};
 
 /// The `format` value every sidecar carries.
 pub const FORMAT: &str = "revucraft-markups";
 /// The format version this code writes.
-pub const VERSION: u32 = 1;
+pub const VERSION: u32 = 2;
 
 /// Everything the sidecar holds for one drawing.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize)]
@@ -21,6 +22,24 @@ pub struct Sidecar {
     pub version: u32,
     pub punch: Vec<PunchRow>,
     pub spaces: Vec<SpaceRow>,
+    pub notes: Vec<NoteRow>,
+    pub photos: Vec<PhotoRow>,
+}
+
+/// One Markdown note on the drawing: the file that holds its text.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
+pub struct NoteRow {
+    /// The file, relative to the PDF's folder (`/PCNote /File`).
+    pub file: String,
+    /// The 0-based page the note sits on.
+    pub page: usize,
+}
+
+/// One photo kept beside the drawing.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
+pub struct PhotoRow {
+    /// The file, relative to the PDF's folder.
+    pub file: String,
 }
 
 /// One punch item. Field order is the order in the JSON file.
@@ -63,9 +82,15 @@ fn middle_of(d: &Dict) -> Option<[f64; 2]> {
 pub fn build(doc: &Document) -> Result<Sidecar, AnnotError> {
     let mut punch_rows = Vec::new();
     let mut space_rows = Vec::new();
+    let mut note_rows = Vec::new();
     for (page, dicts) in all_page_annotation_dicts(doc)?.iter().enumerate() {
         let mut labels = Vec::new();
         let mut shapes = Vec::new();
+        for d in dicts.iter().filter(|d| d.name(b"Subtype") == Some(b"Text")) {
+            if let Some(file) = notes::file_of(d).filter(|f| !f.is_empty()) {
+                note_rows.push(NoteRow { file, page });
+            }
+        }
         for d in dicts.iter().filter(|d| punch::is_space(d)) {
             let label = d.get(b"Contents").and_then(Object::as_string).map(PdfString::to_text).unwrap_or_default().trim().to_string();
             if let Some(name) = name_of(d) {
@@ -90,7 +115,16 @@ pub fn build(doc: &Document) -> Result<Sidecar, AnnotError> {
             });
         }
     }
-    Ok(Sidecar { format: FORMAT, version: VERSION, punch: punch_rows, spaces: space_rows })
+    Ok(Sidecar { format: FORMAT, version: VERSION, punch: punch_rows, spaces: space_rows, notes: note_rows, photos: Vec::new() })
+}
+
+impl Sidecar {
+    /// The photos kept beside the drawing (`files`, relative to the PDF's folder), in the order
+    /// given: the caller sorts them, so the file is the same bytes on every device.
+    pub fn with_photos(mut self, files: Vec<String>) -> Self {
+        self.photos = files.into_iter().map(|file| PhotoRow { file }).collect();
+        self
+    }
 }
 
 /// The JSON text of a sidecar: two-space indent and a trailing newline.
@@ -295,7 +329,7 @@ mod tests {
     fn the_json_is_versioned_deterministic_and_has_empty_lists_when_there_is_nothing() {
         let d = doc(&[&format!("{} {}", space("room", "Server room", [0, 0, 100, 100]), punch("p1", 3, "Ready", [10, 10, 20, 20]))]);
         let json = to_json(&build(&d).expect("builds"));
-        assert!(json.starts_with("{\n  \"format\": \"revucraft-markups\",\n  \"version\": 1,\n  \"punch\": [\n"), "{json}");
+        assert!(json.starts_with("{\n  \"format\": \"revucraft-markups\",\n  \"version\": 2,\n  \"punch\": [\n"), "{json}");
         assert!(json.ends_with("\n"));
         assert_eq!(json, to_json(&build(&d).expect("builds")), "the same markups give the same bytes");
         let value: serde_json::Value = serde_json::from_str(&json).expect("valid JSON");
@@ -306,7 +340,24 @@ mod tests {
         let empty = doc(&[""]);
         let json = to_json(&build(&empty).expect("builds"));
         assert!(json.contains("\"punch\": [],"), "{json}");
-        assert!(json.contains("\"spaces\": []"), "{json}");
+        assert!(json.contains("\"spaces\": [],"), "{json}");
+        assert!(json.contains("\"notes\": [],"), "{json}");
+        assert!(json.ends_with("\"photos\": []\n}\n"), "{json}");
+    }
+
+    #[test]
+    fn markdown_notes_and_photos_are_linked_by_their_files_not_by_their_markers() {
+        let note = "<< /Type /Annot /Subtype /Text /Rect [1 2 3 4] /PCNote << /File (Smith.comments/Smith-001-20261103-122100.md) /InFile true >> >>";
+        let plain = "<< /Type /Annot /Subtype /Square /Rect [1 2 3 4] >>";
+        let d = doc(&[plain, &format!("{note} {plain}")]);
+        let built = build(&d).expect("builds").with_photos(vec!["Smith.images/IMG_1.jpg".into()]);
+        assert_eq!(built.notes, vec![NoteRow { file: "Smith.comments/Smith-001-20261103-122100.md".into(), page: 1 }]);
+        assert_eq!(built.photos, vec![PhotoRow { file: "Smith.images/IMG_1.jpg".into() }]);
+        let value: serde_json::Value = serde_json::from_str(&to_json(&built)).expect("valid JSON");
+        assert_eq!(value["version"], 2);
+        assert_eq!(value["notes"][0]["file"], "Smith.comments/Smith-001-20261103-122100.md");
+        assert_eq!(value["photos"][0]["file"], "Smith.images/IMG_1.jpg");
+        assert!(value["notes"][0].get("name").is_none(), "no PDF marker names in the file");
     }
 
     #[test]

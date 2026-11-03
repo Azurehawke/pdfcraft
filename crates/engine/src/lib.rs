@@ -780,10 +780,12 @@ impl Document {
         self.editor.as_ref().is_some_and(|e| pdfcraft_annot::locked_at(&e.cos, page, index))
     }
 
-    /// The PlanCraft sidecar (`markups.json`) for the document as it stands (docs/sidecar.md).
-    pub fn sidecar_json(&self) -> Result<String, String> {
+    /// The PlanCraft sidecar (`markups.json`) for the document as it stands, saved as `pdf`
+    /// (docs/sidecar.md). Its photos are the images beside `pdf`.
+    pub fn sidecar_json(&self, pdf: &std::path::Path) -> Result<String, String> {
         let e = self.editor.as_ref().ok_or("the document can't be read")?;
-        pdfcraft_annot::sidecar::build(&e.cos).map(|s| pdfcraft_annot::sidecar::to_json(&s)).map_err(|e| e.to_string())
+        let photos = comments::photo_files(pdf);
+        pdfcraft_annot::sidecar::build(&e.cos).map(|s| pdfcraft_annot::sidecar::to_json(&s.with_photos(photos))).map_err(|e| e.to_string())
     }
 
     /// Writes a PlanCraft sidecar (see [`Document::sidecar_json`]) to `path`, unless the file already

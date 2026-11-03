@@ -636,7 +636,7 @@ impl PdfCraftApp {
             return;
         }
         let Some(folder) = crate::notes_ui::job_folder(std::path::Path::new(dest)) else { return };
-        let json = match self.session.get(id).map(|d| d.sidecar_json()) {
+        let json = match self.session.get(id).map(|d| d.sidecar_json(std::path::Path::new(dest))) {
             Some(Ok(json)) => json,
             Some(Err(e)) => {
                 self.notify_fmt("Couldn't build the PlanCraft sidecar: {e}", &[("e", &e)]);
