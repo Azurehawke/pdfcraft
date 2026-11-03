@@ -69,44 +69,75 @@ pub enum Symbol {
     ElectricStrike,
     MagLock,
     RequestToExit,
+    WaterCloset,
+    Urinal,
+    Lavatory,
+    KitchenSink,
+    Bathtub,
+    Shower,
+    FloorDrain,
+    Cleanout,
+    HoseBibb,
+    WaterHeater,
+    Range,
+    Cooktop,
+    WallOven,
+    Refrigerator,
+    Dishwasher,
+    Microwave,
+    Washer,
+    Dryer,
+    RangeHood,
 }
 
 /// A trade the library groups symbols under.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum Trade {
-    Networking,
+    Data,
+    Plumbing,
     Electrical,
     Security,
+    Appliances,
 }
 
 impl Trade {
-    pub const ALL: [Trade; 3] = [Trade::Networking, Trade::Electrical, Trade::Security];
+    /// The groups, in the order the library lists them.
+    pub const ALL: [Trade; 5] = [Trade::Data, Trade::Plumbing, Trade::Electrical, Trade::Security, Trade::Appliances];
 
     /// The English name, translated where it is shown.
     pub fn name(self) -> &'static str {
         match self {
-            Self::Networking => "Networking",
+            Self::Data => "Data",
+            Self::Plumbing => "Plumbing",
             Self::Electrical => "Electrical",
             Self::Security => "Security",
+            Self::Appliances => "Appliances",
         }
     }
 
     /// The stable id (settings, a symbol of your own's category).
     pub fn id(self) -> &'static str {
         match self {
-            Self::Networking => "networking",
+            Self::Data => "data",
+            Self::Plumbing => "plumbing",
             Self::Electrical => "electrical",
             Self::Security => "security",
+            Self::Appliances => "appliances",
         }
     }
 
+    /// The trade with `id`. `networking`, the id this group had before it was named Data, still
+    /// reads as Data, so the saved settings and your own symbols keep their group.
     pub fn from_id(id: &str) -> Option<Self> {
+        if id == "networking" {
+            return Some(Self::Data);
+        }
         Self::ALL.into_iter().find(|t| t.id() == id)
     }
 }
 
 impl Symbol {
-    pub const ALL: [Symbol; 40] = [
+    pub const ALL: [Symbol; 59] = [
         Symbol::DataJack,
         Symbol::DualJack,
         Symbol::QuadJack,
@@ -147,6 +178,25 @@ impl Symbol {
         Symbol::ElectricStrike,
         Symbol::MagLock,
         Symbol::RequestToExit,
+        Symbol::WaterCloset,
+        Symbol::Urinal,
+        Symbol::Lavatory,
+        Symbol::KitchenSink,
+        Symbol::Bathtub,
+        Symbol::Shower,
+        Symbol::FloorDrain,
+        Symbol::Cleanout,
+        Symbol::HoseBibb,
+        Symbol::WaterHeater,
+        Symbol::Range,
+        Symbol::Cooktop,
+        Symbol::WallOven,
+        Symbol::Refrigerator,
+        Symbol::Dishwasher,
+        Symbol::Microwave,
+        Symbol::Washer,
+        Symbol::Dryer,
+        Symbol::RangeHood,
     ];
 
     /// The stable id written to `/PCSymbol`.
@@ -192,6 +242,25 @@ impl Symbol {
             Self::ElectricStrike => "electric-strike",
             Self::MagLock => "mag-lock",
             Self::RequestToExit => "request-to-exit",
+            Self::WaterCloset => "water-closet",
+            Self::Urinal => "urinal",
+            Self::Lavatory => "lavatory",
+            Self::KitchenSink => "kitchen-sink",
+            Self::Bathtub => "bathtub",
+            Self::Shower => "shower",
+            Self::FloorDrain => "floor-drain",
+            Self::Cleanout => "cleanout",
+            Self::HoseBibb => "hose-bibb",
+            Self::WaterHeater => "water-heater",
+            Self::Range => "range",
+            Self::Cooktop => "cooktop",
+            Self::WallOven => "wall-oven",
+            Self::Refrigerator => "refrigerator",
+            Self::Dishwasher => "dishwasher",
+            Self::Microwave => "microwave",
+            Self::Washer => "washer",
+            Self::Dryer => "dryer",
+            Self::RangeHood => "range-hood",
         }
     }
 
@@ -242,6 +311,25 @@ impl Symbol {
             Self::ElectricStrike => "Electric strike",
             Self::MagLock => "Mag lock",
             Self::RequestToExit => "Request-to-exit button",
+            Self::WaterCloset => "Water closet",
+            Self::Urinal => "Urinal",
+            Self::Lavatory => "Lavatory (sink)",
+            Self::KitchenSink => "Kitchen sink",
+            Self::Bathtub => "Bathtub",
+            Self::Shower => "Shower",
+            Self::FloorDrain => "Floor drain",
+            Self::Cleanout => "Cleanout",
+            Self::HoseBibb => "Hose bibb",
+            Self::WaterHeater => "Water heater",
+            Self::Range => "Range (cooktop and oven)",
+            Self::Cooktop => "Cooktop",
+            Self::WallOven => "Wall oven",
+            Self::Refrigerator => "Refrigerator",
+            Self::Dishwasher => "Dishwasher",
+            Self::Microwave => "Microwave",
+            Self::Washer => "Washer",
+            Self::Dryer => "Dryer",
+            Self::RangeHood => "Range hood",
         }
     }
 
@@ -252,6 +340,32 @@ impl Symbol {
 
     pub fn trade(self) -> Trade {
         match self {
+            Self::DataJack
+            | Self::DualJack
+            | Self::QuadJack
+            | Self::VoiceJack
+            | Self::WirelessAp
+            | Self::PoeDevice
+            | Self::FloorBox
+            | Self::Rack
+            | Self::PatchPanel
+            | Self::Switch
+            | Self::FiberTermination
+            | Self::Demarc
+            | Self::Display
+            | Self::Speaker
+            | Self::JHook
+            | Self::ConduitStub => Trade::Data,
+            Self::WaterCloset
+            | Self::Urinal
+            | Self::Lavatory
+            | Self::KitchenSink
+            | Self::Bathtub
+            | Self::Shower
+            | Self::FloorDrain
+            | Self::Cleanout
+            | Self::HoseBibb
+            | Self::WaterHeater => Trade::Plumbing,
             Self::DuplexOutlet
             | Self::GfciOutlet
             | Self::DedicatedOutlet
@@ -263,7 +377,10 @@ impl Symbol {
             | Self::ExitSign
             | Self::JunctionBox
             | Self::ElectricalPanel => Trade::Electrical,
-            Self::MotionSensor
+            Self::CameraDome
+            | Self::CameraBullet
+            | Self::CardReader
+            | Self::MotionSensor
             | Self::DoorContact
             | Self::GlassBreak
             | Self::Keypad
@@ -273,7 +390,15 @@ impl Symbol {
             | Self::ElectricStrike
             | Self::MagLock
             | Self::RequestToExit => Trade::Security,
-            _ => Trade::Networking,
+            Self::Range
+            | Self::Cooktop
+            | Self::WallOven
+            | Self::Refrigerator
+            | Self::Dishwasher
+            | Self::Microwave
+            | Self::Washer
+            | Self::Dryer
+            | Self::RangeHood => Trade::Appliances,
         }
     }
 
@@ -460,6 +585,92 @@ impl Symbol {
             Self::RequestToExit => {
                 a.circle(50.0, 50.0, 40.0);
                 a.tag(50.0, 50.0, 24.0, "REX");
+            }
+            Self::WaterCloset => {
+                // Tank at the back, bowl in front.
+                a.rect(30.0, 72.0, 40.0, 20.0);
+                a.ellipse(50.0, 42.0, 26.0, 30.0);
+            }
+            Self::Urinal => {
+                a.rect(34.0, 80.0, 32.0, 10.0);
+                a.ellipse(50.0, 48.0, 20.0, 30.0);
+            }
+            Self::Lavatory => {
+                a.rect(20.0, 16.0, 60.0, 68.0);
+                a.ellipse(50.0, 50.0, 22.0, 24.0);
+            }
+            Self::KitchenSink => {
+                a.rect(12.0, 22.0, 76.0, 56.0);
+                a.rect(20.0, 30.0, 32.0, 40.0);
+                a.rect(58.0, 30.0, 22.0, 40.0);
+            }
+            Self::Bathtub => {
+                a.rect(10.0, 20.0, 80.0, 60.0);
+                a.rect(18.0, 28.0, 64.0, 44.0);
+                a.circle(74.0, 50.0, 4.0);
+            }
+            Self::Shower => {
+                a.rect(14.0, 14.0, 72.0, 72.0);
+                a.circle(50.0, 50.0, 6.0);
+                a.line(14.0, 14.0, 86.0, 86.0);
+            }
+            Self::FloorDrain => {
+                a.circle(50.0, 50.0, 36.0);
+                a.tag(50.0, 50.0, 22.0, "FD");
+            }
+            Self::Cleanout => {
+                a.circle(50.0, 50.0, 36.0);
+                a.circle(50.0, 50.0, 12.0);
+            }
+            Self::HoseBibb => {
+                a.circle(50.0, 50.0, 34.0);
+                a.tag(50.0, 50.0, 20.0, "HB");
+            }
+            Self::WaterHeater => {
+                a.circle(50.0, 50.0, 40.0);
+                a.tag(50.0, 50.0, 26.0, "WH");
+            }
+            Self::Range => {
+                a.rect(10.0, 10.0, 80.0, 80.0);
+                for (x, y) in [(30.0, 66.0), (70.0, 66.0), (30.0, 34.0), (70.0, 34.0)] {
+                    a.circle(x, y, 9.0);
+                }
+                a.rect(18.0, 14.0, 64.0, 18.0);
+            }
+            Self::Cooktop => {
+                a.rect(10.0, 10.0, 80.0, 80.0);
+                for (x, y) in [(30.0, 66.0), (70.0, 66.0), (30.0, 34.0), (70.0, 34.0)] {
+                    a.circle(x, y, 9.0);
+                }
+            }
+            Self::WallOven => {
+                a.rect(14.0, 14.0, 72.0, 72.0);
+                a.rect(24.0, 24.0, 52.0, 52.0);
+            }
+            Self::Refrigerator => {
+                a.rect(14.0, 10.0, 72.0, 80.0);
+                a.line(14.0, 62.0, 86.0, 62.0);
+                a.line(76.0, 74.0, 76.0, 52.0);
+            }
+            Self::Dishwasher => {
+                a.rect(12.0, 12.0, 76.0, 76.0);
+                a.tag(50.0, 50.0, 26.0, "DW");
+            }
+            Self::Microwave => {
+                a.rect(10.0, 30.0, 80.0, 40.0);
+                a.tag(50.0, 50.0, 20.0, "MW");
+            }
+            Self::Washer => {
+                a.rect(10.0, 10.0, 80.0, 80.0);
+                a.circle(50.0, 50.0, 30.0);
+            }
+            Self::Dryer => {
+                a.rect(10.0, 10.0, 80.0, 80.0);
+                a.circle(50.0, 50.0, 30.0);
+                a.tag(50.0, 50.0, 20.0, "D");
+            }
+            Self::RangeHood => {
+                a.poly(&[(8.0, 20.0), (92.0, 20.0), (74.0, 80.0), (26.0, 80.0)]);
             }
         }
         a.0
@@ -1199,6 +1410,28 @@ mod tests {
             assert!(Symbol::ALL.iter().any(|s| s.trade() == t), "{t:?}");
             assert_eq!(Trade::from_id(t.id()), Some(t));
         }
+    }
+
+    #[test]
+    fn the_groups_are_data_plumbing_electrical_security_and_appliances() {
+        assert_eq!(Trade::ALL.map(Trade::name), ["Data", "Plumbing", "Electrical", "Security", "Appliances"]);
+        assert_eq!(Trade::Data.id(), "data");
+        // The group that was Networking still reads, so saved settings and your own symbols keep it.
+        assert_eq!(Trade::from_id("networking"), Some(Trade::Data));
+        assert_eq!(Trade::from_id("nonsense"), None);
+        assert_eq!(Symbol::Bathtub.trade(), Trade::Plumbing, "bath fixtures deal with water");
+        assert_eq!(Symbol::Shower.trade(), Trade::Plumbing);
+        assert_eq!(Symbol::Refrigerator.trade(), Trade::Appliances);
+        assert_eq!(Symbol::CameraDome.trade(), Trade::Security);
+        assert_eq!(Symbol::Switch.trade(), Trade::Data);
+    }
+
+    #[test]
+    fn the_new_symbols_have_ids_that_read_back() {
+        for s in [Symbol::WaterCloset, Symbol::FloorDrain, Symbol::Range, Symbol::RangeHood] {
+            assert_eq!(Symbol::from_id(s.id()), Some(s));
+        }
+        assert_eq!(Symbol::ALL.len(), 59);
     }
 
     #[test]
