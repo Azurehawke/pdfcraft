@@ -60,6 +60,10 @@ pub struct SymbolSettings {
     /// Photo pins and callouts take their photo with the camera (Android's camera app, Windows'
     /// Camera app) rather than from a file; the tool then stays on for the next spot.
     pub photo_camera: bool,
+    /// The colour new symbols are drawn in (`None`: their layer's colour).
+    pub color: Option<[f64; 3]>,
+    /// The turn of new symbols, in degrees anticlockwise (symbols lined up with a wall turn to it).
+    pub rotation: f64,
     /// One of your own symbols, chosen instead of `symbol` (shared: the settings are copied
     /// every frame and artwork can be large).
     pub custom: Option<std::sync::Arc<CustomArt>>,
@@ -84,6 +88,8 @@ impl Default for SymbolSettings {
             callout_inches: 1.5,
             callout_spot: None,
             photo_camera: cfg!(any(target_os = "android", target_os = "windows")),
+            color: None,
+            rotation: 0.0,
             custom: None,
         }
     }
@@ -160,14 +166,6 @@ fn layer_color(app: &PdfCraftApp, id: DocId) -> [f64; 3] {
 /// operators: paths (`m l c re h`), strokes and fills, and its tags.
 pub fn paint_symbol(painter: &egui::Painter, rect: Rect, symbol: Symbol, color: Color32) {
     paint_art(painter, rect, &symbol.artwork(), color);
-}
-
-/// The symbol chosen on the Symbols tab, drawn small: your own, or the library's.
-fn paint_chosen(painter: &egui::Painter, rect: Rect, s: &SymbolSettings, color: Color32) {
-    match &s.custom {
-        Some(c) => paint_art(painter, rect, &c.art, color),
-        None => paint_symbol(painter, rect, s.symbol, color),
-    }
 }
 
 /// Symbol artwork (PDF path operators in the 100-unit square) drawn into `rect` on screen.
@@ -283,65 +281,67 @@ pub fn paint_art(painter: &egui::Painter, rect: Rect, art: &str, color: Color32)
 /// The Symbols ribbon tab.
 pub fn ribbon(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
     let t = Tokens::get(ui.ctx());
-    let Some((_, id)) = app.active_ids() else { return };
+    let Some((view_index, id)) = app.active_ids() else { return };
     let allowed = app.session.get(id).is_some_and(|d| d.allows_annotation() && d.read_only_reason.is_none());
-    let color = color32(layer_color(app, id));
     let separator = |ui: &mut egui::Ui| {
         ui.add_space(6.0);
         let x = ui.cursor().left();
         ui.painter().vline(x, ui.max_rect().y_range().shrink(6.0), Stroke::new(1.0, t.divider));
         ui.add_space(6.0);
     };
-    let mut add_svg = false;
+    // The sizes are typed in the drawing's own unit, from the scale on the page being viewed.
+    let page = app.views.get(view_index).map_or(0, |v| v.current);
+    let (unit, unit_inches) = drawing_unit(app, id, page);
+    let layer_rgb = layer_color(app, id);
     let mut legend: Option<bool> = None;
     ui.add_enabled_ui(allowed, |ui| {
         ui.horizontal(|ui| {
             ui.spacing_mut().item_spacing.x = 4.0;
-            // The symbol: a preview button that opens the library.
-            group(ui, &t, tl!("Symbol"), |ui| {
-                let placing = app.quick_tool == QuickTool::Symbol;
-                let current = app.symbols.symbol;
-                let resp = ui
-                    .horizontal(|ui| {
-                        let (rect, resp) = ui.allocate_exact_size(vec2(34.0, 34.0), Sense::click());
-                        let fill = if placing { t.accent_soft } else if resp.hovered() { t.hover } else { Color32::TRANSPARENT };
-                        ui.painter().rect_filled(rect, CornerRadius::same(6), fill);
-                        paint_chosen(ui.painter(), rect.shrink(5.0), &app.symbols, color);
-                        let shown = match &app.symbols.custom {
-                            Some(c) => c.name.clone(),
-                            None => crate::i18n::t(current.name()).to_string(),
-                        };
-                        let name = egui::RichText::new(shown).font(theme::regular(12.0));
-                        let _ = ui.menu_button(name, |ui| {
-                            if library(ui, &t, color, &mut app.symbols, &mut app.my_symbols, &mut app.quick_tool) {
-                                add_svg = true;
-                            }
-                        });
-                        resp.on_hover_text(tl!("Tap the drawing to place this symbol")).clicked()
-                    })
-                    .inner;
-                if resp {
-                    app.quick_tool = if placing { QuickTool::Select } else { QuickTool::Symbol };
-                }
-            });
-            separator(ui);
             group(ui, &t, tl!("Layer"), |ui| layer_combo(app, ui, id));
+            separator(ui);
+            group(ui, &t, tl!("Colour"), |ui| {
+                let s = &mut app.symbols;
+                ui.horizontal(|ui| {
+                    let mut by_layer = s.color.is_none();
+                    if ui.add(crate::widgets::checkbox(&mut by_layer, tl!("By layer"))).on_hover_text(tl!("Symbols take their layer's colour")).changed() {
+                        s.color = if by_layer { None } else { Some(layer_rgb) };
+                    }
+                    if let Some(c) = s.color.as_mut() {
+                        let mut rgb = c.map(|v| v as f32);
+                        if ui.color_edit_button_rgb(&mut rgb).changed() {
+                            *c = rgb.map(f64::from);
+                        }
+                    }
+                });
+            });
             separator(ui);
             group(ui, &t, tl!("Size"), |ui| {
                 let s = &mut app.symbols;
-                let _ = ui.horizontal(|ui| {
-                    ui.selectable_value(&mut s.real_size, true, tl!("Real"));
-                    ui.selectable_value(&mut s.real_size, false, tl!("Paper"));
-                    if s.real_size {
-                        ui.add(egui::DragValue::new(&mut s.real_inches).range(0.5..=600.0).speed(0.5).suffix(" in"));
-                    } else {
-                        ui.add(egui::DragValue::new(&mut s.paper_inches).range(0.05..=4.0).speed(0.01).suffix(" in"));
-                    }
-                })
-                .response
-                .on_hover_text(tl!(
-                    "Real: the symbol's width in the real world, at the page's measurement scale (pages without a scale use 1/4 inch on paper). Paper: its width on the printed sheet."
-                ));
+                let _ = ui
+                    .horizontal(|ui| {
+                        ui.selectable_value(&mut s.real_size, true, tl!("Real"));
+                        ui.selectable_value(&mut s.real_size, false, tl!("Paper"));
+                        if s.real_size {
+                            let mut value = s.real_inches / unit_inches;
+                            let drag = egui::DragValue::new(&mut value).range(0.01..=1_000_000.0).speed(0.5).suffix(format!(" {unit}"));
+                            if ui.add(drag).changed() {
+                                s.real_inches = value * unit_inches;
+                            }
+                        } else {
+                            ui.add(egui::DragValue::new(&mut s.paper_inches).range(0.05..=4.0).speed(0.01).suffix(" in"));
+                        }
+                    })
+                    .response
+                    .on_hover_text(tl!(
+                        "Real: the symbol's width in the drawing's unit, at the page's measurement scale (pages without a scale use inches). Paper: its width on the printed sheet."
+                    ));
+            });
+            separator(ui);
+            group(ui, &t, tl!("Rotation"), |ui| {
+                let s = &mut app.symbols;
+                let _ = ui
+                    .add(egui::DragValue::new(&mut s.rotation).range(-360.0..=360.0).speed(1.0).suffix("°"))
+                    .on_hover_text(tl!("Turn new symbols this many degrees anticlockwise (with Line up with walls on, they turn to the wall instead)"));
             });
             separator(ui);
             group(ui, &t, tl!("Label"), |ui| {
@@ -390,11 +390,22 @@ pub fn ribbon(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
             });
         });
     });
-    if add_svg {
-        app.add_symbol_from_svg();
-    }
     if let Some(whole_document) = legend {
         app.place_legend(whole_document);
+    }
+}
+
+/// The length unit of the drawing on `page`: its measurement scale's unit, and how many inches
+/// make one of it. A page with no length scale uses inches.
+fn drawing_unit(app: &PdfCraftApp, id: DocId, page: usize) -> (String, f64) {
+    let inches = ("in".to_string(), 1.0);
+    let Some(doc) = app.session.get(id) else { return inches };
+    // The centre of the media box, where a page's calibrated viewport is.
+    let centre = doc.page_boxes().get(page).and_then(|b| b.first().copied()).map_or([0.0, 0.0], |m| [(m[0] + m[2]) / 2.0, (m[1] + m[3]) / 2.0]);
+    let Ok(scale) = doc.measurement_scale(page, centre) else { return inches };
+    match pdfcraft_engine::measure::unit_inches(&scale.unit) {
+        Some(per) if per.is_finite() && per > 0.0 => (scale.unit, per),
+        _ => inches,
     }
 }
 
@@ -406,122 +417,6 @@ fn group(ui: &mut egui::Ui, t: &Tokens, caption: &str, body: impl FnOnce(&mut eg
         body(ui);
         ui.add(egui::Label::new(egui::RichText::new(caption).font(theme::regular(11.0)).color(t.text_faint)).wrap_mode(egui::TextWrapMode::Extend));
     });
-}
-
-/// The symbol library: a grid of previews per trade (Networking, Electrical, Security), your
-/// own symbols listed under the trade you chose for them, the rest under My symbols.
-/// Returns whether "Add symbol from SVG" was chosen.
-fn library(ui: &mut egui::Ui, t: &Tokens, color: Color32, s: &mut SymbolSettings, mine: &mut Vec<CustomArt>, tool: &mut QuickTool) -> bool {
-    use pdfcraft_engine::symbols::Trade;
-    /// One square of the grid: a library symbol or one of yours (its place in your list).
-    #[derive(Clone, Copy)]
-    enum Entry {
-        Built(Symbol),
-        Mine(usize),
-    }
-    let current = if s.custom.is_some() { None } else { Some(s.symbol) };
-    let mut chosen: Option<Symbol> = None;
-    let mut pick_mine: Option<usize> = None;
-    let mut remove: Option<usize> = None;
-    let mut add = false;
-    let sections: Vec<(&str, Vec<Entry>)> = Trade::ALL
-        .into_iter()
-        .map(|trade| {
-            let built = Symbol::ALL.into_iter().filter(|x| x.trade() == trade).map(Entry::Built);
-            let yours = mine.iter().enumerate().filter(|(_, a)| a.trade == Some(trade)).map(|(i, _)| Entry::Mine(i));
-            (trade.name(), built.chain(yours).collect())
-        })
-        .chain(std::iter::once(("My symbols", mine.iter().enumerate().filter(|(_, a)| a.trade.is_none()).map(|(i, _)| Entry::Mine(i)).collect())))
-        .collect();
-    for (title, entries) in &sections {
-        if entries.is_empty() && *title != "My symbols" {
-            continue;
-        }
-        ui.add_space(4.0);
-        ui.label(egui::RichText::new(tl!(title)).font(theme::semibold(12.0)).color(t.text_muted));
-        if entries.is_empty() {
-            continue;
-        }
-        egui::Grid::new(("symbol-library", *title)).spacing(vec2(4.0, 4.0)).show(ui, |ui| {
-            for (k, entry) in entries.iter().enumerate() {
-                let (rect, resp) = ui.allocate_exact_size(vec2(64.0, 60.0), Sense::click());
-                let (selected, name): (bool, String) = match *entry {
-                    Entry::Built(symbol) => (Some(symbol) == current, crate::i18n::t(symbol.name()).to_string()),
-                    Entry::Mine(i) => match mine.get(i) {
-                        Some(art) => (s.custom.as_ref().is_some_and(|c| c.name == art.name), art.name.clone()),
-                        None => continue,
-                    },
-                };
-                let fill = if selected {
-                    t.accent_soft
-                } else if resp.hovered() {
-                    t.hover
-                } else {
-                    Color32::TRANSPARENT
-                };
-                ui.painter().rect_filled(rect, CornerRadius::same(6), fill);
-                let art_rect = Rect::from_center_size(rect.center() - vec2(0.0, 7.0), vec2(36.0, 36.0));
-                match *entry {
-                    Entry::Built(symbol) => paint_symbol(ui.painter(), art_rect, symbol, color),
-                    Entry::Mine(i) => {
-                        if let Some(art) = mine.get(i) {
-                            paint_art(ui.painter(), art_rect, &art.art, color);
-                        }
-                    }
-                }
-                let short: String = name.chars().take(11).collect();
-                ui.painter().text(rect.center_bottom() - vec2(0.0, 3.0), Align2::CENTER_BOTTOM, short, theme::regular(10.0), t.text_muted);
-                let resp = resp.on_hover_text(name);
-                if let Entry::Mine(i) = *entry {
-                    resp.context_menu(|ui| {
-                        if ui.button(tl!("Remove from my symbols")).clicked() {
-                            remove = Some(i);
-                            ui.close();
-                        }
-                    });
-                }
-                if resp.clicked() {
-                    match *entry {
-                        Entry::Built(symbol) => chosen = Some(symbol),
-                        Entry::Mine(i) => pick_mine = Some(i),
-                    }
-                }
-                if k % 5 == 4 {
-                    ui.end_row();
-                }
-            }
-        });
-    }
-    ui.add_space(4.0);
-    ui.label(
-        egui::RichText::new(tl!("To make a symbol from your own drawing, select the lines and choose Make symbol from their menu."))
-            .font(theme::regular(11.0))
-            .color(t.text_faint),
-    );
-    if ui.button(tl!("Add symbol from SVG…")).on_hover_text(tl!("Use a line drawing saved as SVG as a symbol of your own")).clicked() {
-        add = true;
-        ui.close();
-    }
-    if let Some(symbol) = chosen {
-        s.symbol = symbol;
-        s.custom = None;
-        *tool = QuickTool::Symbol;
-        ui.close();
-    }
-    if let Some(art) = pick_mine.and_then(|i| mine.get(i)) {
-        s.custom = Some(std::sync::Arc::new(art.clone()));
-        *tool = QuickTool::Symbol;
-        ui.close();
-    }
-    if let Some(i) = remove
-        && i < mine.len()
-    {
-        let gone = mine.remove(i);
-        if s.custom.as_ref().is_some_and(|c| c.name == gone.name) {
-            s.custom = None;
-        }
-    }
-    add
 }
 
 /// The current layer, as a drop-down.
@@ -555,7 +450,13 @@ fn layer_combo(app: &mut PdfCraftApp, ui: &mut egui::Ui, id: DocId) {
 /// The edit that places the chosen symbol at `at` on `page`.
 pub fn symbol_edit(s: &SymbolSettings, doc: &pdfcraft_engine::Document, page: usize, at: [f64; 2], author: &str) -> Edit {
     let size = if s.real_size { doc.real_size_points(page, at, s.real_inches).unwrap_or(PAPER_FALLBACK_PT) } else { s.paper_inches * 72.0 };
-    let color = doc_layer_color(doc);
+    // Lined up with a wall or line within a couple of symbol widths, otherwise turned as set.
+    let wall = if s.align_to_wall {
+        crate::props_box::nearest_line(doc, page, at).filter(|(d, _)| *d <= size.max(12.0) * 2.0).map(|(_, a)| a)
+    } else {
+        None
+    };
+    let (color, rotation) = placed_look(s, doc_layer_color(doc), wall);
     Edit::AddSymbol(NewSymbol {
         page,
         symbol: s.symbol,
@@ -564,14 +465,15 @@ pub fn symbol_edit(s: &SymbolSettings, doc: &pdfcraft_engine::Document, page: us
         label: s.label_now(),
         color,
         author: author.to_string(),
-        // Lined up with a wall or line within a couple of symbol widths.
-        rotation: if s.align_to_wall {
-            crate::props_box::nearest_line(doc, page, at).filter(|(d, _)| *d <= size.max(12.0) * 2.0).map_or(0.0, |(_, a)| a)
-        } else {
-            0.0
-        },
+        rotation,
         custom: s.custom.as_deref().cloned(),
     })
+}
+
+/// The colour and turn of a new symbol: the chosen colour (or its layer's), and its turn, which
+/// a wall or line it lines up with replaces.
+fn placed_look(s: &SymbolSettings, layer: [f64; 3], wall: Option<f64>) -> ([f64; 3], f64) {
+    (s.color.unwrap_or(layer), wall.unwrap_or(s.rotation))
 }
 
 /// The Layers panel: show and hide, make, rename, recolour and lock layers, choose the current
@@ -1392,5 +1294,22 @@ fn renumber_popup(app: &mut PdfCraftApp, ui: &mut egui::Ui, id: pdfcraft_engine:
     let count = edits.len();
     if app.apply_edit(Edit::Batch { label: "Renumber symbols".into(), edits }) {
         app.notify(crate::i18n::fmt(tl!("Renumbered {n} symbols."), &[("n", &count.to_string())]));
+    }
+}
+
+#[cfg(test)]
+mod look_tests {
+    use super::*;
+
+    /// A new symbol takes the chosen colour and turn; a wall it lines up with turns it instead.
+    #[test]
+    fn colour_and_turn_follow_the_settings_unless_a_wall_turns_the_symbol() {
+        let layer = [0.1, 0.2, 0.3];
+        let mut s = SymbolSettings::default();
+        assert_eq!(placed_look(&s, layer, None), (layer, 0.0));
+        s.color = Some([1.0, 0.0, 0.0]);
+        s.rotation = 30.0;
+        assert_eq!(placed_look(&s, layer, None), ([1.0, 0.0, 0.0], 30.0));
+        assert_eq!(placed_look(&s, layer, Some(90.0)), ([1.0, 0.0, 0.0], 90.0));
     }
 }
