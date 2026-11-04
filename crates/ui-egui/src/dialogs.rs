@@ -70,6 +70,7 @@ fn dialogs(app: &mut PdfCraftApp, ctx: &egui::Context) {
     let mut redact_now: Option<Dialog> = None;
     let mut import_words = false;
     let mut print_go = false;
+    let mut preflight_go = false;
     let mut revert_now = false;
     let mut reload_now = false;
     let mut overwrite_now = false;
@@ -891,6 +892,12 @@ fn dialogs(app: &mut PdfCraftApp, ctx: &egui::Context) {
                 close = go || cancel;
                 return;
             }
+            Dialog::Preflight => {
+                let (go, cancel) = crate::preflight_ui::body(ui, &app.preflight, &t);
+                preflight_go = go;
+                close = go || cancel;
+                return;
+            }
             Dialog::RemoveHidden => {
                 let (ok, cancel) = crate::redact_ui::hidden_body(ui, &mut app.hidden_draft, &t);
                 if ok {
@@ -1282,8 +1289,16 @@ fn dialogs(app: &mut PdfCraftApp, ctx: &egui::Context) {
             src_pages: (d.src_from - 1..d.src_from - 1 + n).collect(),
         });
     }
-    // A print or save that fails keeps the dialog open, with the reason in a notice.
-    if print_go && !app.print_now() {
+    // A print to a printer stops at the preflight checklist when something needs a look. A print
+    // or save that fails keeps the dialog open, with the reason in a notice.
+    if print_go && let Some(checks) = app.preflight_for_print() {
+        app.preflight = checks;
+        next = Dialog::Preflight;
+        close = false;
+    } else if print_go && !app.print_now() {
+        close = false;
+    }
+    if preflight_go && !app.print_now() {
         close = false;
     }
     if reload_now && let Some((_, id)) = app.active_ids() {

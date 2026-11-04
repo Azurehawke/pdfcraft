@@ -149,6 +149,7 @@ mod value_prompt;
 mod wall_joins;
 #[cfg(target_os = "android")]
 pub use android_picker::{AndroidDocuments, AndroidFileAccess, SystemPick, set_android_documents, set_android_file_access};
+mod preflight_ui;
 pub mod prepare;
 mod print_ui;
 mod signature_drag;
@@ -428,6 +429,8 @@ pub enum Dialog {
     RedactApply,
     /// File ▸ Print.
     Print,
+    /// Preflight checklist before a print to a printer.
+    Preflight,
     /// File ▸ Revert confirmation.
     Revert,
     /// File ▸ Reload from disk, over unsaved changes.
@@ -1000,6 +1003,8 @@ pub struct PdfCraftApp {
     pub redact_search: RedactSearchDraft,
     pub hidden_draft: HiddenDraft,
     pub print_draft: PrintDraft,
+    /// The checklist the open preflight dialog shows.
+    pub preflight: Vec<pdfcraft_engine::printcheck::Check>,
     pub link_draft: Option<LinkDraft>,
     /// The style new text gets (Edit a PDF ▸ Format text).
     pub text_style: pdfcraft_engine::AddedText,
@@ -1331,6 +1336,7 @@ impl PdfCraftApp {
             redact_search: RedactSearchDraft::default(),
             hidden_draft: HiddenDraft::default(),
             print_draft: PrintDraft::default(),
+            preflight: Vec::new(),
             link_draft: None,
             text_style: content_ui::default_style(),
             replace_draft: None,

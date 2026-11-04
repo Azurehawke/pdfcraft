@@ -6,11 +6,14 @@
 //! profile. A screen profile such as sRGB is reported as a screen profile, not accepted as a
 //! press condition.
 
+use std::path::Path;
+
 use pdfcraft_cos::Document;
 use pdfcraft_edit::PageImage;
 use pdfcraft_preflight::{Issue, Level};
 
 use crate::Document as OpenDocument;
+use crate::comments;
 
 /// Below this, ordinary sheet printing cannot hold the picture. Large-format work sometimes can.
 const FAIL_PPI: f64 = 150.0;
@@ -358,6 +361,179 @@ fn min_mm(sides: [f64; 4]) -> String {
     if n.is_finite() { format!("{n:.1}") } else { "0.0".into() }
 }
 
+/// How one preflight check came out. Only `Fail` stops a print. `Warn` and `Info` print, and
+/// are listed so the person can read them first.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Status {
+    Pass,
+    Info,
+    Warn,
+    Fail,
+}
+
+impl Status {
+    /// Whether this result stops a print.
+    pub fn blocks_print(self) -> bool {
+        self == Status::Fail
+    }
+}
+
+/// One line of the preflight checklist.
+#[derive(Clone, Debug, PartialEq)]
+pub struct Check {
+    pub title: &'static str,
+    pub status: Status,
+    pub detail: String,
+}
+
+fn check(title: &'static str, status: Status, detail: impl Into<String>) -> Check {
+    Check { title, status, detail: detail.into() }
+}
+
+fn plural(n: usize) -> &'static str {
+    if n == 1 { "" } else { "s" }
+}
+
+impl OpenDocument {
+    /// The preflight checklist for a print. Reads the file and changes nothing. Without a file on
+    /// disk the pictures its notes link to can't be checked, and the list says so.
+    pub fn print_checklist(&self) -> Vec<Check> {
+        let readiness = self.print_readiness();
+        let texts: Vec<String> = (0..self.info.pages.len()).flat_map(|page| self.markdown_notes(page).into_iter().map(|(_, text)| text)).collect();
+        let broken = self.path.as_deref().and_then(|p| Path::new(p).parent()).map(|folder| broken_picture_links(&texts, folder));
+        checks_from(&readiness, self.allows_printing(), broken.as_deref())
+    }
+}
+
+/// The checklist from measurements already taken. `broken_pictures` is `None` when the file has
+/// no place on disk yet, so the links its notes make can't be checked.
+pub fn checks_from(r: &PrintReadiness, printable: bool, broken_pictures: Option<&[String]>) -> Vec<Check> {
+    let mut out = Vec::with_capacity(6);
+    out.push(if printable {
+        check("Printing is allowed", Status::Pass, "The security settings allow printing.")
+    } else {
+        check("Printing is allowed", Status::Fail, "The document's security settings don't allow printing.")
+    });
+    out.push(if r.fonts_not_embedded.is_empty() {
+        check("Fonts are embedded", Status::Pass, "Every referenced font is in the file, or the file has none.")
+    } else {
+        check("Fonts are embedded", Status::Fail, format!("Not embedded: {}. A printer may substitute other fonts.", r.fonts_not_embedded.join(", ")))
+    });
+    let low = r.images.iter().filter(|image| image.ppi < FAIL_PPI).count();
+    let soft = r.images.iter().filter(|image| image.ppi >= FAIL_PPI && image.ppi < WARN_PPI).count();
+    let unknown = r.resolution_unknown;
+    out.push(if low > 0 {
+        check(
+            "Picture resolution",
+            Status::Fail,
+            format!("{low} picture{} drawn below {FAIL_PPI:.0} ppi. Enlarging one would not add detail.", plural(low)),
+        )
+    } else if soft > 0 {
+        check(
+            "Picture resolution",
+            Status::Warn,
+            format!("{soft} picture{} drawn below {WARN_PPI:.0} ppi: usable, but soft for close-up print.", plural(soft)),
+        )
+    } else if unknown > 0 {
+        check("Picture resolution", Status::Info, format!("The resolution of {unknown} picture placement{} couldn't be measured.", plural(unknown)))
+    } else {
+        check("Picture resolution", Status::Pass, format!("Every picture is at least {WARN_PPI:.0} ppi where it is drawn, or the file has none."))
+    });
+    let bleed_pages: Vec<String> = r.findings.iter().filter(|f| f.id == "page-bleed").filter_map(|f| f.page.map(|p| p.to_string())).collect();
+    let trim_note = r.findings.iter().find(|f| f.id == "page-trim");
+    out.push(if !bleed_pages.is_empty() {
+        check(
+            "Trim and bleed",
+            Status::Warn,
+            format!(
+                "Less than {MIN_BLEED_MM:.0} mm of bleed past the trim on page{} {}. A press usually wants about 3 mm.",
+                plural(bleed_pages.len()),
+                bleed_pages.join(", ")
+            ),
+        )
+    } else if let Some(note) = trim_note {
+        check("Trim and bleed", Status::Info, note.message.clone())
+    } else {
+        check("Trim and bleed", Status::Pass, format!("At least {MIN_BLEED_MM:.0} mm of bleed past the trim on every page that has a trim."))
+    });
+    let screen_only = r.output_intents.iter().any(|i| is_screen_profile(i)) && !r.output_intents.iter().any(|i| is_press_profile(i));
+    out.push(if screen_only {
+        check("Colour", Status::Warn, "The output intent is a screen profile, not a press profile. Confirm the press condition with the printer.")
+    } else if r.output_intents.is_empty() {
+        check("Colour", Status::Info, "No output intent. Colours print as the file describes them; confirm the press profile with the printer.")
+    } else {
+        check("Colour", Status::Pass, format!("Output intent: {}.", r.output_intents.join(", ")))
+    });
+    out.push(match broken_pictures {
+        None => check("Links in notes", Status::Info, "Save the file first, so the pictures and notes its notes link to can be checked."),
+        Some([]) => check("Links in notes", Status::Pass, "Every picture or note a note links to is in the PDF's folder."),
+        Some(names) => check(
+            "Links in notes",
+            Status::Fail,
+            format!("Missing or outside the PDF's folder: {}. The note shows the link, not the picture.", names.join(", ")),
+        ),
+    });
+    out.push(match r.pages.first() {
+        None => check("Page size", Status::Info, "The file has no pages."),
+        Some(first) if r.pages.iter().any(|p| size_key(p.media_mm) != size_key(first.media_mm)) => {
+            check("Page size", Status::Info, "The pages are not all the same size, so they print on different sheets.")
+        }
+        Some(first) => {
+            let [w, h] = [first.media_mm[0] / 25.4, first.media_mm[1] / 25.4];
+            match paper_name(first.media_mm) {
+                Some(name) => check("Page size", Status::Pass, format!("Every page is {name} ({w:.2} × {h:.2} in).")),
+                None => check("Page size", Status::Info, format!("Every page is {w:.2} × {h:.2} in, not a standard sheet.")),
+            }
+        }
+    });
+    out
+}
+
+/// Pages within a tenth of a millimetre are the same size.
+fn size_key(mm: [f64; 2]) -> [i64; 2] {
+    [(mm[0] * 10.0).round() as i64, (mm[1] * 10.0).round() as i64]
+}
+
+/// The name of a common sheet the page measures, in either orientation.
+fn paper_name(mm: [f64; 2]) -> Option<&'static str> {
+    let (short, long) = (mm[0].min(mm[1]) / 25.4, mm[0].max(mm[1]) / 25.4);
+    [("letter", 8.5, 11.0), ("A4", 8.27, 11.69), ("legal", 8.5, 14.0), ("tabloid", 11.0, 17.0)]
+        .into_iter()
+        .find(|(_, w, h)| (short - w).abs() < 0.05 && (long - h).abs() < 0.05)
+        .map(|(name, _, _)| name)
+}
+
+/// The targets of the `[[...]]` links in `text`: `[[a.jpg|shown]]` gives `a.jpg`. A link that is
+/// never closed is ignored.
+pub fn link_targets(text: &str) -> Vec<&str> {
+    text.split("[[")
+        .skip(1)
+        .filter_map(|rest| rest.split_once("]]"))
+        .filter_map(|(inner, _)| inner.split('|').next())
+        .map(str::trim)
+        .filter(|target| !target.is_empty())
+        .collect()
+}
+
+/// The picture and note files the notes' `[[links]]` name that aren't in `folder`, or that leave
+/// it. Other links (to a markup on the plan) are not files and are not checked. Each name is
+/// listed once.
+pub fn broken_picture_links(texts: &[String], folder: &Path) -> Vec<String> {
+    let mut broken: Vec<String> = Vec::new();
+    for text in texts {
+        for target in link_targets(text) {
+            if !comments::is_file_target(target) {
+                continue;
+            }
+            let present = comments::resolve(folder, target).is_ok_and(|path| path.is_file());
+            if !present && !broken.iter().any(|name| name == target) {
+                broken.push(target.to_string());
+            }
+        }
+    }
+    broken
+}
+
 #[cfg(test)]
 mod tests {
     use pdfcraft_cos::{Dict, Document, Object, Stream};
@@ -470,5 +646,85 @@ mod tests {
         let report = inspect(&doc);
         assert!(report.images.iter().all(|image| image.ppi.is_finite()), "{:?}", report.images);
         assert!(!report.findings.iter().any(|f| f.id == "image-ppi"), "{:?}", report.findings);
+    }
+}
+
+#[cfg(test)]
+mod preflight_tests {
+    use super::*;
+
+    /// A letter page, one picture at `ppi`, and the fonts and output intents given.
+    fn readiness(fonts: &[&str], ppi: f64, intents: &[&str]) -> PrintReadiness {
+        PrintReadiness {
+            pages: vec![PageBoxes {
+                page: 1,
+                media_mm: [215.9, 279.4],
+                crop_mm: [215.9, 279.4],
+                trim_mm: [215.9, 279.4],
+                bleed_mm: [215.9, 279.4],
+                trim_set: true,
+                bleed_set: true,
+                bleed_margin_mm: [3.0; 4],
+            }],
+            images: vec![DrawnImage { page: 1, name: "photo".into(), ppi, pixels: [1000, 1000], size_mm: [50.0, 50.0] }],
+            output_intents: intents.iter().map(|s| s.to_string()).collect(),
+            fonts_not_embedded: fonts.iter().map(|s| s.to_string()).collect(),
+            pdfa_issues: Vec::new(),
+            findings: Vec::new(),
+            resolution_unknown: 0,
+        }
+    }
+
+    fn status(checks: &[Check], title: &str) -> Status {
+        match checks.iter().find(|c| c.title == title) {
+            Some(c) => c.status,
+            None => panic!("no check named {title}"),
+        }
+    }
+
+    #[test]
+    fn a_clean_letter_file_passes_every_check() {
+        let checks = checks_from(&readiness(&[], 400.0, &["FOGRA39"]), true, Some(&[]));
+        assert!(checks.iter().all(|c| c.status == Status::Pass), "{checks:?}");
+        assert!(checks.iter().any(|c| c.title == "Page size" && c.detail.contains("letter")), "{checks:?}");
+    }
+
+    #[test]
+    fn each_stop_is_its_own_line_and_names_what_is_wrong() {
+        let broken = vec!["gone.jpg".to_string()];
+        let checks = checks_from(&readiness(&["Helvetica"], 100.0, &["sRGB IEC61966-2.1"]), false, Some(&broken));
+        assert_eq!(status(&checks, "Printing is allowed"), Status::Fail);
+        assert_eq!(status(&checks, "Fonts are embedded"), Status::Fail);
+        assert_eq!(status(&checks, "Picture resolution"), Status::Fail);
+        assert_eq!(status(&checks, "Colour"), Status::Warn);
+        assert_eq!(status(&checks, "Links in notes"), Status::Fail);
+        assert!(checks.iter().find(|c| c.title == "Fonts are embedded").is_some_and(|c| c.detail.contains("Helvetica")));
+        assert!(checks.iter().find(|c| c.title == "Links in notes").is_some_and(|c| c.detail.contains("gone.jpg")));
+    }
+
+    #[test]
+    fn soft_pictures_warn_and_do_not_stop_the_print() {
+        let checks = checks_from(&readiness(&[], 200.0, &["FOGRA39"]), true, Some(&[]));
+        assert_eq!(status(&checks, "Picture resolution"), Status::Warn);
+        assert!(!Status::Warn.blocks_print());
+        assert!(Status::Fail.blocks_print());
+    }
+
+    #[test]
+    fn link_targets_drop_labels_and_unclosed_links() {
+        assert_eq!(link_targets("[[a.jpg|shown]] x [[ b.md ]] [[open"), vec!["a.jpg", "b.md"]);
+        assert!(link_targets("no links at all").is_empty());
+    }
+
+    #[test]
+    fn a_missing_picture_is_broken_once_and_a_markup_label_is_not_a_file() {
+        let dir = std::env::temp_dir().join(format!("pdfcraft-printcheck-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(&dir).unwrap();
+        std::fs::write(dir.join("ok.jpg"), b"x").unwrap();
+        let texts = vec!["[[ok.jpg]] [[gone.jpg|shown]] [[Markup label]] [[../escape.png]] [[gone.jpg]]".to_string()];
+        let broken = broken_picture_links(&texts, &dir);
+        let _ = std::fs::remove_dir_all(&dir);
+        assert_eq!(broken, vec!["gone.jpg".to_string(), "../escape.png".to_string()]);
     }
 }
