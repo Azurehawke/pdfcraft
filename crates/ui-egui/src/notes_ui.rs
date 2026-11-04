@@ -88,7 +88,7 @@ fn picture_target(text: &str) -> Option<String> {
 fn load_pictures(app: &PdfCraftApp, id: DocId, text: &str) -> Vec<Picture> {
     let (Some(ctx), Some(dir)) = (app.ctx.as_ref(), pdf_dir(app, id)) else { return Vec::new() };
     let mut out: Vec<Picture> = Vec::new();
-    for block in markdown::blocks(text) {
+    for block in markdown::blocks(markdown::strip_frontmatter(text)) {
         let Block::Paragraph(line) = block else { continue };
         let Some(target) = picture_target(&line) else { continue };
         if out.iter().any(|p| p.target == target) {
@@ -458,7 +458,7 @@ pub(crate) fn editor(app: &mut PdfCraftApp, ctx: &egui::Context) {
         } else {
             egui::ScrollArea::vertical().id_salt("note-read").max_height((height - 80.0).max(120.0)).auto_shrink([false, true]).show(ui, |ui| {
                 ui.set_width(width - 16.0);
-                read_view(ui, &t, &ed.text, &ed.pictures, &mut acts);
+                read_view(ui, &t, markdown::strip_frontmatter(&ed.text), &ed.pictures, &mut acts);
                 if let Some(view) = ed.workbook.as_ref() {
                     workbook_view(ui, view, &mut close_view);
                 }

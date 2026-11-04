@@ -155,6 +155,20 @@ fn rule(line: &str) -> bool {
     t.len() >= 3 && (t.chars().all(|c| c == '-') || t.chars().all(|c| c == '*') || t.chars().all(|c| c == '_'))
 }
 
+/// The note's text without its YAML header (the lines between two `---` lines at its top). Text
+/// with no closed header is returned whole.
+pub fn strip_frontmatter(text: &str) -> &str {
+    let Some(rest) = text.strip_prefix("---\n") else { return text };
+    let mut offset = 4;
+    for line in rest.split_inclusive('\n') {
+        offset += line.len();
+        if line.trim_end() == "---" {
+            return text.get(offset..).unwrap_or("");
+        }
+    }
+    text
+}
+
 /// The note's blocks, in order.
 pub fn blocks(src: &str) -> Vec<Block> {
     let mut out = Vec::new();
@@ -840,5 +854,19 @@ mod tests {
         assert_eq!(code_block("x = 1", 0, 0).text, "```\nx = 1\n```");
         // Selections past the end are held to it.
         assert_eq!(wrap("ab", 5, 9, BOLD).text, "ab****");
+    }
+}
+
+#[cfg(test)]
+mod frontmatter_tests {
+    use super::strip_frontmatter;
+
+    /// A note's YAML header is not part of its body; text without a closed header is whole.
+    #[test]
+    fn header_is_stripped_and_unclosed_text_is_kept() {
+        assert_eq!(strip_frontmatter("---\ntitle: x\n---\nBody"), "Body");
+        assert_eq!(strip_frontmatter("---\ntitle: x\n---\n"), "");
+        assert_eq!(strip_frontmatter("Body\n---\n"), "Body\n---\n");
+        assert_eq!(strip_frontmatter("---\ntitle: x\nBody"), "---\ntitle: x\nBody");
     }
 }
