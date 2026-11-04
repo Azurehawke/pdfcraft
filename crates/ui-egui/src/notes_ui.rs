@@ -128,10 +128,27 @@ impl PdfCraftApp {
     /// The Note tool's tap: a new note file in the job's folder, its sticky note at `at`, and
     /// the editor open on it.
     pub(crate) fn place_note(&mut self, page: usize, at: [f64; 2]) {
+        self.place_note_with(page, at, None);
+    }
+
+    /// A markdown note pinned at `at`. With a photo, the photo is kept in `<pdf-name>.images/` and
+    /// the note links to it; the note's text is the caption.
+    pub(crate) fn place_note_with(&mut self, page: usize, at: [f64; 2], photo: Option<(&str, Vec<u8>)>) {
         let Some((index, id)) = self.active_ids() else { return };
         let Some(pdf) = self.session.get(id).and_then(|d| d.path.clone()).map(PathBuf::from) else {
             self.notify_tr("Save the drawing first: its notes are kept in a folder beside it.");
             return;
+        };
+        // The photo is kept first, so a failure leaves no note behind.
+        let link = match photo {
+            Some((name, bytes)) => match pdfcraft_engine::comments::add_photo(&pdf, name, &bytes) {
+                Ok(rel) => Some(rel),
+                Err(e) => {
+                    self.notify_fmt("{e}", &[("e", &e)]);
+                    return;
+                }
+            },
+            None => None,
         };
         let author = self.comment_prefs.author.clone();
         // The comment's file goes in `<pdf-name>.comments/`; its text lives there, not in the PDF.
@@ -143,8 +160,14 @@ impl PdfCraftApp {
             }
         };
         let (path, text) = (made.path.clone(), made.text.clone());
+        // With a photo, its link is added to the text now: the note is unsaved until it is closed.
+        let (saved, text) = match &link {
+            Some(rel) => (text.clone(), with_photo_link(&text, rel)),
+            None => (text.clone(), text),
+        };
         let before = self.session.get(id).map(|d| d.markdown_notes(page).len()).unwrap_or(0);
-        self.views[index].comments.tool_done = true;
+        // A photo from the camera keeps the tool on for the next spot.
+        self.views[index].comments.tool_done = link.is_none() || !self.symbols.photo_camera;
         if !self.apply_edit(Edit::AddMarkdownNote { page, at, file: made.rel, author }) {
             return;
         }
@@ -158,7 +181,7 @@ impl PdfCraftApp {
                 page,
                 index: *i,
                 file: Some(path),
-                saved: text.clone(),
+                saved,
                 text,
                 editing: true,
                 sel: (end, end),
@@ -849,6 +872,11 @@ fn look_format(t: &Tokens, l: crate::markdown::Look, editing: bool) -> egui::Tex
     format
 }
 
+/// The note's text with a link to its photo on a line of its own, after the rest.
+fn with_photo_link(text: &str, rel: &str) -> String {
+    format!("{}\n[[{rel}]]\n", text.trim_end())
+}
+
 /// The line (0-based) holding the character at `index`.
 fn line_of(text: &str, index: usize) -> usize {
     text.chars().take(index).filter(|c| *c == '\n').count()
@@ -1118,5 +1146,19 @@ mod live_preview_tests {
         assert_eq!(line_of(text, 2), 1);
         assert_eq!(line_of(text, 5), 2);
         assert_eq!(line_of(text, 99), 2);
+    }
+}
+
+#[cfg(test)]
+mod photo_pin_tests {
+    use super::with_photo_link;
+
+    /// A photo pin's note keeps its text and links the photo on a line of its own.
+    #[test]
+    fn photo_link_goes_on_its_own_line_after_the_text() {
+        let text = "---\ntitle: Rack A\n---\n";
+        let out = with_photo_link(text, "Smith.images/IMG_1.jpg");
+        assert!(out.starts_with("---\ntitle: Rack A\n---\n"));
+        assert!(out.lines().any(|l| l == "[[Smith.images/IMG_1.jpg]]"), "{out:?}");
     }
 }

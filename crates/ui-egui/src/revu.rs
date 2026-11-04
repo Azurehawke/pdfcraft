@@ -851,8 +851,8 @@ fn photo_ask(s: &SymbolSettings, dialog: crate::dialog::AsyncFileDialog) -> crat
 impl PdfCraftApp {
     /// Pin a photo at `at` on `page`: choose one (or, on Android, take one with the camera).
     pub(crate) fn pick_photo(&mut self, page: usize, at: [f64; 2]) {
-        if let Some((_, data)) = self.attach_override.take() {
-            self.pin_photo(page, at, data);
+        if let Some((name, data)) = self.attach_override.take() {
+            self.pin_photo(page, at, &name, data);
             return;
         }
         #[cfg(not(target_arch = "wasm32"))]
@@ -861,7 +861,10 @@ impl PdfCraftApp {
             let dialog =
                 crate::dialog::AsyncFileDialog::new().set_title(tl!("Pin a photo")).add_filter(tl!("Photos"), &["jpg", "jpeg", "png", "tif", "tiff"]);
             self.ask_one(photo_ask(&self.symbols, dialog), target, move |app, path| match std::fs::read(&path) {
-                Ok(data) => app.pin_photo(page, at, data),
+                Ok(data) => {
+                    let name = path.file_name().map_or_else(|| "photo.jpg".to_string(), |n| n.to_string_lossy().into_owned());
+                    app.pin_photo(page, at, &name, data);
+                }
                 Err(e) => app.notify_fmt("Couldn't read {name}: {e}", &[("name", &path.display().to_string()), ("e", &e.to_string())]),
             });
         }
@@ -869,34 +872,10 @@ impl PdfCraftApp {
         let _ = (page, at);
     }
 
-    /// Scale the photo and pin it, then show it so a caption can be added.
-    fn pin_photo(&mut self, page: usize, at: [f64; 2], data: Vec<u8>) {
-        let Some((index, id)) = self.active_ids() else { return };
-        let jpeg = match pdfcraft_engine::photos::prepare(&data) {
-            Ok(j) => j,
-            Err(e) => {
-                self.notify(e);
-                return;
-            }
-        };
-        let n = self.session.get(id).map_or(0, |d| d.info.annotations.iter().filter(|a| a.photo).count()) + 1;
-        let edit = Edit::AddPhoto {
-            page,
-            at,
-            name: pdfcraft_engine::photos::file_name(n),
-            data: jpeg,
-            caption: String::new(),
-            author: self.comment_prefs.author.clone(),
-        };
-        // From the camera, the tool stays on: tap the next spot, take the next photo.
-        self.views[index].comments.tool_done = !self.symbols.photo_camera;
-        if self.apply_edit(edit) {
-            // The new pin is the last photo on its page; its caption is typed beside it.
-            let new = self.session.get(id).and_then(|d| d.info.annotations.iter().filter(|a| a.photo && a.page == page).map(|a| a.index).max());
-            if let Some(i) = new {
-                self.views[index].caption_prompt = Some(CaptionPrompt { page, index: i, text: String::new(), kind: CaptionKind::Photo });
-            }
-        }
+    /// A photo pin: the photo is kept in `<pdf-name>.images/` and a markdown note links to it,
+    /// pinned where it was tapped. Its text is the caption.
+    fn pin_photo(&mut self, page: usize, at: [f64; 2], name: &str, data: Vec<u8>) {
+        self.place_note_with(page, at, Some((name, data)));
     }
 
     /// Place a photo callout pointing at `point` with its box at `center`: choose a photo (or,
