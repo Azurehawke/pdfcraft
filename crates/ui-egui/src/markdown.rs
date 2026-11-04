@@ -612,6 +612,128 @@ pub fn code_block(text: &str, start: usize, end: usize) -> Edit {
     Edit { text: out.into_iter().collect(), start: inner, end: inner + block.chars().count() }
 }
 
+// ── The live preview's text: how each character of a line looks ────────────────────────────
+
+/// How one character of a line looks in the live preview.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct Look {
+    pub bold: bool,
+    pub italic: bool,
+    pub strike: bool,
+    pub highlight: bool,
+    pub code: bool,
+    pub link: bool,
+    pub quote: bool,
+    /// The heading level (0 for body text).
+    pub heading: u8,
+    /// A Markdown marker (`**`, `#`, `[[`, ...). Hidden away from the cursor's line.
+    pub marker: bool,
+}
+
+/// The look of each character of one line (the markers are flagged, so the editor can hide them
+/// everywhere but the cursor's line).
+pub fn line_looks(line: &str) -> Vec<Look> {
+    let chars: Vec<char> = line.chars().collect();
+    let n = chars.len();
+    let mut looks = vec![Look::default(); n];
+    let mut start = 0;
+    let mark = |looks: &mut Vec<Look>, from: usize, to: usize| {
+        for l in looks.iter_mut().take(to.min(n)).skip(from) {
+            l.marker = true;
+        }
+    };
+    if let Some((level, _)) = heading(line) {
+        let prefix = usize::from(level) + 1;
+        mark(&mut looks, 0, prefix);
+        for l in looks.iter_mut().skip(prefix) {
+            l.heading = level;
+            l.bold = true;
+        }
+        start = prefix;
+    } else if let Some(rest) = line.trim_start().strip_prefix('>') {
+        let lead = line.chars().take_while(|c| c.is_whitespace()).count();
+        let prefix = lead + 1 + usize::from(rest.starts_with(' '));
+        mark(&mut looks, lead, prefix);
+        for l in looks.iter_mut().skip(prefix) {
+            l.quote = true;
+        }
+        start = prefix;
+    }
+    let at = |i: usize, s: &str| s.chars().enumerate().all(|(k, c)| chars.get(i + k) == Some(&c));
+    let (mut bold, mut italic, mut strike, mut highlight) = (false, false, false, false);
+    let mut i = start;
+    while i < n {
+        let Some(&c) = chars.get(i) else { break };
+        if c == '`'
+            && let Some(end) = (i + 1..n).find(|&k| chars.get(k) == Some(&'`'))
+        {
+            mark(&mut looks, i, i + 1);
+            mark(&mut looks, end, end + 1);
+            for l in looks.iter_mut().take(end).skip(i + 1) {
+                l.code = true;
+            }
+            i = end + 1;
+            continue;
+        }
+        if at(i, "[[")
+            && let Some(end) = (i + 2..n.saturating_sub(1)).find(|&k| at(k, "]]"))
+        {
+            mark(&mut looks, i, i + 2);
+            mark(&mut looks, end, end + 2);
+            for l in looks.iter_mut().take(end).skip(i + 2) {
+                l.link = true;
+            }
+            i = end + 2;
+            continue;
+        }
+        if c == '['
+            && let Some(close) = (i + 1..n).find(|&k| chars.get(k) == Some(&']'))
+            && chars.get(close + 1) == Some(&'(')
+            && let Some(end) = (close + 2..n).find(|&k| chars.get(k) == Some(&')'))
+        {
+            mark(&mut looks, i, i + 1);
+            mark(&mut looks, close, end + 1);
+            for l in looks.iter_mut().take(close).skip(i + 1) {
+                l.link = true;
+            }
+            i = end + 1;
+            continue;
+        }
+        if at(i, "**") || at(i, "__") {
+            mark(&mut looks, i, i + 2);
+            bold = !bold;
+            i += 2;
+            continue;
+        }
+        if at(i, "~~") {
+            mark(&mut looks, i, i + 2);
+            strike = !strike;
+            i += 2;
+            continue;
+        }
+        if at(i, "==") {
+            mark(&mut looks, i, i + 2);
+            highlight = !highlight;
+            i += 2;
+            continue;
+        }
+        if c == '*' {
+            mark(&mut looks, i, i + 1);
+            italic = !italic;
+            i += 1;
+            continue;
+        }
+        if let Some(l) = looks.get_mut(i) {
+            l.bold |= bold;
+            l.italic |= italic;
+            l.strike |= strike;
+            l.highlight |= highlight;
+        }
+        i += 1;
+    }
+    looks
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

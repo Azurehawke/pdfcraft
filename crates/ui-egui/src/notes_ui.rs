@@ -758,6 +758,102 @@ fn fit(v: f32, lo: f32, hi: f32) -> f32 {
     v.max(lo).min(hi.max(lo))
 }
 
+/// The note's text as a live preview: every line styled as it reads, with the markers hidden
+/// except on the cursor's line (`cursor_line`), where they show dimmed.
+fn live_job(text: &str, cursor_line: Option<usize>, t: &Tokens) -> egui::text::LayoutJob {
+    use crate::markdown::{Look, line_looks};
+    let mut job = egui::text::LayoutJob::default();
+    let mut in_code = false;
+    for (n, line) in text.split('\n').enumerate() {
+        if n > 0 {
+            job.append("\n", 0.0, body_format(14.0, t.text));
+        }
+        let editing = cursor_line == Some(n);
+        if line.trim_start().starts_with("```") {
+            in_code = !in_code;
+            job.append(line, 0.0, code_format(t, 13.0, t.text_muted));
+            continue;
+        }
+        if in_code {
+            job.append(line, 0.0, code_format(t, 13.0, t.text));
+            continue;
+        }
+        let looks = line_looks(line);
+        let mut run = String::new();
+        let mut current: Option<Look> = None;
+        for (i, ch) in line.chars().enumerate() {
+            let look = looks.get(i).copied().unwrap_or_default();
+            if current != Some(look) && !run.is_empty() {
+                job.append(&run, 0.0, look_format(t, current.unwrap_or_default(), editing));
+                run.clear();
+            }
+            current = Some(look);
+            run.push(ch);
+        }
+        if !run.is_empty() {
+            job.append(&run, 0.0, look_format(t, current.unwrap_or_default(), editing));
+        }
+    }
+    job
+}
+
+fn body_format(size: f32, color: Color32) -> egui::TextFormat {
+    egui::TextFormat { font_id: egui::FontId::proportional(size), color, ..Default::default() }
+}
+
+fn code_format(t: &Tokens, size: f32, color: Color32) -> egui::TextFormat {
+    egui::TextFormat { font_id: egui::FontId::monospace(size), color, background: t.card, ..Default::default() }
+}
+
+/// The format of one run of text: a marker off the cursor's line takes no room; on the cursor's
+/// line it shows dimmed.
+fn look_format(t: &Tokens, l: crate::markdown::Look, editing: bool) -> egui::TextFormat {
+    if l.marker {
+        return if editing {
+            egui::TextFormat { font_id: egui::FontId::proportional(13.0), color: t.text_muted, ..Default::default() }
+        } else {
+            egui::TextFormat { font_id: egui::FontId::proportional(0.01), color: Color32::TRANSPARENT, ..Default::default() }
+        };
+    }
+    let size = match l.heading {
+        1 => 26.0,
+        2 => 21.0,
+        3 => 18.0,
+        0 => 14.0,
+        _ => 15.0,
+    };
+    let color = if l.quote {
+        t.text_muted
+    } else if l.bold {
+        t.accent
+    } else {
+        t.text
+    };
+    if l.code {
+        return code_format(t, size - 1.0, color);
+    }
+    let mut format = egui::TextFormat {
+        font_id: egui::FontId::proportional(size),
+        color,
+        italics: l.italic,
+        background: if l.highlight { Color32::from_rgba_unmultiplied(255, 214, 80, 90) } else { Color32::TRANSPARENT },
+        ..Default::default()
+    };
+    if l.link {
+        format.color = t.accent;
+        format.underline = egui::Stroke::new(1.0, t.accent);
+    }
+    if l.strike {
+        format.strikethrough = egui::Stroke::new(1.0, color);
+    }
+    format
+}
+
+/// The line (0-based) holding the character at `index`.
+fn line_of(text: &str, index: usize) -> usize {
+    text.chars().take(index).filter(|c| *c == '\n').count()
+}
+
 /// The note's text, being typed.
 fn edit_box(ui: &mut egui::Ui, ed: &mut NoteEditor, now: f64, height: f32) {
     let id = egui::Id::new("revucraft-note-text");
@@ -768,9 +864,17 @@ fn edit_box(ui: &mut egui::Ui, ed: &mut NoteEditor, now: f64, height: f32) {
         ui.ctx().memory_mut(|m| m.request_focus(id));
     }
     let before = ed.text.clone();
+    // The cursor's line keeps its markers; every other line shows as it reads.
+    let cursor_line =
+        egui::TextEdit::load_state(ui.ctx(), id).and_then(|st| st.cursor.char_range()).map(|r| line_of(&ed.text, usize::from(r.primary.index)));
+    let t = Tokens::get(ui.ctx());
+    let mut layouter = |ui: &egui::Ui, buf: &dyn egui::TextBuffer, wrap_width: f32| {
+        let mut job = live_job(buf.as_str(), cursor_line, &t);
+        job.wrap.max_width = wrap_width;
+        ui.fonts_mut(|f| f.layout_job(job))
+    };
     egui::ScrollArea::vertical().id_salt("note-edit").max_height(height.max(120.0)).auto_shrink([false, true]).show(ui, |ui| {
-        let out =
-            egui::TextEdit::multiline(&mut ed.text).id(id).desired_width(f32::INFINITY).desired_rows(12).font(egui::TextStyle::Monospace).show(ui);
+        let out = egui::TextEdit::multiline(&mut ed.text).id(id).layouter(&mut layouter).desired_width(f32::INFINITY).desired_rows(12).show(ui);
         if let Some(range) = out.cursor_range {
             let r = range.as_sorted_char_range();
             ed.sel = (r.start.into(), r.end.into());
@@ -978,5 +1082,41 @@ mod size_tests {
         assert_eq!(fit(10.0, 200.0, 900.0), 200.0);
         assert_eq!(fit(500.0, 200.0, 900.0), 500.0);
         assert_eq!(fit(500.0, 200.0, 100.0), 200.0);
+    }
+}
+
+#[cfg(test)]
+mod live_preview_tests {
+    use super::*;
+    use crate::theme::ThemeKind;
+
+    /// The live preview hides a note's markers on every line but the cursor's. The cursor's line
+    /// shows them, and that is the only line that does.
+    #[test]
+    fn live_preview_hides_markers_away_from_the_cursor() {
+        let t = Tokens::for_kind(ThemeKind::Light);
+        let text = "**bold**\nplain";
+        let hidden = |cursor: Option<usize>| -> usize {
+            let job = live_job(text, cursor, &t);
+            job.sections
+                .iter()
+                .filter(|sec| sec.format.font_id.size < 1.0)
+                .map(|sec| usize::from(sec.byte_range.end) - usize::from(sec.byte_range.start))
+                .sum()
+        };
+        // Four marker characters (two `**` pairs) on the first line.
+        assert_eq!(hidden(None), 4);
+        assert_eq!(hidden(Some(1)), 4, "the cursor is on the second line");
+        assert_eq!(hidden(Some(0)), 0, "the cursor's line shows its markers");
+    }
+
+    /// The line a character index falls on.
+    #[test]
+    fn line_of_counts_newlines_before_the_index() {
+        let text = "a\nbc\nd";
+        assert_eq!(line_of(text, 0), 0);
+        assert_eq!(line_of(text, 2), 1);
+        assert_eq!(line_of(text, 5), 2);
+        assert_eq!(line_of(text, 99), 2);
     }
 }
