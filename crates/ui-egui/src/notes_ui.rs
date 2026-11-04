@@ -874,7 +874,7 @@ fn look_format(t: &Tokens, l: crate::markdown::Look, editing: bool) -> egui::Tex
 
 /// The note's text with a link to its photo on a line of its own, after the rest.
 fn with_photo_link(text: &str, rel: &str) -> String {
-    format!("{}\n[[{rel}]]\n", text.trim_end())
+    format!("{}\n\n[[{rel}]]\n", text.trim_end())
 }
 
 /// The line (0-based) holding the character at `index`.
@@ -1153,12 +1153,14 @@ mod live_preview_tests {
 mod photo_pin_tests {
     use super::with_photo_link;
 
-    /// A photo pin's note keeps its text and links the photo on a line of its own.
+    /// A photo pin's note keeps its text, and the photo link is a paragraph of its own, which is
+    /// what the reading view needs to draw the picture.
     #[test]
-    fn photo_link_goes_on_its_own_line_after_the_text() {
-        let text = "---\ntitle: Rack A\n---\n";
+    fn photo_link_is_its_own_paragraph_after_the_text() {
+        let text = "---\ntitle: Rack A\n---\n*2026-11-04 · steve*\n";
         let out = with_photo_link(text, "Smith.images/IMG_1.jpg");
         assert!(out.starts_with("---\ntitle: Rack A\n---\n"));
-        assert!(out.lines().any(|l| l == "[[Smith.images/IMG_1.jpg]]"), "{out:?}");
+        let blocks = crate::markdown::blocks(&out);
+        assert!(blocks.iter().any(|b| matches!(b, crate::markdown::Block::Paragraph(l) if l == "[[Smith.images/IMG_1.jpg]]")), "{blocks:?}");
     }
 }
