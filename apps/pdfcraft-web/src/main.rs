@@ -56,12 +56,14 @@ fn main() {
                     warn_before_unload(app.unsaved_flag.clone());
                     // `?host=parent`: a same-origin page embedding PdfCraft in an iframe (such
                     // as the Nextcloud app) passes files in and takes saves back (`host` below).
-                    if query_param("host").as_deref() == Some("parent")
+                    // A page loading PdfCraft from a blob: URL (which can't carry a query, such as
+                    // the Obsidian plugin) sets the same settings on `window.pdfcraftParams`.
+                    if host_param("host").as_deref() == Some("parent")
                         && let Some(bridge) = host::Bridge::new()
                     {
                         // `?author=`: the host's name for the user signs their comments,
                         // unless they chose a name in PdfCraft (the web default is "Guest").
-                        if let Some(author) = query_param("author").map(|a| a.trim().to_string()).filter(|a| !a.is_empty())
+                        if let Some(author) = host_param("author").map(|a| a.trim().to_string()).filter(|a| !a.is_empty())
                             && app.comment_prefs.author == "Guest"
                         {
                             app.comment_prefs.author = author.chars().take(200).collect();
@@ -77,7 +79,7 @@ fn main() {
             .await;
         if let Err(e) = started {
             eframe::web_sys::console::error_1(&e);
-            if query_param("host").as_deref() == Some("parent")
+            if host_param("host").as_deref() == Some("parent")
                 && let Some(bridge) = host::Bridge::new()
             {
                 bridge.post_failed(&e.as_string().unwrap_or_else(|| format!("{e:?}")));
@@ -104,6 +106,21 @@ fn warn_before_unload(unsaved: std::sync::Arc<std::sync::atomic::AtomicBool>) {
 fn query_param(key: &str) -> Option<String> {
     let search = web_sys::window()?.location().search().ok()?;
     web_sys::UrlSearchParams::new_with_str(&search).ok()?.get(key)
+}
+
+/// A host setting (`host`, `author`): from the query, or else from `window.pdfcraftParams`, an
+/// object the embedding page sets before PdfCraft starts when its URL can't carry a query (a
+/// `blob:` URL, as the Obsidian plugin uses to keep PdfCraft on its own origin).
+#[cfg(target_arch = "wasm32")]
+fn host_param(key: &str) -> Option<String> {
+    query_param(key).or_else(|| {
+        let window = web_sys::window()?;
+        let params = js_sys::Reflect::get(&window, &"pdfcraftParams".into()).ok()?;
+        if !params.is_object() {
+            return None;
+        }
+        js_sys::Reflect::get(&params, &key.into()).ok()?.as_string()
+    })
 }
 
 #[cfg(target_arch = "wasm32")]
