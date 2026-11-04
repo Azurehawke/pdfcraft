@@ -54,6 +54,9 @@ pub(crate) struct NoteEditor {
     pictures_stale: bool,
     /// The size the reader or editor was resized to (`None`: fills the window).
     size: Option<egui::Vec2>,
+    /// The text last written to the note's file, and when the text was last typed in.
+    file_saved: String,
+    typed_at: f64,
     /// A `[[file]]` link tapped in the reading view: its note, image or problem.
     linked: Option<Linked>,
     /// The camera was tapped: the photo picker opens after this frame.
@@ -181,6 +184,8 @@ impl PdfCraftApp {
                 page,
                 index: *i,
                 file: Some(path),
+                file_saved: saved.clone(),
+                typed_at: 0.0,
                 saved,
                 text,
                 editing: true,
@@ -221,6 +226,8 @@ impl PdfCraftApp {
             page,
             index,
             file,
+            file_saved: text.clone(),
+            typed_at: 0.0,
             text,
             saved,
             editing: false,
@@ -404,6 +411,19 @@ impl PdfCraftApp {
 
 /// The open note, over the drawing.
 pub(crate) fn editor(app: &mut PdfCraftApp, ctx: &egui::Context) {
+    // Autosave: the file is written once typing pauses, and at once when the window closes.
+    let now = ctx.input(|i| i.time);
+    let closing = ctx.input(|i| i.viewport().close_requested());
+    if let Some(ed) = app.note_editor.as_mut()
+        && let Some(path) = ed.file.clone()
+    {
+        if let Err(e) = autosave_file(&path, &ed.text, &mut ed.file_saved, ed.typed_at, now, closing) {
+            ed.problem = Some(format!("{} {e}", tl!("The note's file couldn't be written:")));
+        }
+        if ed.text != ed.file_saved {
+            ctx.request_repaint_after(std::time::Duration::from_secs_f64(AUTOSAVE_PAUSE));
+        }
+    }
     let Some(ed) = app.note_editor.as_mut() else { return };
     let t = Tokens::get(ctx);
     let screen = ctx.content_rect();
@@ -781,6 +801,20 @@ fn fit(v: f32, lo: f32, hi: f32) -> f32 {
     v.max(lo).min(hi.max(lo))
 }
 
+/// Seconds without typing before the note's file is written.
+const AUTOSAVE_PAUSE: f64 = 2.0;
+
+/// Writes `text` to `path` once it has changed and typing has paused for [`AUTOSAVE_PAUSE`]
+/// (at once when `closing`). `file_saved` is the text the file holds. Returns whether it wrote.
+fn autosave_file(path: &Path, text: &str, file_saved: &mut String, typed_at: f64, now: f64, closing: bool) -> Result<bool, String> {
+    if text == file_saved.as_str() || (!closing && now - typed_at < AUTOSAVE_PAUSE) {
+        return Ok(false);
+    }
+    path.parent().map_or(Ok(()), std::fs::create_dir_all).and_then(|()| std::fs::write(path, text)).map_err(|e| e.to_string())?;
+    *file_saved = text.to_string();
+    Ok(true)
+}
+
 /// The note's text as a live preview: every line styled as it reads, with the markers hidden
 /// except on the cursor's line (`cursor_line`), where they show dimmed.
 fn live_job(text: &str, cursor_line: Option<usize>, t: &Tokens) -> egui::text::LayoutJob {
@@ -909,6 +943,7 @@ fn edit_box(ui: &mut egui::Ui, ed: &mut NoteEditor, now: f64, height: f32) {
         }
     });
     if ed.text != before {
+        ed.typed_at = now;
         // Typing: a new undo step after a pause.
         let typed = std::mem::replace(&mut ed.text, before);
         snapshot(ed, now, false);
@@ -1162,5 +1197,31 @@ mod photo_pin_tests {
         assert!(out.starts_with("---\ntitle: Rack A\n---\n"));
         let blocks = crate::markdown::blocks(&out);
         assert!(blocks.iter().any(|b| matches!(b, crate::markdown::Block::Paragraph(l) if l == "[[Smith.images/IMG_1.jpg]]")), "{blocks:?}");
+    }
+}
+
+#[cfg(test)]
+mod autosave_tests {
+    use super::{AUTOSAVE_PAUSE, autosave_file};
+
+    /// A note's file is written once typing pauses (or at once when the window closes), never
+    /// while the user is still typing.
+    #[test]
+    fn autosave_waits_for_a_pause_unless_closing() {
+        let dir = std::env::temp_dir().join(format!("revucraft-autosave-{}", std::process::id()));
+        let path = dir.join("note.md");
+        let mut saved = String::from("old");
+        let typed = 10.0;
+        // Still typing: nothing is written.
+        assert_eq!(autosave_file(&path, "new", &mut saved, typed, typed + 0.5, false), Ok(false));
+        assert!(!path.exists());
+        // Paused: written.
+        assert_eq!(autosave_file(&path, "new", &mut saved, typed, typed + AUTOSAVE_PAUSE + 0.1, false), Ok(true));
+        assert_eq!(std::fs::read_to_string(&path).ok().as_deref(), Some("new"));
+        assert_eq!(saved, "new");
+        // Closing writes at once.
+        assert_eq!(autosave_file(&path, "newer", &mut saved, typed, typed + 0.1, true), Ok(true));
+        assert_eq!(std::fs::read_to_string(&path).ok().as_deref(), Some("newer"));
+        let _ = std::fs::remove_dir_all(&dir);
     }
 }
