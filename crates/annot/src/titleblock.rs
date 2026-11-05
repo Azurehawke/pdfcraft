@@ -37,6 +37,14 @@ pub struct Fields {
     pub scale: String,
 }
 
+/// The block's entries from the document's properties: the project is the document's Title, the
+/// author its Author, and the client, address and scale are custom properties with the same names
+/// (Document Properties ▸ Custom). `info` returns a property's text; blank entries stay empty.
+pub fn fields_from_properties(info: impl Fn(&str) -> Option<String>) -> Fields {
+    let get = |key: &str| info(key).map(|v| v.trim().to_owned()).unwrap_or_default();
+    Fields { project: get("Title"), client: get("Client"), address: get("Address"), author: get("Author"), scale: get("Scale") }
+}
+
 /// The paper's name for a sheet of `width` × `height` points: a common sheet by name, else its
 /// size in inches.
 pub fn format_name(width: f64, height: f64) -> String {
@@ -199,5 +207,21 @@ mod tests {
         assert_eq!(format_name(612.0, 792.0), "Letter");
         assert_eq!(format_name(792.0, 612.0), "Letter");
         assert_eq!(format_name(300.0, 400.0), "4.17 × 5.56 in");
+    }
+
+    #[test]
+    fn the_fields_come_from_the_properties_and_blanks_stay_empty() {
+        let props = |key: &str| match key {
+            "Title" => Some("  Harbour House ".to_owned()),
+            "Client" => Some("Lee Family".to_owned()),
+            "Scale" => Some("1:50".to_owned()),
+            _ => None,
+        };
+        let f = fields_from_properties(props);
+        assert_eq!(f.project, "Harbour House");
+        assert_eq!(f.client, "Lee Family");
+        assert_eq!(f.scale, "1:50");
+        assert_eq!(f.address, "");
+        assert_eq!(f.author, "");
     }
 }

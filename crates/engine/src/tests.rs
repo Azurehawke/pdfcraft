@@ -8719,7 +8719,6 @@ fn a_page_truncated_for_forms_and_pictures_is_listed_once() {
 #[test]
 fn a_title_block_is_one_per_page_on_its_own_layer_drawn_behind_the_marks() {
     use pdfcraft_annot::symbols::{NewSymbol, Symbol};
-    use pdfcraft_annot::titleblock::Fields;
     let (mut s, id) = session_with(2);
     s.apply(id, Edit::AddLayer { name: "Data".into(), color: [0.0, 0.4, 0.9] }).unwrap();
     let data = s.layer_details(id).iter().find(|l| l.name == "Data").map(|l| (l.id.num, l.id.generation)).unwrap();
@@ -8740,8 +8739,22 @@ fn a_title_block_is_one_per_page_on_its_own_layer_drawn_behind_the_marks() {
         }),
     )
     .unwrap();
-    let fields = Fields { project: "Harbour House".into(), ..Fields::default() };
-    s.apply(id, Edit::AddTitleBlock { page: 0, fields: fields.clone() }).unwrap();
+    // The block's text comes from the document's properties.
+    for (key, value) in [("Title", "Harbour House"), ("Client", "Lee Family"), ("Address", "12 Shore Rd"), ("Scale", "1:50")] {
+        s.apply(id, Edit::SetInfo { key: key.into(), value: value.into() }).unwrap();
+    }
+    s.apply(id, Edit::AddTitleBlock { page: 0 }).unwrap();
+    let texts: Vec<String> = {
+        let cos = &s.get(id).unwrap().editor.as_ref().unwrap().cos;
+        (0..13)
+            .filter_map(|i| pdfcraft_annot::photo_callout::dict_at(cos, 0, i))
+            .filter_map(|d| d.get(b"Contents").and_then(|v| cos.resolve(v).as_string().map(|t| t.to_text())))
+            .collect()
+    };
+    let all = texts.join("\n");
+    for want in ["Harbour House", "Lee Family", "12 Shore Rd", "1:50"] {
+        assert!(all.contains(want), "the block should show {want} from the properties, got {all:?}");
+    }
     let title =
         s.layer_details(id).iter().find(|l| l.name == "Title block").map(|l| (l.id.num, l.id.generation)).expect("the title block layer exists");
     // Drawn first: the block's pieces are the first comments on the page, on the title layer.
@@ -8750,7 +8763,7 @@ fn a_title_block_is_one_per_page_on_its_own_layer_drawn_behind_the_marks() {
     // The symbol drawn before the block now comes after the block's thirteen pieces.
     assert_eq!(s.annotation_layer(id, 0, 13), Some(data));
     // One block per page: a second on page 1 is fine, a second on page 1 again is not.
-    assert!(s.apply(id, Edit::AddTitleBlock { page: 0, fields: fields.clone() }).is_err());
-    s.apply(id, Edit::AddTitleBlock { page: 1, fields }).unwrap();
+    assert!(s.apply(id, Edit::AddTitleBlock { page: 0 }).is_err());
+    s.apply(id, Edit::AddTitleBlock { page: 1 }).unwrap();
     assert_eq!(s.annotation_layer(id, 1, 0), Some(title));
 }

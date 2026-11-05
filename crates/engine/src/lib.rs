@@ -1823,11 +1823,10 @@ pub enum Edit {
     },
     /// RevuCraft: add a layer you manage (an optional content group with a colour).
     /// RevuCraft: a title block at the bottom right of `page`, on its own "Title block" layer
-    /// drawn behind every other mark. One per page; `fields` left empty take the document's
-    /// title and author.
+    /// drawn behind every other mark. One per page. Its text is read from the document's
+    /// properties (Title, Author, and the custom Client, Address and Scale) when it is placed.
     AddTitleBlock {
         page: usize,
-        fields: pdfcraft_annot::titleblock::Fields,
     },
     AddLayer {
         name: String,
@@ -3577,19 +3576,13 @@ fn run_edit(doc: &mut pdfcraft_cos::Document, edit: &Edit, cx: &mut EditCtx) -> 
             }
             cx.place_on_layer(doc, new.page, index)?;
         }
-        Edit::AddTitleBlock { page, fields } => {
+        Edit::AddTitleBlock { page } => {
             if pdfcraft_annot::titleblock::on_page(doc, *page)? {
                 return Err(pdfcraft_annot::AnnotError::Invalid("This page already has a title block.".into()).into());
             }
             let boxes = pdfcraft_organize::page_boxes(doc)?;
             let media = boxes.get(*page).and_then(|b| b.first()).copied().ok_or(pdfcraft_annot::AnnotError::NoSuchPage(*page))?;
-            let mut fields = fields.clone();
-            if fields.project.trim().is_empty() {
-                fields.project = pdfcraft_organize::info(doc, "Title").unwrap_or_default();
-            }
-            if fields.author.trim().is_empty() {
-                fields.author = pdfcraft_organize::info(doc, "Author").unwrap_or_default();
-            }
+            let fields = pdfcraft_annot::titleblock::fields_from_properties(|key| pdfcraft_organize::info(doc, key));
             let format = pdfcraft_annot::titleblock::format_name(media[2] - media[0], media[3] - media[1]);
             let (y, m, d) = cx.today;
             let date = format!("{y:04}-{m:02}-{d:02}");

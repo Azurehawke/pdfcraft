@@ -1054,7 +1054,7 @@ pub(crate) fn modify_input(
         DraftTool::TitleBlock => {
             chip(painter, hint_at, tl!("Click a page to add its title block"));
             if clicked {
-                view.pending_edit = Some(Edit::AddTitleBlock { page, fields: settings.title.fields() });
+                view.pending_edit = Some(Edit::AddTitleBlock { page });
             }
         }
         DraftTool::Door | DraftTool::Window => {

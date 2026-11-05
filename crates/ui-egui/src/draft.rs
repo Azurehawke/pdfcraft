@@ -330,29 +330,6 @@ pub struct SheetDraft {
     pub add_to_document: bool,
 }
 
-/// The words a title block shows, typed once and kept for the next block.
-#[derive(Clone, Debug, Default)]
-pub struct TitleSettings {
-    pub project: String,
-    pub client: String,
-    pub address: String,
-    pub author: String,
-    pub scale: String,
-}
-
-impl TitleSettings {
-    /// The block's entries, for the engine to lay out.
-    pub fn fields(&self) -> pdfcraft_engine::annot_titleblock::Fields {
-        pdfcraft_engine::annot_titleblock::Fields {
-            project: self.project.clone(),
-            client: self.client.clone(),
-            address: self.address.clone(),
-            author: self.author.clone(),
-            scale: self.scale.clone(),
-        }
-    }
-}
-
 /// Drafting settings, shared by every document.
 #[derive(Clone, Debug)]
 pub struct DraftSettings {
@@ -376,7 +353,6 @@ pub struct DraftSettings {
     pub keypad: bool,
     pub sheet: SheetDraft,
     /// What a title block says (the Title block tool).
-    pub title: TitleSettings,
     /// Who new markup is by (filled in from the comment author before drafting).
     pub author: String,
     /// Offset distance, inches.
@@ -437,7 +413,6 @@ impl Default for DraftSettings {
             keypad: cfg!(target_os = "android"),
             // ARCH D landscape at 1/4" = 1'-0".
             sheet: SheetDraft { open: false, paper: 8, landscape: true, scale: 4, add_to_document: false },
-            title: TitleSettings::default(),
             author: String::new(),
             offset_inches: 12.0,
             polygon_sides: 6,
@@ -1972,19 +1947,7 @@ fn tool_options(app: &mut PdfCraftApp, ui: &mut egui::Ui, t: &Tokens) {
                         .on_hover_text(tl!("Hinge the door at the other end of the opening"));
                 }
                 Some(DraftTool::TitleBlock) => {
-                    let rows: [(String, &mut String); 5] = [
-                        (tl!("Project").to_string(), &mut d.title.project),
-                        (tl!("Client").to_string(), &mut d.title.client),
-                        (tl!("Address").to_string(), &mut d.title.address),
-                        (tl!("Author").to_string(), &mut d.title.author),
-                        (tl!("Scale").to_string(), &mut d.title.scale),
-                    ];
-                    for (label, value) in rows {
-                        ui.horizontal(|ui| {
-                            ui.label(label);
-                            ui.add(egui::TextEdit::singleline(value).desired_width(200.0));
-                        });
-                    }
+                    ui.weak(tl!("The block's text comes from Document Properties: Title (project), Author, and the custom properties Client, Address and Scale."));
                 }
                 Some(DraftTool::Window) => {
                     number(ui, tl!("Width"), &mut d.window_inches, 12.0..=240.0, " in", tl!("Window width (the opening cut in the wall)"))
