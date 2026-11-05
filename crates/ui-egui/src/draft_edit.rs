@@ -1051,6 +1051,12 @@ pub(crate) fn modify_input(
                 None => chip(painter, hint_at, tl!("Click a circle")),
             }
         }
+        DraftTool::TitleBlock => {
+            chip(painter, hint_at, tl!("Click a page to add its title block"));
+            if clicked {
+                view.pending_edit = Some(Edit::AddTitleBlock { page, fields: settings.title.fields() });
+            }
+        }
         DraftTool::Door | DraftTool::Window => {
             use crate::openings::{self, Opening};
             let kind = if tool == DraftTool::Door { Opening::Door } else { Opening::Window };

@@ -157,6 +157,7 @@ pub use links::{
 pub use pdfcraft_annot::appearance as annot_text;
 pub use pdfcraft_annot::links::{Highlight as LinkHighlight, LinkAction, LinkItem, LinkStyle};
 pub use pdfcraft_annot::pen as annot_pen;
+pub use pdfcraft_annot::titleblock as annot_titleblock;
 pub use pdfcraft_annot::{
     AppearanceCache, AttachIcon, FillMark, LineEnding, Markup, NOTE_SIZE, NewAnnotation, NoteIcon, OverlayFont, OverlayLook, PenKind,
     Props as CommentProps, ReviewState, Rgb, Shape, StampGroup, StampKind, Style, rect_quad,
@@ -1821,6 +1822,13 @@ pub enum Edit {
         author: String,
     },
     /// RevuCraft: add a layer you manage (an optional content group with a colour).
+    /// RevuCraft: a title block at the bottom right of `page`, on its own "Title block" layer
+    /// drawn behind every other mark. One per page; `fields` left empty take the document's
+    /// title and author.
+    AddTitleBlock {
+        page: usize,
+        fields: pdfcraft_annot::titleblock::Fields,
+    },
     AddLayer {
         name: String,
         color: [f64; 3],
@@ -2927,6 +2935,7 @@ impl Edit {
             Edit::FlipOpening { .. } => Label::of("Flip swing"),
             Edit::AddDraftShape { caption: Some((_, subject)), .. } => Label::with("Measure {kind}", subject.to_lowercase()),
             Edit::AddDraftShape { new, .. } => Label::of(add_annotation(&new.shape)),
+            Edit::AddTitleBlock { .. } => Label::of("Title block"),
             Edit::AddLayer { .. } => Label::of("New layer"),
             Edit::AddLayerIn { parent: Some(_), .. } => Label::of("New sublayer"),
             Edit::AddLayerIn { .. } => Label::of("New layer"),
@@ -3055,6 +3064,7 @@ fn check_permission(edit: &Edit, p: &pdfcraft_cos::Permissions) -> Result<(), Ed
         | Edit::FlipOpening { .. }
         | Edit::AddAnnotation(_)
         | Edit::AddDraftShape { .. }
+        | Edit::AddTitleBlock { .. }
         | Edit::AddCustomStamp { .. }
         | Edit::AddLayer { .. }
         | Edit::AddLayerIn { .. }
@@ -3566,6 +3576,34 @@ fn run_edit(doc: &mut pdfcraft_cos::Document, edit: &Edit, cx: &mut EditCtx) -> 
                 pdfcraft_annot::geometry::mark_drafting(doc, new.page, index)?;
             }
             cx.place_on_layer(doc, new.page, index)?;
+        }
+        Edit::AddTitleBlock { page, fields } => {
+            if pdfcraft_annot::titleblock::on_page(doc, *page)? {
+                return Err(pdfcraft_annot::AnnotError::Invalid("This page already has a title block.".into()).into());
+            }
+            let boxes = pdfcraft_organize::page_boxes(doc)?;
+            let media = boxes.get(*page).and_then(|b| b.first()).copied().ok_or(pdfcraft_annot::AnnotError::NoSuchPage(*page))?;
+            let mut fields = fields.clone();
+            if fields.project.trim().is_empty() {
+                fields.project = pdfcraft_organize::info(doc, "Title").unwrap_or_default();
+            }
+            if fields.author.trim().is_empty() {
+                fields.author = pdfcraft_organize::info(doc, "Author").unwrap_or_default();
+            }
+            let format = pdfcraft_annot::titleblock::format_name(media[2] - media[0], media[3] - media[1]);
+            let (y, m, d) = cx.today;
+            let date = format!("{y:04}-{m:02}-{d:02}");
+            let pieces = pdfcraft_annot::titleblock::layout(media, *page, cx.pages, &fields, &format, &date)?;
+            let layer = pdfcraft_annot::titleblock::ensure_layer(doc)?;
+            let mut indices = Vec::with_capacity(pieces.len());
+            for piece in &pieces {
+                let index = pdfcraft_annot::add_annotation(doc, piece, &cx.meta())?;
+                pdfcraft_annot::geometry::mark_drafting(doc, *page, index)?;
+                pdfcraft_annot::titleblock::mark(doc, *page, index)?;
+                pdfcraft_annot::layers::assign(doc, *page, index, Some(layer))?;
+                indices.push(index);
+            }
+            pdfcraft_annot::titleblock::send_to_back(doc, *page, &indices)?;
         }
         Edit::AddLayer { name, color } => {
             pdfcraft_annot::layers::add(doc, name, *color)?;

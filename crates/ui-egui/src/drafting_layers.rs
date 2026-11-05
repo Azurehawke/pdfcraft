@@ -89,7 +89,8 @@ fn ensure(app: &mut PdfCraftApp, id: DocId, tool: DraftTool) -> Option<Key> {
 pub(crate) fn follow_tool(app: &mut PdfCraftApp) {
     let Some((_, id)) = app.active_ids() else { return };
     let tool = match app.quick_tool {
-        QuickTool::Draft(t) if app.show_ribbon && !t.modifies() => Some(t),
+        // A title block goes on its own layer, not the Drafting layer, so it is not routed.
+        QuickTool::Draft(t) if app.show_ribbon && !t.modifies() && t != DraftTool::TitleBlock => Some(t),
         _ => None,
     };
     let Some(doc) = app.session.get(id) else { return };

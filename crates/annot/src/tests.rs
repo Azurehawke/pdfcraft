@@ -1876,3 +1876,17 @@ fn a_new_space_goes_to_the_bottom_of_the_drawing_order() {
     assert!(crate::send_to_bottom(&mut doc, 0, usize::MAX).is_err());
     assert!(crate::punch::set_space(&mut doc, 0, 99, "x", &meta("bad")).is_err());
 }
+
+#[test]
+fn a_title_block_is_drawn_first_and_is_one_per_page() {
+    let mut doc = fixture();
+    assert!(!titleblock::on_page(&doc, 0).expect("reads"));
+    let a = add_annotation(&mut doc, &new(0, Shape::Rectangle { rect: [300.0, 300.0, 320.0, 320.0] }), &meta("a")).expect("adds");
+    let b = add_annotation(&mut doc, &new(0, Shape::Rectangle { rect: [340.0, 300.0, 360.0, 320.0] }), &meta("b")).expect("adds");
+    titleblock::mark(&mut doc, 0, a).expect("marks");
+    assert!(titleblock::on_page(&doc, 0).expect("reads"));
+    assert!(!titleblock::on_page(&doc, 1).expect("reads"), "page 2 has no title block");
+    titleblock::send_to_back(&mut doc, 0, &[a, b]).expect("reorders");
+    let got: Vec<Vec<f64>> = list(&doc, 0).iter().map(rect).collect();
+    assert_eq!(got, vec![vec![300.0, 300.0, 320.0, 320.0], vec![340.0, 300.0, 360.0, 320.0], vec![10.0, 10.0, 50.0, 50.0]]);
+}

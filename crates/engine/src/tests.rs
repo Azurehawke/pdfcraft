@@ -8715,3 +8715,42 @@ fn a_page_truncated_for_forms_and_pictures_is_listed_once() {
     assert!(pages[0].images.is_empty(), "the picture is past the budget");
     assert_eq!(truncated, [0]);
 }
+
+#[test]
+fn a_title_block_is_one_per_page_on_its_own_layer_drawn_behind_the_marks() {
+    use pdfcraft_annot::symbols::{NewSymbol, Symbol};
+    use pdfcraft_annot::titleblock::Fields;
+    let (mut s, id) = session_with(2);
+    s.apply(id, Edit::AddLayer { name: "Data".into(), color: [0.0, 0.4, 0.9] }).unwrap();
+    let data = s.layer_details(id).iter().find(|l| l.name == "Data").map(|l| (l.id.num, l.id.generation)).unwrap();
+    s.set_current_layer(id, Some(data)).unwrap();
+    // A mark drawn before the block: it must still come out over the block.
+    s.apply(
+        id,
+        Edit::AddSymbol(NewSymbol {
+            page: 0,
+            symbol: Symbol::DataJack,
+            center: [50.0, 100.0],
+            size: 12.0,
+            label: "PC".into(),
+            color: [0.0, 0.4, 0.9],
+            author: "Steve".into(),
+            rotation: 0.0,
+            custom: None,
+        }),
+    )
+    .unwrap();
+    let fields = Fields { project: "Harbour House".into(), ..Fields::default() };
+    s.apply(id, Edit::AddTitleBlock { page: 0, fields: fields.clone() }).unwrap();
+    let title =
+        s.layer_details(id).iter().find(|l| l.name == "Title block").map(|l| (l.id.num, l.id.generation)).expect("the title block layer exists");
+    // Drawn first: the block's pieces are the first comments on the page, on the title layer.
+    assert_eq!(s.annotation_layer(id, 0, 0), Some(title));
+    assert_eq!(s.annotation_layer(id, 0, 12), Some(title));
+    // The symbol drawn before the block now comes after the block's thirteen pieces.
+    assert_eq!(s.annotation_layer(id, 0, 13), Some(data));
+    // One block per page: a second on page 1 is fine, a second on page 1 again is not.
+    assert!(s.apply(id, Edit::AddTitleBlock { page: 0, fields: fields.clone() }).is_err());
+    s.apply(id, Edit::AddTitleBlock { page: 1, fields }).unwrap();
+    assert_eq!(s.annotation_layer(id, 1, 0), Some(title));
+}
