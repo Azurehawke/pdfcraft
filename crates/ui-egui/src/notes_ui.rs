@@ -409,6 +409,30 @@ impl PdfCraftApp {
     }
 }
 
+/// The note's header: its title, cut short when long, then the buttons that finish the note and
+/// switch between reading and editing. The title takes only the width the buttons leave, so a
+/// long first line can't push Done off the edge of a phone. Returns (done, switch).
+fn header(ui: &mut egui::Ui, title: &str, editing: bool) -> (bool, bool) {
+    let (mut done, mut switch) = (false, false);
+    egui::Sides::new().show(
+        ui,
+        |ui| {
+            let shown = if title.is_empty() { tl!("Note").to_string() } else { title.to_string() };
+            ui.add(egui::Label::new(RichText::new(shown).font(theme::semibold(16.0))).truncate());
+        },
+        |ui| {
+            if crate::widgets::pill_button(ui, tl!("Done"), true).clicked() {
+                done = true;
+            }
+            let (label, tip) = if editing { (tl!("Read"), tl!("Show the note formatted")) } else { (tl!("Edit"), tl!("Edit the note's text")) };
+            if crate::widgets::pill_button(ui, label, false).on_hover_text(tip).clicked() {
+                switch = true;
+            }
+        },
+    );
+    (done, switch)
+}
+
 /// The open note, over the drawing.
 pub(crate) fn editor(app: &mut PdfCraftApp, ctx: &egui::Context) {
     // Autosave: the file is written once typing pauses, and at once when the window closes.
@@ -450,21 +474,14 @@ pub(crate) fn editor(app: &mut PdfCraftApp, ctx: &egui::Context) {
         ui.set_max_width(width);
         ui.set_max_height(height);
         // Title and the buttons that switch between reading and editing.
-        ui.horizontal(|ui| {
-            let title = markdown::title(&ed.text);
-            ui.label(RichText::new(if title.is_empty() { tl!("Note").to_string() } else { title }).font(theme::semibold(16.0)));
-            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-                if crate::widgets::pill_button(ui, tl!("Done"), true).clicked() {
-                    close = true;
-                }
-                let (label, tip) =
-                    if ed.editing { (tl!("Read"), tl!("Show the note formatted")) } else { (tl!("Edit"), tl!("Edit the note's text")) };
-                if crate::widgets::pill_button(ui, label, false).on_hover_text(tip).clicked() {
-                    ed.editing = !ed.editing;
-                    ed.pictures_stale |= !ed.editing;
-                }
-            });
-        });
+        let (done, switch) = header(ui, &markdown::title(&ed.text), ed.editing);
+        if done {
+            close = true;
+        }
+        if switch {
+            ed.editing = !ed.editing;
+            ed.pictures_stale |= !ed.editing;
+        }
         if let Some(p) = &ed.problem {
             ui.colored_label(ui.visuals().error_fg_color, p);
         }
@@ -1223,5 +1240,30 @@ mod autosave_tests {
         assert_eq!(autosave_file(&path, "newer", &mut saved, typed, typed + 0.1, true), Ok(true));
         assert_eq!(std::fs::read_to_string(&path).ok().as_deref(), Some("newer"));
         let _ = std::fs::remove_dir_all(&dir);
+    }
+}
+
+#[cfg(test)]
+mod header_tests {
+    use egui_kittest::kittest::Queryable;
+
+    /// A phone is 360 points wide. Done stays on screen whatever the first line of the note says.
+    #[test]
+    fn done_stays_on_screen_with_a_long_title() {
+        let title = "x".repeat(80);
+        let mut fonts_set = false;
+        let mut h = egui_kittest::Harness::builder().with_size(egui::vec2(360.0, 120.0)).build_ui(move |ui| {
+            // The theme's font families are bound on the first frame; lay the header out after it.
+            if !fonts_set {
+                fonts_set = true;
+                crate::theme::install_fonts(ui.ctx());
+                ui.ctx().request_repaint();
+                return;
+            }
+            let _ = super::header(ui, &title, false);
+        });
+        h.run();
+        let done = h.get_by_label("Done").rect();
+        assert!(done.max.x <= 360.5 && done.min.x >= -0.5, "Done is at {done:?}, off a 360 pt screen");
     }
 }
