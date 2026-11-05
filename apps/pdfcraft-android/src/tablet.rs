@@ -94,6 +94,8 @@ impl eframe::App for TabletApp {
             self.check_incoming = true;
         }
         self.focused = raw.focused;
+        // Android's Back closes the open note or dialog, as Escape does on a keyboard.
+        pdfcraft_ui_egui::back_key::back_as_escape(&mut raw.events);
         self.touches.route(&mut raw.events);
         if self.touches.pending() {
             // A lift held back for the next frame (`TouchRouter::next`).
