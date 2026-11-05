@@ -16,6 +16,9 @@ pub const ROLE: &str = "titleblock";
 
 /// The block's band from the page edges, in points (half an inch).
 const MARGIN: f64 = 36.0;
+/// The border drawn round the whole page, inset from its edges, in points (a quarter inch). It is
+/// part of the block: it goes with the block's layer and is drawn behind the marks.
+const FRAME: f64 = 18.0;
 /// Its size in points: five and a half by one and three quarter inches, at most the page less
 /// the margins.
 const WIDTH: f64 = 396.0;
@@ -84,6 +87,7 @@ pub fn layout(media: [f64; 4], page: usize, pages: usize, fields: &Fields, forma
     let mut add = |shape: Shape, style: Style, contents: String| {
         out.push(NewAnnotation { page, shape, style, contents, author: fields.author.clone() });
     };
+    add(Shape::Rectangle { rect: [x0 + FRAME, y0 + FRAME, x1 - FRAME, y1 - FRAME] }, line_style.clone(), String::new());
     add(Shape::Rectangle { rect: [left, bottom, left + width, top] }, line_style.clone(), String::new());
     for i in 1..4 {
         let y = bottom + row * f64::from(i);
@@ -169,7 +173,8 @@ mod tests {
     fn the_block_sits_in_the_bottom_right_corner_inside_the_margins() {
         let media = [0.0, 0.0, 612.0, 792.0];
         let pieces = layout(media, 1, 2, &fields(), "Letter", "2026-11-04").expect("lays out");
-        for p in &pieces {
+        // The first piece is the page frame, which spans the page; the rest are the block.
+        for p in pieces.iter().skip(1) {
             let rect = match &p.shape {
                 Shape::Rectangle { rect } | Shape::TextBox { rect, .. } => *rect,
                 Shape::Line { from, to, .. } => [from[0], from[1], to[0], to[1]],
@@ -177,6 +182,15 @@ mod tests {
             };
             assert!(rect[0] >= 612.0 - MARGIN - WIDTH - 0.01 && rect[2] <= 612.0 - MARGIN + 0.01, "x out of the corner: {rect:?}");
             assert!(rect[1] >= MARGIN - 0.01 && rect[3] <= MARGIN + HEIGHT + 0.01, "y out of the corner: {rect:?}");
+        }
+    }
+
+    #[test]
+    fn the_frame_is_a_quarter_inch_inside_the_page_edges() {
+        let pieces = layout([0.0, 0.0, 612.0, 792.0], 0, 1, &fields(), "Letter", "2026-11-04").expect("lays out");
+        match &pieces[0].shape {
+            Shape::Rectangle { rect } => assert_eq!(*rect, [18.0, 18.0, 594.0, 774.0]),
+            other => panic!("the first piece should be the frame, got {other:?}"),
         }
     }
 

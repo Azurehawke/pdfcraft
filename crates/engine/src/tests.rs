@@ -8746,7 +8746,7 @@ fn a_title_block_is_one_per_page_on_its_own_layer_drawn_behind_the_marks() {
     s.apply(id, Edit::AddTitleBlock { page: 0 }).unwrap();
     let texts: Vec<String> = {
         let cos = &s.get(id).unwrap().editor.as_ref().unwrap().cos;
-        (0..13)
+        (0..14)
             .filter_map(|i| pdfcraft_annot::photo_callout::dict_at(cos, 0, i))
             .filter_map(|d| d.get(b"Contents").and_then(|v| cos.resolve(v).as_string().map(|t| t.to_text())))
             .collect()
@@ -8759,9 +8759,9 @@ fn a_title_block_is_one_per_page_on_its_own_layer_drawn_behind_the_marks() {
         s.layer_details(id).iter().find(|l| l.name == "Title block").map(|l| (l.id.num, l.id.generation)).expect("the title block layer exists");
     // Drawn first: the block's pieces are the first comments on the page, on the title layer.
     assert_eq!(s.annotation_layer(id, 0, 0), Some(title));
-    assert_eq!(s.annotation_layer(id, 0, 12), Some(title));
-    // The symbol drawn before the block now comes after the block's thirteen pieces.
-    assert_eq!(s.annotation_layer(id, 0, 13), Some(data));
+    assert_eq!(s.annotation_layer(id, 0, 13), Some(title));
+    // The symbol drawn before the block now comes after the block's fourteen pieces (the frame included).
+    assert_eq!(s.annotation_layer(id, 0, 14), Some(data));
     // One block per page: a second on page 1 is fine, a second on page 1 again is not.
     assert!(s.apply(id, Edit::AddTitleBlock { page: 0 }).is_err());
     s.apply(id, Edit::AddTitleBlock { page: 1 }).unwrap();
