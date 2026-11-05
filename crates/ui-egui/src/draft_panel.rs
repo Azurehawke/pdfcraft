@@ -125,7 +125,7 @@ const TEXT: Entry = Entry::Command { id: "comment.freetext", icon: CadIcon::Text
 const CALLOUT: Entry = Entry::Command { id: "comment.callout", icon: CadIcon::Callout, label: "Callout (text with a leader line)" };
 
 /// The fly-out groups: (caption, section, tools).
-pub const GROUPS: [(&str, &str, &[Entry]); 9] = [
+pub const GROUPS: [(&str, &str, &[Entry]); 10] = [
     ("Lines", "Draw", &[Entry::Tool(D::Line), Entry::Tool(D::Polyline), Entry::Tool(D::Spline)]),
     (
         "Shapes",
@@ -146,6 +146,7 @@ pub const GROUPS: [(&str, &str, &[Entry]); 9] = [
     ("Break and join", "Modify", &[Entry::Tool(D::Break), Entry::Tool(D::Join), Entry::Tool(D::Explode), Entry::Tool(D::Erase)]),
     ("Dimensions", "Annotate", &[Entry::Tool(D::Dimension), Entry::Tool(D::DimLinear), Entry::Tool(D::DimRadius), Entry::Tool(D::DimDiameter)]),
     ("Text", "Annotate", &[TEXT, CALLOUT]),
+    ("Title block", "Annotate", &[Entry::Tool(D::TitleBlock)]),
 ];
 
 const SECTIONS: [&str; 3] = ["Draw", "Modify", "Annotate"];
@@ -618,5 +619,17 @@ mod tests {
         toggle_group(&mut collapsed, "Plumbing");
         toggle_group(&mut collapsed, "Data");
         assert_eq!(collapsed, vec!["Plumbing".to_string()]);
+    }
+}
+
+#[cfg(test)]
+mod title_block_button_tests {
+    use super::*;
+
+    /// The title block is a Draft tool a user can reach: it has a button in the Draft panel.
+    #[test]
+    fn the_title_block_has_a_button_in_the_draft_panel() {
+        let listed = GROUPS.iter().flat_map(|(_, _, entries)| entries.iter()).any(|e| *e == Entry::Tool(D::TitleBlock));
+        assert!(listed, "the Draft panel has no title block button");
     }
 }
