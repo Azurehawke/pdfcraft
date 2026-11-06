@@ -1,6 +1,5 @@
 //! RevuCraft's Markdown comments: the files kept beside a PDF in `<pdf-name>.comments/`, their
-//! names and their frontmatter. PlanCraft reads these files directly, so the frontmatter keys and
-//! the names are a format to keep stable.
+//! names and their frontmatter. The frontmatter keys and the names are a format to keep stable.
 
 use std::path::{Path, PathBuf};
 
@@ -249,23 +248,6 @@ pub fn add_photo(pdf: &Path, name: &str, bytes: &[u8]) -> Result<String, String>
     Ok(format!("{folder}/{file}"))
 }
 
-/// The photos in `<pdf-name>.images/`, as paths relative to the PDF's folder, sorted by name. Only
-/// image files are listed; a folder that is not there has no photos.
-pub fn photo_files(pdf: &Path) -> Vec<String> {
-    let dir = images_dir(pdf);
-    let Ok(entries) = std::fs::read_dir(&dir) else { return Vec::new() };
-    let folder = dir.file_name().map(|f| f.to_string_lossy().into_owned()).unwrap_or_default();
-    let mut names: Vec<String> = entries
-        .filter_map(Result::ok)
-        .take(crate::package::MAX_FILES)
-        .filter(|e| e.path().is_file())
-        .map(|e| e.file_name().to_string_lossy().into_owned())
-        .filter(|n| is_image(n))
-        .collect();
-    names.sort();
-    names.into_iter().map(|n| format!("{folder}/{n}")).collect()
-}
-
 /// Keeps the photo file at `source` beside the PDF (see [`add_photo`]). A file too large to read
 /// is refused before it is read.
 pub fn add_photo_file(pdf: &Path, source: &Path) -> Result<String, String> {
@@ -410,21 +392,6 @@ mod tests {
         let from_disk = dir.join("camera.png");
         std::fs::write(&from_disk, &png).unwrap();
         assert_eq!(add_photo_file(&pdf, &from_disk).unwrap(), "Smith-Residence.images/camera.png");
-        let _ = std::fs::remove_dir_all(&dir);
-    }
-
-    #[test]
-    fn the_photos_list_is_sorted_relative_and_holds_only_images() {
-        let dir = std::env::temp_dir().join(format!("pdfcraft-photo-list-{}", std::process::id()));
-        let _ = std::fs::remove_dir_all(&dir);
-        let pdf = dir.join("Smith Residence.pdf");
-        assert!(photo_files(&pdf).is_empty(), "no folder, no photos");
-        let images = images_dir(&pdf);
-        std::fs::create_dir_all(&images).unwrap();
-        for name in ["IMG_2.jpg", "IMG_1.JPG", "notes.txt"] {
-            std::fs::write(images.join(name), b"x").unwrap();
-        }
-        assert_eq!(photo_files(&pdf), vec!["Smith-Residence.images/IMG_1.JPG", "Smith-Residence.images/IMG_2.jpg"]);
         let _ = std::fs::remove_dir_all(&dir);
     }
 

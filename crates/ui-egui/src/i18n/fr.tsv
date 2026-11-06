@@ -2760,8 +2760,6 @@ key	Space	Espace
 	Missing	Introuvable
 	Not found at this path	Introuvable à cet emplacement
 	Off: an update replaces the drawing. On: the drawing it replaces stays as a hidden layer, to compare.	Désactivé : une mise à jour remplace le dessin. Activé : le dessin remplacé reste en calque masqué, pour comparer.
-	Link to PlanCraft	Lier à PlanCraft
-	On: each save writes markups.json (punch items and spaces) into the drawing's job folder, for PlanCraft.	Activé : chaque enregistrement écrit markups.json (points de réserve et espaces) dans le dossier du plan, pour PlanCraft.
 	On sheet	Sur la feuille
 	Open the drawing in CADCraft yourself; this sheet updates when it is saved.	Ouvrez le dessin dans CADCraft vous-même ; cette feuille se met à jour à l’enregistrement.
 	Previous drawings: {n} (hidden layers)	Dessins précédents : {n} (calques masqués)

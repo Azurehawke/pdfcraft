@@ -2779,8 +2779,6 @@ key	Space	Пробіл
 	Missing	Відсутній
 	Not found at this path	Не знайдено за цим шляхом
 	Off: an update replaces the drawing. On: the drawing it replaces stays as a hidden layer, to compare.	Вимк.: оновлення замінює креслення. Увімк.: замінене креслення лишається прихованим шаром для порівняння.
-	Link to PlanCraft	Зв'язати з PlanCraft
-	On: each save writes markups.json (punch items and spaces) into the drawing's job folder, for PlanCraft.	Увімк.: кожне збереження записує markups.json (зауваження та приміщення) у теку роботи з кресленням для PlanCraft.
 	On sheet	На аркуші
 	Open the drawing in CADCraft yourself; this sheet updates when it is saved.	Відкрийте креслення в CADCraft самі; цей аркуш оновиться під час збереження.
 	Previous drawings: {n} (hidden layers)	Попередні креслення: {n} (приховані шари)

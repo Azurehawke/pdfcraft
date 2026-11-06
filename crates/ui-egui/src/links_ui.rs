@@ -221,8 +221,6 @@ pub enum Status {
 pub struct LinksState {
     /// Keep each replaced drawing as a hidden Rev layer (off by default).
     pub keep_revisions: bool,
-    /// Write `markups.json` for PlanCraft in the job folder on each save (off by default; docs/sidecar.md).
-    pub plancraft_link: bool,
     selected: usize,
     /// Files opened with Edit original.
     editing: HashSet<String>,
@@ -1321,14 +1319,6 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
         .changed()
     {
         app.set_keep_link_revisions(keep);
-    }
-    let mut plancraft = app.links.plancraft_link;
-    if ui
-        .add(crate::widgets::checkbox(&mut plancraft, tl!("Link to PlanCraft")))
-        .on_hover_text(tl!("On: each save writes markups.json (punch items and spaces) into the drawing's job folder, for PlanCraft."))
-        .changed()
-    {
-        app.links.plancraft_link = plancraft;
     }
     match act {
         Some(Act::Update(i)) => {

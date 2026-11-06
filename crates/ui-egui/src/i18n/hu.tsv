@@ -2753,8 +2753,6 @@ key	Space	Szóköz
 	Missing	Hiányzik
 	Not found at this path	Nem található ezen az útvonalon
 	Off: an update replaces the drawing. On: the drawing it replaces stays as a hidden layer, to compare.	Ki: a frissítés lecseréli a rajzot. Be: a lecserélt rajz rejtett rétegként megmarad összehasonlításhoz.
-	Link to PlanCraft	Összekapcsolás a PlanCraft-tal
-	On: each save writes markups.json (punch items and spaces) into the drawing's job folder, for PlanCraft.	Be: minden mentéskor a markups.json (hibapontok és terek) íródik a rajz munkamappájába, a PlanCraft számára.
 	On sheet	A lapon
 	Open the drawing in CADCraft yourself; this sheet updates when it is saved.	Nyissa meg a rajzot saját maga a CADCraftban; ez a lap mentéskor frissül.
 	Previous drawings: {n} (hidden layers)	Korábbi rajzok: {n} (rejtett rétegek)

@@ -2769,8 +2769,6 @@ key	Space	Spazio
 	Missing	Mancante
 	Not found at this path	Non trovato in questo percorso
 	Off: an update replaces the drawing. On: the drawing it replaces stays as a hidden layer, to compare.	Spento: un aggiornamento sostituisce il disegno. Acceso: il disegno sostituito resta come livello nascosto, per confronto.
-	Link to PlanCraft	Collega a PlanCraft
-	On: each save writes markups.json (punch items and spaces) into the drawing's job folder, for PlanCraft.	Attivo: ogni salvataggio scrive markups.json (voci di punch list e spazi) nella cartella di lavoro del disegno, per PlanCraft.
 	On sheet	Sul foglio
 	Open the drawing in CADCraft yourself; this sheet updates when it is saved.	Apri tu il disegno in CADCraft; questo foglio si aggiorna al salvataggio.
 	Previous drawings: {n} (hidden layers)	Disegni precedenti: {n} (livelli nascosti)

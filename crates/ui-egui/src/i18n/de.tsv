@@ -2759,8 +2759,6 @@ key	Space	Leertaste
 	Missing	Fehlt
 	Not found at this path	An diesem Pfad nicht gefunden
 	Off: an update replaces the drawing. On: the drawing it replaces stays as a hidden layer, to compare.	Aus: Eine Aktualisierung ersetzt die Zeichnung. Ein: Die ersetzte Zeichnung bleibt als ausgeblendete Ebene zum Vergleichen.
-	Link to PlanCraft	Mit PlanCraft verknüpfen
-	On: each save writes markups.json (punch items and spaces) into the drawing's job folder, for PlanCraft.	Ein: Jedes Speichern schreibt markups.json (Mängelpunkte und Bereiche) in den Projektordner der Zeichnung, für PlanCraft.
 	On sheet	Auf Blatt
 	Open the drawing in CADCraft yourself; this sheet updates when it is saved.	Öffnen Sie die Zeichnung selbst in CADCraft; dieses Blatt wird beim Speichern aktualisiert.
 	Previous drawings: {n} (hidden layers)	Frühere Zeichnungen: {n} (ausgeblendete Ebenen)

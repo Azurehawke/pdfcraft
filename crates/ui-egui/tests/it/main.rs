@@ -52,7 +52,6 @@ mod object_selection;
 mod ocr;
 mod organize_drag;
 mod pageboxes;
-mod plancraft_sidecar;
 mod wall_ends;
 mod wall_knife;
 // RevuCraft: its side panels differ from PdfCraft's (its own Layers panel, dock rail and header

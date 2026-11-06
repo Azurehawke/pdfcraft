@@ -2716,8 +2716,6 @@ key	Space	Интервал
 	Missing	Липсва
 	Not found at this path	Не е намерен на този път
 	Off: an update replaces the drawing. On: the drawing it replaces stays as a hidden layer, to compare.	Изкл.: обновяването заменя чертежа. Вкл.: замененият чертеж остава като скрит слой за сравнение.
-	Link to PlanCraft	Връзка с PlanCraft
-	On: each save writes markups.json (punch items and spaces) into the drawing's job folder, for PlanCraft.	Вкл.: всяко запазване записва markups.json (точки за корекция и пространства) в папката на чертежа, за PlanCraft.
 	On sheet	На листа
 	Open the drawing in CADCraft yourself; this sheet updates when it is saved.	Отворете чертежа в CADCraft сами; този лист се обновява при запис.
 	Previous drawings: {n} (hidden layers)	Предишни чертежи: {n} (скрити слоеве)

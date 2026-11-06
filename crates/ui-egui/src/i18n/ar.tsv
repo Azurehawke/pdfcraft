@@ -2777,8 +2777,6 @@ key	Space	مسافة
 	Missing	مفقود
 	Not found at this path	غير موجود في هذا المسار
 	Off: an update replaces the drawing. On: the drawing it replaces stays as a hidden layer, to compare.	إيقاف: يستبدل التحديث الرسم. تشغيل: يبقى الرسم المستبدل طبقة مخفية للمقارنة.
-	Link to PlanCraft	ربط بـ PlanCraft
-	On: each save writes markups.json (punch items and spaces) into the drawing's job folder, for PlanCraft.	مفعّل: يكتب كل حفظ ملف markups.json (بنود النواقص والمساحات) في مجلد المخطط المرتبط، لصالح PlanCraft.
 	On sheet	على الورقة
 	Open the drawing in CADCraft yourself; this sheet updates when it is saved.	افتح الرسم في CADCraft بنفسك؛ تتحدث هذه الورقة عند الحفظ.
 	Previous drawings: {n} (hidden layers)	الرسومات السابقة: {n} (طبقات مخفية)

@@ -629,28 +629,6 @@ impl PdfCraftApp {
     }
 
     /// Save the active document. Returns `true` if it was written.
-    /// Writes RevuCraft's sidecar for PlanCraft, `markups.json` in the drawing's job folder, after a
-    /// save while Link to PlanCraft is on. A failure is reported and never undoes the save.
-    fn write_plancraft_sidecar(&mut self, id: pdfcraft_engine::DocId, dest: &str) {
-        if !self.links.plancraft_link {
-            return;
-        }
-        let Some(folder) = crate::notes_ui::job_folder(std::path::Path::new(dest)) else { return };
-        let json = match self.session.get(id).map(|d| d.sidecar_json(std::path::Path::new(dest))) {
-            Some(Ok(json)) => json,
-            Some(Err(e)) => {
-                self.notify_fmt("Couldn't build the PlanCraft sidecar: {e}", &[("e", &e)]);
-                return;
-            }
-            None => return,
-        };
-        let written =
-            std::fs::create_dir_all(&folder).and_then(|()| pdfcraft_engine::Document::write_sidecar_file(&folder.join("markups.json"), &json));
-        if let Err(e) = written {
-            self.notify_fmt("Couldn't write the PlanCraft sidecar: {e}", &[("e", &e.to_string())]);
-        }
-    }
-
     pub fn save_active(&mut self, target: SaveTarget) -> bool {
         match self.active {
             Some(i) => self.save_view(i, target),
@@ -828,7 +806,6 @@ impl PdfCraftApp {
                     // Saving over a version that changed on disk keeps this one: nothing to ask.
                     view.disk_changed = false;
                 }
-                self.write_plancraft_sidecar(id, dest);
                 self.notify_fmt("Saved {name}", &[("name", &short_name(dest))]);
                 #[cfg(target_os = "macos")]
                 crate::macos_association::repair(std::path::Path::new(dest));

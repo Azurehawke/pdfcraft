@@ -2757,8 +2757,6 @@ key	Space	スペース
 	Missing	見つかりません
 	Not found at this path	このパスに見つかりません
 	Off: an update replaces the drawing. On: the drawing it replaces stays as a hidden layer, to compare.	オフ：更新で図面を置き換えます。オン：置き換えた図面を比較用の非表示レイヤーとして残します。
-	Link to PlanCraft	PlanCraft と連携
-	On: each save writes markups.json (punch items and spaces) into the drawing's job folder, for PlanCraft.	オン: 保存のたびに、図面の作業フォルダーへ markups.json（パンチリストの項目とスペース）を書き出します（PlanCraft 用）。
 	On sheet	シート
 	Open the drawing in CADCraft yourself; this sheet updates when it is saved.	CADCraft で図面をご自身で開いてください。保存するとこのシートが更新されます。
 	Previous drawings: {n} (hidden layers)	以前の図面：{n}（非表示レイヤー）

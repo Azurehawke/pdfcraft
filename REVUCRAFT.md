@@ -425,8 +425,7 @@ Markup and measuring
         Condition column in the Markups list; the legend and symbol counts split by condition
         ("24 data ports: 10 existing, 12 installed, 2 proposed"). Covers part of Object styles
         (back burner).
-  - [x] Linked to the punch list: setting a punch item's markup to Installed closes the item (and,
-        later, reaches PlanCraft's dashboard).
+  - [x] Linked to the punch list: setting a punch item's markup to Installed closes the item.
   - [ ] Punch badges on a Punch layer: each number badge becomes its own small marker on a Punch
         layer that follows its markup (as doors follow walls), so the markup stays on its own
         layer (a data port on Data) while hiding or not printing the Punch layer hides every

@@ -2673,8 +2673,6 @@ key	Space	Пробел
 	Missing	Отсутствует
 	Not found at this path	Не найден по этому пути
 	Off: an update replaces the drawing. On: the drawing it replaces stays as a hidden layer, to compare.	Выкл.: обновление заменяет чертёж. Вкл.: заменённый чертёж остаётся скрытым слоем для сравнения.
-	Link to PlanCraft	Связать с PlanCraft
-	On: each save writes markups.json (punch items and spaces) into the drawing's job folder, for PlanCraft.	Вкл.: при каждом сохранении в папку работы с чертежом записывается markups.json (замечания и помещения) для PlanCraft.
 	On sheet	На листе
 	Open the drawing in CADCraft yourself; this sheet updates when it is saved.	Откройте чертёж в CADCraft сами; этот лист обновится при сохранении.
 	Previous drawings: {n} (hidden layers)	Прежние чертежи: {n} (скрытые слои)

@@ -816,5 +816,3 @@ the text recognition models are not installed (reinstall RevuCraft, or set PDFCR
 {when} (newer than the sheet)
 {who} in this document tried to open an address RevuCraft won't open: {e}.
 {who} in this document tried to open an address RevuCraft won't open: {e}. Only web (http, https) and email (mailto) links open from documents.
-Link to PlanCraft
-On: each save writes markups.json (punch items and spaces) into the drawing's job folder, for PlanCraft.

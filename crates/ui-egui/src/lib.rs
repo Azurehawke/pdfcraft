@@ -2379,11 +2379,6 @@ impl PdfCraftApp {
         self.links.keep_revisions = keep;
     }
 
-    /// Write `markups.json` for PlanCraft on each save (saved with the settings).
-    pub fn set_plancraft_link(&mut self, on: bool) {
-        self.links.plancraft_link = on;
-    }
-
     /// Draw the tool icons in `c` from now on (saved with the settings).
     pub fn set_icon_color(&mut self, c: theme::IconColor) {
         self.icon_color = c;
@@ -2700,7 +2695,6 @@ impl PdfCraftApp {
         v["folder_maps"] =
             serde_json::Value::Array(folder_maps::usable(&self.folder_maps).into_iter().map(|(a, b)| serde_json::json!([a, b])).collect());
         v["link_keep_revisions"] = serde_json::Value::Bool(self.links.keep_revisions);
-        v["plancraft_link"] = serde_json::Value::Bool(self.links.plancraft_link);
         v["draw_pen"] = serde_json::json!(self.comment_prefs.pen.name());
         v["hover_tips"] = serde_json::Value::Bool(self.comment_prefs.hover_tips);
         v["draft_panel_collapsed"] = serde_json::Value::Bool(self.draft.panel_collapsed);
@@ -2819,9 +2813,6 @@ impl PdfCraftApp {
         }
         if let Some(c) = v["icon_color"].as_str().and_then(theme::IconColor::from_code) {
             self.set_icon_color(c);
-        }
-        if let Some(on) = v["plancraft_link"].as_bool() {
-            self.links.plancraft_link = on;
         }
         if let Some(keep) = v["link_keep_revisions"].as_bool() {
             self.set_keep_link_revisions(keep);
