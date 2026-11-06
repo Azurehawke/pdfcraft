@@ -559,10 +559,16 @@ const PAGE_HITS_ASKERS: [(&str, &str, &str); 5] = [
 const COMMENT_POINT_TESTS: [&str; 2] = [".comment_at(", "PageCx::comment_at("];
 
 /// The functions that ask which comment lies under a point: (file, function, why).
-const COMMENT_POINT_TESTERS: [(&str, &str, &str); 3] = [
+const COMMENT_POINT_TESTERS: [(&str, &str, &str); 4] = [
     ("tools/comments/input.rs", "hit", "the comments' hit test"),
     ("tools/comments/input.rs", "context_hit", "the comments' hit test for a right-click"),
     ("tools/comments/paint.rs", "paint_page", "a redaction mark shows its fill under the pointer with every tool, as comments' tips show"),
+    (
+        "tools/comments/input.rs",
+        "page_input",
+        "Android: a finger's tap with the Hand tool selects the comment under it. The Hand tool takes no comment hits, so that a finger's drag \
+         on a comment still pans",
+    ),
 ];
 
 /// What reads who holds the press the pages hold.

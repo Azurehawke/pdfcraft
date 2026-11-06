@@ -16,7 +16,13 @@ use winit::platform::android::activity::AndroidApp;
 /// credits.
 fn files() -> [String; 5] {
     let (detection, recognition) = (pdfcraft_ocr::DETECTION_MODEL, pdfcraft_ocr::RECOGNITION_MODEL);
-    [detection.to_string(), recognition.to_string(), format!("{detection}.LICENCE.txt"), format!("{recognition}.LICENCE.txt"), "ATTRIBUTION.txt".into()]
+    [
+        detection.to_string(),
+        recognition.to_string(),
+        format!("{detection}.LICENCE.txt"),
+        format!("{recognition}.LICENCE.txt"),
+        "ATTRIBUTION.txt".into(),
+    ]
 }
 /// Larger assets are refused (the models are a few megabytes each).
 const MAX_BYTES: u64 = 256 * 1024 * 1024;
