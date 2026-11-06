@@ -1,0 +1,140 @@
+[1m[92m   Compiling[0m thiserror v2.0.21
+[1m[92m   Compiling[0m tinyvec v1.13.3
+[1m[92m   Compiling[0m const-oid v0.10.2
+[1m[92m   Compiling[0m crc32fast v1.5.2
+[1m[92m   Compiling[0m byteorder-lite v0.1.0
+[1m[92m   Compiling[0m digest v0.11.3
+[1m[92m   Compiling[0m unicode-normalization v0.1.25
+[1m[92m   Compiling[0m inout v0.2.2
+[1m[92m   Compiling[0m unicode-bidi v0.3.18
+[1m[92m   Compiling[0m hayro-ccitt v0.3.0
+[1m[92m   Compiling[0m fearless_simd v0.4.1
+[1m[92m   Compiling[0m adler2 v2.0.1
+[1m[92m   Compiling[0m cpufeatures v0.3.1
+[1m[92m   Compiling[0m simd-adler32 v0.3.10
+[1m[92m   Compiling[0m unicode-properties v0.1.4
+[1m[92m   Compiling[0m stringprep v0.1.5
+[1m[92m   Compiling[0m miniz_oxide v0.9.1
+[1m[92m   Compiling[0m cipher v0.5.2
+[1m[92m   Compiling[0m cpubits v0.1.1
+[1m[92m   Compiling[0m flate2 v1.1.10
+[1m[92m   Compiling[0m aes v0.9.3
+[1m[92m   Compiling[0m bytemuck_derive v1.12.1
+[1m[92m   Compiling[0m thiserror-impl v2.0.21
+[1m[92m   Compiling[0m sha2 v0.11.1
+[1m[92m   Compiling[0m md-5 v0.11.0
+[1m[92m   Compiling[0m fax v0.2.7
+[1m[92m   Compiling[0m once_cell v1.21.4
+[1m[92m   Compiling[0m chrono v0.4.45
+[1m[92m   Compiling[0m smallvec v1.16.2
+[1m[92m   Compiling[0m pdfcraft-fonts v0.18.1 (/home/runner/work/pdfcraft/pdfcraft/crates/fonts)
+[1m[92m   Compiling[0m bitflags v2.13.2
+[1m[92m   Compiling[0m zune-core v0.5.3
+[1m[92m   Compiling[0m zune-jpeg v0.5.15
+[1m[92m   Compiling[0m bytemuck v1.25.2
+[1m[92m   Compiling[0m image v0.25.10
+[1m[92m   Compiling[0m font-types v0.12.5
+[1m[92m   Compiling[0m read-fonts v0.41.0
+[1m[92m   Compiling[0m hayro-jpeg2000 v0.3.5
+[1m[92m   Compiling[0m hayro-jbig2 v0.3.0 (/home/runner/work/pdfcraft/pdfcraft/vendor/hayro-jbig2)
+[1m[92m   Compiling[0m pdfcraft-filters v0.18.1 (/home/runner/work/pdfcraft/pdfcraft/crates/filters)
+[1m[92m   Compiling[0m pdfcraft-crypt v0.18.1 (/home/runner/work/pdfcraft/pdfcraft/crates/crypt)
+[1m[92m   Compiling[0m pdfcraft-cos v0.18.1 (/home/runner/work/pdfcraft/pdfcraft/crates/cos)
+[1m[92m   Compiling[0m harfrust v0.12.0
+[1m[92m   Compiling[0m skrifa v0.44.0
+[1m[92m   Compiling[0m rustc-hash v2.1.3
+[1m[92m   Compiling[0m hayro-syntax v0.7.2 (/home/runner/work/pdfcraft/pdfcraft/vendor/hayro-syntax)
+[1m[92m   Compiling[0m pdfcraft-model v0.18.1 (/home/runner/work/pdfcraft/pdfcraft/crates/model)
+[1m[92m   Compiling[0m pdfcraft-annot v0.18.1 (/home/runner/work/pdfcraft/pdfcraft/crates/annot)
+[1m[92m    Finished[0m `test` profile [optimized + debuginfo] target(s) in 1m 07s
+[1m[92m     Running[0m unittests src/lib.rs (target/debug/deps/pdfcraft_annot-28591e6a2358c9b9)
+
+running 5 tests
+test pen::tests::names_round_trip ... ok
+test pen::tests::pressure_widens_a_fountain_pen ... ok
+test tests::a_diagonal_lines_leaders_are_perpendicular_and_its_caption_turns_with_it ... ok
+test pen::tests::outlines_are_closed_fills_for_any_input ... ok
+test tests::pen_drawings_keep_their_pen_and_pressure ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 98 filtered out; finished in 0.01s
+
+[1m[92m   Compiling[0m encoding_rs v0.8.42
+[1m[92m   Compiling[0m brotli v8.0.4
+[1m[92m   Compiling[0m bytemuck_derive v1.12.1
+[1m[92m   Compiling[0m thiserror-impl v2.0.21
+[1m[92m   Compiling[0m zerofrom-derive v0.1.8
+[1m[92m   Compiling[0m bytemuck v1.25.2
+[1m[92m   Compiling[0m image v0.25.10
+[1m[92m   Compiling[0m hayro-jbig2 v0.3.0 (/home/runner/work/pdfcraft/pdfcraft/vendor/hayro-jbig2)
+[1m[92m   Compiling[0m thiserror v2.0.21
+[1m[92m   Compiling[0m font-types v0.12.5
+[1m[92m   Compiling[0m pdfcraft-filters v0.18.1 (/home/runner/work/pdfcraft/pdfcraft/crates/filters)
+[1m[92m   Compiling[0m pdfcraft-crypt v0.18.1 (/home/runner/work/pdfcraft/pdfcraft/crates/crypt)
+[1m[92m   Compiling[0m pdfcraft-cos v0.18.1 (/home/runner/work/pdfcraft/pdfcraft/crates/cos)
+[1m[92m   Compiling[0m read-fonts v0.41.0
+[1m[92m   Compiling[0m color v0.3.3
+[1m[92m   Compiling[0m peniko v0.6.1
+[1m[92m   Compiling[0m phf_macros v0.13.1
+[1m[92m   Compiling[0m read-fonts v0.44.0
+[1m[92m   Compiling[0m hayro-syntax v0.7.2 (/home/runner/work/pdfcraft/pdfcraft/vendor/hayro-syntax)
+[1m[92m   Compiling[0m zerofrom v0.1.8
+[1m[92m   Compiling[0m yoke-derive v0.8.4
+[1m[92m   Compiling[0m chacha20 v0.10.2
+[1m[92m   Compiling[0m serde_core v1.0.229
+[1m[92m   Compiling[0m stable_deref_trait v1.2.1
+[1m[92m   Compiling[0m hayro-postscript v0.1.0 (/home/runner/work/pdfcraft/pdfcraft/vendor/hayro-postscript)
+[1m[92m   Compiling[0m linux-raw-sys v0.12.1
+[1m[92m   Compiling[0m core_detect v1.0.0
+[1m[92m   Compiling[0m hayro-cmap v0.1.0 (/home/runner/work/pdfcraft/pdfcraft/vendor/hayro-cmap)
+[1m[92m   Compiling[0m yoke v0.8.3
+[1m[92m   Compiling[0m rand v0.10.3
+[1m[92m   Compiling[0m skrifa v0.47.0
+[1m[92m   Compiling[0m phf v0.13.1
+[1m[92m   Compiling[0m harfrust v0.12.0
+[1m[92m   Compiling[0m skrifa v0.44.0
+[1m[92m   Compiling[0m vello_common v0.0.8 (/home/runner/work/pdfcraft/pdfcraft/vendor/vello_common)
+[1m[92m   Compiling[0m scopeguard v1.2.0
+[1m[92m   Compiling[0m multiversion_no_op v1.0.0
+[1m[92m   Compiling[0m either v1.18.0
+[1m[92m   Compiling[0m simdutf8 v0.1.5
+[1m[92m   Compiling[0m equivalent v1.0.2
+[1m[92m   Compiling[0m serde v1.0.229
+[1m[92m   Compiling[0m tempfile v3.27.0
+[1m[92m   Compiling[0m indexmap v2.14.2
+[1m[92m   Compiling[0m rayon v1.12.0
+[1m[92m   Compiling[0m pdfcraft-fonts v0.18.1 (/home/runner/work/pdfcraft/pdfcraft/crates/fonts)
+[1m[92m   Compiling[0m vello_cpu v0.0.8 (/home/runner/work/pdfcraft/pdfcraft/vendor/vello_cpu)
+[1m[92m   Compiling[0m hayro-interpret v0.7.0 (/home/runner/work/pdfcraft/pdfcraft/vendor/hayro-interpret)
+[1m[92m   Compiling[0m serde_derive v1.0.229
+[1m[92m   Compiling[0m nom v8.0.0
+[1m[92m   Compiling[0m wait-timeout v0.2.1
+[1m[92m   Compiling[0m cbc v0.2.1
+[1m[92m   Compiling[0m ecb v0.2.1
+[1m[92m   Compiling[0m pic-scale v0.7.12
+[1m[92m   Compiling[0m quick-error v1.2.3
+[1m[92m   Compiling[0m fnv v1.0.7
+[1m[92m   Compiling[0m itoa v1.0.18
+[1m[92m   Compiling[0m rangemap v1.8.0
+[1m[92m   Compiling[0m weezl v0.2.1
+[1m[92m   Compiling[0m bit-vec v0.10.1
+[1m[92m   Compiling[0m bit-set v0.11.1
+[1m[92m   Compiling[0m lopdf v0.45.0 (/home/runner/work/pdfcraft/pdfcraft/vendor/lopdf)
+[1m[92m   Compiling[0m rusty-fork v0.3.1
+[1m[92m   Compiling[0m hayro v0.7.1 (/home/runner/work/pdfcraft/pdfcraft/vendor/hayro)
+[1m[92m   Compiling[0m pdfcraft-model v0.18.1 (/home/runner/work/pdfcraft/pdfcraft/crates/model)
+[1m[92m   Compiling[0m rand_xorshift v0.5.0
+[1m[92m   Compiling[0m regex-syntax v0.8.11
+[1m[92m   Compiling[0m unarray v0.1.4
+[1m[92m   Compiling[0m proptest v1.12.0
+[1m[92m   Compiling[0m pdfcraft-render v0.18.1 (/home/runner/work/pdfcraft/pdfcraft/crates/render)
+[1m[92m   Compiling[0m pdfcraft-annot v0.18.1 (/home/runner/work/pdfcraft/pdfcraft/crates/annot)
+[1m[92m   Compiling[0m pdfcraft-content v0.18.1 (/home/runner/work/pdfcraft/pdfcraft/crates/content)
+[1m[92m   Compiling[0m pdfcraft-edit v0.18.1 (/home/runner/work/pdfcraft/pdfcraft/crates/edit)
+[1m[92m    Finished[0m `test` profile [optimized + debuginfo] target(s) in 2m 15s
+[1m[92m     Running[0m unittests src/lib.rs (target/debug/deps/pdfcraft_edit-0c3d4e451d51e37f)
+
+running 1 test
+test tests::text_in_forms_becomes_editable_page_text_in_the_same_place ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 443 filtered out; finished in 0.00s
+
