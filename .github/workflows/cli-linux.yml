@@ -1,0 +1,67 @@
+name: Linux CLI (MCP server)
+
+# Builds pdfcraft-cli for x86-64 Linux, the binary the Craft MCP bridge on a home server runs
+# (`pdfcraft-cli mcp`, served at http://HOST:8090/pdf/mcp by Azurehawke/wordcraft's
+# packaging/mcp-bridge), and publishes it as the `cli-linux-latest` prerelease with the OCR
+# models beside it (`models/`, where pdfcraft-cli looks). Built on Ubuntu 22.04 so it runs on
+# that and newer glibc systems.
+#
+# Fork-only workflow (Azurehawke/pdfcraft); upstream merges don't touch it.
+on:
+  push:
+    branches: [main]
+    paths-ignore: ["**.md"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: cli-linux-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  cli:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: cli-linux-x86_64
+
+      - name: Build pdfcraft-cli
+        run: cargo build --release --locked -p pdfcraft-cli
+
+      - name: Package (with the OCR models)
+        run: |
+          mkdir -p dist/pdfcraft-cli
+          cp target/release/pdfcraft-cli dist/pdfcraft-cli/
+          cargo xtask models dist/pdfcraft-cli/models
+          cp LICENSE* dist/pdfcraft-cli/ 2>/dev/null || true
+          cp docs/mcp.md dist/pdfcraft-cli/ 2>/dev/null || true
+          tar -C dist -czf pdfcraft-cli-x86_64-linux.tar.gz pdfcraft-cli
+          ./dist/pdfcraft-cli/pdfcraft-cli --version
+          # OCR finds the models beside the binary.
+          ./dist/pdfcraft-cli/pdfcraft-cli run ocr_status
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pdfcraft-cli-x86_64-linux
+          path: pdfcraft-cli-x86_64-linux.tar.gz
+
+      - name: Publish as the cli-linux-latest prerelease
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete cli-linux-latest --yes --cleanup-tag || true
+          gh release create cli-linux-latest pdfcraft-cli-x86_64-linux.tar.gz \
+            --prerelease --target "$GITHUB_SHA" \
+            --title "pdfcraft-cli for Linux x86-64 (build ${{ github.run_number }})" \
+            --notes "pdfcraft-cli and its OCR models for the Craft MCP bridge on a Linux server, built from ${GITHUB_SHA::7}. Unpack, then point PDFCRAFT_BINARY at pdfcraft-cli (keep models/ beside it)."
