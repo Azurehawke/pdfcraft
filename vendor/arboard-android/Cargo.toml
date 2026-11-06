@@ -1,0 +1,8 @@
+[package]
+name = "pdfcraft-arboard-android"
+description = "PdfCraft for Android's stand-in for arboard, which has no Android backend"
+version = "3.6.0"
+edition = "2024"
+license = "MIT OR Apache-2.0"
+publish = false
+

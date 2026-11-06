@@ -262,6 +262,33 @@ fn circle(c: (f64, f64), r: f64) -> String {
     )
 }
 
+/// `/PCPressure`: per stroke, its points' pressures rounded to two places (0–1).
+pub(crate) fn pressure_array<'a>(strokes: impl Iterator<Item = &'a [f64]>) -> pdfcraft_cos::Object {
+    use pdfcraft_cos::Object;
+    Object::Array(
+        strokes
+            .map(|s| {
+                Object::Array(
+                    s.iter()
+                        .map(|p| Object::Real(if p.is_finite() { (p.clamp(0.0, 1.0) * 100.0).round() / 100.0 } else { DEFAULT_PRESSURE }))
+                        .collect(),
+                )
+            })
+            .collect(),
+    )
+}
+
+/// A drawing's `/PCPressure`, one list per stroke (empty when it has none).
+pub(crate) fn pressures_of(doc: &pdfcraft_cos::Document, d: &pdfcraft_cos::Dict) -> Vec<Vec<f64>> {
+    d.get(b"PCPressure")
+        .map(|l| doc.resolve(l))
+        .and_then(|l| l.as_array().cloned())
+        .unwrap_or_default()
+        .iter()
+        .map(|s| doc.resolve(s).as_array().map(|a| a.iter().filter_map(|x| doc.resolve(x).as_f64()).collect()).unwrap_or_default())
+        .collect()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

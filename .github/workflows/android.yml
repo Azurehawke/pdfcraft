@@ -75,6 +75,17 @@ jobs:
           PEN_SAMPLE_OUT="$RUNNER_TEMP/pen-sample.pdf" cargo test -p pdfcraft-annot --lib pen 2>&1 | tail -60 | tee "$RUNNER_TEMP/pen-test.log"
           UNPACK_SAMPLE_DIR="$RUNNER_TEMP" cargo test -p pdfcraft-edit --lib text_in_forms 2>&1 | tail -80 | tee -a "$RUNNER_TEMP/pen-test.log"
 
+      # The interface's translations: storytold/craft-i18n at the revision in craft-i18n.rev.
+      # Without it the app is English only.
+      - name: Translations (craft-i18n)
+        continue-on-error: true
+        run: |
+          rev="$(tr -d '[:space:]' < craft-i18n.rev)"
+          git init -q "$RUNNER_TEMP/craft-i18n"
+          git -C "$RUNNER_TEMP/craft-i18n" fetch -q --depth 1 https://github.com/storytold/craft-i18n "$rev"
+          git -C "$RUNNER_TEMP/craft-i18n" checkout -q FETCH_HEAD
+          echo "CRAFT_I18N_DIR=$RUNNER_TEMP/craft-i18n" >> "$GITHUB_ENV"
+
       - name: Build the APK
         env:
           VERSION_CODE: ${{ github.run_number }}

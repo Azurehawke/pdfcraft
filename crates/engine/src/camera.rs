@@ -212,8 +212,8 @@ fn straighten_with(
     let mut out = warp(&shot.rgba, shot.width, shot.height, quad)?;
     edit(&mut out.rgb, out.width, out.height);
     // A black-and-white page re-read as it is (Eraser) stays black and white, and lossless.
-    let bw = look == crate::camera_clean::Look::Original
-        && out.rgb.chunks_exact(3).all(|p| p[0] == p[1] && p[1] == p[2] && (p[0] == 0 || p[0] == 255));
+    let bw =
+        look == crate::camera_clean::Look::Original && out.rgb.chunks_exact(3).all(|p| p[0] == p[1] && p[1] == p[2] && (p[0] == 0 || p[0] == 255));
     let look = if bw { crate::camera_clean::Look::BlackWhite } else { look };
     let level = if bw { 50 } else { level };
     let pixels = crate::camera_clean::apply(&out.rgb, out.width, out.height, look, level).ok_or("the straightened page could not be cleaned up")?;
@@ -272,7 +272,7 @@ pub fn erase_strokes(rgb: &mut [u8], width: u32, height: u32, strokes: &[Vec<[f3
         for y in by0..=by1 {
             for x in bx0..=bx1 {
                 k += 1;
-                if k % step != 0 {
+                if !k.is_multiple_of(step) {
                     continue;
                 }
                 let (fx, fy) = (x as f32, y as f32);
@@ -324,9 +324,12 @@ pub fn erase_strokes(rgb: &mut [u8], width: u32, height: u32, strokes: &[Vec<[f3
     }
 }
 
+/// A page to enhance: the document's bytes, its password, and what straightening it needs.
+type SourcePage = (Arc<Vec<u8>>, Option<Arc<str>>, PageSource);
+
 impl Session {
     /// What straightening page `page` of `id` needs, refused for a read-only document.
-    fn page_source(&self, id: DocId, page: usize) -> Result<(Arc<Vec<u8>>, Option<Arc<str>>, PageSource), EditError> {
+    fn page_source(&self, id: DocId, page: usize) -> Result<SourcePage, EditError> {
         let doc = self.get(id).ok_or(EditError::NoDocument)?;
         if let Some(why) = &doc.read_only_reason {
             return Err(EditError::ReadOnly(why.clone()));

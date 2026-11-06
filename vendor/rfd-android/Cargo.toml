@@ -1,0 +1,8 @@
+[package]
+name = "pdfcraft-rfd-android"
+description = "PdfCraft for Android's stand-in for rfd, which has no Android backend"
+version = "0.17.0"
+edition = "2024"
+license = "MIT OR Apache-2.0"
+publish = false
+

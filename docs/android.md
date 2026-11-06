@@ -67,8 +67,8 @@ from Google Drive again to get the latest version.
 - **Scan & OCR:** its two text-recognition models ship inside the APK (about 12 MB, CC BY-SA
   4.0, credited in the app folder's `models/ATTRIBUTION.txt`) and are copied to the app's own
   folder the first time a new version starts.
-- **Not on Android:** printing to a printer, the update check, signing with an OS key store, and
-  the `--control` automation channel.
+- **Not on Android:** printing to a printer, the desktop update check (the app has its own
+  prompt for new builds), signing with an OS key store, and the `--control` automation channel.
 - Settings, logs and crash recovery live in the app's private folder; uninstalling removes them.
 
 ## Build it yourself
@@ -81,6 +81,21 @@ ANDROID_HOME=~/Android/Sdk ANDROID_NDK_HOME=~/Android/Sdk/ndk/<version> packagin
 adb install -r target/android-apk/pdfcraft.apk
 adb logcat -s PdfCraft   # the app's log
 ```
+
+## Keeping up with upstream
+
+Merge storytold/pdfcraft's `main` into `android`. The Android pieces sit where upstream rarely
+changes code:
+
+- `vendor/winit-android`: storytold/winit at the revision the workspace pins, plus the touch, pen,
+  mouse and touchpad changes (`PATCHES-ANDROID.md`). When upstream moves the `winit` revision in
+  the root `Cargo.toml`, rebuild this copy from the new revision and apply the same changes.
+- `vendor/rfd-android` and `vendor/arboard-android`: stand-ins for the file-dialog and clipboard
+  crates, which have no Android backend. `crates/ui-egui/src/lib.rs` names them `rfd` and
+  `arboard` on Android, so upstream's own calls compile unchanged and new file pickers need no
+  edits.
+- The OCR model files are named by `pdfcraft_ocr::DETECTION_MODEL` and `RECOGNITION_MODEL`, so
+  `apps/pdfcraft-android/src/ocr_models.rs` follows a change of format.
 
 ## Signing
 

@@ -47,7 +47,7 @@ pub fn unpack_text_forms(doc: &mut Document, page: usize) -> Result<usize, EditE
     let mut changed = false;
     for (obj, data) in &streams {
         // PdfCraft's own marks (headers, watermarks, wrappers) stay as they are.
-        if crate::stream_tag(doc, obj).is_some() {
+        if crate::place::stream_tag(doc, obj).is_some() {
             list.push(obj.clone());
             continue;
         }

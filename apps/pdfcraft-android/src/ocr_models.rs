@@ -11,9 +11,13 @@ use std::path::{Path, PathBuf};
 
 use winit::platform::android::activity::AndroidApp;
 
-/// The files under `assets/models/`, as `cargo xtask models` writes them.
-const FILES: &[&str] =
-    &["text-detection.rten", "text-recognition.rten", "text-detection.rten.LICENCE.txt", "text-recognition.rten.LICENCE.txt", "ATTRIBUTION.txt"];
+/// The files under `assets/models/`, as `cargo xtask models` writes them: the two models (named
+/// by the OCR crate, so a change of format there is followed here), their licences, and the
+/// credits.
+fn files() -> [String; 5] {
+    let (detection, recognition) = (pdfcraft_ocr::DETECTION_MODEL, pdfcraft_ocr::RECOGNITION_MODEL);
+    [detection.to_string(), recognition.to_string(), format!("{detection}.LICENCE.txt"), format!("{recognition}.LICENCE.txt"), "ATTRIBUTION.txt".into()]
+}
 /// Larger assets are refused (the models are a few megabytes each).
 const MAX_BYTES: u64 = 256 * 1024 * 1024;
 
@@ -22,7 +26,8 @@ const MAX_BYTES: u64 = 256 * 1024 * 1024;
 pub fn install(android: &AndroidApp, data: &Path) -> Option<PathBuf> {
     let dir = data.join("models");
     let stamp = dir.join(".version");
-    let version = env!("CARGO_PKG_VERSION");
+    // The models' names are in the stamp too: models in an older format are replaced.
+    let version = format!("{} {}", env!("CARGO_PKG_VERSION"), pdfcraft_ocr::DETECTION_MODEL);
     let installed = std::fs::read_to_string(&stamp).is_ok_and(|v| v.trim() == version) && pdfcraft_ocr::Models::in_dir(&dir).is_some();
     if installed {
         return Some(dir);
@@ -33,7 +38,7 @@ pub fn install(android: &AndroidApp, data: &Path) -> Option<PathBuf> {
     }
     let assets = android.asset_manager();
     let mut copied = 0;
-    for name in FILES {
+    for name in &files() {
         let Ok(path) = CString::new(format!("models/{name}")) else { continue };
         let Some(mut asset) = assets.open(&path) else { continue };
         if u64::try_from(asset.length()).unwrap_or(u64::MAX) > MAX_BYTES {
@@ -57,7 +62,7 @@ pub fn install(android: &AndroidApp, data: &Path) -> Option<PathBuf> {
         return None;
     }
     // Best effort: without the stamp the models are copied again at the next start.
-    let _ = std::fs::write(&stamp, version);
+    let _ = std::fs::write(&stamp, &version);
     log::info!("OCR models copied to {}", dir.display());
     Some(dir)
 }
