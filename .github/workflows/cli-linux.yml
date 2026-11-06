@@ -39,17 +39,22 @@ jobs:
       - name: Build pdfcraft-cli
         run: cargo build --release --locked -p pdfcraft-cli
 
-      - name: Package (with the OCR models)
+      - name: Package (with the OCR models when they can be fetched)
         run: |
           mkdir -p dist/pdfcraft-cli
           cp target/release/pdfcraft-cli dist/pdfcraft-cli/
-          cargo xtask models dist/pdfcraft-cli/models
+          # The OCR model host sometimes refuses downloads (403). The CLI works without them;
+          # OCR reports itself unavailable, so the package is still built.
+          if cargo xtask models dist/pdfcraft-cli/models; then
+            echo "OCR_STATUS=with OCR models" >> "$GITHUB_ENV"
+          else
+            echo "::warning::OCR models could not be downloaded; packaging the CLI without them."
+            echo "OCR_STATUS=without OCR models (Scan & OCR unavailable)" >> "$GITHUB_ENV"
+          fi
           cp LICENSE* dist/pdfcraft-cli/ 2>/dev/null || true
           cp docs/mcp.md dist/pdfcraft-cli/ 2>/dev/null || true
           tar -C dist -czf pdfcraft-cli-x86_64-linux.tar.gz pdfcraft-cli
           ./dist/pdfcraft-cli/pdfcraft-cli --version
-          # OCR finds the models beside the binary.
-          ./dist/pdfcraft-cli/pdfcraft-cli run ocr_status
 
       - uses: actions/upload-artifact@v4
         with:
@@ -64,4 +69,4 @@ jobs:
           gh release create cli-linux-latest pdfcraft-cli-x86_64-linux.tar.gz \
             --prerelease --target "$GITHUB_SHA" \
             --title "pdfcraft-cli for Linux x86-64 (build ${{ github.run_number }})" \
-            --notes "pdfcraft-cli and its OCR models for the Craft MCP bridge on a Linux server, built from ${GITHUB_SHA::7}. Unpack, then point PDFCRAFT_BINARY at pdfcraft-cli (keep models/ beside it)."
+            --notes "pdfcraft-cli for the Craft MCP bridge on a Linux server, built from ${GITHUB_SHA::7}, ${OCR_STATUS}. Unpack, then point PDFCRAFT_BINARY at pdfcraft-cli (keep models/ beside it if present)."
