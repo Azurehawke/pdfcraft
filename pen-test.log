@@ -1,0 +1,33 @@
+[1m[92m   Compiling[0m pdfcraft-crypt v0.13.0 (/home/runner/work/pdfcraft/pdfcraft/crates/crypt)
+[1m[92m   Compiling[0m pdfcraft-filters v0.13.0 (/home/runner/work/pdfcraft/pdfcraft/crates/filters)
+[1m[92m   Compiling[0m pdfcraft-fonts v0.13.0 (/home/runner/work/pdfcraft/pdfcraft/crates/fonts)
+[1m[92m   Compiling[0m hayro-jbig2 v0.3.0 (/home/runner/work/pdfcraft/pdfcraft/vendor/hayro-jbig2)
+[1m[92m   Compiling[0m pdfcraft-cos v0.13.0 (/home/runner/work/pdfcraft/pdfcraft/crates/cos)
+[1m[92m   Compiling[0m hayro-syntax v0.7.2 (/home/runner/work/pdfcraft/pdfcraft/vendor/hayro-syntax)
+[1m[92m   Compiling[0m pdfcraft-model v0.13.0 (/home/runner/work/pdfcraft/pdfcraft/crates/model)
+[1m[92m   Compiling[0m pdfcraft-annot v0.13.0 (/home/runner/work/pdfcraft/pdfcraft/crates/annot)
+[1m[92m    Finished[0m `test` profile [optimized + debuginfo] target(s) in 28.17s
+[1m[92m     Running[0m unittests src/lib.rs (target/debug/deps/pdfcraft_annot-1c1e2857dbe3ae83)
+
+running 5 tests
+test pen::tests::names_round_trip ... ok
+test pen::tests::pressure_widens_a_fountain_pen ... ok
+test walls::tests::doors_swing_from_their_hinge_to_the_side_they_open_to ... ok
+test pen::tests::outlines_are_closed_fills_for_any_input ... ok
+test tests::pen_drawings_keep_their_pen_and_pressure ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 115 filtered out; finished in 0.01s
+
+[1m[92m   Compiling[0m hayro-syntax v0.7.2 (/home/runner/work/pdfcraft/pdfcraft/vendor/hayro-syntax)
+[1m[92m   Compiling[0m pdfcraft-fonts v0.13.0 (/home/runner/work/pdfcraft/pdfcraft/crates/fonts)
+[1m[92m   Compiling[0m pdfcraft-annot v0.13.0 (/home/runner/work/pdfcraft/pdfcraft/crates/annot)
+[1m[92m   Compiling[0m pdfcraft-content v0.13.0 (/home/runner/work/pdfcraft/pdfcraft/crates/content)
+[1m[92m   Compiling[0m pdfcraft-edit v0.13.0 (/home/runner/work/pdfcraft/pdfcraft/crates/edit)
+[1m[92m    Finished[0m `test` profile [optimized + debuginfo] target(s) in 23.56s
+[1m[92m     Running[0m unittests src/lib.rs (target/debug/deps/pdfcraft_edit-c20b0ba24497b039)
+
+running 1 test
+test tests::text_in_forms_becomes_editable_page_text_in_the_same_place ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 249 filtered out; finished in 0.00s
+
