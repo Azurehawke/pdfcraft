@@ -1,11 +1,12 @@
 use crate::{BlendMode, FillRule};
-use crate::color::ColorSpace;
+use crate::color::{ColorSpace, DefaultColorSpaces, DeviceFamily};
 use crate::context::Context;
-use crate::convert::{convert_line_cap, convert_line_join};
+use crate::convert::{convert_dash_array, convert_line_cap, convert_line_join, convert_line_width};
 use crate::device::Device;
 use crate::font::{Font, FontData, FontQuery, StandardFont};
 use crate::interpret::path::{
-    apply_pending_clip, close_path, fill_path, fill_path_impl, fill_stroke_path, stroke_path,
+    apply_pending_clip, begin_subpath_after_close, close_path, fill_path, fill_path_impl,
+    fill_stroke_path, stroke_path,
 };
 use crate::interpret::state::{TextStateFont, handle_gs};
 use crate::interpret::text::TextRenderingMode;
@@ -18,10 +19,11 @@ use crate::x_object::{
 use hayro_syntax::content::TypedIter;
 use hayro_syntax::content::ops::TypedInstruction;
 use hayro_syntax::object::dict::keys::{
-    ANNOTS, AP, AS, C, CA, F, MCID, N, OC, QUADPOINTS, RECT, SUBTYPE,
+    ACTUAL_TEXT, ANNOTS, AP, AS, C, CA, F, IRT, MCID, N, OC, QUADPOINTS, RECT, RT, SUBTYPE,
 };
 use hayro_syntax::object::{Array, Dict, Object, Rect, Stream, dict_or_stream};
-use hayro_syntax::page::{Page, Resources};
+use hayro_syntax::page::{ContentReader, Page, Resources, Rotation};
+use hayro_syntax::MAX_DECODED_STREAM;
 use kurbo::{Affine, BezPath, Point, Shape};
 use smallvec::smallvec;
 use std::sync::Arc;
@@ -110,10 +112,24 @@ pub struct InterpreterSettings {
     /// PdfCraft patch: viewer overrides for optional content groups (object number, generation,
     /// visible), applied on top of the document's default configuration (Layers panel toggles).
     pub ocg_overrides: Arc<Vec<(i32, i32, bool)>>,
+    /// PdfCraft patch (103): apply the default configuration's auto state for the View event
+    /// (`/AS` usage applications with `/Event /View`, ISO 32000-2 §8.11.4.4) before
+    /// `ocg_overrides`. On by default: that is the state for viewing. Off for output made for
+    /// printing, which the View event is not.
+    pub view_auto_state: bool,
     /// PdfCraft patch: once this is `true`, interpretation stops before the next content
     /// operator. What was drawn is then incomplete, so only set it when the output will be
     /// thrown away (a viewer's render whose result nobody can receive any more).
     pub cancelled: Option<Arc<AtomicBool>>,
+    /// PdfCraft patch: a low-detail render for previews (page backdrops, thumbnails). Images
+    /// that would cover only a few device pixels are skipped: redrawing them at full detail
+    /// costs a decode and a resample each for pixels nobody can see. Never set it for a final
+    /// render (tiles, whole pages, print, export).
+    pub preview: bool,
+    /// PdfCraft patch (73): the steps of JBIG2 decoding a page's images may take between them
+    /// ([`hayro_syntax::MAX_PAGE_JBIG2_WORK`] by default). Images past it aren't drawn, nor images
+    /// whose masks are past it, each with [`InterpreterWarning::ContentTruncated`].
+    pub jbig2_work: u64,
 }
 
 impl Default for InterpreterSettings {
@@ -134,7 +150,10 @@ impl Default for InterpreterSettings {
             render_annotations: true,
             hide_comments: false,
             ocg_overrides: Arc::new(Vec::new()),
+            view_auto_state: true,
             cancelled: None,
+            preview: false,
+            jbig2_work: hayro_syntax::MAX_PAGE_JBIG2_WORK,
         }
     }
 }
@@ -149,7 +168,32 @@ pub enum InterpreterWarning {
     /// An image failed to decode.
     ImageDecodeFailure,
     /// PdfCraft patch (18): a page content stream was skipped after exhausting its safety budget.
+    /// Patch (73): or an image was left out for the page's JBIG2 allowance, or because its JBIG2
+    /// mask is past the allowance or one of the decoder's limits.
     ContentTruncated,
+    /// PdfCraft patch (55): a colour could not be computed (a colour space that cannot be
+    /// read, or a Separation or DeviceN tint transform that cannot be evaluated) and was painted
+    /// in a fallback colour. Reported at most once per content stream.
+    ColorFallback,
+    /// PdfCraft patch (80): an image's `/Indexed` colour space is malformed (ISO 32000-2
+    /// §8.6.6.3). The image was drawn recovered (indices past a short lookup table in black, a
+    /// `hival` past 255 taken as 255, a real one truncated), or, with a `hival` below zero or not a
+    /// number, in DeviceGray; with no lookup table at all it was not drawn.
+    MalformedIndexedImage,
+    /// PdfCraft patch (90): a Type 3 font without `/Widths` (or `/FirstChar`/`/LastChar`),
+    /// which ISO 32000-2 Table 110 requires, was selected; its glyphs advance by the widths
+    /// their glyph procedures set with `d0`/`d1`. Reported each time such a font is selected.
+    Type3WidthsMissing,
+}
+
+/// PdfCraft patch (73): ends a page's JBIG2 allowance with the page, so that what decodes on its
+/// thread afterwards has no page to run out on.
+struct PageJbig2Work;
+
+impl Drop for PageJbig2Work {
+    fn drop(&mut self) {
+        hayro_syntax::set_page_jbig2_work(u64::MAX);
+    }
 }
 
 /// interpret the contents of the page and render them into the device.
@@ -158,20 +202,58 @@ pub fn interpret_page<'a>(
     context: &mut Context<'a>,
     device: &mut impl Device<'a>,
 ) {
+    // PdfCraft patch (73): a context used again is another page.
+    hayro_syntax::set_page_jbig2_work(context.settings.jbig2_work);
+    let _allowance = PageJbig2Work;
     let resources = page.resources();
-    // PdfCraft patch: the page's own contents count against its content budget too.
-    crate::context::charge_content(page.page_stream().map_or(0, <[u8]>::len));
-    interpret(page.typed_operations(), resources, context, device);
+    let mut content = page.content_reader();
+    // PdfCraft patch: the page's own contents count against its content budget too, where they
+    // are decoded whole. Streamed content is only ever held a window at a time.
+    crate::context::charge_content(content.materialized_len());
+    interpret_content(&mut content, resources, context, device);
 
     if context.settings.render_annotations
         && let Some(annot_arr) = page.raw().get::<Array<'_>>(ANNOTS)
     {
+        // PdfCraft patch (29): bracket the annotations so devices can tell their paints from
+        // the document's own (the reading-colours setting recolours the document, not comments).
+        device.begin_annotations();
+        // PdfCraft patch (86): form fields' widgets are drawn after the page's other
+        // annotations, each group in `/Annots` order, as other readers draw them: a filled
+        // comment listed after a check box covered the box. ISO 32000-2 doesn't order the two.
+        // Two passes over the array, so nothing is held for every entry of a long one.
+        for widgets in [false, true] {
         for annot in annot_arr.iter::<Dict<'_>>() {
+            if (annot.get::<hayro_syntax::object::Name<'_>>(SUBTYPE).as_deref() == Some(b"Widget")) != widgets {
+                continue;
+            }
             let flags = annot.get::<u32>(F).unwrap_or(0);
 
             // Annotation should be hidden (Hidden = bit 2, NoView = bit 6).
             // PdfCraft patch: NoView was not honoured upstream.
             if flags & (2 | 32) != 0 {
+                continue;
+            }
+            // PdfCraft patch (56): Invisible (bit 1) hides an annotation of a type that isn't one
+            // of the standard ones (ISO 32000-2 Table 167), and a popup has no appearance of its
+            // own (§12.5.6.14): the viewer shows it as a window for its parent, not on the page.
+            let subtype = annot.get::<hayro_syntax::object::Name<'_>>(SUBTYPE);
+            if subtype.as_deref() == Some(b"Popup")
+                || (flags & 1 != 0 && !subtype.as_deref().is_some_and(is_standard_annotation_type))
+            {
+                continue;
+            }
+            // PdfCraft patch (81): a reply of type R (a markup annotation with an `/IRT` to the
+            // annotation it answers and an `/RT` other than `/Group`; R is the default, so a
+            // missing, unknown or malformed `/RT` reads as R) is not drawn, whatever its
+            // appearance or flags: "Interactive PDF processors shall not display replies to an
+            // annotation individually but together in the form of threaded comments" (ISO 32000-2
+            // Table 172). A `/RT /Group` member is part of its group's look and still draws.
+            // `/IRT` is a markup annotation's entry: a widget, link or pop-up with one still draws.
+            if !matches!(annot.get::<hayro_syntax::object::Name<'_>>(SUBTYPE).as_deref(), Some(b"Widget" | b"Link" | b"Popup"))
+                && annot.get::<Dict<'_>>(IRT).is_some()
+                && annot.get::<hayro_syntax::object::Name<'_>>(RT).as_deref() != Some(b"Group")
+            {
                 continue;
             }
             // PdfCraft patch: "Hide all comments" keeps widgets and links.
@@ -237,6 +319,13 @@ pub fn interpret_page<'a>(
                     annot_rect.x0 - sx * transformed_rect.x0,
                     annot_rect.y0 - sy * transformed_rect.y0,
                 ]);
+                // PdfCraft patch (59): NoRotate (bit 5) keeps the appearance upright as the page is
+                // displayed (ISO 32000-2 §12.5.3).
+                let affine = if flags & 16 != 0 && no_rotate_applies(&annot) {
+                    no_rotate_turn(page.rotation(), &annot_rect) * affine
+                } else {
+                    affine
+                };
 
                 // PdfCraft patch: a /BBox or /Matrix that collapses the appearance box to a line
                 // or a point leaves nothing to map onto /Rect: the scales above divide by zero,
@@ -266,7 +355,70 @@ pub fn interpret_page<'a>(
                 draw_highlight_without_appearance(&annot, context, device);
             }
         }
+        }
+        device.end_annotations();
     }
+}
+
+/// PdfCraft patch (56): whether `subtype` is one of the standard annotation types of
+/// ISO 32000-2 Table 171.
+fn is_standard_annotation_type(subtype: &[u8]) -> bool {
+    matches!(
+        subtype,
+        b"Text"
+            | b"Link"
+            | b"FreeText"
+            | b"Line"
+            | b"Square"
+            | b"Circle"
+            | b"Polygon"
+            | b"PolyLine"
+            | b"Highlight"
+            | b"Underline"
+            | b"Squiggly"
+            | b"StrikeOut"
+            | b"Caret"
+            | b"Stamp"
+            | b"Ink"
+            | b"Popup"
+            | b"FileAttachment"
+            | b"Sound"
+            | b"Movie"
+            | b"Screen"
+            | b"Widget"
+            | b"PrinterMark"
+            | b"TrapNet"
+            | b"Watermark"
+            | b"3D"
+            | b"Redact"
+            | b"Projection"
+            | b"RichMedia"
+    )
+}
+
+/// PdfCraft patch (59): whether the NoRotate flag turns this annotation's appearance. Form fields
+/// and links are left in `/Rect`: PdfCraft takes their click targets from it.
+fn no_rotate_applies(annot: &Dict<'_>) -> bool {
+    !matches!(
+        annot.get::<hayro_syntax::object::Name<'_>>(SUBTYPE).as_deref(),
+        Some(b"Widget" | b"Link")
+    )
+}
+
+/// PdfCraft patch (59): the user-space turn that keeps a NoRotate annotation upright on a page
+/// with `/Rotate`. The page is shown turned clockwise, so the appearance (already fitted to
+/// `/Rect`) is turned as far counterclockwise about the rectangle's upper-left corner, which stays
+/// where it is on the page (ISO 32000-2 §12.5.3). Its width then runs across the displayed page
+/// and its height down from that corner.
+fn no_rotate_turn(rotation: Rotation, rect: &kurbo::Rect) -> Affine {
+    let (cos, sin) = match rotation {
+        Rotation::None => return Affine::IDENTITY,
+        Rotation::Horizontal => (0.0, 1.0),
+        Rotation::Flipped => (-1.0, 0.0),
+        Rotation::FlippedHorizontal => (0.0, -1.0),
+    };
+    let (x, y) = (rect.x0.min(rect.x1), rect.y0.max(rect.y1));
+    Affine::new([cos, sin, -sin, cos, x - (cos * x - sin * y), y - (sin * x + cos * y)])
 }
 
 /// PdfCraft patch: the normal appearance of a Highlight annotation that has none (ISO 32000-2
@@ -323,17 +475,42 @@ fn draw_highlight_without_appearance<'a>(
     context.restore_state(device);
 }
 
-/// Interpret the instructions from `ops` and render them into the device.
-pub fn interpret<'a>(
-    mut ops: TypedIter<'_>,
+/// PdfCraft patch (38): the colour space `cs` or `CS` selects by `name`: a device space, else
+/// the `/ColorSpace` resource `name`. A device space, named directly or by a resource, is
+/// replaced by its default from `defaults` (ISO 32000-2 §8.6.5.6).
+fn named_color_space<'a>(
+    name: &hayro_syntax::object::Name<'_>,
+    resources: &Resources<'a>,
+    defaults: &DefaultColorSpaces<'_, '_>,
+    context: &mut Context<'a>,
+) -> Option<ColorSpace> {
+    if let Some(named) = ColorSpace::new_from_name(name) {
+        let default = DeviceFamily::of_name(name).and_then(|family| defaults.get(family));
+        return Some(default.map_or(named, |(space, _)| space));
+    }
+    let resource = resources.get_color_space(name);
+    if let Some((space, _)) = resource
+        .as_ref()
+        .and_then(DeviceFamily::of_object)
+        .and_then(|family| defaults.get(family))
+    {
+        return Some(space);
+    }
+    context.get_color_space(resources, name)
+}
+
+/// Interprets the instructions that `ops` yields, until they run out or the caller cancels. It runs
+/// once per window of a content stream, between one `save_state` and its restore (see
+/// `interpret_content`).
+fn interpret_window<'a>(
+    ops: &mut TypedIter<'_>,
     resources: &Resources<'a>,
     context: &mut Context<'a>,
     device: &mut impl Device<'a>,
 ) {
-    let num_states = context.num_states();
-
-    context.save_state();
-
+    // PdfCraft patch (38): the resources' DefaultGray, DefaultRGB and DefaultCMYK replace the
+    // device spaces that colour operators and images select (ISO 32000-2 §8.6.5.6).
+    let defaults = DefaultColorSpaces::new(resources, &context.interpreter_cache.object_cache);
     while let Some(op) = ops.next() {
         // PdfCraft patch: stop when the caller cancelled (see `InterpreterSettings::cancelled`).
         if context.settings.cancelled.as_ref().is_some_and(|c| c.load(Ordering::Relaxed)) {
@@ -341,25 +518,36 @@ pub fn interpret<'a>(
         }
         match op {
             TypedInstruction::SaveState(_) => context.save_state(),
+            // PdfCraft patch (68): in a form or an appearance stream, a `Q` with no `q` of that
+            // stream to match is ignored, so it cannot pop the states of the content that drew
+            // it. Page content keeps its old behaviour (`stream_floor` stays 0 there).
+            TypedInstruction::RestoreState(_) if context.stream_floor_reached() => {
+                warn!("ignored a `Q` with no matching `q` in its content stream");
+            }
             TypedInstruction::StrokeColorDeviceRgb(s) => {
-                context.get_mut().graphics_state.stroke_cs = ColorSpace::device_rgb();
+                // PdfCraft patch (38): DeviceRGB, or the DefaultRGB that replaces it.
+                context.get_mut().graphics_state.stroke_cs = defaults.device(DeviceFamily::Rgb);
                 context.get_mut().graphics_state.stroke_color =
                     smallvec![s.0.as_f32(), s.1.as_f32(), s.2.as_f32()];
                 context.get_mut().graphics_state.stroke_pattern = None;
             }
             TypedInstruction::StrokeColorDeviceGray(s) => {
-                context.get_mut().graphics_state.stroke_cs = ColorSpace::device_gray();
+                // PdfCraft patch (38): DeviceGray, or the DefaultGray that replaces it.
+                context.get_mut().graphics_state.stroke_cs = defaults.device(DeviceFamily::Gray);
                 context.get_mut().graphics_state.stroke_color = smallvec![s.0.as_f32()];
                 context.get_mut().graphics_state.stroke_pattern = None;
             }
             TypedInstruction::StrokeColorCmyk(s) => {
-                context.get_mut().graphics_state.stroke_cs = ColorSpace::device_cmyk();
+                // PdfCraft patch (38): DeviceCMYK, or the DefaultCMYK that replaces it.
+                context.get_mut().graphics_state.stroke_cs = defaults.device(DeviceFamily::Cmyk);
                 context.get_mut().graphics_state.stroke_color =
                     smallvec![s.0.as_f32(), s.1.as_f32(), s.2.as_f32(), s.3.as_f32()];
                 context.get_mut().graphics_state.stroke_pattern = None;
             }
             TypedInstruction::LineWidth(w) => {
-                context.get_mut().graphics_state.stroke_props.line_width = w.0.as_f32();
+                // PdfCraft patch (61): see `convert_line_width`.
+                context.get_mut().graphics_state.stroke_props.line_width =
+                    convert_line_width(w.0.as_f32());
             }
             TypedInstruction::LineCap(c) => {
                 context.get_mut().graphics_state.stroke_props.line_cap = convert_line_cap(c);
@@ -417,37 +605,41 @@ pub fn interpret<'a>(
                 fill_stroke_path(context, device, FillRule::NonZero);
             }
             TypedInstruction::NonStrokeColorDeviceGray(s) => {
-                context.get_mut().graphics_state.none_stroke_cs = ColorSpace::device_gray();
+                // PdfCraft patch (38): DeviceGray, or the DefaultGray that replaces it.
+                context.get_mut().graphics_state.none_stroke_cs = defaults.device(DeviceFamily::Gray);
                 context.get_mut().graphics_state.non_stroke_color = smallvec![s.0.as_f32()];
                 context.get_mut().graphics_state.non_stroke_pattern = None;
             }
             TypedInstruction::NonStrokeColorDeviceRgb(s) => {
-                context.get_mut().graphics_state.none_stroke_cs = ColorSpace::device_rgb();
+                // PdfCraft patch (38): DeviceRGB, or the DefaultRGB that replaces it.
+                context.get_mut().graphics_state.none_stroke_cs = defaults.device(DeviceFamily::Rgb);
                 context.get_mut().graphics_state.non_stroke_color =
                     smallvec![s.0.as_f32(), s.1.as_f32(), s.2.as_f32()];
                 context.get_mut().graphics_state.non_stroke_pattern = None;
             }
             TypedInstruction::NonStrokeColorCmyk(s) => {
-                context.get_mut().graphics_state.none_stroke_cs = ColorSpace::device_cmyk();
+                // PdfCraft patch (38): DeviceCMYK, or the DefaultCMYK that replaces it.
+                context.get_mut().graphics_state.none_stroke_cs = defaults.device(DeviceFamily::Cmyk);
                 context.get_mut().graphics_state.non_stroke_color =
                     smallvec![s.0.as_f32(), s.1.as_f32(), s.2.as_f32(), s.3.as_f32()];
                 context.get_mut().graphics_state.non_stroke_pattern = None;
             }
             TypedInstruction::LineTo(m) => {
                 if !context.path().elements().is_empty() {
-                    let last_point = *context.last_point();
-                    let mut p = Point::new(m.0.as_f64(), m.1.as_f64());
+                    begin_subpath_after_close(context);
+                    // PdfCraft patch (61): a segment to the point it starts from is kept as it
+                    // is. Upstream nudged its end a ten-thousandth of a point to the right so
+                    // round caps drew a dot, which also gave butt and square caps a direction
+                    // to draw in; `stroke_path_impl` now handles degenerate subpaths.
+                    let p = Point::new(m.0.as_f64(), m.1.as_f64());
                     *(context.last_point_mut()) = p;
-                    if last_point == p {
-                        // Add a small delta so that zero width lines can still have a round stroke.
-                        p.x += 0.0001;
-                    }
 
                     context.path_mut().line_to(p);
                 }
             }
             TypedInstruction::CubicTo(c) => {
                 if !context.path().elements().is_empty() {
+                    begin_subpath_after_close(context);
                     let p1 = Point::new(c.0.as_f64(), c.1.as_f64());
                     let p2 = Point::new(c.2.as_f64(), c.3.as_f64());
                     let p3 = Point::new(c.4.as_f64(), c.5.as_f64());
@@ -459,6 +651,7 @@ pub fn interpret<'a>(
             }
             TypedInstruction::CubicStartTo(c) => {
                 if !context.path().elements().is_empty() {
+                    begin_subpath_after_close(context);
                     let p1 = *context.last_point();
                     let p2 = Point::new(c.0.as_f64(), c.1.as_f64());
                     let p3 = Point::new(c.2.as_f64(), c.3.as_f64());
@@ -470,6 +663,7 @@ pub fn interpret<'a>(
             }
             TypedInstruction::CubicEndTo(c) => {
                 if !context.path().elements().is_empty() {
+                    begin_subpath_after_close(context);
                     let p2 = Point::new(c.0.as_f64(), c.1.as_f64());
                     let p3 = Point::new(c.2.as_f64(), c.3.as_f64());
 
@@ -517,13 +711,22 @@ pub fn interpret<'a>(
                 // Ignore for now.
             }
             TypedInstruction::ColorSpaceStroke(c) => {
-                let cs = if let Some(named) = ColorSpace::new_from_name(c.0) {
-                    named
-                } else {
-                    context
-                        .get_color_space(resources, c.0)
-                        .unwrap_or(ColorSpace::device_gray())
-                };
+                // PdfCraft patch (38): see `named_color_space`.
+                // PdfCraft patch (55): a space that cannot be read is drawn in DeviceGray, as
+                // before, and the fallback is reported.
+                // PdfCraft patch (80): an Indexed space with no lookup table counts as one that
+                // cannot be read, as upstream.
+                let cs = named_color_space(c.0, resources, &defaults, context)
+                    .filter(|cs| !cs.is_tableless_indexed())
+                    .unwrap_or_else(|| {
+                        crate::color::note_color_fallback();
+                        ColorSpace::device_gray()
+                    });
+                // PdfCraft patch (80): so is an Indexed space drawn recovered (indices past a
+                // short table drawn black, a `hival` clamped or truncated; see `Indexed::new`).
+                if cs.is_recovered_indexed() {
+                    crate::color::note_color_fallback();
+                }
 
                 if !cs.is_pattern() {
                     context.get_mut().graphics_state.stroke_pattern = None;
@@ -532,13 +735,22 @@ pub fn interpret<'a>(
                 context.get_mut().graphics_state.stroke_cs = cs;
             }
             TypedInstruction::ColorSpaceNonStroke(c) => {
-                let cs = if let Some(named) = ColorSpace::new_from_name(c.0) {
-                    named
-                } else {
-                    context
-                        .get_color_space(resources, c.0)
-                        .unwrap_or(ColorSpace::device_gray())
-                };
+                // PdfCraft patch (38): see `named_color_space`.
+                // PdfCraft patch (55): a space that cannot be read is drawn in DeviceGray, as
+                // before, and the fallback is reported.
+                // PdfCraft patch (80): an Indexed space with no lookup table counts as one that
+                // cannot be read, as upstream.
+                let cs = named_color_space(c.0, resources, &defaults, context)
+                    .filter(|cs| !cs.is_tableless_indexed())
+                    .unwrap_or_else(|| {
+                        crate::color::note_color_fallback();
+                        ColorSpace::device_gray()
+                    });
+                // PdfCraft patch (80): so is an Indexed space drawn recovered (indices past a
+                // short table drawn black, a `hival` clamped or truncated; see `Indexed::new`).
+                if cs.is_recovered_indexed() {
+                    crate::color::note_color_fallback();
+                }
 
                 if !cs.is_pattern() {
                     context.get_mut().graphics_state.non_stroke_pattern = None;
@@ -548,11 +760,9 @@ pub fn interpret<'a>(
             }
             TypedInstruction::DashPattern(p) => {
                 context.get_mut().graphics_state.stroke_props.dash_offset = p.1.as_f32();
-                // kurbo apparently cannot properly deal with offsets that are exactly 0.
+                // PdfCraft patch (61): see `convert_dash_array`.
                 context.get_mut().graphics_state.stroke_props.dash_array =
-                    p.0.iter::<f32>()
-                        .map(|n| if n == 0.0 { 0.01 } else { n })
-                        .collect();
+                    convert_dash_array(p.0.iter::<f32>());
             }
             TypedInstruction::RenderingIntent(_) => {
                 // Ignore for now.
@@ -563,7 +773,7 @@ pub fn interpret<'a>(
                 context.get_mut().graphics_state.non_stroke_pattern = n.1.and_then(|name| {
                     resources
                         .get_pattern(name)
-                        .and_then(|d| Pattern::new(d, context, resources))
+                        .and_then(|d| Pattern::new(d, context, resources, &defaults))
                 });
             }
             TypedInstruction::StrokeColorNamed(n) => {
@@ -572,7 +782,7 @@ pub fn interpret<'a>(
                 context.get_mut().graphics_state.stroke_pattern = n.1.and_then(|name| {
                     resources
                         .get_pattern(name)
-                        .and_then(|d| Pattern::new(d, context, resources))
+                        .and_then(|d| Pattern::new(d, context, resources, &defaults))
                 });
             }
             TypedInstruction::BeginMarkedContentWithProperties(bdc) => {
@@ -608,6 +818,19 @@ pub fn interpret<'a>(
                 }
 
                 device.begin_marked_content(bdc.0, mcid);
+
+                // PdfCraft patch (25): hand the device the sequence's `/ActualText`, from an inline
+                // property list or one named in the resources' `/Properties`.
+                let actual = dict_or_stream(bdc.1)
+                    .map(|(props, _)| props.clone())
+                    .or_else(|| {
+                        let name = bdc.1.clone().into_name()?;
+                        resources.properties.get::<Dict<'_>>(name)
+                    })
+                    .and_then(|props| props.get::<hayro_syntax::object::String<'_>>(ACTUAL_TEXT));
+                if let Some(text) = actual {
+                    device.actual_text(text.as_bytes());
+                }
             }
             TypedInstruction::MarkedContentPointWithProperties(_) => {}
             TypedInstruction::EndMarkedContent(_) => {
@@ -757,13 +980,21 @@ pub fn interpret<'a>(
             TypedInstruction::ShapeGlyph(_) => {}
             TypedInstruction::XObject(x) => {
                 let cache = context.interpreter_cache.object_cache.clone();
+                // PdfCraft patch: decoded images are cached per quality (preview or final).
+                let decoded_cache = context
+                    .interpreter_cache
+                    .decoded_cache
+                    .for_render(context.settings.preview);
                 let transfer_function = context.get().graphics_state.transfer_function.clone();
                 if let Some(x_object) = resources.get_x_object(x.0).and_then(|s| {
                     XObject::new(
                         &s,
                         &context.settings.warning_sink,
                         &cache,
+                        Some(&decoded_cache),
                         transfer_function.clone(),
+                        // PdfCraft patch (38): an image in a device space draws in its default.
+                        &defaults,
                     )
                 }) {
                     draw_xobject(&x_object, resources, context, device);
@@ -773,13 +1004,36 @@ pub fn interpret<'a>(
                 let warning_sink = context.settings.warning_sink.clone();
                 let transfer_function = context.get().graphics_state.transfer_function.clone();
                 let cache = context.interpreter_cache.object_cache.clone();
+                // PdfCraft patch (80): an inline image naming a resource colour space that is an
+                // Indexed space whose `hival` has no reading is reported, as `ImageXObject::new`
+                // reports one given in place; the image falls back as upstream. Only the array's
+                // name and `hival` are read here, never its lookup table: a recovered space is
+                // reported by `ImageXObject::new` from the space it builds through the resource
+                // cache. A device space name (or its inline abbreviation) never refers to a
+                // resource (ISO 32000-2 §8.6.8), and `ImageXObject::new` takes it first, so a
+                // resource of that name is not consulted.
+                let inline_dict = i.0.dict();
+                if inline_dict
+                    .get::<hayro_syntax::object::Name<'_>>(hayro_syntax::object::dict::keys::CS)
+                    .or_else(|| inline_dict.get::<hayro_syntax::object::Name<'_>>(hayro_syntax::object::dict::keys::COLORSPACE))
+                    .filter(|name| ColorSpace::new_from_name(name).is_none())
+                    .and_then(|name| resources.get_color_space(&name))
+                    .is_some_and(|cs| crate::color::has_unusable_hival(&cs))
+                {
+                    warning_sink(InterpreterWarning::MalformedIndexedImage);
+                }
+                // PdfCraft patch: inline images are not cached (see `DecodedImageKey`).
+                // PdfCraft patch (38): an inline image in a device space, named directly or by a
+                // resource, draws in its default.
                 if let Some(x_object) = ImageXObject::new(
                     i.0,
-                    |name| context.get_color_space(resources, name),
+                    |name| named_color_space(name, resources, &defaults, context),
                     &warning_sink,
                     &cache,
+                    None,
                     false,
                     transfer_function,
+                    Some(&defaults),
                 ) {
                     draw_image_xobject(&x_object, context, device);
                 }
@@ -798,7 +1052,13 @@ pub fn interpret<'a>(
                     .get_shading(s.0)
                     .and_then(|o| {
                         let (dict, stream) = dict_or_stream(&o)?;
-                        Shading::new(dict, stream, &context.interpreter_cache.object_cache)
+                        // PdfCraft patch (38): a shading in a device space draws in its default.
+                        Shading::new(
+                            dict,
+                            stream,
+                            &context.interpreter_cache.object_cache,
+                            &defaults,
+                        )
                     })
                     .map(|s| {
                         Pattern::Shading(ShadingPattern {
@@ -842,12 +1102,94 @@ pub fn interpret<'a>(
             }
         }
     }
+}
+
+/// Interpret the instructions from `ops` and render them into the device.
+pub fn interpret<'a>(
+    mut ops: TypedIter<'_>,
+    resources: &Resources<'a>,
+    context: &mut Context<'a>,
+    device: &mut impl Device<'a>,
+) {
+    let num_states = context.num_states();
+
+    context.save_state();
+    let outer_floor = context.enter_stream();
+
+    interpret_window(&mut ops, resources, context, device);
+
+    while context.num_states() > num_states {
+        context.restore_state(device);
+    }
+    context.leave_stream(outer_floor);
+    // PdfCraft patch (18): say that content was skipped, so a truncated page isn't a clean render.
+    if crate::context::content_was_truncated() {
+        (context.settings.warning_sink)(InterpreterWarning::ContentTruncated);
+    }
+    // PdfCraft patch (55): and that a colour was painted in a fallback colour.
+    if crate::color::take_color_fallback() {
+        (context.settings.warning_sink)(InterpreterWarning::ColorFallback);
+    }
+}
+
+/// PdfCraft patch: the bytes of a window of page content. A window grows only while an instruction
+/// at its end is incomplete.
+const CONTENT_WINDOW: usize = 64 << 10;
+
+/// PdfCraft patch: interprets the content of a page a window at a time, so the decoded content is
+/// never all in memory (see `ContentReader`). A window ends at an instruction that is not complete
+/// yet: its bytes are kept, and the next window starts with them.
+fn interpret_content<'a>(
+    content: &mut ContentReader<'_>,
+    resources: &Resources<'a>,
+    context: &mut Context<'a>,
+    device: &mut impl Device<'a>,
+) {
+    let num_states = context.num_states();
+
+    context.save_state();
+
+    let mut window = Vec::with_capacity(CONTENT_WINDOW);
+    let mut exhausted = false;
+    let mut cut = false;
+    loop {
+        let (committed, needs_more) = {
+            let mut ops = TypedIter::new_window(&window, exhausted);
+            interpret_window(&mut ops, resources, context, device);
+            (ops.committed(), ops.needs_more())
+        };
+        window.drain(..committed);
+
+        let cancelled = context
+            .settings
+            .cancelled
+            .as_ref()
+            .is_some_and(|c| c.load(Ordering::Relaxed));
+        if !needs_more || cancelled || exhausted {
+            break;
+        }
+        // A window that is still incomplete at its end waits for more of the stream. It doubles
+        // while it waits, so one long instruction costs time in proportion to its length, and it
+        // stops growing at `MAX_DECODED_STREAM`, the most any one stream may decode to.
+        if window.len() >= MAX_DECODED_STREAM {
+            cut = true;
+            break;
+        }
+        let want = window.len().max(CONTENT_WINDOW);
+        if content.read_into(&mut window, want) == 0 {
+            exhausted = true;
+        }
+    }
 
     while context.num_states() > num_states {
         context.restore_state(device);
     }
     // PdfCraft patch (18): say that content was skipped, so a truncated page isn't a clean render.
-    if crate::context::content_was_truncated() {
+    if cut || content.truncated() || crate::context::content_was_truncated() {
         (context.settings.warning_sink)(InterpreterWarning::ContentTruncated);
+    }
+    // PdfCraft patch (55): and that a colour was painted in a fallback colour.
+    if crate::color::take_color_fallback() {
+        (context.settings.warning_sink)(InterpreterWarning::ColorFallback);
     }
 }
