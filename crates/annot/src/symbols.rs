@@ -1329,9 +1329,16 @@ pub fn markup_vertices(doc: &Document, page: usize) -> Vec<[f64; 2]> {
     out
 }
 
-/// The sides of the line-like markups on `page` (lines, polylines, polygons and squares), for
-/// snapping to their edges. Capped like [`markup_vertices`].
-pub fn markup_segments(doc: &Document, page: usize) -> Vec<([f64; 2], [f64; 2])> {
+/// A line-like or box markup, read for snapping.
+enum SnapShape {
+    /// The points of a line, polyline or polygon, and whether it closes back to its first point.
+    Points { pts: Vec<[f64; 2]>, closed: bool },
+    /// The rectangle of a square or circle.
+    Box([f64; 4]),
+}
+
+/// The line-like and box markups on `page`, read for snapping. Capped like [`markup_vertices`].
+fn snap_shapes(doc: &Document, page: usize) -> Vec<SnapShape> {
     const MAX: usize = 50_000;
     let mut out = Vec::new();
     let Some(p) = page_refs(doc).ok().and_then(|r| r.get(page).copied()) else { return out };
@@ -1344,22 +1351,52 @@ pub fn markup_segments(doc: &Document, page: usize) -> Vec<([f64; 2], [f64; 2])>
                 .and_then(|o| o.as_array().map(|a| a.iter().filter_map(|x| doc.resolve(x).as_f64()).filter(|v| v.is_finite()).collect()))
                 .unwrap_or_default()
         };
-        match d.name(b"Subtype") {
-            Some(b"Line") => push_sides(&mut out, nums(b"L").as_chunks::<2>().0, false),
-            Some(b"PolyLine") => push_sides(&mut out, nums(b"Vertices").as_chunks::<2>().0, false),
-            Some(b"Polygon") => push_sides(&mut out, nums(b"Vertices").as_chunks::<2>().0, true),
-            Some(b"Square") => {
-                if let [x0, y0, x1, y1] = nums(b"Rect")[..] {
-                    push_sides(&mut out, &[[x0, y0], [x1, y0], [x1, y1], [x0, y1]], true);
-                }
-            }
-            _ => {}
-        }
-        if out.len() > MAX {
-            out.truncate(MAX);
+        let shape = match d.name(b"Subtype") {
+            Some(b"Line") => SnapShape::Points { pts: nums(b"L").as_chunks::<2>().0.to_vec(), closed: false },
+            Some(b"PolyLine") => SnapShape::Points { pts: nums(b"Vertices").as_chunks::<2>().0.to_vec(), closed: false },
+            Some(b"Polygon") => SnapShape::Points { pts: nums(b"Vertices").as_chunks::<2>().0.to_vec(), closed: true },
+            Some(b"Square" | b"Circle") => match nums(b"Rect")[..] {
+                [x0, y0, x1, y1] => SnapShape::Box([x0, y0, x1, y1]),
+                _ => continue,
+            },
+            _ => continue,
+        };
+        out.push(shape);
+        if out.len() >= MAX {
             break;
         }
     }
+    out
+}
+
+/// The sides of the line-like markups on `page` (lines, polylines, polygons and squares), for
+/// snapping to their edges. Capped like [`markup_vertices`].
+pub fn markup_segments(doc: &Document, page: usize) -> Vec<([f64; 2], [f64; 2])> {
+    const MAX: usize = 50_000;
+    let mut out = Vec::new();
+    for shape in snap_shapes(doc, page) {
+        match shape {
+            SnapShape::Points { pts, closed } => push_sides(&mut out, &pts, closed),
+            SnapShape::Box([x0, y0, x1, y1]) => push_sides(&mut out, &[[x0, y0], [x1, y0], [x1, y1], [x0, y1]], true),
+        }
+    }
+    out.truncate(MAX);
+    out
+}
+
+/// The points on the markups on `page` to align with: the ends and corners of lines, polylines and
+/// polygons, and the centres of squares and circles. Capped like [`markup_vertices`].
+pub fn markup_anchors(doc: &Document, page: usize) -> Vec<[f64; 2]> {
+    const MAX: usize = 50_000;
+    let mut out = Vec::new();
+    for shape in snap_shapes(doc, page) {
+        match shape {
+            SnapShape::Points { pts, .. } => out.extend(pts),
+            SnapShape::Box([x0, y0, x1, y1]) => out.push([(x0 + x1) / 2.0, (y0 + y1) / 2.0]),
+        }
+    }
+    out.retain(|p| p[0].is_finite() && p[1].is_finite());
+    out.truncate(MAX);
     out
 }
 

@@ -664,6 +664,11 @@ impl Document {
         self.editor.as_ref().map(|e| pdfcraft_annot::symbols::markup_vertices(&e.cos, page)).unwrap_or_default()
     }
 
+    /// The points on the markups on `page` to align with: their ends and centres.
+    pub fn markup_anchors(&self, page: usize) -> Vec<[f64; 2]> {
+        self.editor.as_ref().map(|e| pdfcraft_annot::symbols::markup_anchors(&e.cos, page)).unwrap_or_default()
+    }
+
     /// The sides of the line-like markups on `page`, for snapping to their edges.
     pub fn markup_segments(&self, page: usize) -> Vec<([f64; 2], [f64; 2])> {
         self.editor.as_ref().map(|e| pdfcraft_annot::symbols::markup_segments(&e.cos, page)).unwrap_or_default()

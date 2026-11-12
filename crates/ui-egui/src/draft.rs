@@ -446,6 +446,8 @@ pub struct DraftView {
     pub tool: Option<DraftTool>,
     pub page: Option<usize>,
     pub points: Vec<[f64; 2]>,
+    /// The points the pointer has hovered on each page: alignment guides run through them.
+    pub tracks: Vec<(usize, [f64; 2])>,
     /// What has been typed (a length or coordinates), applied with Enter.
     pub input: String,
     pub error: Option<String>,
@@ -1278,6 +1280,7 @@ pub(crate) fn page_input(
     if let Some(pos) = pos {
         ui.ctx().set_cursor_icon(egui::CursorIcon::Crosshair);
         let mut point = cx.to_user(pos);
+        let pointer = point;
         view.draft.under = line_under(view, doc, page, point, tolerance);
         // SE, SM, SI, SP, SN typed: that snap alone for the next point (SO none, SS all again).
         if let Some(code) = crate::draft_snap::one_shot_code(&view.draft.input) {
@@ -1397,12 +1400,29 @@ pub(crate) fn page_input(
             point = orthogonal(*last, point);
             kind = None;
         }
+        // Alignment: hovering a point (the page's ends and centres, or this shape's points) tracks
+        // it, and a pointer lined up with a tracked point's x or y snaps onto that line.
+        let mut hit: (Option<[f64; 2]>, Option<[f64; 2]>) = (None, None);
+        if view.measure.snap_enabled && one_shot.is_none() {
+            let mut anchors = doc.markup_anchors(page);
+            anchors.extend(view.draft.points.iter().copied());
+            let reach = tolerance * crate::draft_snap::TRACK_REACH;
+            crate::draft_snap::track(&mut view.draft.tracks, page, &anchors, pointer, tolerance, reach);
+            let tracks: Vec<[f64; 2]> = view.draft.tracks.iter().filter(|(p, _)| *p == page).map(|(_, t)| *t).collect();
+            let found = crate::draft_snap::aligned(&tracks, pointer, tolerance);
+            if kind.is_none() && !on_guide && (found.0.is_some() || found.1.is_some()) {
+                hit = found;
+                point = [found.0.map_or(pointer[0], |t| t[0]), found.1.map_or(pointer[1], |t| t[1])];
+            }
+        }
         // Angle steps: with nothing caught, a direction near a step sticks to it along a dashed
         // guide, and lands where the guide meets a line.
         let on_page = view.draft.page == Some(page);
         if !squared
             && !on_guide
             && kind.is_none_or(|k| k == SnapKind::Path)
+            && hit.0.is_none()
+            && hit.1.is_none()
             && one_shot.is_none()
             && let Some(last) = view.draft.points.last().copied().filter(|_| on_page)
         {
@@ -1444,6 +1464,21 @@ pub(crate) fn page_input(
             let b = cx.to_screen([from[0] + dir[0] * reach, from[1] + dir[1] * reach]);
             let c = Color32::from_rgb(90, 160, 230);
             ui.painter().extend(egui::Shape::dashed_line(&[a, b], Stroke::new(1.0, c.gamma_multiply(0.8)), 6.0, 4.0));
+        }
+        // The points the pointer is tracking on this page, with their guides; the ones it is lined
+        // up with are drawn firmer.
+        if view.measure.snap_enabled {
+            let magenta = Color32::from_rgb(230, 80, 180);
+            let clip = ui.clip_rect();
+            let tracks: Vec<[f64; 2]> = view.draft.tracks.iter().filter(|(p, _)| *p == page).map(|(_, t)| *t).collect();
+            for t in tracks {
+                let at = cx.to_screen(t);
+                let firm = hit.0 == Some(t) || hit.1 == Some(t);
+                let stroke = Stroke::new(if firm { 1.5 } else { 1.0 }, magenta.gamma_multiply(if firm { 1.0 } else { 0.5 }));
+                ui.painter().extend(egui::Shape::dashed_line(&[egui::pos2(at.x, clip.top()), egui::pos2(at.x, clip.bottom())], stroke, 6.0, 4.0));
+                ui.painter().extend(egui::Shape::dashed_line(&[egui::pos2(clip.left(), at.y), egui::pos2(clip.right(), at.y)], stroke, 6.0, 4.0));
+                ui.painter().circle_stroke(at, 4.0, stroke);
+            }
         }
         if let Some(o) = one_shot {
             let name = match o {

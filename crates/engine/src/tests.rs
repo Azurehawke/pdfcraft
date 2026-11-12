@@ -8786,3 +8786,30 @@ fn a_markups_sides_are_listed_for_edge_snapping_across_the_page() {
     assert!(sides.contains(&([100.0, 100.0], [300.0, 100.0])), "{sides:?}");
     assert!(sides.contains(&([200.0, 0.0], [200.0, 400.0])), "{sides:?}");
 }
+
+#[test]
+fn a_markups_ends_and_centres_are_anchors_to_align_with() {
+    let mut s = Session::default();
+    let id = s.open("plan.pdf", None, Arc::new(fixture(1)), None).unwrap();
+    let style = || Style { color: [0.0, 0.0, 0.0], opacity: 1.0, width: 1.0, fill: None };
+    let line = NewAnnotation {
+        page: 0,
+        shape: Shape::Line { from: [100.0, 100.0], to: [300.0, 100.0], start: LineEnding::None, end: LineEnding::None },
+        style: style(),
+        contents: String::new(),
+        author: "Steve".into(),
+    };
+    let square = NewAnnotation {
+        page: 0,
+        shape: Shape::Rectangle { rect: [0.0, 0.0, 100.0, 40.0] },
+        style: style(),
+        contents: String::new(),
+        author: "Steve".into(),
+    };
+    s.apply(id, Edit::AddAnnotation(line)).unwrap();
+    s.apply(id, Edit::AddAnnotation(square)).unwrap();
+    let anchors = s.get(id).unwrap().markup_anchors(0);
+    for want in [[100.0, 100.0], [300.0, 100.0], [50.0, 20.0]] {
+        assert!(anchors.contains(&want), "anchor {want:?} missing from {anchors:?}");
+    }
+}

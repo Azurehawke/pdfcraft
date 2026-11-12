@@ -117,6 +117,39 @@ fn distance_to(p: Pt, a: Pt, b: Pt) -> f64 {
 
 /// The crossing of two of `segments` nearest `p`, within `tolerance` (lines drawn as markup
 /// cross each other where the page's own drawing has no point).
+/// How far from a tracked point the pointer may wander before the point is let go, in tolerances.
+pub(crate) const TRACK_REACH: f64 = 30.0;
+
+/// Most points tracked at once; a new one replaces the oldest.
+const MAX_TRACKS: usize = 4;
+
+fn gap(a: Pt, b: Pt) -> f64 {
+    (a[0] - b[0]).hypot(a[1] - b[1])
+}
+
+/// Keeps the tracks on `page` the pointer is still near, and starts tracking the anchor nearest the
+/// pointer when it is within `tol` (unless that point is tracked already). Tracks on other pages go.
+pub(crate) fn track(tracks: &mut Vec<(usize, Pt)>, page: usize, anchors: &[Pt], raw: Pt, tol: f64, reach: f64) {
+    tracks.retain(|(p, t)| *p == page && gap(*t, raw) <= reach);
+    let nearest = anchors.iter().filter(|a| finite(**a) && gap(**a, raw) <= tol).min_by(|a, b| gap(**a, raw).total_cmp(&gap(**b, raw))).copied();
+    if let Some(a) = nearest
+        && !tracks.iter().any(|(_, t)| gap(*t, a) <= tol * 0.5)
+    {
+        tracks.push((page, a));
+    }
+    while tracks.len() > MAX_TRACKS {
+        tracks.remove(0);
+    }
+}
+
+/// The tracked point whose x is nearest the pointer's, and the one whose y is, each only when within
+/// `tol`. Either can be none; one point can answer for both.
+pub(crate) fn aligned(tracks: &[Pt], raw: Pt, tol: f64) -> (Option<Pt>, Option<Pt>) {
+    let x = tracks.iter().filter(|t| (t[0] - raw[0]).abs() <= tol).min_by(|a, b| (a[0] - raw[0]).abs().total_cmp(&(b[0] - raw[0]).abs())).copied();
+    let y = tracks.iter().filter(|t| (t[1] - raw[1]).abs() <= tol).min_by(|a, b| (a[1] - raw[1]).abs().total_cmp(&(b[1] - raw[1]).abs())).copied();
+    (x, y)
+}
+
 /// The point of each segment nearest `p` that lies within `tolerance` of it: the foot of the
 /// perpendicular when that falls on the segment, otherwise the nearer end. A segment with no length
 /// gives its one point. At most `MAX_NEAR` are returned, so a crowded page costs the same per move.
@@ -308,5 +341,42 @@ mod edge_tests {
         let segs = [([0.0, 0.0], [10.0, 0.0])];
         assert!(edge_points(&segs, [f64::NAN, 0.0], 5.0).is_empty());
         assert!(edge_points(&segs, [1.0, 0.0], f64::NAN).is_empty());
+    }
+}
+
+#[cfg(test)]
+mod align_tests {
+    use super::*;
+
+    #[test]
+    fn hovering_an_anchor_tracks_it_once() {
+        let mut tracks = Vec::new();
+        track(&mut tracks, 0, &[[100.0, 100.0]], [102.0, 101.0], 5.0, 150.0);
+        track(&mut tracks, 0, &[[100.0, 100.0]], [101.0, 100.0], 5.0, 150.0);
+        assert_eq!(tracks, vec![(0, [100.0, 100.0])]);
+    }
+
+    #[test]
+    fn a_track_is_let_go_when_the_pointer_leaves_it_or_the_page() {
+        let mut tracks = vec![(0, [100.0, 100.0])];
+        track(&mut tracks, 0, &[], [400.0, 400.0], 5.0, 150.0);
+        assert!(tracks.is_empty());
+        let mut tracks = vec![(1, [100.0, 100.0])];
+        track(&mut tracks, 0, &[], [100.0, 100.0], 5.0, 150.0);
+        assert!(tracks.is_empty(), "a track on another page goes");
+    }
+
+    #[test]
+    fn the_pointer_lined_up_with_a_tracked_point_gets_its_x_or_y() {
+        let tracks = [[100.0, 100.0]];
+        assert_eq!(aligned(&tracks, [102.0, 300.0], 5.0), (Some([100.0, 100.0]), None));
+        assert_eq!(aligned(&tracks, [300.0, 103.0], 5.0), (None, Some([100.0, 100.0])));
+        assert_eq!(aligned(&tracks, [300.0, 300.0], 5.0), (None, None));
+    }
+
+    #[test]
+    fn two_tracks_give_a_crossing_of_their_guides() {
+        let tracks = [[100.0, 40.0], [300.0, 200.0]];
+        assert_eq!(aligned(&tracks, [101.0, 199.0], 5.0), (Some([100.0, 40.0]), Some([300.0, 200.0])));
     }
 }
