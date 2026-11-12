@@ -1171,6 +1171,7 @@ pub(crate) fn snap_name(k: SnapKind) -> &'static str {
         SnapKind::Midpoint => "Midpoint",
         SnapKind::Intersection => "Intersection",
         SnapKind::Path => "Path",
+        SnapKind::Edge => "Edge",
         SnapKind::Perpendicular => "Perpendicular",
     }
 }
@@ -1313,6 +1314,13 @@ pub(crate) fn page_input(
                     }
                 }
             }
+            // The sides of the page's line markups, nearest the pointer, anywhere on the page.
+            let markup_segs = if view.measure.snaps.edges || view.measure.snaps.intersections { doc.markup_segments(page) } else { Vec::new() };
+            if view.measure.snaps.edges && may(SnapKind::Edge) {
+                for p in crate::draft_snap::edge_points(&markup_segs, raw, tolerance) {
+                    consider(p, SnapKind::Edge);
+                }
+            }
             if view.draft.paths.as_ref().is_none_or(|(p, g, _)| *p != page || *g != doc.edit_generation()) {
                 view.draft.paths = Some((page, doc.edit_generation(), doc.measurement_paths(page).ok()));
             }
@@ -1320,12 +1328,13 @@ pub(crate) fn page_input(
                 Some((_, _, Some(paths))) => Some(paths),
                 _ => None,
             };
-            // Where two drawn lines cross (the page's own crossings come from its drawing).
-            if best.is_none()
+            // Where two lines cross: the one being drawn and the page's markups (the page's own
+            // crossings come from its drawing). A crossing beats an edge, not an endpoint or midpoint.
+            if best.is_none_or(|(_, _, k)| k == SnapKind::Edge)
                 && view.measure.snaps.intersections
                 && may(SnapKind::Intersection)
                 && let Some(x) = crate::draft_snap::nearest_crossing(
-                    shapes.iter().flat_map(|g| g.segments().map(|(a, b)| [a, b]).collect::<Vec<_>>()),
+                    shapes.iter().flat_map(|g| g.segments().map(|(a, b)| [a, b]).collect::<Vec<_>>()).chain(markup_segs.iter().map(|&(a, b)| [a, b])),
                     raw,
                     tolerance,
                 )
@@ -1345,6 +1354,7 @@ pub(crate) fn page_input(
                             midpoints: k == SnapKind::Midpoint,
                             intersections: k == SnapKind::Intersection,
                             paths: k == SnapKind::Path,
+                            edges: k == SnapKind::Edge,
                         },
                         _ => view.measure.snaps,
                     };

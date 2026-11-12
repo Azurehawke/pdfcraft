@@ -151,7 +151,7 @@ fn filled_open_subpath_offers_the_same_snap_edges_as_explicit_close() {
     assert_eq!(filled.segments, explicit.segments);
     assert_eq!(filled.segments.len(), 3);
     assert_eq!(stroked.segments.len(), 2);
-    let paths_only = snap::SnapOptions { endpoints: false, midpoints: false, intersections: false, paths: true };
+    let paths_only = snap::SnapOptions { endpoints: false, midpoints: false, intersections: false, paths: true, edges: false };
     let hit = filled.snap([55.0, 80.0], 5.0, paths_only).unwrap().unwrap();
     assert_eq!(hit.kind, snap::SnapKind::Path);
     assert_eq!(hit.point, [55.0, 80.0]);

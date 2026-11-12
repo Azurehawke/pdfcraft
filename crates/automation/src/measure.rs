@@ -141,6 +141,8 @@ impl Automation {
             midpoints: a.opt_bool("midpoints")?.unwrap_or(true),
             intersections: a.opt_bool("intersections")?.unwrap_or(true),
             paths: a.opt_bool("paths")?.unwrap_or(true),
+            // The markups' edges are RevuCraft's; the drawing snap has no use for them here.
+            edges: false,
         };
         let tolerance = a.opt_num("tolerance")?.unwrap_or(6.0);
         let adjacent = self.doc(a)?.measurement_to_user(page, [at[0] + tolerance, at[1]]).map_err(failed)?;

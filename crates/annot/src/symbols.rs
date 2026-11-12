@@ -1329,6 +1329,52 @@ pub fn markup_vertices(doc: &Document, page: usize) -> Vec<[f64; 2]> {
     out
 }
 
+/// The sides of the line-like markups on `page` (lines, polylines, polygons and squares), for
+/// snapping to their edges. Capped like [`markup_vertices`].
+pub fn markup_segments(doc: &Document, page: usize) -> Vec<([f64; 2], [f64; 2])> {
+    const MAX: usize = 50_000;
+    let mut out = Vec::new();
+    let Some(p) = page_refs(doc).ok().and_then(|r| r.get(page).copied()) else { return out };
+    for entry in annots(doc, p) {
+        let obj = doc.resolve(&entry);
+        let Some(d) = obj.as_dict() else { continue };
+        let nums = |k: &[u8]| -> Vec<f64> {
+            d.get(k)
+                .map(|o| doc.resolve(o))
+                .and_then(|o| o.as_array().map(|a| a.iter().filter_map(|x| doc.resolve(x).as_f64()).filter(|v| v.is_finite()).collect()))
+                .unwrap_or_default()
+        };
+        match d.name(b"Subtype") {
+            Some(b"Line") => push_sides(&mut out, nums(b"L").as_chunks::<2>().0, false),
+            Some(b"PolyLine") => push_sides(&mut out, nums(b"Vertices").as_chunks::<2>().0, false),
+            Some(b"Polygon") => push_sides(&mut out, nums(b"Vertices").as_chunks::<2>().0, true),
+            Some(b"Square") => {
+                if let [x0, y0, x1, y1] = nums(b"Rect")[..] {
+                    push_sides(&mut out, &[[x0, y0], [x1, y0], [x1, y1], [x0, y1]], true);
+                }
+            }
+            _ => {}
+        }
+        if out.len() > MAX {
+            out.truncate(MAX);
+            break;
+        }
+    }
+    out
+}
+
+/// Adds the sides between neighbouring `pts`, and the closing side when `closed`.
+fn push_sides(out: &mut Vec<([f64; 2], [f64; 2])>, pts: &[[f64; 2]], closed: bool) {
+    for pair in pts.windows(2) {
+        if let [a, b] = *pair {
+            out.push((a, b));
+        }
+    }
+    if let (true, Some(first), Some(last)) = (closed, pts.first(), pts.last()) {
+        out.push((*last, *first));
+    }
+}
+
 /// A spreadsheet cell: quoted when it has to be, and never read as a formula.
 fn cell(text: &str) -> String {
     let text = if text.starts_with(['=', '+', '-', '@', '\t', '\r']) { format!("'{text}") } else { text.to_string() };

@@ -8767,3 +8767,22 @@ fn a_title_block_is_one_per_page_on_its_own_layer_drawn_behind_the_marks() {
     s.apply(id, Edit::AddTitleBlock { page: 1 }).unwrap();
     assert_eq!(s.annotation_layer(id, 1, 0), Some(title));
 }
+
+#[test]
+fn a_markups_sides_are_listed_for_edge_snapping_across_the_page() {
+    let mut s = Session::default();
+    let id = s.open("plan.pdf", None, Arc::new(fixture(1)), None).unwrap();
+    let markup = |from: [f64; 2], to: [f64; 2]| NewAnnotation {
+        page: 0,
+        shape: Shape::Line { from, to, start: LineEnding::None, end: LineEnding::None },
+        style: Style { color: [0.0, 0.0, 0.0], opacity: 1.0, width: 1.0, fill: None },
+        contents: String::new(),
+        author: "Steve".into(),
+    };
+    s.apply(id, Edit::AddAnnotation(markup([100.0, 100.0], [300.0, 100.0]))).unwrap();
+    s.apply(id, Edit::AddAnnotation(markup([200.0, 0.0], [200.0, 400.0]))).unwrap();
+    let sides = s.get(id).unwrap().markup_segments(0);
+    assert_eq!(sides.len(), 2, "one side per line markup: {sides:?}");
+    assert!(sides.contains(&([100.0, 100.0], [300.0, 100.0])), "{sides:?}");
+    assert!(sides.contains(&([200.0, 0.0], [200.0, 400.0])), "{sides:?}");
+}

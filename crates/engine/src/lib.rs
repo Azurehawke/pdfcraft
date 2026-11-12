@@ -664,6 +664,11 @@ impl Document {
         self.editor.as_ref().map(|e| pdfcraft_annot::symbols::markup_vertices(&e.cos, page)).unwrap_or_default()
     }
 
+    /// The sides of the line-like markups on `page`, for snapping to their edges.
+    pub fn markup_segments(&self, page: usize) -> Vec<([f64; 2], [f64; 2])> {
+        self.editor.as_ref().map(|e| pdfcraft_annot::symbols::markup_segments(&e.cos, page)).unwrap_or_default()
+    }
+
     /// The turn of the symbol at `(page, index)` in degrees.
     pub fn symbol_rotation(&self, page: usize, index: usize) -> f64 {
         self.editor.as_ref().map_or(0.0, |e| pdfcraft_annot::symbols::rotation_at(&e.cos, page, index))

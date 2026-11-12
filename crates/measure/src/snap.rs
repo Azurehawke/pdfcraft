@@ -70,6 +70,8 @@ pub enum SnapKind {
     Midpoint,
     Intersection,
     Path,
+    /// The nearest point on the edge of a line markup on the page.
+    Edge,
     /// The foot of a line from the previous point square to a segment.
     Perpendicular,
 }
@@ -85,10 +87,12 @@ pub struct SnapOptions {
     pub midpoints: bool,
     pub intersections: bool,
     pub paths: bool,
+    /// The edges of the page's line markups (RevuCraft's drafting); the drawing snap ignores this.
+    pub edges: bool,
 }
 impl Default for SnapOptions {
     fn default() -> Self {
-        Self { endpoints: true, midpoints: true, intersections: true, paths: true }
+        Self { endpoints: true, midpoints: true, intersections: true, paths: true, edges: true }
     }
 }
 fn dot(a: Point, b: Point) -> f64 {

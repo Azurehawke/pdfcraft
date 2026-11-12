@@ -101,6 +101,7 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
                             ui.add(crate::widgets::checkbox(&mut m.snaps.midpoints, tl!("Midpoints")));
                             ui.add(crate::widgets::checkbox(&mut m.snaps.intersections, tl!("Intersections")));
                             ui.add(crate::widgets::checkbox(&mut m.snaps.paths, tl!("Paths")));
+                            ui.add(crate::widgets::checkbox(&mut m.snaps.edges, tl!("Edges")));
                             ui.add(egui::Slider::new(&mut m.sensitivity, 1.0..=20.0).text(tl!("Sensitivity")));
                             // Drafting: the angle steps a direction sticks to, along a dashed guide.
                             ui.separator();

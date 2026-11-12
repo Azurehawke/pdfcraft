@@ -117,6 +117,36 @@ fn distance_to(p: Pt, a: Pt, b: Pt) -> f64 {
 
 /// The crossing of two of `segments` nearest `p`, within `tolerance` (lines drawn as markup
 /// cross each other where the page's own drawing has no point).
+/// The point of each segment nearest `p` that lies within `tolerance` of it: the foot of the
+/// perpendicular when that falls on the segment, otherwise the nearer end. A segment with no length
+/// gives its one point. At most `MAX_NEAR` are returned, so a crowded page costs the same per move.
+pub(crate) fn edge_points(segments: &[(Pt, Pt)], p: Pt, tolerance: f64) -> Vec<Pt> {
+    let mut out = Vec::new();
+    if !finite(p) || !(tolerance.is_finite() && tolerance > 0.0) {
+        return out;
+    }
+    for &(a, b) in segments {
+        if out.len() >= MAX_NEAR {
+            break;
+        }
+        if finite(a) && finite(b) && distance_to(p, a, b) <= tolerance {
+            out.push(foot(p, a, b));
+        }
+    }
+    out
+}
+
+/// The point on segment `a`–`b` nearest `p`, clamped to the segment's ends.
+fn foot(p: Pt, a: Pt, b: Pt) -> Pt {
+    let (dx, dy) = (b[0] - a[0], b[1] - a[1]);
+    let len2 = dx * dx + dy * dy;
+    if !(len2.is_finite() && len2 > 0.0) {
+        return a;
+    }
+    let t = (((p[0] - a[0]) * dx + (p[1] - a[1]) * dy) / len2).clamp(0.0, 1.0);
+    [a[0] + t * dx, a[1] + t * dy]
+}
+
 pub(crate) fn nearest_crossing(segments: impl IntoIterator<Item = [Pt; 2]>, p: Pt, tolerance: f64) -> Option<Pt> {
     if !finite(p) || !(tolerance.is_finite() && tolerance > 0.0) {
         return None;
@@ -247,5 +277,36 @@ mod tests {
         assert!(allowed(Some(OneShot::Only(SnapKind::Midpoint)), SnapKind::Midpoint));
         assert!(!allowed(Some(OneShot::Only(SnapKind::Midpoint)), SnapKind::Endpoint));
         assert!(!allowed(Some(OneShot::Off), SnapKind::Path));
+    }
+}
+
+#[cfg(test)]
+mod edge_tests {
+    use super::*;
+
+    #[test]
+    fn the_foot_of_a_perpendicular_is_the_edge_point() {
+        let pts = edge_points(&[([0.0, 0.0], [100.0, 0.0])], [40.0, 3.0], 5.0);
+        assert_eq!(pts, vec![[40.0, 0.0]]);
+    }
+
+    #[test]
+    fn a_point_past_an_end_snaps_to_that_end_not_the_extension() {
+        let pts = edge_points(&[([0.0, 0.0], [100.0, 0.0])], [104.0, 2.0], 5.0);
+        assert_eq!(pts, vec![[100.0, 0.0]]);
+    }
+
+    #[test]
+    fn only_segments_within_tolerance_count_and_a_zero_length_one_is_its_point() {
+        let segs = [([0.0, 50.0], [100.0, 50.0]), ([10.0, 10.0], [10.0, 10.0])];
+        assert_eq!(edge_points(&segs, [12.0, 11.0], 5.0), vec![[10.0, 10.0]]);
+        assert!(edge_points(&segs, [12.0, 30.0], 5.0).is_empty());
+    }
+
+    #[test]
+    fn a_bad_pointer_or_tolerance_gives_nothing() {
+        let segs = [([0.0, 0.0], [10.0, 0.0])];
+        assert!(edge_points(&segs, [f64::NAN, 0.0], 5.0).is_empty());
+        assert!(edge_points(&segs, [1.0, 0.0], f64::NAN).is_empty());
     }
 }

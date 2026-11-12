@@ -140,6 +140,7 @@ Markup and measuring
 - [x] **(Steve)** Snapping: perpendicular (the foot of a line from the last point, for
       drafting and measuring), and midpoints of drawn markup lines (the PDF's own lines already
       snap to midpoints); the snap kind shown at the pointer while drafting, as measuring does.
+- [x] **(Steve)** Snapping to the edge of any line markup on the page (the nearest point along the line, clamped to its ends), and to where two markup lines cross, as BIMCraft does for walls. Both are under the Snap settings, with an Edges toggle beside Paths.
 - [x] **(Steve)** Custom columns and statuses: your own fields on markups (drop ID, port,
       patch panel, cable type) and a status list (Pulled / Terminated / Tested), set in Properties,
       shown in the Markups list and exported with it.

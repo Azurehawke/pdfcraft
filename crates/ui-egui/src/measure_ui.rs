@@ -622,6 +622,7 @@ pub(crate) fn page_input(
                     measure::snap::SnapKind::Midpoint => "Midpoint",
                     measure::snap::SnapKind::Intersection => "Intersection",
                     measure::snap::SnapKind::Path => "Path",
+                    measure::snap::SnapKind::Edge => "Edge",
                     measure::snap::SnapKind::Perpendicular => "Perpendicular",
                 }),
                 crate::theme::regular(11.0),
