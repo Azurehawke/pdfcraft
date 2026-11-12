@@ -426,7 +426,7 @@ impl Default for DraftSettings {
             polar_angle: 360.0,
             mirror_keep: true,
             dim_ticks: false,
-            line_width: LineWidth::Hairline,
+            line_width: LineWidth::Paper(MIN_PRINTABLE_PT),
             by_layer: false,
             color: None,
             color_layer: None,
@@ -703,6 +703,10 @@ pub(crate) fn annotation(page: usize, shape: Shape, color: [f64; 3], width: f64,
         author: author.to_string(),
     })
 }
+
+/// The thinnest width that still prints as a visible line (points); the app's floor for a line's
+/// width. New drafting lines start here, so they are visible on screen and in print.
+pub const MIN_PRINTABLE_PT: f64 = 0.1;
 
 /// How wide new drafting lines are drawn.
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -2425,9 +2429,9 @@ mod default_line_tests {
     /// New drafting lines are hairlines (the thinnest the printer draws) unless a layer or a
     /// width chosen in the ribbon says otherwise.
     #[test]
-    fn default_drafting_line_is_the_hairline() {
+    fn default_drafting_line_is_the_minimum_printable_width() {
         let d = DraftSettings::default();
-        assert_eq!(d.line_width, LineWidth::Hairline);
+        assert_eq!(d.line_width, LineWidth::Paper(MIN_PRINTABLE_PT));
         assert!(!d.by_layer);
     }
 }
