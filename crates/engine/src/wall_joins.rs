@@ -618,4 +618,31 @@ mod tests {
         assert_eq!(face, 1, "the face toward the old wall");
         assert!((t0 - 0.47).abs() < 1e-9 && (t1 - 0.53).abs() < 1e-9, "{t0} {t1}");
     }
+
+    #[test]
+    fn a_thinner_wall_between_two_thicker_ones_joins_both_ends() {
+        // Two 9" (thickness 9) walls, 200 apart, and a 6" wall drawn from one to the other: both
+        // of its ends must join, so the partition is closed at the top and at the bottom.
+        let top = Wall {
+            index: 1,
+            nm: "top".into(),
+            quad: [[0.0, 4.5], [300.0, 4.5], [300.0, -4.5], [0.0, -4.5]],
+            data: walls::WallData::default(),
+            locked: false,
+        };
+        let bottom = Wall {
+            index: 2,
+            nm: "bottom".into(),
+            quad: [[0.0, 204.5], [300.0, 204.5], [300.0, 195.5], [0.0, 195.5]],
+            data: walls::WallData::default(),
+            locked: false,
+        };
+        let new = [[97.0, 0.0], [97.0, 200.0], [103.0, 200.0], [103.0, 0.0]];
+        let edits = wall_edits(0, &[new], false, &[top, bottom], &style(), "Steve");
+        let joined_top = edits.iter().any(|e| matches!(e, Edit::SetWall { index: 1, .. }));
+        let joined_bottom = edits.iter().any(|e| matches!(e, Edit::SetWall { index: 2, .. }));
+        let [(_, ja, jb)] = add_walls(&edits)[..] else { panic!("one new wall: {edits:?}") };
+        assert!(joined_top && joined_bottom, "both 9-inch walls are joined: {edits:?}");
+        assert!(ja && jb, "both ends of the 6-inch wall are joined: {edits:?}");
+    }
 }
