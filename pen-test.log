@@ -1,0 +1,63 @@
+[1m[33mwarning[0m[1m: missing `[lints]` to inherit `[workspace.lints]`[0m
+  [1m[94m--> [0mxtask/Cargo.toml
+   [1m[94m= [0m[1mnote[0m: `cargo::missing_lints_inheritance` is set to `warn` by default
+[1m[96mhelp[0m: to inherit `workspace.lints, add:
+   [1m[94m|[0m
+[1m[94m19[0m [92m~ [0mchrono = { workspace = true }
+[1m[94m20[0m [92m+ [lints][0m
+[1m[94m21[0m [92m+ workspace = true[0m
+   [1m[94m|[0m
+[1m[96mhelp[0m: to clarify your intent to not inherit, add:
+   [1m[94m|[0m
+[1m[94m19[0m [92m~ [0mchrono = { workspace = true }
+[1m[94m20[0m [92m+ [lints][0m
+   [1m[94m|[0m
+[1m[33mwarning[0m: `xtask` (manifest) generated 1 warning
+[1m[92m   Compiling[0m pdfcraft-crypt v0.13.0 (/home/runner/work/pdfcraft/pdfcraft/crates/crypt)
+[1m[92m   Compiling[0m pdfcraft-filters v0.13.0 (/home/runner/work/pdfcraft/pdfcraft/crates/filters)
+[1m[92m   Compiling[0m pdfcraft-fonts v0.13.0 (/home/runner/work/pdfcraft/pdfcraft/crates/fonts)
+[1m[92m   Compiling[0m hayro-jbig2 v0.3.0 (/home/runner/work/pdfcraft/pdfcraft/vendor/hayro-jbig2)
+[1m[92m   Compiling[0m pdfcraft-cos v0.13.0 (/home/runner/work/pdfcraft/pdfcraft/crates/cos)
+[1m[92m   Compiling[0m hayro-syntax v0.7.2 (/home/runner/work/pdfcraft/pdfcraft/vendor/hayro-syntax)
+[1m[92m   Compiling[0m pdfcraft-model v0.13.0 (/home/runner/work/pdfcraft/pdfcraft/crates/model)
+[1m[92m   Compiling[0m pdfcraft-annot v0.13.0 (/home/runner/work/pdfcraft/pdfcraft/crates/annot)
+[1m[92m    Finished[0m `test` profile [optimized + debuginfo] target(s) in 22.42s
+[1m[92m     Running[0m unittests src/lib.rs (target/debug/build/pdfcraft-annot/e2223e9fee4d8da8/out/pdfcraft_annot-e2223e9fee4d8da8)
+
+running 5 tests
+test pen::tests::names_round_trip ... ok
+test pen::tests::pressure_widens_a_fountain_pen ... ok
+test walls::tests::doors_swing_from_their_hinge_to_the_side_they_open_to ... ok
+test pen::tests::outlines_are_closed_fills_for_any_input ... ok
+test tests::pen_drawings_keep_their_pen_and_pressure ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 115 filtered out; finished in 0.01s
+
+[1m[33mwarning[0m[1m: missing `[lints]` to inherit `[workspace.lints]`[0m
+  [1m[94m--> [0mxtask/Cargo.toml
+   [1m[94m= [0m[1mnote[0m: `cargo::missing_lints_inheritance` is set to `warn` by default
+[1m[96mhelp[0m: to inherit `workspace.lints, add:
+   [1m[94m|[0m
+[1m[94m19[0m [92m~ [0mchrono = { workspace = true }
+[1m[94m20[0m [92m+ [lints][0m
+[1m[94m21[0m [92m+ workspace = true[0m
+   [1m[94m|[0m
+[1m[96mhelp[0m: to clarify your intent to not inherit, add:
+   [1m[94m|[0m
+[1m[94m19[0m [92m~ [0mchrono = { workspace = true }
+[1m[94m20[0m [92m+ [lints][0m
+   [1m[94m|[0m
+[1m[33mwarning[0m: `xtask` (manifest) generated 1 warning
+[1m[92m   Compiling[0m hayro-syntax v0.7.2 (/home/runner/work/pdfcraft/pdfcraft/vendor/hayro-syntax)
+[1m[92m   Compiling[0m pdfcraft-fonts v0.13.0 (/home/runner/work/pdfcraft/pdfcraft/crates/fonts)
+[1m[92m   Compiling[0m pdfcraft-annot v0.13.0 (/home/runner/work/pdfcraft/pdfcraft/crates/annot)
+[1m[92m   Compiling[0m pdfcraft-content v0.13.0 (/home/runner/work/pdfcraft/pdfcraft/crates/content)
+[1m[92m   Compiling[0m pdfcraft-edit v0.13.0 (/home/runner/work/pdfcraft/pdfcraft/crates/edit)
+[1m[92m    Finished[0m `test` profile [optimized + debuginfo] target(s) in 29.26s
+[1m[92m     Running[0m unittests src/lib.rs (target/debug/build/pdfcraft-edit/3f5fc5d5f88abcbd/out/pdfcraft_edit-3f5fc5d5f88abcbd)
+
+running 1 test
+test tests::text_in_forms_becomes_editable_page_text_in_the_same_place ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 249 filtered out; finished in 0.00s
+
