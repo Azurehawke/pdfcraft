@@ -1,0 +1,690 @@
+[1m[33mwarning[0m[1m: missing `[lints]` to inherit `[workspace.lints]`[0m
+  [1m[94m--> [0mxtask/Cargo.toml
+   [1m[94m= [0m[1mnote[0m: `cargo::missing_lints_inheritance` is set to `warn` by default
+[1m[96mhelp[0m: to inherit `workspace.lints, add:
+   [1m[94m|[0m
+[1m[94m19[0m [92m~ [0mchrono = { workspace = true }
+[1m[94m20[0m [92m+ [lints][0m
+[1m[94m21[0m [92m+ workspace = true[0m
+   [1m[94m|[0m
+[1m[96mhelp[0m: to clarify your intent to not inherit, add:
+   [1m[94m|[0m
+[1m[94m19[0m [92m~ [0mchrono = { workspace = true }
+[1m[94m20[0m [92m+ [lints][0m
+   [1m[94m|[0m
+shot: wrote /home/runner/work/_temp/shots/home.png (1440×900)
+[1m[33mwarning[0m[1m: missing `[lints]` to inherit `[workspace.lints]`[0m
+  [1m[94m--> [0mxtask/Cargo.toml
+   [1m[94m= [0m[1mnote[0m: `cargo::missing_lints_inheritance` is set to `warn` by default
+[1m[96mhelp[0m: to inherit `workspace.lints, add:
+   [1m[94m|[0m
+[1m[94m19[0m [92m~ [0mchrono = { workspace = true }
+[1m[94m20[0m [92m+ [lints][0m
+[1m[94m21[0m [92m+ workspace = true[0m
+   [1m[94m|[0m
+[1m[96mhelp[0m: to clarify your intent to not inherit, add:
+   [1m[94m|[0m
+[1m[94m19[0m [92m~ [0mchrono = { workspace = true }
+[1m[94m20[0m [92m+ [lints][0m
+   [1m[94m|[0m
+shot: wrote /home/runner/work/_temp/shots/new-dialog.png (1440×900)
+[1m[33mwarning[0m[1m: missing `[lints]` to inherit `[workspace.lints]`[0m
+  [1m[94m--> [0mxtask/Cargo.toml
+   [1m[94m= [0m[1mnote[0m: `cargo::missing_lints_inheritance` is set to `warn` by default
+[1m[96mhelp[0m: to inherit `workspace.lints, add:
+   [1m[94m|[0m
+[1m[94m19[0m [92m~ [0mchrono = { workspace = true }
+[1m[94m20[0m [92m+ [lints][0m
+[1m[94m21[0m [92m+ workspace = true[0m
+   [1m[94m|[0m
+[1m[96mhelp[0m: to clarify your intent to not inherit, add:
+   [1m[94m|[0m
+[1m[94m19[0m [92m~ [0mchrono = { workspace = true }
+[1m[94m20[0m [92m+ [lints][0m
+   [1m[94m|[0m
+shot: wrote /home/runner/work/_temp/shots/new-dialog-add.png (1440×900)
+[1m[33mwarning[0m[1m: missing `[lints]` to inherit `[workspace.lints]`[0m
+  [1m[94m--> [0mxtask/Cargo.toml
+   [1m[94m= [0m[1mnote[0m: `cargo::missing_lints_inheritance` is set to `warn` by default
+[1m[96mhelp[0m: to inherit `workspace.lints, add:
+   [1m[94m|[0m
+[1m[94m19[0m [92m~ [0mchrono = { workspace = true }
+[1m[94m20[0m [92m+ [lints][0m
+[1m[94m21[0m [92m+ workspace = true[0m
+   [1m[94m|[0m
+[1m[96mhelp[0m: to clarify your intent to not inherit, add:
+   [1m[94m|[0m
+[1m[94m19[0m [92m~ [0mchrono = { workspace = true }
+[1m[94m20[0m [92m+ [lints][0m
+   [1m[94m|[0m
+shot: wrote /home/runner/work/_temp/shots/plan.png (1440×900)
+[1m[33mwarning[0m[1m: missing `[lints]` to inherit `[workspace.lints]`[0m
+  [1m[94m--> [0mxtask/Cargo.toml
+   [1m[94m= [0m[1mnote[0m: `cargo::missing_lints_inheritance` is set to `warn` by default
+[1m[96mhelp[0m: to inherit `workspace.lints, add:
+   [1m[94m|[0m
+[1m[94m19[0m [92m~ [0mchrono = { workspace = true }
+[1m[94m20[0m [92m+ [lints][0m
+[1m[94m21[0m [92m+ workspace = true[0m
+   [1m[94m|[0m
+[1m[96mhelp[0m: to clarify your intent to not inherit, add:
+   [1m[94m|[0m
+[1m[94m19[0m [92m~ [0mchrono = { workspace = true }
+[1m[94m20[0m [92m+ [lints][0m
+   [1m[94m|[0m
+shot: wrote /home/runner/work/_temp/shots/plan-light.png (1440×900)
+[1m[33mwarning[0m[1m: missing `[lints]` to inherit `[workspace.lints]`[0m
+  [1m[94m--> [0mxtask/Cargo.toml
+   [1m[94m= [0m[1mnote[0m: `cargo::missing_lints_inheritance` is set to `warn` by default
+[1m[96mhelp[0m: to inherit `workspace.lints, add:
+   [1m[94m|[0m
+[1m[94m19[0m [92m~ [0mchrono = { workspace = true }
+[1m[94m20[0m [92m+ [lints][0m
+[1m[94m21[0m [92m+ workspace = true[0m
+   [1m[94m|[0m
+[1m[96mhelp[0m: to clarify your intent to not inherit, add:
+   [1m[94m|[0m
+[1m[94m19[0m [92m~ [0mchrono = { workspace = true }
+[1m[94m20[0m [92m+ [lints][0m
+   [1m[94m|[0m
+shot: wrote /home/runner/work/_temp/shots/plan-comments.png (1440×900)
+[1m[33mwarning[0m[1m: missing `[lints]` to inherit `[workspace.lints]`[0m
+  [1m[94m--> [0mxtask/Cargo.toml
+   [1m[94m= [0m[1mnote[0m: `cargo::missing_lints_inheritance` is set to `warn` by default
+[1m[96mhelp[0m: to inherit `workspace.lints, add:
+   [1m[94m|[0m
+[1m[94m19[0m [92m~ [0mchrono = { workspace = true }
+[1m[94m20[0m [92m+ [lints][0m
+[1m[94m21[0m [92m+ workspace = true[0m
+   [1m[94m|[0m
+[1m[96mhelp[0m: to clarify your intent to not inherit, add:
+   [1m[94m|[0m
+[1m[94m19[0m [92m~ [0mchrono = { workspace = true }
+[1m[94m20[0m [92m+ [lints][0m
+   [1m[94m|[0m
+shot: wrote /home/runner/work/_temp/shots/plan-punch.png (1440×900)
+[1m[33mwarning[0m[1m: missing `[lints]` to inherit `[workspace.lints]`[0m
+  [1m[94m--> [0mxtask/Cargo.toml
+   [1m[94m= [0m[1mnote[0m: `cargo::missing_lints_inheritance` is set to `warn` by default
+[1m[96mhelp[0m: to inherit `workspace.lints, add:
+   [1m[94m|[0m
+[1m[94m19[0m [92m~ [0mchrono = { workspace = true }
+[1m[94m20[0m [92m+ [lints][0m
+[1m[94m21[0m [92m+ workspace = true[0m
+   [1m[94m|[0m
+[1m[96mhelp[0m: to clarify your intent to not inherit, add:
+   [1m[94m|[0m
+[1m[94m19[0m [92m~ [0mchrono = { workspace = true }
+[1m[94m20[0m [92m+ [lints][0m
+   [1m[94m|[0m
+shot: wrote /home/runner/work/_temp/shots/plan-spaces.png (1440×900)
+[1m[33mwarning[0m[1m: missing `[lints]` to inherit `[workspace.lints]`[0m
+  [1m[94m--> [0mxtask/Cargo.toml
+   [1m[94m= [0m[1mnote[0m: `cargo::missing_lints_inheritance` is set to `warn` by default
+[1m[96mhelp[0m: to inherit `workspace.lints, add:
+   [1m[94m|[0m
+[1m[94m19[0m [92m~ [0mchrono = { workspace = true }
+[1m[94m20[0m [92m+ [lints][0m
+[1m[94m21[0m [92m+ workspace = true[0m
+   [1m[94m|[0m
+[1m[96mhelp[0m: to clarify your intent to not inherit, add:
+   [1m[94m|[0m
+[1m[94m19[0m [92m~ [0mchrono = { workspace = true }
+[1m[94m20[0m [92m+ [lints][0m
+   [1m[94m|[0m
+shot: wrote /home/runner/work/_temp/shots/plan-measure.png (1440×900)
+[1m[33mwarning[0m[1m: missing `[lints]` to inherit `[workspace.lints]`[0m
+  [1m[94m--> [0mxtask/Cargo.toml
+   [1m[94m= [0m[1mnote[0m: `cargo::missing_lints_inheritance` is set to `warn` by default
+[1m[96mhelp[0m: to inherit `workspace.lints, add:
+   [1m[94m|[0m
+[1m[94m19[0m [92m~ [0mchrono = { workspace = true }
+[1m[94m20[0m [92m+ [lints][0m
+[1m[94m21[0m [92m+ workspace = true[0m
+   [1m[94m|[0m
+[1m[96mhelp[0m: to clarify your intent to not inherit, add:
+   [1m[94m|[0m
+[1m[94m19[0m [92m~ [0mchrono = { workspace = true }
+[1m[94m20[0m [92m+ [lints][0m
+   [1m[94m|[0m
+shot: wrote /home/runner/work/_temp/shots/plan-scale.png (1440×900)
+[1m[33mwarning[0m[1m: missing `[lints]` to inherit `[workspace.lints]`[0m
+  [1m[94m--> [0mxtask/Cargo.toml
+   [1m[94m= [0m[1mnote[0m: `cargo::missing_lints_inheritance` is set to `warn` by default
+[1m[96mhelp[0m: to inherit `workspace.lints, add:
+   [1m[94m|[0m
+[1m[94m19[0m [92m~ [0mchrono = { workspace = true }
+[1m[94m20[0m [92m+ [lints][0m
+[1m[94m21[0m [92m+ workspace = true[0m
+   [1m[94m|[0m
+[1m[96mhelp[0m: to clarify your intent to not inherit, add:
+   [1m[94m|[0m
+[1m[94m19[0m [92m~ [0mchrono = { workspace = true }
+[1m[94m20[0m [92m+ [lints][0m
+   [1m[94m|[0m
+shot: wrote /home/runner/work/_temp/shots/dxf-open.png (1440×900)
+[1m[33mwarning[0m[1m: missing `[lints]` to inherit `[workspace.lints]`[0m
+  [1m[94m--> [0mxtask/Cargo.toml
+   [1m[94m= [0m[1mnote[0m: `cargo::missing_lints_inheritance` is set to `warn` by default
+[1m[96mhelp[0m: to inherit `workspace.lints, add:
+   [1m[94m|[0m
+[1m[94m19[0m [92m~ [0mchrono = { workspace = true }
+[1m[94m20[0m [92m+ [lints][0m
+[1m[94m21[0m [92m+ workspace = true[0m
+   [1m[94m|[0m
+[1m[96mhelp[0m: to clarify your intent to not inherit, add:
+   [1m[94m|[0m
+[1m[94m19[0m [92m~ [0mchrono = { workspace = true }
+[1m[94m20[0m [92m+ [lints][0m
+   [1m[94m|[0m
+shot: wrote /home/runner/work/_temp/shots/dxf-links.png (1440×900)
+[1m[33mwarning[0m[1m: missing `[lints]` to inherit `[workspace.lints]`[0m
+  [1m[94m--> [0mxtask/Cargo.toml
+   [1m[94m= [0m[1mnote[0m: `cargo::missing_lints_inheritance` is set to `warn` by default
+[1m[96mhelp[0m: to inherit `workspace.lints, add:
+   [1m[94m|[0m
+[1m[94m19[0m [92m~ [0mchrono = { workspace = true }
+[1m[94m20[0m [92m+ [lints][0m
+[1m[94m21[0m [92m+ workspace = true[0m
+   [1m[94m|[0m
+[1m[96mhelp[0m: to clarify your intent to not inherit, add:
+   [1m[94m|[0m
+[1m[94m19[0m [92m~ [0mchrono = { workspace = true }
+[1m[94m20[0m [92m+ [lints][0m
+   [1m[94m|[0m
+shot: wrote /home/runner/work/_temp/shots/plan-symbols.png (1440×900)
+[1m[33mwarning[0m[1m: missing `[lints]` to inherit `[workspace.lints]`[0m
+  [1m[94m--> [0mxtask/Cargo.toml
+   [1m[94m= [0m[1mnote[0m: `cargo::missing_lints_inheritance` is set to `warn` by default
+[1m[96mhelp[0m: to inherit `workspace.lints, add:
+   [1m[94m|[0m
+[1m[94m19[0m [92m~ [0mchrono = { workspace = true }
+[1m[94m20[0m [92m+ [lints][0m
+[1m[94m21[0m [92m+ workspace = true[0m
+   [1m[94m|[0m
+[1m[96mhelp[0m: to clarify your intent to not inherit, add:
+   [1m[94m|[0m
+[1m[94m19[0m [92m~ [0mchrono = { workspace = true }
+[1m[94m20[0m [92m+ [lints][0m
+   [1m[94m|[0m
+shot: wrote /home/runner/work/_temp/shots/plan-layers.png (1440×900)
+[1m[33mwarning[0m[1m: missing `[lints]` to inherit `[workspace.lints]`[0m
+  [1m[94m--> [0mxtask/Cargo.toml
+   [1m[94m= [0m[1mnote[0m: `cargo::missing_lints_inheritance` is set to `warn` by default
+[1m[96mhelp[0m: to inherit `workspace.lints, add:
+   [1m[94m|[0m
+[1m[94m19[0m [92m~ [0mchrono = { workspace = true }
+[1m[94m20[0m [92m+ [lints][0m
+[1m[94m21[0m [92m+ workspace = true[0m
+   [1m[94m|[0m
+[1m[96mhelp[0m: to clarify your intent to not inherit, add:
+   [1m[94m|[0m
+[1m[94m19[0m [92m~ [0mchrono = { workspace = true }
+[1m[94m20[0m [92m+ [lints][0m
+   [1m[94m|[0m
+shot: wrote /home/runner/work/_temp/shots/plan-dock.png (1440×900)
+[1m[33mwarning[0m[1m: missing `[lints]` to inherit `[workspace.lints]`[0m
+  [1m[94m--> [0mxtask/Cargo.toml
+   [1m[94m= [0m[1mnote[0m: `cargo::missing_lints_inheritance` is set to `warn` by default
+[1m[96mhelp[0m: to inherit `workspace.lints, add:
+   [1m[94m|[0m
+[1m[94m19[0m [92m~ [0mchrono = { workspace = true }
+[1m[94m20[0m [92m+ [lints][0m
+[1m[94m21[0m [92m+ workspace = true[0m
+   [1m[94m|[0m
+[1m[96mhelp[0m: to clarify your intent to not inherit, add:
+   [1m[94m|[0m
+[1m[94m19[0m [92m~ [0mchrono = { workspace = true }
+[1m[94m20[0m [92m+ [lints][0m
+   [1m[94m|[0m
+shot: wrote /home/runner/work/_temp/shots/plan-draft.png (1440×900)
+[1m[33mwarning[0m[1m: missing `[lints]` to inherit `[workspace.lints]`[0m
+  [1m[94m--> [0mxtask/Cargo.toml
+   [1m[94m= [0m[1mnote[0m: `cargo::missing_lints_inheritance` is set to `warn` by default
+[1m[96mhelp[0m: to inherit `workspace.lints, add:
+   [1m[94m|[0m
+[1m[94m19[0m [92m~ [0mchrono = { workspace = true }
+[1m[94m20[0m [92m+ [lints][0m
+[1m[94m21[0m [92m+ workspace = true[0m
+   [1m[94m|[0m
+[1m[96mhelp[0m: to clarify your intent to not inherit, add:
+   [1m[94m|[0m
+[1m[94m19[0m [92m~ [0mchrono = { workspace = true }
+[1m[94m20[0m [92m+ [lints][0m
+   [1m[94m|[0m
+shot: wrote /home/runner/work/_temp/shots/plan-draft-modify.png (1440×900)
+[1m[33mwarning[0m[1m: missing `[lints]` to inherit `[workspace.lints]`[0m
+  [1m[94m--> [0mxtask/Cargo.toml
+   [1m[94m= [0m[1mnote[0m: `cargo::missing_lints_inheritance` is set to `warn` by default
+[1m[96mhelp[0m: to inherit `workspace.lints, add:
+   [1m[94m|[0m
+[1m[94m19[0m [92m~ [0mchrono = { workspace = true }
+[1m[94m20[0m [92m+ [lints][0m
+[1m[94m21[0m [92m+ workspace = true[0m
+   [1m[94m|[0m
+[1m[96mhelp[0m: to clarify your intent to not inherit, add:
+   [1m[94m|[0m
+[1m[94m19[0m [92m~ [0mchrono = { workspace = true }
+[1m[94m20[0m [92m+ [lints][0m
+   [1m[94m|[0m
+shot: wrote /home/runner/work/_temp/shots/plan-draft-collapsed.png (1440×900)
+[1m[33mwarning[0m[1m: missing `[lints]` to inherit `[workspace.lints]`[0m
+  [1m[94m--> [0mxtask/Cargo.toml
+   [1m[94m= [0m[1mnote[0m: `cargo::missing_lints_inheritance` is set to `warn` by default
+[1m[96mhelp[0m: to inherit `workspace.lints, add:
+   [1m[94m|[0m
+[1m[94m19[0m [92m~ [0mchrono = { workspace = true }
+[1m[94m20[0m [92m+ [lints][0m
+[1m[94m21[0m [92m+ workspace = true[0m
+   [1m[94m|[0m
+[1m[96mhelp[0m: to clarify your intent to not inherit, add:
+   [1m[94m|[0m
+[1m[94m19[0m [92m~ [0mchrono = { workspace = true }
+[1m[94m20[0m [92m+ [lints][0m
+   [1m[94m|[0m
+shot: wrote /home/runner/work/_temp/shots/plan-draft-door.png (1440×900)
+[1m[33mwarning[0m[1m: missing `[lints]` to inherit `[workspace.lints]`[0m
+  [1m[94m--> [0mxtask/Cargo.toml
+   [1m[94m= [0m[1mnote[0m: `cargo::missing_lints_inheritance` is set to `warn` by default
+[1m[96mhelp[0m: to inherit `workspace.lints, add:
+   [1m[94m|[0m
+[1m[94m19[0m [92m~ [0mchrono = { workspace = true }
+[1m[94m20[0m [92m+ [lints][0m
+[1m[94m21[0m [92m+ workspace = true[0m
+   [1m[94m|[0m
+[1m[96mhelp[0m: to clarify your intent to not inherit, add:
+   [1m[94m|[0m
+[1m[94m19[0m [92m~ [0mchrono = { workspace = true }
+[1m[94m20[0m [92m+ [lints][0m
+   [1m[94m|[0m
+shot: wrote /home/runner/work/_temp/shots/plan-smart-walls.png (1440×900)
+[1m[33mwarning[0m[1m: missing `[lints]` to inherit `[workspace.lints]`[0m
+  [1m[94m--> [0mxtask/Cargo.toml
+   [1m[94m= [0m[1mnote[0m: `cargo::missing_lints_inheritance` is set to `warn` by default
+[1m[96mhelp[0m: to inherit `workspace.lints, add:
+   [1m[94m|[0m
+[1m[94m19[0m [92m~ [0mchrono = { workspace = true }
+[1m[94m20[0m [92m+ [lints][0m
+[1m[94m21[0m [92m+ workspace = true[0m
+   [1m[94m|[0m
+[1m[96mhelp[0m: to clarify your intent to not inherit, add:
+   [1m[94m|[0m
+[1m[94m19[0m [92m~ [0mchrono = { workspace = true }
+[1m[94m20[0m [92m+ [lints][0m
+   [1m[94m|[0m
+shot: wrote /home/runner/work/_temp/shots/plan-draft-wall-side.png (1440×900)
+[1m[33mwarning[0m[1m: missing `[lints]` to inherit `[workspace.lints]`[0m
+  [1m[94m--> [0mxtask/Cargo.toml
+   [1m[94m= [0m[1mnote[0m: `cargo::missing_lints_inheritance` is set to `warn` by default
+[1m[96mhelp[0m: to inherit `workspace.lints, add:
+   [1m[94m|[0m
+[1m[94m19[0m [92m~ [0mchrono = { workspace = true }
+[1m[94m20[0m [92m+ [lints][0m
+[1m[94m21[0m [92m+ workspace = true[0m
+   [1m[94m|[0m
+[1m[96mhelp[0m: to clarify your intent to not inherit, add:
+   [1m[94m|[0m
+[1m[94m19[0m [92m~ [0mchrono = { workspace = true }
+[1m[94m20[0m [92m+ [lints][0m
+   [1m[94m|[0m
+shot: wrote /home/runner/work/_temp/shots/plan-draft-rect.png (1440×900)
+[1m[33mwarning[0m[1m: missing `[lints]` to inherit `[workspace.lints]`[0m
+  [1m[94m--> [0mxtask/Cargo.toml
+   [1m[94m= [0m[1mnote[0m: `cargo::missing_lints_inheritance` is set to `warn` by default
+[1m[96mhelp[0m: to inherit `workspace.lints, add:
+   [1m[94m|[0m
+[1m[94m19[0m [92m~ [0mchrono = { workspace = true }
+[1m[94m20[0m [92m+ [lints][0m
+[1m[94m21[0m [92m+ workspace = true[0m
+   [1m[94m|[0m
+[1m[96mhelp[0m: to clarify your intent to not inherit, add:
+   [1m[94m|[0m
+[1m[94m19[0m [92m~ [0mchrono = { workspace = true }
+[1m[94m20[0m [92m+ [lints][0m
+   [1m[94m|[0m
+shot: wrote /home/runner/work/_temp/shots/plan-pasteboard.png (1440×900)
+[1m[33mwarning[0m[1m: missing `[lints]` to inherit `[workspace.lints]`[0m
+  [1m[94m--> [0mxtask/Cargo.toml
+   [1m[94m= [0m[1mnote[0m: `cargo::missing_lints_inheritance` is set to `warn` by default
+[1m[96mhelp[0m: to inherit `workspace.lints, add:
+   [1m[94m|[0m
+[1m[94m19[0m [92m~ [0mchrono = { workspace = true }
+[1m[94m20[0m [92m+ [lints][0m
+[1m[94m21[0m [92m+ workspace = true[0m
+   [1m[94m|[0m
+[1m[96mhelp[0m: to clarify your intent to not inherit, add:
+   [1m[94m|[0m
+[1m[94m19[0m [92m~ [0mchrono = { workspace = true }
+[1m[94m20[0m [92m+ [lints][0m
+   [1m[94m|[0m
+shot: wrote /home/runner/work/_temp/shots/plan-rulers.png (1440×900)
+[1m[33mwarning[0m[1m: missing `[lints]` to inherit `[workspace.lints]`[0m
+  [1m[94m--> [0mxtask/Cargo.toml
+   [1m[94m= [0m[1mnote[0m: `cargo::missing_lints_inheritance` is set to `warn` by default
+[1m[96mhelp[0m: to inherit `workspace.lints, add:
+   [1m[94m|[0m
+[1m[94m19[0m [92m~ [0mchrono = { workspace = true }
+[1m[94m20[0m [92m+ [lints][0m
+[1m[94m21[0m [92m+ workspace = true[0m
+   [1m[94m|[0m
+[1m[96mhelp[0m: to clarify your intent to not inherit, add:
+   [1m[94m|[0m
+[1m[94m19[0m [92m~ [0mchrono = { workspace = true }
+[1m[94m20[0m [92m+ [lints][0m
+   [1m[94m|[0m
+shot: wrote /home/runner/work/_temp/shots/plan-format-copy.png (1440×900)
+[1m[33mwarning[0m[1m: missing `[lints]` to inherit `[workspace.lints]`[0m
+  [1m[94m--> [0mxtask/Cargo.toml
+   [1m[94m= [0m[1mnote[0m: `cargo::missing_lints_inheritance` is set to `warn` by default
+[1m[96mhelp[0m: to inherit `workspace.lints, add:
+   [1m[94m|[0m
+[1m[94m19[0m [92m~ [0mchrono = { workspace = true }
+[1m[94m20[0m [92m+ [lints][0m
+[1m[94m21[0m [92m+ workspace = true[0m
+   [1m[94m|[0m
+[1m[96mhelp[0m: to clarify your intent to not inherit, add:
+   [1m[94m|[0m
+[1m[94m19[0m [92m~ [0mchrono = { workspace = true }
+[1m[94m20[0m [92m+ [lints][0m
+   [1m[94m|[0m
+shot: wrote /home/runner/work/_temp/shots/plan-markup.png (1440×900)
+[1m[33mwarning[0m[1m: missing `[lints]` to inherit `[workspace.lints]`[0m
+  [1m[94m--> [0mxtask/Cargo.toml
+   [1m[94m= [0m[1mnote[0m: `cargo::missing_lints_inheritance` is set to `warn` by default
+[1m[96mhelp[0m: to inherit `workspace.lints, add:
+   [1m[94m|[0m
+[1m[94m19[0m [92m~ [0mchrono = { workspace = true }
+[1m[94m20[0m [92m+ [lints][0m
+[1m[94m21[0m [92m+ workspace = true[0m
+   [1m[94m|[0m
+[1m[96mhelp[0m: to clarify your intent to not inherit, add:
+   [1m[94m|[0m
+[1m[94m19[0m [92m~ [0mchrono = { workspace = true }
+[1m[94m20[0m [92m+ [lints][0m
+   [1m[94m|[0m
+shot: wrote /home/runner/work/_temp/shots/plan-photo-callout.png (1440×900)
+[1m[33mwarning[0m[1m: missing `[lints]` to inherit `[workspace.lints]`[0m
+  [1m[94m--> [0mxtask/Cargo.toml
+   [1m[94m= [0m[1mnote[0m: `cargo::missing_lints_inheritance` is set to `warn` by default
+[1m[96mhelp[0m: to inherit `workspace.lints, add:
+   [1m[94m|[0m
+[1m[94m19[0m [92m~ [0mchrono = { workspace = true }
+[1m[94m20[0m [92m+ [lints][0m
+[1m[94m21[0m [92m+ workspace = true[0m
+   [1m[94m|[0m
+[1m[96mhelp[0m: to clarify your intent to not inherit, add:
+   [1m[94m|[0m
+[1m[94m19[0m [92m~ [0mchrono = { workspace = true }
+[1m[94m20[0m [92m+ [lints][0m
+   [1m[94m|[0m
+shot: wrote /home/runner/work/_temp/shots/plan-cable.png (1440×900)
+[1m[33mwarning[0m[1m: missing `[lints]` to inherit `[workspace.lints]`[0m
+  [1m[94m--> [0mxtask/Cargo.toml
+   [1m[94m= [0m[1mnote[0m: `cargo::missing_lints_inheritance` is set to `warn` by default
+[1m[96mhelp[0m: to inherit `workspace.lints, add:
+   [1m[94m|[0m
+[1m[94m19[0m [92m~ [0mchrono = { workspace = true }
+[1m[94m20[0m [92m+ [lints][0m
+[1m[94m21[0m [92m+ workspace = true[0m
+   [1m[94m|[0m
+[1m[96mhelp[0m: to clarify your intent to not inherit, add:
+   [1m[94m|[0m
+[1m[94m19[0m [92m~ [0mchrono = { workspace = true }
+[1m[94m20[0m [92m+ [lints][0m
+   [1m[94m|[0m
+shot: wrote /home/runner/work/_temp/shots/plan-markups-list.png (1440×900)
+[1m[33mwarning[0m[1m: missing `[lints]` to inherit `[workspace.lints]`[0m
+  [1m[94m--> [0mxtask/Cargo.toml
+   [1m[94m= [0m[1mnote[0m: `cargo::missing_lints_inheritance` is set to `warn` by default
+[1m[96mhelp[0m: to inherit `workspace.lints, add:
+   [1m[94m|[0m
+[1m[94m19[0m [92m~ [0mchrono = { workspace = true }
+[1m[94m20[0m [92m+ [lints][0m
+[1m[94m21[0m [92m+ workspace = true[0m
+   [1m[94m|[0m
+[1m[96mhelp[0m: to clarify your intent to not inherit, add:
+   [1m[94m|[0m
+[1m[94m19[0m [92m~ [0mchrono = { workspace = true }
+[1m[94m20[0m [92m+ [lints][0m
+   [1m[94m|[0m
+shot: wrote /home/runner/work/_temp/shots/plan-forms.png (1440×900)
+[1m[33mwarning[0m[1m: missing `[lints]` to inherit `[workspace.lints]`[0m
+  [1m[94m--> [0mxtask/Cargo.toml
+   [1m[94m= [0m[1mnote[0m: `cargo::missing_lints_inheritance` is set to `warn` by default
+[1m[96mhelp[0m: to inherit `workspace.lints, add:
+   [1m[94m|[0m
+[1m[94m19[0m [92m~ [0mchrono = { workspace = true }
+[1m[94m20[0m [92m+ [lints][0m
+[1m[94m21[0m [92m+ workspace = true[0m
+   [1m[94m|[0m
+[1m[96mhelp[0m: to clarify your intent to not inherit, add:
+   [1m[94m|[0m
+[1m[94m19[0m [92m~ [0mchrono = { workspace = true }
+[1m[94m20[0m [92m+ [lints][0m
+   [1m[94m|[0m
+shot: wrote /home/runner/work/_temp/shots/plan-document.png (1440×900)
+[1m[33mwarning[0m[1m: missing `[lints]` to inherit `[workspace.lints]`[0m
+  [1m[94m--> [0mxtask/Cargo.toml
+   [1m[94m= [0m[1mnote[0m: `cargo::missing_lints_inheritance` is set to `warn` by default
+[1m[96mhelp[0m: to inherit `workspace.lints, add:
+   [1m[94m|[0m
+[1m[94m19[0m [92m~ [0mchrono = { workspace = true }
+[1m[94m20[0m [92m+ [lints][0m
+[1m[94m21[0m [92m+ workspace = true[0m
+   [1m[94m|[0m
+[1m[96mhelp[0m: to clarify your intent to not inherit, add:
+   [1m[94m|[0m
+[1m[94m19[0m [92m~ [0mchrono = { workspace = true }
+[1m[94m20[0m [92m+ [lints][0m
+   [1m[94m|[0m
+shot: wrote /home/runner/work/_temp/shots/plan-teal.png (1440×900)
+[1m[33mwarning[0m[1m: missing `[lints]` to inherit `[workspace.lints]`[0m
+  [1m[94m--> [0mxtask/Cargo.toml
+   [1m[94m= [0m[1mnote[0m: `cargo::missing_lints_inheritance` is set to `warn` by default
+[1m[96mhelp[0m: to inherit `workspace.lints, add:
+   [1m[94m|[0m
+[1m[94m19[0m [92m~ [0mchrono = { workspace = true }
+[1m[94m20[0m [92m+ [lints][0m
+[1m[94m21[0m [92m+ workspace = true[0m
+   [1m[94m|[0m
+[1m[96mhelp[0m: to clarify your intent to not inherit, add:
+   [1m[94m|[0m
+[1m[94m19[0m [92m~ [0mchrono = { workspace = true }
+[1m[94m20[0m [92m+ [lints][0m
+   [1m[94m|[0m
+shot: wrote /home/runner/work/_temp/shots/phone.png (860×1800)
+[1m[33mwarning[0m[1m: missing `[lints]` to inherit `[workspace.lints]`[0m
+  [1m[94m--> [0mxtask/Cargo.toml
+   [1m[94m= [0m[1mnote[0m: `cargo::missing_lints_inheritance` is set to `warn` by default
+[1m[96mhelp[0m: to inherit `workspace.lints, add:
+   [1m[94m|[0m
+[1m[94m19[0m [92m~ [0mchrono = { workspace = true }
+[1m[94m20[0m [92m+ [lints][0m
+[1m[94m21[0m [92m+ workspace = true[0m
+   [1m[94m|[0m
+[1m[96mhelp[0m: to clarify your intent to not inherit, add:
+   [1m[94m|[0m
+[1m[94m19[0m [92m~ [0mchrono = { workspace = true }
+[1m[94m20[0m [92m+ [lints][0m
+   [1m[94m|[0m
+shot: wrote /home/runner/work/_temp/shots/phone-home.png (860×1800)
+[1m[33mwarning[0m[1m: missing `[lints]` to inherit `[workspace.lints]`[0m
+  [1m[94m--> [0mxtask/Cargo.toml
+   [1m[94m= [0m[1mnote[0m: `cargo::missing_lints_inheritance` is set to `warn` by default
+[1m[96mhelp[0m: to inherit `workspace.lints, add:
+   [1m[94m|[0m
+[1m[94m19[0m [92m~ [0mchrono = { workspace = true }
+[1m[94m20[0m [92m+ [lints][0m
+[1m[94m21[0m [92m+ workspace = true[0m
+   [1m[94m|[0m
+[1m[96mhelp[0m: to clarify your intent to not inherit, add:
+   [1m[94m|[0m
+[1m[94m19[0m [92m~ [0mchrono = { workspace = true }
+[1m[94m20[0m [92m+ [lints][0m
+   [1m[94m|[0m
+shot: wrote /home/runner/work/_temp/shots/phone-new.png (860×1800)
+[1m[33mwarning[0m[1m: missing `[lints]` to inherit `[workspace.lints]`[0m
+  [1m[94m--> [0mxtask/Cargo.toml
+   [1m[94m= [0m[1mnote[0m: `cargo::missing_lints_inheritance` is set to `warn` by default
+[1m[96mhelp[0m: to inherit `workspace.lints, add:
+   [1m[94m|[0m
+[1m[94m19[0m [92m~ [0mchrono = { workspace = true }
+[1m[94m20[0m [92m+ [lints][0m
+[1m[94m21[0m [92m+ workspace = true[0m
+   [1m[94m|[0m
+[1m[96mhelp[0m: to clarify your intent to not inherit, add:
+   [1m[94m|[0m
+[1m[94m19[0m [92m~ [0mchrono = { workspace = true }
+[1m[94m20[0m [92m+ [lints][0m
+   [1m[94m|[0m
+shot: wrote /home/runner/work/_temp/shots/phone-draft.png (860×1800)
+[1m[33mwarning[0m[1m: missing `[lints]` to inherit `[workspace.lints]`[0m
+  [1m[94m--> [0mxtask/Cargo.toml
+   [1m[94m= [0m[1mnote[0m: `cargo::missing_lints_inheritance` is set to `warn` by default
+[1m[96mhelp[0m: to inherit `workspace.lints, add:
+   [1m[94m|[0m
+[1m[94m19[0m [92m~ [0mchrono = { workspace = true }
+[1m[94m20[0m [92m+ [lints][0m
+[1m[94m21[0m [92m+ workspace = true[0m
+   [1m[94m|[0m
+[1m[96mhelp[0m: to clarify your intent to not inherit, add:
+   [1m[94m|[0m
+[1m[94m19[0m [92m~ [0mchrono = { workspace = true }
+[1m[94m20[0m [92m+ [lints][0m
+   [1m[94m|[0m
+shot: wrote /home/runner/work/_temp/shots/phone-dock.png (860×1800)
+[1m[33mwarning[0m[1m: missing `[lints]` to inherit `[workspace.lints]`[0m
+  [1m[94m--> [0mxtask/Cargo.toml
+   [1m[94m= [0m[1mnote[0m: `cargo::missing_lints_inheritance` is set to `warn` by default
+[1m[96mhelp[0m: to inherit `workspace.lints, add:
+   [1m[94m|[0m
+[1m[94m19[0m [92m~ [0mchrono = { workspace = true }
+[1m[94m20[0m [92m+ [lints][0m
+[1m[94m21[0m [92m+ workspace = true[0m
+   [1m[94m|[0m
+[1m[96mhelp[0m: to clarify your intent to not inherit, add:
+   [1m[94m|[0m
+[1m[94m19[0m [92m~ [0mchrono = { workspace = true }
+[1m[94m20[0m [92m+ [lints][0m
+   [1m[94m|[0m
+shot: wrote /home/runner/work/_temp/shots/plan-icons-neutral.png (1440×900)
+[1m[33mwarning[0m[1m: missing `[lints]` to inherit `[workspace.lints]`[0m
+  [1m[94m--> [0mxtask/Cargo.toml
+   [1m[94m= [0m[1mnote[0m: `cargo::missing_lints_inheritance` is set to `warn` by default
+[1m[96mhelp[0m: to inherit `workspace.lints, add:
+   [1m[94m|[0m
+[1m[94m19[0m [92m~ [0mchrono = { workspace = true }
+[1m[94m20[0m [92m+ [lints][0m
+[1m[94m21[0m [92m+ workspace = true[0m
+   [1m[94m|[0m
+[1m[96mhelp[0m: to clarify your intent to not inherit, add:
+   [1m[94m|[0m
+[1m[94m19[0m [92m~ [0mchrono = { workspace = true }
+[1m[94m20[0m [92m+ [lints][0m
+   [1m[94m|[0m
+shot: wrote /home/runner/work/_temp/shots/all-tools.png (1440×900)
+[1m[33mwarning[0m[1m: missing `[lints]` to inherit `[workspace.lints]`[0m
+  [1m[94m--> [0mxtask/Cargo.toml
+   [1m[94m= [0m[1mnote[0m: `cargo::missing_lints_inheritance` is set to `warn` by default
+[1m[96mhelp[0m: to inherit `workspace.lints, add:
+   [1m[94m|[0m
+[1m[94m19[0m [92m~ [0mchrono = { workspace = true }
+[1m[94m20[0m [92m+ [lints][0m
+[1m[94m21[0m [92m+ workspace = true[0m
+   [1m[94m|[0m
+[1m[96mhelp[0m: to clarify your intent to not inherit, add:
+   [1m[94m|[0m
+[1m[94m19[0m [92m~ [0mchrono = { workspace = true }
+[1m[94m20[0m [92m+ [lints][0m
+   [1m[94m|[0m
+shot: wrote /home/runner/work/_temp/shots/plan-links.png (1440×900)
+[1m[33mwarning[0m[1m: missing `[lints]` to inherit `[workspace.lints]`[0m
+  [1m[94m--> [0mxtask/Cargo.toml
+   [1m[94m= [0m[1mnote[0m: `cargo::missing_lints_inheritance` is set to `warn` by default
+[1m[96mhelp[0m: to inherit `workspace.lints, add:
+   [1m[94m|[0m
+[1m[94m19[0m [92m~ [0mchrono = { workspace = true }
+[1m[94m20[0m [92m+ [lints][0m
+[1m[94m21[0m [92m+ workspace = true[0m
+   [1m[94m|[0m
+[1m[96mhelp[0m: to clarify your intent to not inherit, add:
+   [1m[94m|[0m
+[1m[94m19[0m [92m~ [0mchrono = { workspace = true }
+[1m[94m20[0m [92m+ [lints][0m
+   [1m[94m|[0m
+shot: wrote /home/runner/work/_temp/shots/plan-table.png (1440×900)
+[1m[33mwarning[0m[1m: missing `[lints]` to inherit `[workspace.lints]`[0m
+  [1m[94m--> [0mxtask/Cargo.toml
+   [1m[94m= [0m[1mnote[0m: `cargo::missing_lints_inheritance` is set to `warn` by default
+[1m[96mhelp[0m: to inherit `workspace.lints, add:
+   [1m[94m|[0m
+[1m[94m19[0m [92m~ [0mchrono = { workspace = true }
+[1m[94m20[0m [92m+ [lints][0m
+[1m[94m21[0m [92m+ workspace = true[0m
+   [1m[94m|[0m
+[1m[96mhelp[0m: to clarify your intent to not inherit, add:
+   [1m[94m|[0m
+[1m[94m19[0m [92m~ [0mchrono = { workspace = true }
+[1m[94m20[0m [92m+ [lints][0m
+   [1m[94m|[0m
+shot: wrote /home/runner/work/_temp/shots/plan-table-dialog.png (1440×900)
+[1m[33mwarning[0m[1m: missing `[lints]` to inherit `[workspace.lints]`[0m
+  [1m[94m--> [0mxtask/Cargo.toml
+   [1m[94m= [0m[1mnote[0m: `cargo::missing_lints_inheritance` is set to `warn` by default
+[1m[96mhelp[0m: to inherit `workspace.lints, add:
+   [1m[94m|[0m
+[1m[94m19[0m [92m~ [0mchrono = { workspace = true }
+[1m[94m20[0m [92m+ [lints][0m
+[1m[94m21[0m [92m+ workspace = true[0m
+   [1m[94m|[0m
+[1m[96mhelp[0m: to clarify your intent to not inherit, add:
+   [1m[94m|[0m
+[1m[94m19[0m [92m~ [0mchrono = { workspace = true }
+[1m[94m20[0m [92m+ [lints][0m
+   [1m[94m|[0m
+shot: wrote /home/runner/work/_temp/shots/plan-send-dialog.png (1440×900)
+[1m[33mwarning[0m[1m: missing `[lints]` to inherit `[workspace.lints]`[0m
+  [1m[94m--> [0mxtask/Cargo.toml
+   [1m[94m= [0m[1mnote[0m: `cargo::missing_lints_inheritance` is set to `warn` by default
+[1m[96mhelp[0m: to inherit `workspace.lints, add:
+   [1m[94m|[0m
+[1m[94m19[0m [92m~ [0mchrono = { workspace = true }
+[1m[94m20[0m [92m+ [lints][0m
+[1m[94m21[0m [92m+ workspace = true[0m
+   [1m[94m|[0m
+[1m[96mhelp[0m: to clarify your intent to not inherit, add:
+   [1m[94m|[0m
+[1m[94m19[0m [92m~ [0mchrono = { workspace = true }
+[1m[94m20[0m [92m+ [lints][0m
+   [1m[94m|[0m
+shot: wrote /home/runner/work/_temp/shots/plan-table-resize.png (1440×900)
+[1m[33mwarning[0m[1m: missing `[lints]` to inherit `[workspace.lints]`[0m
+  [1m[94m--> [0mxtask/Cargo.toml
+   [1m[94m= [0m[1mnote[0m: `cargo::missing_lints_inheritance` is set to `warn` by default
+[1m[96mhelp[0m: to inherit `workspace.lints, add:
+   [1m[94m|[0m
+[1m[94m19[0m [92m~ [0mchrono = { workspace = true }
+[1m[94m20[0m [92m+ [lints][0m
+[1m[94m21[0m [92m+ workspace = true[0m
+   [1m[94m|[0m
+[1m[96mhelp[0m: to clarify your intent to not inherit, add:
+   [1m[94m|[0m
+[1m[94m19[0m [92m~ [0mchrono = { workspace = true }
+[1m[94m20[0m [92m+ [lints][0m
+   [1m[94m|[0m
+shot: wrote /home/runner/work/_temp/shots/update-available.png (1440×900)
+[1m[33mwarning[0m[1m: missing `[lints]` to inherit `[workspace.lints]`[0m
+  [1m[94m--> [0mxtask/Cargo.toml
+   [1m[94m= [0m[1mnote[0m: `cargo::missing_lints_inheritance` is set to `warn` by default
+[1m[96mhelp[0m: to inherit `workspace.lints, add:
+   [1m[94m|[0m
+[1m[94m19[0m [92m~ [0mchrono = { workspace = true }
+[1m[94m20[0m [92m+ [lints][0m
+[1m[94m21[0m [92m+ workspace = true[0m
+   [1m[94m|[0m
+[1m[96mhelp[0m: to clarify your intent to not inherit, add:
+   [1m[94m|[0m
+[1m[94m19[0m [92m~ [0mchrono = { workspace = true }
+[1m[94m20[0m [92m+ [lints][0m
+   [1m[94m|[0m
+shot: wrote /home/runner/work/_temp/shots/update-prompt.png (1440×900)
