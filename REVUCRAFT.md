@@ -226,6 +226,12 @@ Markup and measuring
       the sheet), or type a size (10% to 1000%) in the Links pane; an update keeps the size and the
       top-left corner. Placed tables and drawings can be removed from the sheet (Links pane, or
       Delete while moving them), with their layers; Undo brings them back.
+- [x] **(Steve)** Wall joins reach further and heal in every direction: a free end joins a wall
+      it lands near (the reach is the walls' thickness, not a hair), walls in line butt-join
+      end to end (no notch where one carries on from another, even with a small jog), and a wall
+      drawn across an existing wall's free end joins that end too, whatever order they were drawn
+      in. While the Wall tool is drawing, other walls' centre lines and end centres are snap
+      targets, so a run ends on a wall's centre instead of being pulled to its face.
 - [x] **(Steve)** Place image on layer (Document ▸ Edit): pick a picture to place on the sheet,
       fitted into the middle of the page, on a layer of its own. It is listed in the Links pane like a
       drawing or table and updates when its file changes (keeping its scale and top-left corner).

@@ -46,6 +46,7 @@ fn a_cut_on_a_plain_wall_applies_and_a_cut_past_its_end_is_refused() {
         nm: "w".into(),
         ja_with: String::new(),
         jb_with: String::new(),
+        gaps: Vec::new(),
     };
     assert!(h.state_mut().apply_edit(wall));
     assert!(h.state_mut().apply_edit(Edit::SplitWall { page: 0, index: 0, t: 0.5 }), "a cut inside the wall applies");

@@ -1322,7 +1322,12 @@ pub(crate) fn page_input(
                 }
             }
             // The sides of the page's line markups, nearest the pointer, anywhere on the page.
-            let markup_segs = if view.measure.snaps.edges || view.measure.snaps.intersections { doc.markup_segments(page) } else { Vec::new() };
+            let mut markup_segs = if view.measure.snaps.edges || view.measure.snaps.intersections { doc.markup_segments(page) } else { Vec::new() };
+            // RevuCraft: drawing a wall, the walls' centre lines are lines too, so a run can end
+            // on another wall's centre instead of being pulled to its face.
+            if matches!(tool, DraftTool::Wall) && (view.measure.snaps.edges || view.measure.snaps.intersections) {
+                markup_segs.extend(crate::draft_snap::wall_centres(doc.smart_walls(page).into_iter().map(|w| w.quad)));
+            }
             if view.measure.snaps.edges && may(SnapKind::Edge) {
                 for p in crate::draft_snap::edge_points(&markup_segs, raw, tolerance) {
                     consider(p, SnapKind::Edge);
@@ -1409,6 +1414,12 @@ pub(crate) fn page_input(
         let mut hit: (Option<[f64; 2]>, Option<[f64; 2]>) = (None, None);
         if view.measure.snap_enabled && one_shot.is_none() {
             let mut anchors = doc.markup_anchors(page);
+            if matches!(tool, DraftTool::Wall) {
+                for (a, b) in crate::draft_snap::wall_centres(doc.smart_walls(page).into_iter().map(|w| w.quad)) {
+                    anchors.push(a);
+                    anchors.push(b);
+                }
+            }
             anchors.extend(view.draft.points.iter().copied());
             let reach = tolerance * crate::draft_snap::TRACK_REACH;
             crate::draft_snap::track(&mut view.draft.tracks, page, &anchors, pointer, tolerance, reach);

@@ -50,6 +50,7 @@ fn harness() -> Harness<'static, PdfCraftApp> {
                     nm: "w".into(),
                     ja_with: String::new(),
                     jb_with: String::new(),
+                    gaps: Vec::new(),
                 },
             )
             .unwrap();

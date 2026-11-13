@@ -313,6 +313,22 @@ mod tests {
     }
 }
 
+/// The centre lines of smart walls, end to end. Extra snap lines while the Wall tool is drawing,
+/// so a run can end on another wall's centre instead of being pulled to its face.
+pub(crate) fn wall_centres(quads: impl IntoIterator<Item = [[f64; 2]; 4]>) -> Vec<(Pt, Pt)> {
+    let mid = |a: [f64; 2], b: [f64; 2]| [(a[0] + b[0]) / 2.0, (a[1] + b[1]) / 2.0];
+    quads.into_iter().map(|q| (mid(q[3], q[0]), mid(q[1], q[2]))).collect()
+}
+
+#[cfg(test)]
+mod wall_centre_tests {
+    #[test]
+    fn a_walls_centre_line_runs_end_to_end() {
+        let q = [[0.0, 3.0], [100.0, 3.0], [100.0, -3.0], [0.0, -3.0]];
+        assert_eq!(super::wall_centres([q]), vec![([0.0, 0.0], [100.0, 0.0])]);
+    }
+}
+
 #[cfg(test)]
 mod edge_tests {
     use super::*;

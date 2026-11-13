@@ -6579,6 +6579,7 @@ fn a_joined_wall_follows_its_partner_through_the_engine() {
         nm: nm.into(),
         ja_with: ja_with.into(),
         jb_with: jb_with.into(),
+        gaps: Vec::new(),
     };
     session.apply(id, add(w, "w", false, true, "", "n")).unwrap();
     session.apply(id, add(n, "n", true, false, "w", "")).unwrap();
@@ -6608,6 +6609,7 @@ fn named_wall(session: &mut Session, id: DocId, quad: [[f64; 2]; 4], nm: &str) {
                 nm: nm.into(),
                 ja_with: String::new(),
                 jb_with: String::new(),
+                gaps: Vec::new(),
             },
         )
         .unwrap();
@@ -6679,6 +6681,7 @@ fn deleting_a_joined_wall_frees_the_wall_it_was_joined_to() {
         nm: nm.into(),
         ja_with: ja_with.into(),
         jb_with: jb_with.into(),
+        gaps: Vec::new(),
     };
     session.apply(id, add([[0.0, 3.0], [97.0, 3.0], [103.0, -3.0], [0.0, -3.0]], "w", false, true, "", "m")).unwrap();
     session.apply(id, add([[97.0, 3.0], [97.0, 80.0], [103.0, 80.0], [103.0, -3.0]], "m", true, false, "w", "")).unwrap();
@@ -6709,6 +6712,7 @@ fn smart_walls_keep_their_doors_through_moves_copies_and_deletes() {
                 nm: String::new(),
                 ja_with: String::new(),
                 jb_with: String::new(),
+                gaps: Vec::new(),
             },
         )
         .unwrap();
@@ -6801,7 +6805,8 @@ fn smart_walls_keep_their_doors_through_moves_copies_and_deletes() {
                     author: String::new(),
                     nm: String::new(),
                     ja_with: String::new(),
-                    jb_with: String::new()
+                    jb_with: String::new(),
+                    gaps: Vec::new(),
                 }
             )
             .is_err()
@@ -6831,6 +6836,7 @@ fn doors_and_windows_only_go_where_the_wall_has_room() {
                 nm: String::new(),
                 ja_with: String::new(),
                 jb_with: String::new(),
+                gaps: Vec::new(),
             },
         )
         .unwrap();

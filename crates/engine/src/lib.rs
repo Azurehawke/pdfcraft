@@ -2061,6 +2061,9 @@ pub enum Edit {
         /// The `/NM` of the wall each joined end is joined to ("" when none).
         ja_with: String,
         jb_with: String,
+        /// Gaps already open in a face (0 or 1), along the centre line, 0 to 1: where an existing
+        /// wall's free end joins this one in a T as it is drawn.
+        gaps: Vec<(u8, f64, f64)>,
     },
     /// RevuCraft: cut a plain smart wall in two across its thickness, at `t` (0 to 1 along its
     /// centre line). The engine names the new piece. A wall with a gap or an opening is refused.
@@ -3525,8 +3528,15 @@ fn run_edit(doc: &mut pdfcraft_cos::Document, edit: &Edit, cx: &mut EditCtx) -> 
             cx.place_on_layer(doc, *page, index)?;
         }
         Edit::SetNoteFile { page, index, file } => pdfcraft_annot::notes::set_file(doc, *page, *index, file)?,
-        Edit::AddWall { page, quad, ja, jb, style, author, nm, ja_with, jb_with } => {
-            let data = pdfcraft_annot::walls::WallData { ja: *ja, jb: *jb, ja_with: ja_with.clone(), jb_with: jb_with.clone(), ..Default::default() };
+        Edit::AddWall { page, quad, ja, jb, style, author, nm, ja_with, jb_with, gaps } => {
+            let data = pdfcraft_annot::walls::WallData {
+                ja: *ja,
+                jb: *jb,
+                ja_with: ja_with.clone(),
+                jb_with: jb_with.clone(),
+                gaps: gaps.clone(),
+                ..Default::default()
+            };
             let mut meta = cx.meta();
             if !nm.is_empty() {
                 meta.id = nm.clone();
