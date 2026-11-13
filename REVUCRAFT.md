@@ -226,6 +226,11 @@ Markup and measuring
       the sheet), or type a size (10% to 1000%) in the Links pane; an update keeps the size and the
       top-left corner. Placed tables and drawings can be removed from the sheet (Links pane, or
       Delete while moving them), with their layers; Undo brings them back.
+- [x] **(Steve)** Place image on layer (Document ▸ Edit): pick a picture to place on the sheet,
+      fitted into the middle of the page, on a layer of its own. It is listed in the Links pane like a
+      drawing or table and updates when its file changes (keeping its scale and top-left corner).
+      The layer's eye and lock control it; removing it takes its layer with it. Add image is still
+      page content, as before.
 - [x] **(Steve, build 129)** Wall justification: the Wall tool draws from the centre line, the inside
       face (the thickness goes out of the room, for tracing existing walls) or the outside face; the
       room is the side the run turns towards, and Flip side sends a straight run's thickness the

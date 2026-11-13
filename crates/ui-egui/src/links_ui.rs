@@ -183,7 +183,27 @@ pub(crate) fn place_drawing(app: &mut PdfCraftApp) {
     let _ = app.ask(crate::pickers::Ask::Files(dialog), Some(id), place);
 }
 
+/// Document ▸ Place image on layer: pick pictures to place on the current sheet, each linked to its
+/// file and on a layer of its own, and show the Links pane where they are listed.
+pub(crate) fn place_picture_dialog(app: &mut PdfCraftApp) {
+    let Some((_, id)) = app.active_ids() else { return };
+    show_pane(app, crate::RightPanel::Links);
+    let dialog =
+        crate::dialog::AsyncFileDialog::new().add_filter(tl!("Images"), &["png", "jpg", "jpeg", "tif", "tiff", "gif", "bmp", "jp2", "j2k", "jpx"]);
+    let _ = app.ask(crate::pickers::Ask::Files(dialog), Some(id), place_pictures);
+}
+
+fn place_pictures(app: &mut PdfCraftApp, paths: Vec<std::path::PathBuf>) {
+    place_files(app, paths, |page, name, bytes, file| Edit::PlacePicture { page, name, bytes, file });
+}
+
 fn place(app: &mut PdfCraftApp, paths: Vec<std::path::PathBuf>) {
+    place_files(app, paths, |page, name, bytes, file| Edit::PlaceCadLink { page, name, bytes, file });
+}
+
+/// Place each file at `paths` on the current sheet with the edit `make` builds for it, stopping at
+/// the first edit that fails.
+fn place_files(app: &mut PdfCraftApp, paths: Vec<std::path::PathBuf>, make: impl Fn(usize, String, Arc<Vec<u8>>, LinkedFile) -> Edit) {
     let Some((index, id)) = app.active_ids() else { return };
     let page = app.views.get(index).map_or(0, |v| v.current);
     let pdf = app.session.get(id).and_then(|d| d.path.clone());
@@ -200,7 +220,7 @@ fn place(app: &mut PdfCraftApp, paths: Vec<std::path::PathBuf>) {
         let size = u64::try_from(bytes.len()).unwrap_or(0);
         let relative = pdf.as_deref().and_then(|pdf| relative_to(pdf, &path));
         let file = linked_file_from(&path, pdf.as_deref()).unwrap_or(LinkedFile { path: path.clone(), relative, size, mtime: 0, now: now_secs() });
-        if !app.apply_edit(Edit::PlaceCadLink { page, name, bytes: Arc::new(bytes), file }) {
+        if !app.apply_edit(make(page, name, Arc::new(bytes), file)) {
             break;
         }
     }
@@ -1146,11 +1166,17 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
         } else if resp.hovered() {
             ui.painter().rect_filled(rect, CornerRadius::same(6), t.hover);
         }
-        let icon = if l.kind == LinkKind::Table { "file-spreadsheet" } else { "file-text" };
+        let icon = match l.kind {
+            LinkKind::Table => "file-spreadsheet",
+            LinkKind::Picture => "image",
+            LinkKind::Drawing => "file-text",
+        };
         icons::paint(ui, egui::Rect::from_min_size(rect.min + egui::vec2(6.0, 12.0), egui::vec2(18.0, 18.0)), icon, 16.0, t.icon);
         widgets::row_text(ui, rect.min + egui::vec2(32.0, 13.0), name.clone(), theme::medium(13.0), t.text, (rect.width() - 130.0).max(40.0));
         let sub = if l.kind == LinkKind::Table {
             crate::i18n::fmt(tl!("Sheet {n} · table from {sheet}"), &[("n", &(l.page + 1).to_string()), ("sheet", &l.layout)])
+        } else if l.kind == LinkKind::Picture {
+            crate::i18n::fmt(tl!("Sheet {n} · picture on its own layer"), &[("n", &(l.page + 1).to_string())])
         } else if l.placed {
             crate::i18n::fmt(tl!("Sheet {n} · placed"), &[("n", &(l.page + 1).to_string())])
         } else {
@@ -1197,7 +1223,7 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
             ui.label(muted(tl!("Range")));
             ui.label(if sel.range.is_empty() { tl!("Print area or used range") } else { sel.range.as_str() });
             ui.end_row();
-        } else {
+        } else if sel.kind != LinkKind::Picture {
             ui.label(muted(tl!("Layout")));
             ui.label(&sel.layout);
             ui.end_row();
@@ -1271,7 +1297,11 @@ pub fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
                 let mv = LinkMove { index: sel.index, page: sel.page, rect, others, from: None, table, scale: sel.scale, corner: false };
                 act = Some(Act::Move(Box::new(mv), moving));
             }
-            let remove = if table { tl!("Remove table") } else { tl!("Remove drawing") };
+            let remove = match sel.kind {
+                LinkKind::Table => tl!("Remove table"),
+                LinkKind::Picture => tl!("Remove picture"),
+                LinkKind::Drawing => tl!("Remove drawing"),
+            };
             if ui
                 .add_enabled(editable, egui::Button::new(remove))
                 .on_hover_text(tl!("Take it off the sheet. The file stays as it is, and Undo brings it back."))

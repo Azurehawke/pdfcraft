@@ -37,6 +37,8 @@ pub enum LinkKind {
     Drawing,
     /// A table: a range of a workbook, placed on a sheet.
     Table,
+    /// A picture file (PNG, JPEG, TIFF…): placed on a sheet on its own layer, updated from the file.
+    Picture,
 }
 
 /// A linked drawing or table, as the Links pane shows it.
@@ -180,7 +182,11 @@ pub fn list(doc: &Document) -> Vec<CadLink> {
         .filter_map(|(index, r)| {
             let page = pages.iter().position(|p| Some(*p) == r.reference(b"Page"))?;
             Some(CadLink {
-                kind: if r.name(b"Kind") == Some(&b"Table"[..]) { LinkKind::Table } else { LinkKind::Drawing },
+                kind: match r.name(b"Kind") {
+                    Some(b"Table") => LinkKind::Table,
+                    Some(b"Picture") => LinkKind::Picture,
+                    _ => LinkKind::Drawing,
+                },
                 range: text(r, b"Range"),
                 index,
                 page,
@@ -500,6 +506,9 @@ pub(crate) fn update(doc: &mut Document, index: usize, name: &str, bytes: &[u8],
     if rec.name(b"Kind") == Some(&b"Table"[..]) {
         return update_table(doc, list, index, rec, page_obj, name, bytes, file, keep_revision);
     }
+    if rec.name(b"Kind") == Some(&b"Picture"[..]) {
+        return update_picture(doc, list, index, rec, page_obj, name, bytes, file, keep_revision);
+    }
     // A placed drawing is plotted again at its sheet's scale; a sheet, its layout.
     let (pdf, sheets, plot) = if is_placed {
         let plot = pdfcraft_create::cad::plot_model_to_scale(bytes, name, num(doc, &rec, b"RIP"))?;
@@ -586,9 +595,9 @@ fn keep_revision_of(doc: &mut Document, rec: &mut Dict, label: &str) -> Result<(
 #[allow(clippy::too_many_arguments)]
 fn update_table(
     doc: &mut Document,
-    mut list: Vec<Dict>,
+    list: Vec<Dict>,
     index: usize,
-    mut rec: Dict,
+    rec: Dict,
     page_obj: ObjRef,
     name: &str,
     bytes: &[u8],
@@ -598,18 +607,66 @@ fn update_table(
     let (sheet, range) = (text(&rec, b"Sheet"), text(&rec, b"Range"));
     let plot = pdfcraft_create::table::plot_table(bytes, name, &sheet, &range)?;
     let plotted = Document::open(std::sync::Arc::new(plot.pdf.clone())).map_err(|e| invalid(&format!("{name}: {e}")))?;
-    let (form, _) = pdfcraft_organize::page_as_form(doc, &plotted, 0)?;
-    if keep_revision {
-        let label = if sheet.is_empty() { name.to_string() } else { sheet.clone() };
-        keep_revision_of(doc, &mut rec, &label)?;
+    let label = if sheet.is_empty() { name.to_string() } else { sheet.clone() };
+    replace_form(doc, list, index, rec, page_obj, &plotted, plot.size, bytes, file, keep_revision, &label)
+}
+
+/// A picture as a one-page sheet of its own size, the way a table is plotted: its form, and the
+/// size in points.
+fn plot_picture(name: &str, bytes: &[u8]) -> Result<(Document, [f64; 2]), EditError> {
+    let plotted = pdfcraft_create::from_images(&[(name.to_string(), bytes.to_vec())])?;
+    let page = pdfcraft_model::pages(&plotted).into_iter().next().ok_or_else(|| invalid("the picture has no page"))?;
+    let (w, h) = page.display_size(&plotted);
+    if !(w.is_finite() && h.is_finite() && w > 0.0 && h > 0.0) {
+        return Err(invalid("the picture has no size"));
     }
-    // The table keeps its size (scale) and its top-left corner.
+    Ok((plotted, [w, h]))
+}
+
+#[allow(clippy::too_many_arguments)]
+fn update_picture(
+    doc: &mut Document,
+    list: Vec<Dict>,
+    index: usize,
+    rec: Dict,
+    page_obj: ObjRef,
+    name: &str,
+    bytes: &[u8],
+    file: &LinkedFile,
+    keep_revision: bool,
+) -> Result<(), EditError> {
+    let (plotted, size) = plot_picture(name, bytes)?;
+    replace_form(doc, list, index, rec, page_obj, &plotted, size, bytes, file, keep_revision, name)
+}
+
+/// Draw a linked table or picture from its new plot (`plotted`, `size` in points): the form
+/// replaces the old one, the link keeps its scale and top-left corner, and the file's size, time
+/// and fingerprint are recorded.
+#[allow(clippy::too_many_arguments)]
+fn replace_form(
+    doc: &mut Document,
+    mut list: Vec<Dict>,
+    index: usize,
+    mut rec: Dict,
+    page_obj: ObjRef,
+    plotted: &Document,
+    size: [f64; 2],
+    bytes: &[u8],
+    file: &LinkedFile,
+    keep_revision: bool,
+    label: &str,
+) -> Result<(), EditError> {
+    let (form, _) = pdfcraft_organize::page_as_form(doc, plotted, 0)?;
+    if keep_revision {
+        keep_revision_of(doc, &mut rec, label)?;
+    }
+    // The link keeps its size (scale) and its top-left corner.
     let m = matrix(doc, &rec);
     let s = m[0];
     let top = m[5] + num(doc, &rec, b"H") * m[3];
-    rec.set(b"Matrix".to_vec(), num_array(&[s, 0.0, 0.0, s, m[4], top - plot.size[1] * s]));
-    rec.set(b"W".to_vec(), Object::Real(plot.size[0]));
-    rec.set(b"H".to_vec(), Object::Real(plot.size[1]));
+    rec.set(b"Matrix".to_vec(), num_array(&[s, 0.0, 0.0, s, m[4], top - size[1] * s]));
+    rec.set(b"W".to_vec(), Object::Real(size[0]));
+    rec.set(b"H".to_vec(), Object::Real(size[1]));
     rec.set(b"Form".to_vec(), Object::Ref(form));
     rec.set(b"Size".to_vec(), Object::Int(i64::try_from(file.size).unwrap_or(i64::MAX)));
     rec.set(b"MTime".to_vec(), Object::Int(file.mtime));
@@ -621,6 +678,52 @@ fn update_table(
     }
     write_records(doc, list)?;
     redraw_page(doc, page_obj)
+}
+
+/// Place picture `name` (`bytes`, from `file`) on sheet `page`, linked to the file, on its own
+/// layer: in the middle of the sheet at no more than 80% of its size, and at its natural size
+/// when that is smaller. Returns the new link's index.
+pub(crate) fn place_picture(doc: &mut Document, page: usize, name: &str, bytes: &[u8], file: &LinkedFile) -> Result<usize, EditError> {
+    let pages = pdfcraft_model::pages(doc);
+    let p = pages.get(page).ok_or_else(|| invalid("no such sheet"))?;
+    let (page_obj, page_dict) = (p.obj, p.dict.clone());
+    let mbox = media_box(doc, &page_dict);
+    let (plotted, size) = plot_picture(name, bytes)?;
+    let mut list = records(doc);
+    if list.len() >= MAX_LINKS {
+        return Err(invalid("the document has too many links"));
+    }
+    let (mw, mh) = (mbox[2] - mbox[0], mbox[3] - mbox[1]);
+    let s = (0.8 * mw / size[0]).min(0.8 * mh / size[1]).min(1.0);
+    if !(s.is_finite() && s > 0.0) {
+        return Err(invalid("the sheet has no usable size"));
+    }
+    let at = [mbox[0] + (mw - size[0] * s) / 2.0, mbox[1] + (mh - size[1] * s) / 2.0];
+    ensure_base(doc, page_obj, &page_dict)?;
+    let (form, _) = pdfcraft_organize::page_as_form(doc, &plotted, 0)?;
+    let file_name: String = file.path.rsplit(['/', '\\']).next().unwrap_or(name).chars().filter(|c| !c.is_control()).take(100).collect();
+    let ocg = pdfcraft_annot::layers::add(doc, if file_name.trim().is_empty() { "Picture" } else { &file_name }, [0.25, 0.25, 0.25])?;
+    let index = list.len();
+    let mut r = Dict::new();
+    r.set(b"Kind".to_vec(), Object::name("Picture"));
+    r.set(b"Path".to_vec(), PdfString::text(&file.path));
+    set_relative(&mut r, file.relative.as_deref());
+    r.set(b"Page".to_vec(), Object::Ref(page_obj));
+    r.set(b"Form".to_vec(), Object::Ref(form));
+    r.set(b"XName".to_vec(), Object::name(&new_xname(&list)));
+    r.set(b"Size".to_vec(), Object::Int(i64::try_from(file.size).unwrap_or(i64::MAX)));
+    r.set(b"MTime".to_vec(), Object::Int(file.mtime));
+    r.set(b"Hash".to_vec(), PdfString::text(&fingerprint(bytes)));
+    r.set(b"Updated".to_vec(), Object::Int(file.now));
+    r.set(b"Placed".to_vec(), Object::Bool(true));
+    r.set(b"OCG".to_vec(), Object::Ref(ocg));
+    r.set(b"W".to_vec(), Object::Real(size[0]));
+    r.set(b"H".to_vec(), Object::Real(size[1]));
+    r.set(b"Matrix".to_vec(), num_array(&[s, 0.0, 0.0, s, at[0], at[1]]));
+    list.push(r);
+    write_records(doc, list)?;
+    redraw_page(doc, page_obj)?;
+    Ok(index)
 }
 
 /// Place range `range` of sheet `sheet` of workbook `name` (`bytes`, from `file`) on sheet

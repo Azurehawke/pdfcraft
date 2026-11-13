@@ -1661,6 +1661,14 @@ pub enum Edit {
         bytes: Arc<Vec<u8>>,
         file: cad_links::LinkedFile,
     },
+    /// RevuCraft: place picture `name` (`bytes`, from `file`) on sheet `page`, linked to the file,
+    /// on its own layer (Document ▸ Place image on layer).
+    PlacePicture {
+        page: usize,
+        name: String,
+        bytes: Arc<Vec<u8>>,
+        file: cad_links::LinkedFile,
+    },
     /// RevuCraft: place range `range` of sheet `sheet` of workbook `name` (`bytes`, from `file`)
     /// on sheet `page` as a table, linked to the file, on its own layer. An empty `sheet` is the
     /// first sheet; an empty `range` its print area or used range.
@@ -2908,6 +2916,7 @@ impl Edit {
             Edit::UpdateCadLink { .. } => Label::of("Update linked drawing"),
             Edit::RelinkCad { .. } => Label::of("Relink drawing"),
             Edit::PlaceCadLink { .. } => Label::of("Place linked drawing"),
+            Edit::PlacePicture { .. } => Label::of("Place image on layer"),
             Edit::PlaceTableLink { .. } => Label::of("Place linked table"),
             Edit::RenameMeasurement { .. } => Label::of("Rename measurement"),
             Edit::SetStrokeAlign { .. } => Label::of("Align stroke"),
@@ -3188,6 +3197,7 @@ fn check_permission(edit: &Edit, p: &pdfcraft_cos::Permissions) -> Result<(), Ed
         | Edit::UpdateCadLink { .. }
         | Edit::RelinkCad { .. }
         | Edit::PlaceCadLink { .. }
+        | Edit::PlacePicture { .. }
         | Edit::PlaceTableLink { .. }
         | Edit::RecordTakeoff { .. }
         | Edit::ResizeCadLink { .. }
@@ -3444,6 +3454,9 @@ fn run_edit(doc: &mut pdfcraft_cos::Document, edit: &Edit, cx: &mut EditCtx) -> 
         Edit::RelinkCad { index, path, relative } => cad_links::relink(doc, *index, path, relative.as_deref())?,
         Edit::PlaceCadLink { page, name, bytes, file } => {
             cad_links::place(doc, *page, name, bytes, file)?;
+        }
+        Edit::PlacePicture { page, name, bytes, file } => {
+            cad_links::place_picture(doc, *page, name, bytes, file)?;
         }
         Edit::PlaceTableLink { page, name, bytes, file, sheet, range } => {
             cad_links::place_table(doc, *page, name, bytes, file, sheet, range)?;

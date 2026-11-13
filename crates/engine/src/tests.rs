@@ -8814,29 +8814,56 @@ fn a_markups_ends_and_centres_are_anchors_to_align_with() {
     }
 }
 
-/// RevuCraft: a picture placed as a picture stamp goes on the current layer, so the layer's eye and
-/// lock control it, and it is one mark that deletes like any other.
+/// RevuCraft: a placed picture is a linked picture on its own layer: listed with the links,
+/// updated from its file in place (keeping its scale and top-left corner), and removed with its layer.
 #[test]
-fn a_placed_picture_is_a_stamp_on_the_current_layer() {
-    let (mut s, id) = session_with(1);
-    s.apply(id, Edit::AddLayer { name: "Trace".into(), color: [0.0, 0.4, 0.9] }).unwrap();
-    let trace = {
-        let l = &s.layer_details(id)[0];
-        (l.id.num, l.id.generation)
+fn placed_pictures_are_linked_on_their_own_layer_and_update_from_the_file() {
+    let png = |w: u32, h: u32| {
+        let img = image::RgbImage::from_pixel(w, h, image::Rgb([20, 90, 200]));
+        let mut out = std::io::Cursor::new(Vec::new());
+        img.write_to(&mut out, image::ImageFormat::Png).unwrap();
+        out.into_inner()
     };
-    s.set_current_layer(id, Some(trace)).unwrap();
-    let image = image::RgbImage::from_pixel(12, 8, image::Rgb([20, 90, 200]));
-    let mut png = std::io::Cursor::new(Vec::new());
-    image.write_to(&mut png, image::ImageFormat::Png).unwrap();
-    let file = MarkFile { name: "plan.png".into(), bytes: Arc::new(png.into_inner()), page: 0 };
-    let before = s.get(id).unwrap().info.annotations.len();
-    s.apply(id, Edit::AddCustomStamp { page: 0, rect: [100.0, 100.0, 300.0, 250.0], name: "plan.png".into(), file, author: "Steve".into() }).unwrap();
-    let doc = s.get(id).unwrap();
-    assert_eq!(doc.info.annotations.len(), before + 1, "one picture mark");
-    let index = doc.info.annotations.len() - 1;
-    assert_eq!(s.annotation_layer(id, 0, index), Some(trace), "the picture is on the current layer");
-    let rect = doc.info.annotations[index].rect;
-    assert!(rect[0] >= 99.9 && rect[1] >= 99.9 && rect[2] <= 300.1 && rect[3] <= 250.1, "fitted inside the box it was given: {rect:?}");
-    s.apply(id, Edit::SetLayerLocked { layer: trace, locked: true }).unwrap();
-    assert!(s.get(id).unwrap().info.annotations[index].locked, "locking the layer locks the picture");
+    let file = |p: &str| cad_links::LinkedFile { path: p.into(), relative: None, size: 1, mtime: 1, now: 1 };
+    let mut s = Session::default();
+    let id = s.open("plan.pdf", None, Arc::new(fixture(1)), None).unwrap();
+    s.apply(id, Edit::PlacePicture { page: 0, name: "floor.png".into(), bytes: Arc::new(png(200, 100)), file: file("/plans/floor.png") }).unwrap();
+
+    let links = s.get(id).unwrap().cad_links();
+    assert_eq!(links.len(), 1);
+    assert_eq!(links[0].kind, cad_links::LinkKind::Picture);
+    assert!(links[0].placed, "a picture on the sheet, not a whole sheet");
+    let first = links[0].rect.expect("a placed picture has a rectangle");
+    let media = s.get(id).unwrap().page_boxes()[0][0];
+    assert!(first.iter().all(|v| v.is_finite()) && first[0] >= media[0] && first[2] <= media[2], "{first:?} on {media:?}");
+    let layer = s.layer_details(id).into_iter().find(|l| l.name == "floor.png").expect("the picture has a layer named after its file");
+    s.apply(id, Edit::SetLayerLocked { layer: (layer.id.num, layer.id.generation), locked: true }).unwrap();
+    assert!(s.layer_details(id).iter().any(|l| l.name == "floor.png" && l.locked));
+
+    // The file changes to one twice as wide and taller: the picture keeps its scale and top-left corner.
+    s.apply(
+        id,
+        Edit::UpdateCadLink {
+            index: 0,
+            name: "floor.png".into(),
+            bytes: Arc::new(png(400, 160)),
+            file: file("/plans/floor.png"),
+            keep_revision: false,
+        },
+    )
+    .unwrap();
+    let after = s.get(id).unwrap().cad_links()[0].rect.expect("still placed");
+    assert!((after[0] - first[0]).abs() < 0.01 && (after[3] - first[3]).abs() < 0.01, "the top-left corner stays: {first:?} -> {after:?}");
+    let (w0, w1) = (first[2] - first[0], after[2] - after[0]);
+    assert!((w1 - 2.0 * w0).abs() < 0.01, "the same scale, so twice the width: {w0} -> {w1}");
+
+    // Not an image: nothing is placed and the links are as they were.
+    let bad = Edit::PlacePicture { page: 0, name: "x.png".into(), bytes: Arc::new(b"nonsense".to_vec()), file: file("/plans/x.png") };
+    assert!(s.apply(id, bad).is_err());
+    assert_eq!(s.get(id).unwrap().cad_links().len(), 1);
+
+    // Removing it takes its layer with it.
+    s.apply(id, Edit::RemoveCadLink { index: 0 }).unwrap();
+    assert!(s.get(id).unwrap().cad_links().is_empty());
+    assert!(!s.layer_details(id).iter().any(|l| l.name == "floor.png"));
 }
