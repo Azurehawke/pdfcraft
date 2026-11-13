@@ -1,0 +1,107 @@
+RevuCraft build 294 for Windows x64 (MSI 1.0.294)
+==> cargo build (x86_64-pc-windows-msvc)
+warning: missing `[lints]` to inherit `[workspace.lints]`
+  --> xtask\Cargo.toml
+   = note: `cargo::missing_lints_inheritance` is set to `warn` by default
+help: to inherit `workspace.lints, add:
+   |
+19 ~ chrono = { workspace = true }
+20 + [lints]
+21 + workspace = true
+   |
+help: to clarify your intent to not inherit, add:
+   |
+19 ~ chrono = { workspace = true }
+20 + [lints]
+   |
+warning: `xtask` (manifest) generated 1 warning
+    Updating crates.io index
+   Compiling pdfcraft-crypt v0.13.0 (D:\a\pdfcraft\pdfcraft\crates\crypt)
+   Compiling pdfcraft-filters v0.13.0 (D:\a\pdfcraft\pdfcraft\crates\filters)
+   Compiling hayro-jbig2 v0.3.0 (D:\a\pdfcraft\pdfcraft\vendor\hayro-jbig2)
+   Compiling pdfcraft-fonts v0.13.0 (D:\a\pdfcraft\pdfcraft\crates\fonts)
+   Compiling pdfcraft-cos v0.13.0 (D:\a\pdfcraft\pdfcraft\crates\cos)
+   Compiling hayro-syntax v0.7.2 (D:\a\pdfcraft\pdfcraft\vendor\hayro-syntax)
+   Compiling winit v0.30.13 (D:\a\pdfcraft\pdfcraft\vendor\winit)
+   Compiling hayro-cmap v0.1.0 (D:\a\pdfcraft\pdfcraft\vendor\hayro-cmap)
+   Compiling pdfcraft-model v0.13.0 (D:\a\pdfcraft\pdfcraft\crates\model)
+   Compiling pdfcraft-content v0.13.0 (D:\a\pdfcraft\pdfcraft\crates\content)
+   Compiling pdfcraft-annot v0.13.0 (D:\a\pdfcraft\pdfcraft\crates\annot)
+   Compiling vello_common v0.0.8 (D:\a\pdfcraft\pdfcraft\vendor\vello_common)
+   Compiling pdfcraft-edit v0.13.0 (D:\a\pdfcraft\pdfcraft\crates\edit)
+   Compiling vello_cpu v0.0.8
+   Compiling hayro-interpret v0.7.0 (D:\a\pdfcraft\pdfcraft\vendor\hayro-interpret)
+   Compiling pdfcraft-forms v0.13.0 (D:\a\pdfcraft\pdfcraft\crates\forms)
+   Compiling lopdf v0.45.0 (D:\a\pdfcraft\pdfcraft\vendor\lopdf)
+   Compiling hayro v0.7.1 (D:\a\pdfcraft\pdfcraft\vendor\hayro)
+   Compiling pdfcraft-xfa v0.13.0 (D:\a\pdfcraft\pdfcraft\crates\xfa)
+   Compiling pdfcraft-sign v0.13.0 (D:\a\pdfcraft\pdfcraft\crates\sign)
+   Compiling pdfcraft-redact v0.13.0 (D:\a\pdfcraft\pdfcraft\crates\redact)
+   Compiling pdfcraft-ocr v0.13.0 (D:\a\pdfcraft\pdfcraft\crates\ocr)
+   Compiling pdfcraft-render v0.13.0 (D:\a\pdfcraft\pdfcraft\crates\render)
+   Compiling pdfcraft-create v0.13.0 (D:\a\pdfcraft\pdfcraft\crates\create)
+   Compiling pdfcraft-js v0.13.0 (D:\a\pdfcraft\pdfcraft\crates\js)
+   Compiling pdfcraft-print v0.13.0 (D:\a\pdfcraft\pdfcraft\crates\print)
+   Compiling pdfcraft-xfdf v0.13.0 (D:\a\pdfcraft\pdfcraft\crates\xfdf)
+   Compiling pdfcraft-audit v0.13.0 (D:\a\pdfcraft\pdfcraft\crates\audit)
+   Compiling pdfcraft-optimize v0.13.0 (D:\a\pdfcraft\pdfcraft\crates\optimize)
+   Compiling pdfcraft-measure v0.13.0 (D:\a\pdfcraft\pdfcraft\crates\measure)
+   Compiling pdfcraft-preflight v0.13.0 (D:\a\pdfcraft\pdfcraft\crates\preflight)
+   Compiling pdfcraft-a11y v0.13.0 (D:\a\pdfcraft\pdfcraft\crates\a11y)
+   Compiling pdfcraft-organize v0.13.0 (D:\a\pdfcraft\pdfcraft\crates\organize)
+   Compiling pdfcraft-export v0.13.0 (D:\a\pdfcraft\pdfcraft\crates\export)
+   Compiling pdfcraft-compare v0.13.0 (D:\a\pdfcraft\pdfcraft\crates\compare)
+   Compiling pdfcraft-geom v0.13.0 (D:\a\pdfcraft\pdfcraft\crates\geom)
+   Compiling pdfcraft-engine v0.13.0 (D:\a\pdfcraft\pdfcraft\crates\engine)
+   Compiling accesskit_winit v0.32.2
+   Compiling pdfcraft-platform v0.13.0 (D:\a\pdfcraft\pdfcraft\crates\platform)
+   Compiling egui-wgpu v0.36.2 (D:\a\pdfcraft\pdfcraft\vendor\egui-wgpu)
+   Compiling egui-winit v0.36.2
+   Compiling glutin-winit v0.5.0
+   Compiling pdfcraft-ui-egui v0.13.0 (D:\a\pdfcraft\pdfcraft\crates\ui-egui)
+   Compiling eframe v0.36.2
+   Compiling pdfcraft v0.13.0 (D:\a\pdfcraft\pdfcraft\apps\pdfcraft)
+   Compiling pdfcraft-cli v0.13.0 (D:\a\pdfcraft\pdfcraft\apps\pdfcraft-cli)
+   Compiling pdfcraft-automation v0.13.0 (D:\a\pdfcraft\pdfcraft\crates\automation)
+    Finished `release` profile [optimized] target(s) in 6m 05s
+==> cargo xtask models
+warning: missing `[lints]` to inherit `[workspace.lints]`
+  --> xtask\Cargo.toml
+   = note: `cargo::missing_lints_inheritance` is set to `warn` by default
+help: to inherit `workspace.lints, add:
+   |
+19 ~ chrono = { workspace = true }
+20 + [lints]
+21 + workspace = true
+   |
+help: to clarify your intent to not inherit, add:
+   |
+19 ~ chrono = { workspace = true }
+20 + [lints]
+   |
+warning: `xtask` (manifest) generated 1 warning
+   Compiling pdfcraft-crypt v0.13.0 (D:\a\pdfcraft\pdfcraft\crates\crypt)
+   Compiling pdfcraft-filters v0.13.0 (D:\a\pdfcraft\pdfcraft\crates\filters)
+   Compiling lopdf v0.45.0 (D:\a\pdfcraft\pdfcraft\vendor\lopdf)
+   Compiling pdfcraft-oracle v0.13.0 (D:\a\pdfcraft\pdfcraft\crates\oracle)
+   Compiling pdfcraft-cos v0.13.0 (D:\a\pdfcraft\pdfcraft\crates\cos)
+   Compiling xtask v0.1.0 (D:\a\pdfcraft\pdfcraft\xtask)
+    Finished `dev` profile [optimized + debuginfo] target(s) in 43.05s
+     Running `target\debug\xtask.exe models D:\a\pdfcraft\pdfcraft\target\revucraft-package\stage\models`
+assets: fetching https://ocrs-models.s3-accelerate.amazonaws.com/text-detection.onnx
+assets: fetching https://creativecommons.org/licenses/by-sa/4.0/legalcode.txt
+assets: fetching https://ocrs-models.s3-accelerate.amazonaws.com/text-recognition.onnx
+assets: fetching https://creativecommons.org/licenses/by-sa/4.0/legalcode.txt
+models: D:\a\pdfcraft\pdfcraft\target\revucraft-package\stage\models\text-detection.onnx
+models: D:\a\pdfcraft\pdfcraft\target\revucraft-package\stage\models\text-recognition.onnx
+==> wix build
+==> revucraft-cli --version
+pdfcraft-cli 0.13.0
+Web:     https://github.com/Azurehawke/pdfcraft/blob/revucraft/REVUCRAFT.md
+Source:  https://github.com/Azurehawke/pdfcraft/tree/revucraft
+
+Name                     Length
+----                     ------
+RevuCraft-setup.msi    60502016
+RevuCraft-portable.zip 78669669
+
