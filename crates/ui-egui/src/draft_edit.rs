@@ -1326,11 +1326,6 @@ pub(crate) fn grips(ui: &egui::Ui, doc: &Document, view: &mut DocView, cx: &Page
         return false;
     }
     let near = |pos: Pos2| g.points.iter().position(|v| cx.to_screen(*v).distance(pos) <= GRIP_PX);
-    for v in &g.points {
-        let r = egui::Rect::from_center_size(cx.to_screen(*v), egui::Vec2::splat(GRIP_PX));
-        painter.rect_filled(r, 1.0, Color32::WHITE);
-        painter.rect_stroke(r, 1.0, Stroke::new(1.0, accent), egui::StrokeKind::Middle);
-    }
     // A smart wall's end connectors: a round grip in the middle of each end, which stretches the
     // wall from that end without moving its other corners.
     let wall_ends = quad_of(&g.points)
@@ -1347,12 +1342,6 @@ pub(crate) fn grips(ui: &egui::Ui, doc: &Document, view: &mut DocView, cx: &Page
                 .map(|(e, _)| e)
         })
     };
-    if let Some((ends, _)) = wall_ends {
-        for e in ends {
-            let c = cx.to_screen(e);
-            painter.circle(c, GRIP_PX * 0.5, Color32::WHITE, Stroke::new(1.0, accent));
-        }
-    }
     let hovered = pointer.and_then(near);
     let on_connector = pointer.and_then(connector).filter(|_| {
         // The connector is the nearer of the two when both are under the pointer.
@@ -1362,7 +1351,21 @@ pub(crate) fn grips(ui: &egui::Ui, doc: &Document, view: &mut DocView, cx: &Page
         corner.is_none_or(|c| end.is_some_and(|d| d <= c))
     });
     let hovered = if on_connector.is_some() { None } else { hovered };
-    if hovered.is_some() || on_connector.is_some() {
+    // The grip under the pointer fills with the accent, so it's clear what a press will take hold of.
+    for (k, v) in g.points.iter().enumerate() {
+        let r = egui::Rect::from_center_size(cx.to_screen(*v), egui::Vec2::splat(GRIP_PX));
+        let fill = if hovered == Some(k) { accent } else { Color32::WHITE };
+        painter.rect_filled(r, 1.0, fill);
+        painter.rect_stroke(r, 1.0, Stroke::new(1.0, accent), egui::StrokeKind::Middle);
+    }
+    if let Some((ends, _)) = wall_ends {
+        for (e, p) in ends.iter().enumerate() {
+            let fill = if on_connector == Some(e) { accent } else { Color32::WHITE };
+            painter.circle(cx.to_screen(*p), GRIP_PX * 0.5, fill, Stroke::new(1.0, accent));
+        }
+    }
+    let hovering = hovered.is_some() || on_connector.is_some();
+    if hovering {
         ui.ctx().set_cursor_icon(egui::CursorIcon::Grab);
     }
     if pressed && let Some(vertex) = hovered {
@@ -1373,7 +1376,9 @@ pub(crate) fn grips(ui: &egui::Ui, doc: &Document, view: &mut DocView, cx: &Page
         view.draft.grip = Some(Grip { page, index, vertex: 0, kind: g.kind, start: g.points.clone(), points: g.points.clone(), end: Some(end) });
         return true;
     }
-    false
+    // Hovering a grip consumes the pointer: the handlers after this one (the markup's move
+    // cursor, its point and resize cursors) would otherwise replace the grab cursor.
+    hovering
 }
 
 #[cfg(test)]
