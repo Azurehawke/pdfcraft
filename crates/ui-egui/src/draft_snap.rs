@@ -221,6 +221,18 @@ pub(crate) fn guide_crossing(from: Pt, dir: Pt, segments: impl IntoIterator<Item
     best.map(|(x, _)| x)
 }
 
+/// Where the square run from `last` (across or down) meets one of `lines`, nearest `p` and within
+/// `tolerance`: a point both square to `last` and on the line.
+pub(crate) fn square_crossing(last: Pt, p: Pt, lines: &[[Pt; 2]], tolerance: f64) -> Option<Pt> {
+    let across = guide_crossing(last, [1.0, 0.0], lines.iter().copied(), p, tolerance);
+    let down = guide_crossing(last, [0.0, 1.0], lines.iter().copied(), p, tolerance);
+    let dist = |x: Pt| (x[0] - p[0]).hypot(x[1] - p[1]);
+    match (across, down) {
+        (Some(a), Some(b)) => Some(if dist(a) <= dist(b) { a } else { b }),
+        (a, b) => a.or(b),
+    }
+}
+
 /// A round step for the ruler's graduations along a line `length` long (in the scale's units):
 /// 1, 2 or 5 times a power of ten, so about five to ten fit.
 pub(crate) fn ruler_step(length: f64) -> Option<f64> {

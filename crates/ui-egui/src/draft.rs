@@ -1297,6 +1297,10 @@ pub(crate) fn page_input(
         // Snap: the shape's own points and other markup's corners and middles first, then the
         // page's drawing, then square off the last point to a line.
         let mut kind: Option<SnapKind> = None;
+        // Where the pointer is, before any snap; Ortho measures its square run from there.
+        let pointed = point;
+        // The lines a snapped point may sit on (edges and centre lines), for Ortho's crossing.
+        let mut ortho_lines: Vec<[[f64; 2]; 2]> = Vec::new();
         if view.measure.snap_enabled && one_shot != Some(crate::draft_snap::OneShot::Off) {
             let raw = point;
             let shapes = crate::draft_edit::shapes(view, doc, page);
@@ -1328,6 +1332,11 @@ pub(crate) fn page_input(
             if matches!(tool, DraftTool::Wall) && (view.measure.snaps.edges || view.measure.snaps.intersections) {
                 markup_segs.extend(crate::draft_snap::wall_centres(doc.smart_walls(page).into_iter().map(|w| w.quad)));
             }
+            ortho_lines = markup_segs
+                .iter()
+                .map(|&(a, b)| [a, b])
+                .chain(shapes.iter().flat_map(|g| g.segments().map(|(a, b)| [a, b]).collect::<Vec<_>>()))
+                .collect();
             if view.measure.snaps.edges && may(SnapKind::Edge) {
                 for p in crate::draft_snap::edge_points(&markup_segs, raw, tolerance) {
                     consider(p, SnapKind::Edge);
@@ -1402,11 +1411,12 @@ pub(crate) fn page_input(
         }
         let shift = ui.input(|i| i.modifiers.shift);
         let squared = settings.ortho != shift;
-        if let Some(last) = view.draft.points.last().filter(|_| view.draft.page == Some(page))
-            && ortho_straightens(squared, kind, tool)
+        if let Some(last) = view.draft.points.last().copied().filter(|_| view.draft.page == Some(page))
+            && squared
+            && let Some((p, k)) = ortho_point(last, pointed, point, kind, &ortho_lines, tolerance)
         {
-            point = orthogonal(*last, point);
-            kind = None;
+            point = p;
+            kind = k;
         }
         // Alignment: hovering a point (the page's ends and centres, or this shape's points) tracks
         // it, and a pointer lined up with a tracked point's x or y snaps onto that line.
@@ -2446,10 +2456,28 @@ mod default_line_tests {
     }
 }
 
-/// Whether Ortho straightens the next point onto the last one. A wall run keeps a point it snapped
-/// to an edge (another wall's centre line or face), so a run can end on that line.
-pub(crate) fn ortho_straightens(squared: bool, kind: Option<SnapKind>, tool: DraftTool) -> bool {
-    squared && kind != Some(SnapKind::Perpendicular) && !(tool == DraftTool::Wall && kind == Some(SnapKind::Edge))
+/// Ortho's point for the next point of a run from `last`, with Ortho on. `raw` is the pointer,
+/// `point` and `kind` what it snapped to, and `lines` the edges and centre lines it may snap to.
+/// An edge snap keeps both rules where the square run from `last` meets that edge near the
+/// pointer; otherwise Ortho straightens the point, and a perpendicular snap is kept as it is.
+/// `None` leaves the point alone.
+pub(crate) fn ortho_point(
+    last: [f64; 2],
+    raw: [f64; 2],
+    point: [f64; 2],
+    kind: Option<SnapKind>,
+    lines: &[[[f64; 2]; 2]],
+    tolerance: f64,
+) -> Option<([f64; 2], Option<SnapKind>)> {
+    if kind == Some(SnapKind::Edge)
+        && let Some(x) = crate::draft_snap::square_crossing(last, raw, lines, tolerance)
+    {
+        return Some((x, Some(SnapKind::Edge)));
+    }
+    if kind == Some(SnapKind::Perpendicular) {
+        return None;
+    }
+    Some((orthogonal(last, point), None))
 }
 
 #[cfg(test)]
@@ -2457,11 +2485,25 @@ mod ortho_tests {
     use super::*;
 
     #[test]
-    fn a_wall_end_on_an_edge_keeps_its_snap_under_ortho() {
-        assert!(!ortho_straightens(true, Some(SnapKind::Edge), DraftTool::Wall));
-        assert!(ortho_straightens(true, Some(SnapKind::Edge), DraftTool::Line), "other tools still straighten");
-        assert!(ortho_straightens(true, None, DraftTool::Wall), "an unsnapped wall point still straightens");
-        assert!(!ortho_straightens(false, None, DraftTool::Wall), "Ortho off changes nothing");
-        assert!(!ortho_straightens(true, Some(SnapKind::Perpendicular), DraftTool::Line), "a perpendicular snap is kept");
+    fn a_wall_end_on_an_edge_keeps_both_its_snap_and_ortho() {
+        // A vertical centre line at x = 60; the square run from the origin across meets it at (60, 0).
+        let lines = [[[60.0, -100.0], [60.0, 100.0]]];
+        let got = ortho_point([0.0, 0.0], [50.0, 9.0], [60.0, 9.0], Some(SnapKind::Edge), &lines, 15.0);
+        let (x, kind) = got.unwrap_or(([f64::NAN, f64::NAN], None));
+        assert!((x[0] - 60.0).abs() < 1e-9 && x[1].abs() < 1e-9 && kind == Some(SnapKind::Edge), "{got:?}");
+    }
+
+    #[test]
+    fn an_edge_snap_with_no_square_crossing_near_the_pointer_gives_way_to_ortho() {
+        // A horizontal line at y = 20: the square run from the origin never meets it near the pointer.
+        let lines = [[[0.0, 20.0], [100.0, 20.0]]];
+        let got = ortho_point([0.0, 0.0], [50.0, 9.0], [50.0, 20.0], Some(SnapKind::Edge), &lines, 3.0);
+        assert_eq!(got, Some(([50.0, 0.0], None)), "{got:?}");
+    }
+
+    #[test]
+    fn an_unsnapped_point_is_straightened_and_a_perpendicular_snap_is_kept() {
+        assert_eq!(ortho_point([0.0, 0.0], [50.0, 20.0], [50.0, 20.0], None, &[], 3.0), Some(([50.0, 0.0], None)));
+        assert_eq!(ortho_point([0.0, 0.0], [50.0, 20.0], [50.0, 20.0], Some(SnapKind::Perpendicular), &[], 3.0), None);
     }
 }
