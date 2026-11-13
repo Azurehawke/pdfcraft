@@ -8813,3 +8813,30 @@ fn a_markups_ends_and_centres_are_anchors_to_align_with() {
         assert!(anchors.contains(&want), "anchor {want:?} missing from {anchors:?}");
     }
 }
+
+/// RevuCraft: a picture placed as a picture stamp goes on the current layer, so the layer's eye and
+/// lock control it, and it is one mark that deletes like any other.
+#[test]
+fn a_placed_picture_is_a_stamp_on_the_current_layer() {
+    let (mut s, id) = session_with(1);
+    s.apply(id, Edit::AddLayer { name: "Trace".into(), color: [0.0, 0.4, 0.9] }).unwrap();
+    let trace = {
+        let l = &s.layer_details(id)[0];
+        (l.id.num, l.id.generation)
+    };
+    s.set_current_layer(id, Some(trace)).unwrap();
+    let image = image::RgbImage::from_pixel(12, 8, image::Rgb([20, 90, 200]));
+    let mut png = std::io::Cursor::new(Vec::new());
+    image.write_to(&mut png, image::ImageFormat::Png).unwrap();
+    let file = MarkFile { name: "plan.png".into(), bytes: Arc::new(png.into_inner()), page: 0 };
+    let before = s.get(id).unwrap().info.annotations.len();
+    s.apply(id, Edit::AddCustomStamp { page: 0, rect: [100.0, 100.0, 300.0, 250.0], name: "plan.png".into(), file, author: "Steve".into() }).unwrap();
+    let doc = s.get(id).unwrap();
+    assert_eq!(doc.info.annotations.len(), before + 1, "one picture mark");
+    let index = doc.info.annotations.len() - 1;
+    assert_eq!(s.annotation_layer(id, 0, index), Some(trace), "the picture is on the current layer");
+    let rect = doc.info.annotations[index].rect;
+    assert!(rect[0] >= 99.9 && rect[1] >= 99.9 && rect[2] <= 300.1 && rect[3] <= 250.1, "fitted inside the box it was given: {rect:?}");
+    s.apply(id, Edit::SetLayerLocked { layer: trace, locked: true }).unwrap();
+    assert!(s.get(id).unwrap().info.annotations[index].locked, "locking the layer locks the picture");
+}

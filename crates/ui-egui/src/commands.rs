@@ -477,6 +477,7 @@ impl PdfCraftApp {
                 self.reveal_tools();
             }
             "edit.image" => self.add_image_dialog(),
+            "edit.place_image" => self.place_image_dialog(),
             "edit.link" => {
                 self.quick_tool = crate::QuickTool::Link;
                 self.notify_tr("Drag a rectangle to create a link; double-click a link to edit it");

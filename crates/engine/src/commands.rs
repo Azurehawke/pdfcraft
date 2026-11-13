@@ -297,6 +297,7 @@ pub const COMMANDS: &[CommandSpec] = &[
     c("edit.remove_links", "Remove all links", None, None, Modification, "trash-2"),
     c("edit.bates", "Add Bates numbering…", None, None, Modification, "hash"),
     c("edit.image", "Add image…", None, None, Modification, "image-plus"),
+    c("edit.place_image", "Place image on layer…", None, None, Modification, "image-plus"),
     c("redact.mark", "Redact text and images", None, None, Modification, "rectangle-horizontal"),
     c("redact.pages", "Redact pages…", None, None, Modification, "file-x"),
     c("redact.search", "Find text and redact…", None, None, Modification, "file-search"),

@@ -823,6 +823,30 @@ impl crate::PdfCraftApp {
         }
     }
 
+    /// Document ▸ Place image on layer: pick a picture to place on the current layer, fitted to
+    /// the page. Unlike Add image (page content), it is a mark, so its layer's eye and lock apply.
+    pub fn place_image_dialog(&mut self) {
+        #[cfg(not(target_arch = "wasm32"))]
+        self.pick_image(tl!("Place image on layer"), |app, name, bytes| app.place_image(name, bytes));
+        #[cfg(target_arch = "wasm32")]
+        self.notify_tr("Placing images arrives on the web with file pickers for images");
+    }
+
+    /// Place a picture on the current page and layer as a picture stamp, fitted into the middle
+    /// 80% of the media box with its proportions kept.
+    pub fn place_image(&mut self, name: String, bytes: Vec<u8>) {
+        let Some((i, id)) = self.active_ids() else { return };
+        let page = self.views[i].current;
+        let media = self.session.get(id).and_then(|d| d.page_boxes().get(page).map(|boxes| boxes[0]));
+        let Some(rect) = media.and_then(placed_picture_rect) else {
+            self.notify_tr("The page size isn't known, so the picture can't be placed");
+            return;
+        };
+        let author = self.comment_prefs.author.clone();
+        let file = pdfcraft_engine::MarkFile { name: name.clone(), bytes: std::sync::Arc::new(bytes), page: 0 };
+        self.apply_edit(pdfcraft_engine::Edit::AddCustomStamp { page, rect, name, file, author });
+    }
+
     /// Whether ⌘V / Ctrl+V was let go this frame. egui-winit swallows that press (with a Paste
     /// event only if the clipboard holds text), while a plain V press always comes through: a
     /// release of V with no press of V since the last one is the shortcut, even when ⌘ or Ctrl
@@ -926,6 +950,39 @@ pub(crate) fn image_panel(ui: &mut egui::Ui, t: &Tokens, img: &pdfcraft_engine::
         }
     }
     out
+}
+
+/// The box a placed picture is fitted into: the middle 80% of a media box, centred. `None` when
+/// the box is not a finite, non-empty rectangle, so the caller can say so instead of placing it.
+pub(crate) fn placed_picture_rect(media: [f64; 4]) -> Option<[f64; 4]> {
+    let [x0, y0, x1, y1] = media;
+    let (w, h) = (x1 - x0, y1 - y0);
+    if !(w.is_finite() && h.is_finite() && w > 0.0 && h > 0.0) {
+        return None;
+    }
+    let (cx, cy) = (x0 + w / 2.0, y0 + h / 2.0);
+    let (hw, hh) = (w * 0.4, h * 0.4);
+    Some([cx - hw, cy - hh, cx + hw, cy + hh])
+}
+
+#[cfg(test)]
+mod place_image_tests {
+    use super::placed_picture_rect;
+
+    #[test]
+    fn a_placed_picture_is_the_middle_of_the_page_box() {
+        let rect = placed_picture_rect([0.0, 0.0, 612.0, 792.0]).unwrap();
+        for (got, want) in rect.iter().zip([61.2, 79.2, 550.8, 712.8]) {
+            assert!((got - want).abs() < 1e-9, "{rect:?}");
+        }
+    }
+
+    #[test]
+    fn an_empty_or_unknown_page_box_places_nothing() {
+        assert_eq!(placed_picture_rect([10.0, 10.0, 10.0, 90.0]), None);
+        assert_eq!(placed_picture_rect([0.0, 0.0, f64::NAN, 100.0]), None);
+        assert_eq!(placed_picture_rect([0.0, 0.0, f64::INFINITY, 100.0]), None);
+    }
 }
 
 #[cfg(test)]

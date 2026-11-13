@@ -74,7 +74,7 @@ impl Workflow {
                     ],
                 ),
                 ("Files", &["page.combine", "page.split"]),
-                ("Edit", &["edit.edit_text", "edit.text", "edit.image", "edit.link", "edit.wall_knife"]),
+                ("Edit", &["edit.edit_text", "edit.text", "edit.image", "edit.place_image", "edit.link", "edit.wall_knife"]),
                 ("Secure", &["redact.mark", "protect.password", "sign.digital"]),
                 ("Compare", &["doc.compare"]),
             ],
