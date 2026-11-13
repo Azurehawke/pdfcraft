@@ -1403,8 +1403,7 @@ pub(crate) fn page_input(
         let shift = ui.input(|i| i.modifiers.shift);
         let squared = settings.ortho != shift;
         if let Some(last) = view.draft.points.last().filter(|_| view.draft.page == Some(page))
-            && squared
-            && kind != Some(SnapKind::Perpendicular)
+            && ortho_straightens(squared, kind, tool)
         {
             point = orthogonal(*last, point);
             kind = None;
@@ -2444,5 +2443,25 @@ mod default_line_tests {
         let d = DraftSettings::default();
         assert_eq!(d.line_width, LineWidth::Paper(MIN_PRINTABLE_PT));
         assert!(!d.by_layer);
+    }
+}
+
+/// Whether Ortho straightens the next point onto the last one. A wall run keeps a point it snapped
+/// to an edge (another wall's centre line or face), so a run can end on that line.
+pub(crate) fn ortho_straightens(squared: bool, kind: Option<SnapKind>, tool: DraftTool) -> bool {
+    squared && kind != Some(SnapKind::Perpendicular) && !(tool == DraftTool::Wall && kind == Some(SnapKind::Edge))
+}
+
+#[cfg(test)]
+mod ortho_tests {
+    use super::*;
+
+    #[test]
+    fn a_wall_end_on_an_edge_keeps_its_snap_under_ortho() {
+        assert!(!ortho_straightens(true, Some(SnapKind::Edge), DraftTool::Wall));
+        assert!(ortho_straightens(true, Some(SnapKind::Edge), DraftTool::Line), "other tools still straighten");
+        assert!(ortho_straightens(true, None, DraftTool::Wall), "an unsnapped wall point still straightens");
+        assert!(!ortho_straightens(false, None, DraftTool::Wall), "Ortho off changes nothing");
+        assert!(!ortho_straightens(true, Some(SnapKind::Perpendicular), DraftTool::Line), "a perpendicular snap is kept");
     }
 }
